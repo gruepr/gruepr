@@ -30,25 +30,25 @@
       <number>0</number>
      </property>
      <item alignment="Qt::AlignmentFlag::AlignLeft">
-      <widget class="QLabel" name="requested_numRequestsExplanation">
+      <widget class="QLabel" name="numRequestsGrantedExplanation">
        <property name="text">
-        <string>From their list of requests, each student will be put on a team with at least:</string>
+        <string>How many of each student's requested teammates must end up on their team?</string>
        </property>
       </widget>
      </item>
      <item alignment="Qt::AlignmentFlag::AlignLeft">
-      <widget class="QSpinBox" name="requested_numRequestsSpinBox">
-       <property name="suffix">
-        <string> teammate </string>
+      <widget class="QSpinBox" name="numRequestsGrantedSpinBox">
+       <property name="specialValueText">
+        <string>all of them</string>
+       </property>
+       <property name="prefix">
+        <string>at least </string>
        </property>
        <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>10</number>
+        <number>0</number>
        </property>
        <property name="value">
-        <number>1</number>
+        <number>0</number>
        </property>
       </widget>
      </item>
@@ -64,20 +64,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="LabelWithInstantTooltip" name="requested_lightbulb">
-       <property name="pixmap">
-        <pixmap resource="../gruepr.qrc">:/icons_new/lightbulb.png</pixmap>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="LabelWithInstantTooltip" name="requested_whatsThisLabel">
-       <property name="text">
-        <string>What is a &quot;requested teammate&quot;?</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
@@ -107,7 +93,7 @@
         <x>0</x>
         <y>0</y>
         <width>868</width>
-        <height>559</height>
+        <height>593</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="incompScrollAreaLayout">
@@ -189,16 +175,7 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>LabelWithInstantTooltip</class>
-   <extends>QLabel</extends>
-   <header>widgets/labelWithInstantTooltip.h</header>
-  </customwidget>
- </customwidgets>
- <resources>
-  <include location="../gruepr.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>

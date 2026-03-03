@@ -117,10 +117,16 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     for (int j = i; j < MAX_CRITERIA; j++) {
         weights[j] = 1.0f;   // safe default: unweighted = raw score stays in [0,1]
     }
-    haveAnyRequiredTeammates = jsonTeamingOptions["haveAnyRequiredTeammates"].toBool();
-    haveAnyPreventedTeammates = jsonTeamingOptions["haveAnyPreventedTeammates"].toBool();
-    haveAnyRequestedTeammates = jsonTeamingOptions["haveAnyRequestedTeammates"].toBool();
-    numberRequestedTeammatesGiven = jsonTeamingOptions["numberRequestedTeammatesGiven"].toInt();
+    haveAnyGroupTogethers = jsonTeamingOptions.contains("haveAnyGroupTogethers") ?
+                                jsonTeamingOptions["haveAnyGroupTogethers"].toBool()
+                                : jsonTeamingOptions["haveAnyRequiredTeammates"].toBool() ||        // old Terminology
+                                  jsonTeamingOptions["haveAnyRequestedTeammates"].toBool();
+    haveAnySplitAparts = jsonTeamingOptions.contains("haveAnySplitAparts") ?
+                            jsonTeamingOptions["haveAnySplitAparts"].toBool()
+                            : jsonTeamingOptions["haveAnyPreventedTeammates"].toBool();             // old Terminology
+    numberGroupTogethersGiven = jsonTeamingOptions.contains("numberGroupTogethersGiven") ?
+                                    jsonTeamingOptions["numberGroupTogethersGiven"].toInt()
+                                    : jsonTeamingOptions["numberRequestedTeammatesGiven"].toInt();  // old Terminology
     const QJsonArray smallerTeamsSizesArray = jsonTeamingOptions["smallerTeamsSizes"].toArray();
     for (const auto &val : smallerTeamsSizesArray) {
         const int size = val.toInt();
@@ -162,9 +168,8 @@ void TeamingOptions::reset()
         haveAnyIncompatibleAttributes[i] = false;
         incompatibleAttributeValues[i].clear();
     }
-    haveAnyRequiredTeammates = false;
-    haveAnyPreventedTeammates = false;
-    haveAnyRequestedTeammates = false;
+    haveAnyGroupTogethers = false;
+    haveAnySplitAparts = false;
     sectionName.clear();
     teamsetNumber = 1;
 }
@@ -247,10 +252,9 @@ QJsonObject TeamingOptions::toJson() const
         {"scheduleWeight", scheduleWeight},
         {"realScheduleWeight", realScheduleWeight},
         {"realNumScoringFactors", realNumScoringFactors},
-        {"haveAnyRequiredTeammates", haveAnyRequiredTeammates},
-        {"haveAnyPreventedTeammates", haveAnyPreventedTeammates},
-        {"haveAnyRequestedTeammates", haveAnyRequestedTeammates},
-        {"numberRequestedTeammatesGiven", numberRequestedTeammatesGiven},
+        {"haveAnyGroupTogethers", haveAnyGroupTogethers},
+        {"haveAnySplitAparts", haveAnySplitAparts},
+        {"numberGroupTogethersGiven", numberGroupTogethersGiven},
         {"idealTeamSize", idealTeamSize},
         {"smallerTeamsSizes", smallerTeamsSizesArray},
         {"smallerTeamsNumTeams", smallerTeamsNumTeams},

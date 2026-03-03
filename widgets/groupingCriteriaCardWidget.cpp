@@ -74,9 +74,8 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
             return;
             break;
         }
-    case Criterion::CriteriaType::requiredTeammates:
-    case Criterion::CriteriaType::preventedTeammates:
-    case Criterion::CriteriaType::requestedTeammates:
+    case Criterion::CriteriaType::groupTogether:
+    case Criterion::CriteriaType::splitApart:
         criterion = new TeammatesCriterion(criterionType, 0, true, this);
         break;
     case Criterion::CriteriaType::gradeBalance:

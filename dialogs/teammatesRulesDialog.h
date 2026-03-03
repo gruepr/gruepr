@@ -19,7 +19,7 @@ class TeammatesRulesDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum class TypeOfTeammates{required = 0, prevented = 1, requested = 2}; // int values correspond to the ui's tabwidget tab index
+    enum class TypeOfTeammates{groupTogether, splitApart};
     explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
                                   const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, QWidget *parent = nullptr);
     ~TeammatesRulesDialog() override;
@@ -30,7 +30,7 @@ public:
 
     QList<StudentRecord> students;
     bool teammatesSpecified = false;
-    int numberRequestedTeammatesGiven = 1;
+    int numberGroupTogethersGiven = 1;
 
     // Header widgets (public so layout can be managed)
     QHBoxLayout *headerLayout = nullptr;
@@ -66,9 +66,8 @@ private:
 
     static QString typeToString(TypeOfTeammates type) {
         switch(type) {
-        case TypeOfTeammates::required:  return tr("Required");
-        case TypeOfTeammates::prevented: return tr("Prevented");
-        case TypeOfTeammates::requested: return tr("Requested");
+        case TypeOfTeammates::splitApart: return tr("Split Apart");
+        case TypeOfTeammates::groupTogether: return tr("Group Together");
         }
         return {};
     }

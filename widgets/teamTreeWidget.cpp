@@ -155,20 +155,16 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
                 break;
             }
             case Criterion::CriteriaType::scheduleMeetingTimes:
-                headerLabels << tr("Meeting times");
-                headerView->setColumnElideMode(i++, Qt::ElideMiddle);
+                headerLabels << tr("Meeting\ntimes");
+                headerView->setColumnElideMode(i++, Qt::ElideNone);
                 break;
-            case Criterion::CriteriaType::requiredTeammates:
-                headerLabels << tr("Required teammates");
-                headerView->setColumnElideMode(i++, Qt::ElideMiddle);
+            case Criterion::CriteriaType::groupTogether:
+                headerLabels << tr("Required\nteammates");
+                headerView->setColumnElideMode(i++, Qt::ElideNone);
                 break;
-            case Criterion::CriteriaType::preventedTeammates:
-                headerLabels << tr("Prevented teammates");
-                headerView->setColumnElideMode(i++, Qt::ElideMiddle);
-                break;
-            case Criterion::CriteriaType::requestedTeammates:
-                headerLabels << tr("Requested teammates");
-                headerView->setColumnElideMode(i++, Qt::ElideMiddle);
+            case Criterion::CriteriaType::splitApart:
+                headerLabels << tr("Prevented\nteammates");
+                headerView->setColumnElideMode(i++, Qt::ElideNone);
                 break;
             default:
                 break;
@@ -391,9 +387,8 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
                 column++;
                 break;
             }
-            case Criterion::CriteriaType::requiredTeammates:
-            case Criterion::CriteriaType::preventedTeammates:
-            case Criterion::CriteriaType::requestedTeammates: {
+            case Criterion::CriteriaType::groupTogether:
+            case Criterion::CriteriaType::splitApart: {
                 const auto score = findCriterionScore(team, teamingOptions, criterion->criteriaType, -1);
                 QString statusText = "—";
                 int sortVal = 0;
@@ -544,8 +539,20 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
                 column++;
                 break;
             }
+            case Criterion::CriteriaType::groupTogether:{
+                studentItem->setText(column, stu.groupTogether.isEmpty()? "" : QString(BULLET));
+                studentItem->setTextAlignment(column, Qt::AlignCenter);
+                studentItem->setToolTip(column, stu.tooltip);
+                column++;
+            }
+            case Criterion::CriteriaType::splitApart:{
+                studentItem->setText(column, stu.splitApart.isEmpty()? "" : QString(BULLET));
+                studentItem->setTextAlignment(column, Qt::AlignCenter);
+                studentItem->setToolTip(column, stu.tooltip);
+                column++;
+            }
             default: {
-                // blank for teammate columns, schedule column
+                // blank for schedule column
                 studentItem->setText(column, "");
                 studentItem->setToolTip(column, stu.tooltip);
                 column++;

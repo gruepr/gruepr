@@ -11,26 +11,18 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 
     QString typeString;
     TeammatesRulesDialog::TypeOfTeammates type;
-    switch(criteriaType) {
-    case Criterion::CriteriaType::requiredTeammates:
-        typeString = " Required ";
-        type = TeammatesRulesDialog::TypeOfTeammates::required;
-        break;
-    case Criterion::CriteriaType::preventedTeammates:
-        typeString = " Prevented ";
-        type = TeammatesRulesDialog::TypeOfTeammates::prevented;
-        break;
-    case Criterion::CriteriaType::requestedTeammates:
-        typeString = " Requested ";
-        type = TeammatesRulesDialog::TypeOfTeammates::requested;
-        break;
-    default:
-        return;
+    if(criteriaType == Criterion::CriteriaType::groupTogether) {
+        typeString = tr("group together");
+        type = TeammatesRulesDialog::TypeOfTeammates::groupTogether;
+    }
+    else {
+        typeString = tr("split apart");
+        type = TeammatesRulesDialog::TypeOfTeammates::splitApart;
     }
 
     auto *teammatesContentAreaLayout = new QVBoxLayout();
 
-    setTeammateRulesButton = new QPushButton(tr("Set") + typeString + tr("Teammate Rules"), parentCard);
+    setTeammateRulesButton = new QPushButton(tr("Select which students to ") + typeString, parentCard);
     setTeammateRulesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     setTeammateRulesButton->setMinimumHeight(30);
     setTeammateRulesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -51,15 +43,15 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
         int count = 0;
         for (const auto &student : std::as_const(grueprParent->students)) {
             if (!student.deleted) {
-                switch (type) {
-                case TeammatesRulesDialog::TypeOfTeammates::required:  count += student.requiredWith.size();  break;
-                case TeammatesRulesDialog::TypeOfTeammates::prevented: count += student.preventedWith.size(); break;
-                case TeammatesRulesDialog::TypeOfTeammates::requested: count += student.requestedWith.size(); break;
+                if (type == TeammatesRulesDialog::TypeOfTeammates::splitApart) {
+                    count += student.splitApart.size();
+                }
+                else {
+                    count += student.groupTogether.size();
                 }
             }
         }
-        if (type != TeammatesRulesDialog::TypeOfTeammates::requested)
-            count /= 2;
+        count /= 2; // undo double-count of Student A -> Student B and then again Student B -> Student A
         pairingCountLabel->setText(count == 0 ? tr("No pairings set")
                                               : QString::number(count) + (count == 1 ? tr(" pairing set") : tr(" pairings set")));
     };
@@ -79,17 +71,12 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
             for (int i = 0; i < grueprParent->students.size(); i++) {
                 grueprParent->students[i] = win->students[i];
             }
-            switch (type) {
-                case TeammatesRulesDialog::TypeOfTeammates::required:
-                    teamingOptions->haveAnyRequiredTeammates = win->teammatesSpecified;
-                    break;
-                case TeammatesRulesDialog::TypeOfTeammates::prevented:
-                    teamingOptions->haveAnyPreventedTeammates = win->teammatesSpecified;
-                    break;
-                case TeammatesRulesDialog::TypeOfTeammates::requested:
-                    teamingOptions->haveAnyRequestedTeammates = win->teammatesSpecified;
-                    teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
-                    break;
+            if(type == TeammatesRulesDialog::TypeOfTeammates::groupTogether) {
+                teamingOptions->haveAnyGroupTogethers = win->teammatesSpecified;
+                teamingOptions->numberGroupTogethersGiven = win->numberGroupTogethersGiven;
+            }
+            else {
+                teamingOptions->haveAnySplitAparts = win->teammatesSpecified;
             }
             grueprParent->saveState();
             updatePairingCount();
@@ -103,7 +90,7 @@ void TeammatesCriterion::calculateScore(const StudentRecord *const students, con
                                         const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
                                         std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
 {
-    // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
+    // Get all IDs being teamed (so that we can make sure we only check the groupTogethers/splitAparts that are actually within this teamset)
     std::set<long long> IDsBeingTeamed;
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -116,61 +103,50 @@ void TeammatesCriterion::calculateScore(const StudentRecord *const students, con
     // Loop through each team
     studentNum = 0;
     std::set<long long> IDsOnTeam;
-    std::multiset<long long> relevantIDsOnTeam;
-    std::vector<std::set<long long>> requestedIDs;
+    std::vector<std::set<long long>> allRequestedIDs;
+    std::multiset<long long> allPreventedIDs;
 
     for(int team = 0; team < numTeams; team++) {
         IDsOnTeam.clear();
-        relevantIDsOnTeam.clear();
-        requestedIDs.clear();
+        allRequestedIDs.clear();
+        allPreventedIDs.clear();
 
-        //loop through each student on team and collect their ID and their required/prevented/requested IDs
+        //loop through each student on team and collect their ID and their groupTogether/splitApart IDs
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
             const auto &currStudent = students[teammates[studentNum]];
             IDsOnTeam.insert(currStudent.ID);
 
-            std::set<long long> requestedByThis;
+            std::set<long long> requestedByThisStudent;
             for (const auto id : IDsBeingTeamed) {
-                if (criteriaType == CriteriaType::requiredTeammates  && currStudent.requiredWith.contains(id))
-                    relevantIDsOnTeam.insert(id);
-                if (criteriaType == CriteriaType::preventedTeammates && currStudent.preventedWith.contains(id))
-                    relevantIDsOnTeam.insert(id);
-                if (criteriaType == CriteriaType::requestedTeammates && currStudent.requestedWith.contains(id))
-                    requestedByThis.insert(id);
+                if (criteriaType == CriteriaType::groupTogether  && currStudent.groupTogether.contains(id))
+                    requestedByThisStudent.insert(id);
+                if (criteriaType == CriteriaType::splitApart && currStudent.splitApart.contains(id))
+                    allPreventedIDs.insert(id);
             }
-            if (criteriaType == CriteriaType::requestedTeammates)
-                requestedIDs.push_back(requestedByThis);
+            allRequestedIDs.push_back(requestedByThisStudent);
             studentNum++;
         }
 
         criteriaScores[team] = 1;
 
-        if (criteriaType == CriteriaType::requiredTeammates && teamingOptions->haveAnyRequiredTeammates) {
-            for (const auto id : relevantIDsOnTeam) {
-                if (IDsOnTeam.count(id) == 0) {
-                    criteriaScores[team] = 0;
-                    if (penaltyStatus) {
-                        penaltyPoints[team]++;
-                    }
-                }
-            }
-        } else if (criteriaType == CriteriaType::preventedTeammates && teamingOptions->haveAnyPreventedTeammates) {
-            for (const auto id : relevantIDsOnTeam) {
-                if (IDsOnTeam.count(id) != 0) {
-                    criteriaScores[team] = 0;
-                    if (penaltyStatus) {
-                        penaltyPoints[team]++;
-                    }
-                }
-            }
-        } else if (criteriaType == CriteriaType::requestedTeammates && teamingOptions->haveAnyRequestedTeammates) {
-            for (const auto& reqSet : requestedIDs) {
+        if (criteriaType == CriteriaType::groupTogether && teamingOptions->haveAnyGroupTogethers) {
+            for (const auto& reqSet : allRequestedIDs) {
                 int found = 0;
                 for (const auto id : reqSet)
                     if (IDsOnTeam.count(id)) {
                         found++;
                     }
-                if (found < std::min(int(reqSet.size()), teamingOptions->numberRequestedTeammatesGiven)) {
+                if (found < std::min(int(reqSet.size()), teamingOptions->numberGroupTogethersGiven)) {
+                    criteriaScores[team] = 0;
+                    if (penaltyStatus) {
+                        penaltyPoints[team]++;
+                    }
+                }
+            }
+        }
+        else if (criteriaType == CriteriaType::splitApart && teamingOptions->haveAnySplitAparts) {
+            for (const auto id : allPreventedIDs) {
+                if (IDsOnTeam.count(id) != 0) {
                     criteriaScores[team] = 0;
                     if (penaltyStatus) {
                         penaltyPoints[team]++;

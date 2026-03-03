@@ -3,6 +3,7 @@
 
 #include "dataOptions.h"
 #include "studentRecord.h"
+#include <QMetaEnum>
 #include <QObject>
 
 class GroupingCriteriaCard;
@@ -13,12 +14,20 @@ class Criterion : public QObject {
 
 public:
     enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion, scheduleMeetingTimes,
-                             requiredTeammates, preventedTeammates, requestedTeammates, gradeBalance};
+                             groupTogether, splitApart, gradeBalance};
+    Q_ENUM(CriteriaType)
+    static inline int resolveCriteriaTypeKey(const QMetaEnum &e, const QString &name) {
+        // migrate old enum names to new
+        if (name == "requiredTeammates")  return e.keyToValue("groupTogether");
+        if (name == "requestedTeammates") return e.keyToValue("groupTogether");
+        if (name == "preventedTeammates") return e.keyToValue("splitApart");
+        return e.keyToValue(qPrintable(name));
+    }
+
     enum class Precedence {fixed, need, want};
     enum class AttributeDiversity {diverse, ignored, similar};  // diverse = heterogeneous (i.e., teammates have a range of values)
                                                                 // similar = homogeneous (i.e., all teammates have the same value)
     Q_ENUM(AttributeDiversity)
-    Q_ENUM(CriteriaType)
 
     float weight;
     Precedence precedence = Precedence::want;

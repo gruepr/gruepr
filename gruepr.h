@@ -151,9 +151,8 @@ private:
     QAction *urmMenuAction = nullptr;
     QAction *gradeMenuAction = nullptr;
     QAction *scheduleMenuAction = nullptr;
-    QAction *requiredTeammatesMenuAction = nullptr;
-    QAction *preventedTeammatesMenuAction = nullptr;
-    QAction *requestedTeammatesMenuAction = nullptr;
+    QAction *groupTogetherMenuAction = nullptr;
+    QAction *splitApartMenuAction = nullptr;
     QList<QAction*> attributeMenuActions;
     void addCriteriaCard(Criterion::CriteriaType criteriaType);
     void addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute);

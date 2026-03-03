@@ -24,6 +24,9 @@ inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a te
                                                                       // the inverse of this factor (e.g., 2 means next additional hour is worth 1/2; next is worth 1/4; then 1/8, etc.)
                                                                       // DO NOT CHANGE TO ZERO--WILL CAUSE DIV. BY ZERO CRASH
 
+inline static const int REQUESTED_TEAMMATES_ALL = MAX_STUDENTS + 1;   // large sentinel constant to indicate that ALL of the requested
+                                                                      // teammates (rather than a subset) should be kept together
+
 inline static const int PRINTOUT_FONTSIZE = 9;
 
 // define the unicode characters for left and right arrows and other glyphs

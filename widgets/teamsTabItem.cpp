@@ -183,7 +183,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     sendToPreventedTeammates->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     sendToPreventedTeammates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sendToPreventedTeammates->setFlat(true);
-    sendToPreventedTeammates->setToolTip(tr("<html>Create a new set of teams, adding all of these teammates as \"Prevented Teammates\"</html>"));
+    sendToPreventedTeammates->setToolTip(tr("<html>Create a new set of teams, splitting apart all of these teammates</html>"));
     connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makeNewSetWithAllNewTeammates);
     teamOptionsLayout->addWidget(sendToPreventedTeammates);
 
@@ -293,11 +293,10 @@ QJsonObject TeamsTabItem::toJson() const
 
 void TeamsTabItem::restoreCriterionTypes(const QList<GroupingCriteriaCard*> &criteriaCards)
 {
-    auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
-
     for (int i = 0; i < savedCriterionMap.size() && i < teamingOptions->realNumScoringFactors; i++) {
         const QJsonObject entry = savedCriterionMap[i].toObject();
-        const int typeInt = criteriaTypeEnum.keyToValue(qPrintable(entry["criteriaType"].toString()));
+        auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
+        const int typeInt = Criterion::resolveCriteriaTypeKey(criteriaTypeEnum, entry["criteriaType"].toString());
         if (typeInt == -1) {
             teamingOptions->criteria[i] = nullptr;
             continue;
@@ -986,16 +985,12 @@ void TeamsTabItem::undoRedoDragDrop()
 
 void TeamsTabItem::makeNewSetWithAllNewTeammates()
 {
-    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
-        const bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current ") + (teamingOptions->haveAnyRequiredTeammates? tr("required") : "") +
-                                                                             ((teamingOptions->haveAnyRequiredTeammates && teamingOptions->haveAnyRequestedTeammates)? tr(" and ") : "") +
-                                                                             ((teamingOptions->haveAnyRequestedTeammates)? tr("requested") : "") +
-                                                                            tr(" teammate settings. Do you want to continue?"),
+    if(teamingOptions->haveAnyGroupTogethers) {
+        const bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current required teammate settings. Do you want to continue?"),
                                                             tr("Yes"), tr("No"));
         if(yesDoIt) {
             for(auto &student : *externalStudents) {
-                student.requiredWith.clear();
-                student.requestedWith.clear();
+                student.groupTogether.clear();
             }
         }
         else {
@@ -1016,13 +1011,13 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
                     if(stu == nullptr) {
                         continue;
                     }
-                    stu->preventedWith << ID2;
+                    stu->splitApart << ID2;
                 }
             }
         }
     }
 
-    externalTeamingOptions->haveAnyPreventedTeammates = true;
+    externalTeamingOptions->haveAnySplitAparts = true;
     externalDoItButton->animateClick();
 }
 

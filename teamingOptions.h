@@ -45,10 +45,9 @@ public:
     float scheduleWeight = 1;
     float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
     int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of criteria to group by (excluding teamsize and section)
-    bool haveAnyRequiredTeammates = false;
-    bool haveAnyPreventedTeammates = false;
-    bool haveAnyRequestedTeammates = false;
-    int numberRequestedTeammatesGiven = 1;
+    bool haveAnyGroupTogethers = false;
+    bool haveAnySplitAparts = false;
+    int numberGroupTogethersGiven = REQUESTED_TEAMMATES_ALL;
     int idealTeamSize = 4;
     QList<int> smallerTeamsSizes;
     int smallerTeamsNumTeams = 1;

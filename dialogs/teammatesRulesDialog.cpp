@@ -23,7 +23,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    setWindowTitle(tr("Teammate rules") + " — " + m_typeText);
+    setWindowTitle(tr("Select Students to ") + m_typeText);
     setSizeGripEnabled(true);
     setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
@@ -59,28 +59,22 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
 
     ui->valuesFrame->setStyleSheet(BLUEFRAME);
 
-    // Requested-only widgets — show only when type is requested
-    const bool isRequested = (m_type == TypeOfTeammates::requested);
-    ui->requested_numRequestsExplanation->setVisible(isRequested);
-    ui->requested_numRequestsSpinBox->setVisible(isRequested);
-    ui->requested_lightbulb->setVisible(isRequested);
-    ui->requested_whatsThisLabel->setVisible(isRequested);
-    if (isRequested) {
-        ui->requested_numRequestsSpinBox->setStyleSheet(SPINBOXSTYLE);
-        ui->requested_numRequestsSpinBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
-        connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this,
-                [this](int v) { numberRequestedTeammatesGiven = v; });
-        connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int v) {
-            ui->requested_numRequestsSpinBox->setSuffix(v > 1 ? tr(" teammates") : tr(" teammate "));
+    // UI elements to show only when type is groupTogether
+    const bool isGroupTogether = (m_type == TypeOfTeammates::groupTogether);
+    ui->numRequestsGrantedExplanation->setVisible(isGroupTogether);
+    ui->numRequestsGrantedExplanation->setStyleSheet(LABEL12PTSTYLE);
+    ui->numRequestsGrantedSpinBox->setVisible(isGroupTogether);
+    if (isGroupTogether) {
+        ui->numRequestsGrantedSpinBox->setStyleSheet(SPINBOXSTYLE);
+        ui->numRequestsGrantedSpinBox->setValue(teamingOptions.numberGroupTogethersGiven == REQUESTED_TEAMMATES_ALL? 0 : teamingOptions.numberGroupTogethersGiven);
+        connect(ui->numRequestsGrantedSpinBox, &QSpinBox::valueChanged, this, [this](int v) {
+            if(v == 0) {
+                numberGroupTogethersGiven = REQUESTED_TEAMMATES_ALL;
+            }
+            else {
+                numberGroupTogethersGiven = v;
+            }
         });
-        ui->requested_lightbulb->setPixmap(
-            QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        ui->requested_lightbulb->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
-        ui->requested_whatsThisLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
-        const QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when you want to ensure that "
-                                    "students will be placed on a team with a certain number of teammates from a list.</span></html>");
-        ui->requested_lightbulb->setToolTipText(helpText);
-        ui->requested_whatsThisLabel->setToolTipText(helpText);
     }
 
     ui->loadButton->setStyleSheet(SMALLTOOLBUTTONSTYLEINVERTED);
@@ -205,7 +199,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
     else {
         tableWidget->setColumnCount(1);
     }
-    tableWidget->setHorizontalHeaderItem(column, new QTableWidgetItem(m_typeText + "\n" + tr("Teammate #1")));
+    tableWidget->setHorizontalHeaderItem(column, new QTableWidgetItem(m_typeText + "\n" + tr("Student #1")));
     tableWidget->setRowCount(0);
     teammatesSpecified = false;     // assume no teammates specified until we find one
 
@@ -237,7 +231,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
         if (requestsInSurvey) {
             auto *stuPrefText = new QLabel(this);
             stuPrefText->setStyleSheet("QLabel {font-size: 10pt; font-family: 'DM Sans'; font-style: italic; color: black;}");
-            stuPrefText->setText(m_type == TypeOfTeammates::prevented
+            stuPrefText->setText(m_type == TypeOfTeammates::splitApart
                                      ? filteredStudent->prefNonTeammates
                                      : filteredStudent->prefTeammates);
             tableWidget->setCellWidget(row, 0, stuPrefText);
@@ -245,9 +239,12 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
 
         for (const auto studentBID : std::as_const(allIDs)) {
             bool printStudent = false;
-            if      (m_type == TypeOfTeammates::required)  printStudent = filteredStudent->requiredWith.contains(studentBID);
-            else if (m_type == TypeOfTeammates::prevented) printStudent = filteredStudent->preventedWith.contains(studentBID);
-            else                                           printStudent = filteredStudent->requestedWith.contains(studentBID);
+            if (m_type == TypeOfTeammates::groupTogether) {
+                printStudent = filteredStudent->groupTogether.contains(studentBID);
+            }
+            else {
+                printStudent = filteredStudent->splitApart.contains(studentBID);
+            }
 
             if (printStudent) {
                 atLeastOneTeammate = true;
@@ -277,9 +274,14 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                         [this, filteredStudent, studentB, searchBarText] {
                             const int vPos = tableWidget->verticalScrollBar()->value();
                             const int hPos = tableWidget->horizontalScrollBar()->value();
-                            if      (m_type == TypeOfTeammates::required)  { filteredStudent->requiredWith.remove(studentB->ID);  studentB->requiredWith.remove(filteredStudent->ID); }
-                            else if (m_type == TypeOfTeammates::prevented) { filteredStudent->preventedWith.remove(studentB->ID); studentB->preventedWith.remove(filteredStudent->ID); }
-                            else                                           { filteredStudent->requestedWith.remove(studentB->ID); }
+                            if (m_type == TypeOfTeammates::groupTogether)  {
+                                filteredStudent->groupTogether.remove(studentB->ID);
+                                studentB->groupTogether.remove(filteredStudent->ID);
+                            }
+                            else {
+                                filteredStudent->splitApart.remove(studentB->ID);
+                                studentB->splitApart.remove(filteredStudent->ID);
+                            }
                             refreshDisplay(vPos, hPos, searchBarText);
                             initializeTableHeaders(searchBarText);
                         });
@@ -344,9 +346,14 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                         showToast(this, tr("Cannot pair a student with themselves."));
                         return;
                     }
-                    if      (m_type == TypeOfTeammates::required)  { filteredStudent->requiredWith.insert(paired->ID);  paired->requiredWith.insert(filteredStudent->ID); }
-                    else if (m_type == TypeOfTeammates::prevented) { filteredStudent->preventedWith.insert(paired->ID); paired->preventedWith.insert(filteredStudent->ID); }
-                    else                                           { filteredStudent->requestedWith.insert(paired->ID); }
+                    if (m_type == TypeOfTeammates::groupTogether) {
+                        filteredStudent->groupTogether.insert(paired->ID);
+                        paired->groupTogether.insert(filteredStudent->ID);
+                    }
+                    else {
+                        filteredStudent->splitApart.insert(paired->ID);
+                        paired->splitApart.insert(filteredStudent->ID);
+                    }
                     const int vPos = tableWidget->verticalScrollBar()->value();
                     const int hPos = tableWidget->horizontalScrollBar()->value();
                     refreshDisplay(vPos, hPos, searchBarText);
@@ -422,22 +429,18 @@ void TeammatesRulesDialog::clearValues(bool verify)
 {
     if (verify) {
         const bool ok = grueprGlobal::warningMessage(this, "gruepr",
-                                                     tr("This will remove all rules in the ") + m_typeText.toLower() +
-                                                         tr(" teammates table.\nAre you sure you want to continue?"),
+                                                     tr("This will remove all values in the table.\nAre you sure you want to continue?"),
                                                      tr("Yes"), tr("No"));
         if (!ok) return;
     }
     for (auto &student : students) {
         if ((sectionName == "") || (sectionName == student.section)) {
             for (int i = 0; i < numStudents; i++) {
-                if (m_type == TypeOfTeammates::required) {
-                    student.requiredWith.remove(i);
-                }
-                else if (m_type == TypeOfTeammates::prevented){
-                    student.preventedWith.remove(i);
+                if (m_type == TypeOfTeammates::groupTogether) {
+                    student.groupTogether.remove(i);
                 }
                 else {
-                    student.requestedWith.remove(i);
+                    student.splitApart.remove(i);
                 }
             }
         }
@@ -549,7 +552,7 @@ bool TeammatesRulesDialog::loadCSVFile()
             continue;
         }
 
-        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
+        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a groupTogether / SplitApart pairing
         for(int ID2 = 1; ID2 < IDs.size(); ID2++) {
             if(IDs[0] != IDs[ID2]) {
                 // find the student with ID2
@@ -565,16 +568,13 @@ bool TeammatesRulesDialog::loadCSVFile()
                 }
 
                 //we have at least one specified teammate pair!
-                if(m_type == TypeOfTeammates::required) {
-                    baseStudent->requiredWith << IDs[ID2];
-                    student2->requiredWith << IDs[0];
+                if(m_type == TypeOfTeammates::groupTogether) {
+                    baseStudent->groupTogether << IDs[ID2];
+                    student2->groupTogether << IDs[0];
                 }
-                else if(m_type == TypeOfTeammates::prevented) {
-                    baseStudent->preventedWith << IDs[ID2];
-                    student2->preventedWith << IDs[0];
-                }
-                else {  //whatType == requested
-                    baseStudent->requestedWith << IDs[ID2];
+                else {
+                    baseStudent->splitApart << IDs[ID2];
+                    student2->splitApart << IDs[0];
                 }
             }
         }
@@ -591,7 +591,7 @@ bool TeammatesRulesDialog::loadStudentPrefs()
     for(int basestudent = 0; basestudent < numStudents; basestudent++) {
         if((sectionName == "") || (sectionName == students[basestudent].section)) {
             QStringList prefs;
-            if(m_type == TypeOfTeammates::prevented) {
+            if(m_type == TypeOfTeammates::splitApart) {
                 prefs = students[basestudent].prefNonTeammates.split('\n');
             }
             else {
@@ -635,7 +635,7 @@ bool TeammatesRulesDialog::loadStudentPrefs()
                     continue;
                 }
 
-                //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
+                //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a groupTogether / SplitApart pairing
                 for(int ID2 = 1; ID2 < IDs.size(); ID2++) {
                     if(IDs[0] != IDs[ID2]) {
                         // find the student with ID2
@@ -651,16 +651,13 @@ bool TeammatesRulesDialog::loadStudentPrefs()
                         }
 
                         //we have at least one specified teammate pair!
-                        if(m_type == TypeOfTeammates::required) {
-                            baseStudent->requiredWith << IDs[ID2];
-                            student2->requiredWith << IDs[0];
+                        if(m_type == TypeOfTeammates::groupTogether) {
+                            baseStudent->groupTogether << IDs[ID2];
+                            student2->groupTogether << IDs[0];
                         }
-                        else if(m_type == TypeOfTeammates::prevented) {
-                            baseStudent->preventedWith << IDs[ID2];
-                            student2->preventedWith << IDs[0];
-                        }
-                        else {  //whatType == requested
-                            baseStudent->requestedWith << IDs[ID2];
+                        else {
+                            baseStudent->splitApart << IDs[ID2];
+                            student2->splitApart << IDs[0];
                         }
                     }
                 }
@@ -779,17 +776,13 @@ bool TeammatesRulesDialog::loadSpreadsheetFile()
                     }
 
                     //we have at least one required/prevented teammate pair!
-                    if(m_type == TypeOfTeammates::required) {
-                        student1->requiredWith << IDs[ID2];
-                        student2->requiredWith << IDs[ID1];
+                    if(m_type == TypeOfTeammates::groupTogether) {
+                        student1->groupTogether << IDs[ID2];
+                        student2->groupTogether << IDs[ID1];
                     }
-                    else if(m_type == TypeOfTeammates::prevented) {
-                        student1->preventedWith << IDs[ID2];
-                        student2->preventedWith << IDs[ID1];
-                    }
-                    else {  //whatType == requested
-                        student1->requestedWith << IDs[ID2];
-                        student2->requestedWith << IDs[ID1];
+                    else {
+                        student1->splitApart << IDs[ID2];
+                        student2->splitApart << IDs[ID1];
                     }
                 }
             }

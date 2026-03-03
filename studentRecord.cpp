@@ -59,10 +59,17 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         }
     }
 
-    if(jsonStudentRecord["preventedWithIDs"].type() != QJsonValue::Undefined) {
+    if (jsonStudentRecord.contains("splitApartIDs")) {
+        const QJsonArray splitApartIDsArray = jsonStudentRecord["splitApartIDs"].toArray();
+        for (const auto &val : splitApartIDsArray) {
+            splitApart << val.toInteger();
+        }
+    }
+    else if(jsonStudentRecord["preventedWithIDs"].type() != QJsonValue::Undefined) {
+        // In order to use work saved from more recent prev. versions of gruepr with different terminology
         const QJsonArray preventedWithIDsArray = jsonStudentRecord["preventedWithIDs"].toArray();
         for (const auto &val : preventedWithIDsArray) {
-            preventedWith << val.toInteger();
+            splitApart << val.toInteger();
         }
     }
     else {
@@ -72,43 +79,52 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
         for(int i = 0; i < MAX_IDS; i++) {
             if(preventedWithArray[i].toBool()) {
-                preventedWith << i;
+                splitApart << i;
             }
         }
     }
 
-    if(jsonStudentRecord["requiredWithIDs"].type() != QJsonValue::Undefined) {
-        const QJsonArray requiredWithIDsArray = jsonStudentRecord["requiredWithIDs"].toArray();
-        for (const auto &val : requiredWithIDsArray) {
-            requiredWith << val.toInteger();
+    if (jsonStudentRecord.contains("groupTogetherIDs")) {
+        const QJsonArray groupTogetherIDsArray = jsonStudentRecord["groupTogetherIDs"].toArray();
+        for (const auto &val : groupTogetherIDsArray) {
+            groupTogether << val.toInteger();
         }
     }
     else {
-        // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs.
-        // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
-        const QJsonArray requiredWithArray = jsonStudentRecord["requiredWith"].toArray();
-        const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
-        for(int i = 0; i < MAX_IDS; i++) {
-            if(requiredWithArray[i].toBool()) {
-                requiredWith << i;
+        if(jsonStudentRecord["requiredWithIDs"].type() != QJsonValue::Undefined) {
+            // In order to use work saved from more recent prev. versions of gruepr with different terminology
+            const QJsonArray requiredWithIDsArray = jsonStudentRecord["requiredWithIDs"].toArray();
+            for (const auto &val : requiredWithIDsArray) {
+                groupTogether << val.toInteger();
             }
         }
-    }
-
-    if(jsonStudentRecord["requestedWithIDs"].type() != QJsonValue::Undefined) {
-        const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
-        for (const auto &val : requestedWithIDsArray) {
-            requestedWith << val.toInteger();
+        else {
+            // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs.
+            // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
+            const QJsonArray requiredWithArray = jsonStudentRecord["requiredWith"].toArray();
+            const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
+            for(int i = 0; i < MAX_IDS; i++) {
+                if(requiredWithArray[i].toBool()) {
+                    groupTogether << i;
+                }
+            }
         }
-    }
-    else {
-        // this is for backwards compatability--teamRecord formerly saved the students as their indexes in the students array rather than IDs
-        // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
-        const QJsonArray requestedWithArray = jsonStudentRecord["requestedWith"].toArray();
-        const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
-        for(int i = 0; i < MAX_IDS; i++) {
-            if(requestedWithArray[i].toBool()) {
-                requestedWith << i;
+        if(jsonStudentRecord["requestedWithIDs"].type() != QJsonValue::Undefined) {
+            // In order to use work saved from more recent prev. versions of gruepr with different terminology
+            const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
+            for (const auto &val : requestedWithIDsArray) {
+                groupTogether << val.toInteger();
+            }
+        }
+        else {
+            // this is for backwards compatability--teamRecord formerly saved the students as their indexes in the students array rather than IDs
+            // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
+            const QJsonArray requestedWithArray = jsonStudentRecord["requestedWith"].toArray();
+            const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
+            for(int i = 0; i < MAX_IDS; i++) {
+                if(requestedWithArray[i].toBool()) {
+                    groupTogether << i;
+                }
             }
         }
     }
@@ -138,9 +154,8 @@ void StudentRecord::clear() {
     }
     timezone = 0;
     ambiguousSchedule = false;
-    preventedWith.clear();
-    requiredWith.clear();
-    requestedWith.clear();
+    splitApart.clear();
+    groupTogether.clear();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeVals[i].clear();
         attributeResponse[i].clear();
@@ -588,7 +603,7 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
 
 QJsonObject StudentRecord::toJson() const
 {
-    QJsonArray gendersArray, unavailableArray, preventedWithArray, requiredWithArray, requestedWithArray, attributeValsArray, attributeResponseArray;
+    QJsonArray gendersArray, unavailableArray, splitApartArray, groupTogetherArray, attributeValsArray, attributeResponseArray;
     for(const auto &unavailableDay : unavailable) {
         QJsonArray unavailableArraySubArray;
         for(const auto unavailableTime : unavailableDay) {
@@ -599,14 +614,11 @@ QJsonObject StudentRecord::toJson() const
     for(const auto g : gender) {
         gendersArray.append(static_cast<int>(g));
     }
-    for(const auto id : preventedWith) {
-        preventedWithArray.append(id);
+    for(const auto id : splitApart) {
+        splitApartArray.append(id);
     }
-    for(const auto id : requiredWith) {
-        requiredWithArray.append(id);
-    }
-    for(const auto id : requestedWith) {
-        requestedWithArray.append(id);
+    for(const auto id : groupTogether) {
+        groupTogetherArray.append(id);
     }
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeResponseArray.append(attributeResponse[i]);
@@ -627,9 +639,8 @@ QJsonObject StudentRecord::toJson() const
         {"unavailable", unavailableArray},
         {"timezone", timezone},
         {"ambiguousSchedule", ambiguousSchedule},
-        {"preventedWithIDs", preventedWithArray},
-        {"requiredWithIDs", requiredWithArray},
-        {"requestedWithIDs", requestedWithArray},
+        {"splitApartIDs", splitApartArray},
+        {"groupTogetherIDs", groupTogetherArray},
         {"attributeVals", attributeValsArray},
         {"surveyTimestamp", surveyTimestamp.toString(Qt::ISODate)},
         {"firstname", firstname},

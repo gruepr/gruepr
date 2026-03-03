@@ -187,15 +187,14 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
         connect(scheduleMenuAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::scheduleMeetingTimes);});
         addNewCriteriaMenu->addAction(scheduleMenuAction);
     }
-    requiredTeammatesMenuAction = addNewCriteriaMenu->addAction("Required Teammates");
-    connect(requiredTeammatesMenuAction, &QAction::triggered, this, [this](){
-        gruepr::addCriteriaCard(Criterion::CriteriaType::requiredTeammates);});
-    preventedTeammatesMenuAction = addNewCriteriaMenu->addAction("Prevented Teammates");
-    connect(preventedTeammatesMenuAction, &QAction::triggered, this, [this](){
-        gruepr::addCriteriaCard(Criterion::CriteriaType::preventedTeammates);});
-    requestedTeammatesMenuAction = addNewCriteriaMenu->addAction("Requested Teammates");
-    connect(requestedTeammatesMenuAction, &QAction::triggered, this, [this](){
-        gruepr::addCriteriaCard(Criterion::CriteriaType::requestedTeammates);});
+    groupTogetherMenuAction = addNewCriteriaMenu->addAction("Students to group on to the same team");
+    connect(groupTogetherMenuAction, &QAction::triggered, this, [this]() {
+        gruepr::addCriteriaCard(Criterion::CriteriaType::groupTogether);
+    });
+    splitApartMenuAction = addNewCriteriaMenu->addAction("Students to split on to different teams");
+    connect(splitApartMenuAction, &QAction::triggered, this, [this]() {
+        gruepr::addCriteriaCard(Criterion::CriteriaType::splitApart);
+    });
 
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
     letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
@@ -225,7 +224,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     for (const auto &cardJsonVal : std::as_const(savedCriteriaCards)) {
         const QJsonObject cardJson = cardJsonVal.toObject();
         auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
-        const int typeInt = criteriaTypeEnum.keyToValue(qPrintable(cardJson["criteriaType"].toString()));
+        const int typeInt = Criterion::resolveCriteriaTypeKey(criteriaTypeEnum, cardJson["criteriaType"].toString());
         if (typeInt == -1) {
             continue;
         }
@@ -244,7 +243,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     initializeCriteriaCardPriorities();
 
     // Restore criterion types for each saved team tab
-    QList<GroupingCriteriaCard*> allCards = criteriaCardsList + initializedAttributeCriteriaCards;
+    const QList<GroupingCriteriaCard*> allCards = criteriaCardsList + initializedAttributeCriteriaCards;
     for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
         auto *teamTab = qobject_cast<TeamsTabItem*>(ui->dataDisplayTabWidget->widget(tab));
         if (teamTab != nullptr) {
@@ -441,22 +440,20 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             }
             break;
         }
-        case Criterion::CriteriaType::requiredTeammates:
-        case Criterion::CriteriaType::preventedTeammates:
-        case Criterion::CriteriaType::requestedTeammates: {
+        case Criterion::CriteriaType::groupTogether:
+        case Criterion::CriteriaType::splitApart: {
             if (!teammateRulesExistence.contains(criteriaType)) {
                 teammateRulesExistence.append(criteriaType);
-                const QString typeString = (criteriaType == Criterion::CriteriaType::requiredTeammates) ? "Required" :
-                                               (criteriaType == Criterion::CriteriaType::preventedTeammates) ? "Prevented" : "Requested";
+                const QString typeString = (criteriaType == Criterion::CriteriaType::groupTogether) ? tr("group together") : tr("split apart");
                 auto *teammatesCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
-                                                               typeString + tr(" Teammates"), true);
+                                                               tr("Students to ") + typeString, true);
                 criteriaCardsList.append(teammatesCard);
-                if (criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction)
-                    requiredTeammatesMenuAction->setVisible(false);
-                else if (criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction)
-                    preventedTeammatesMenuAction->setVisible(false);
-                else if (criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction)
-                    requestedTeammatesMenuAction->setVisible(false);
+                if (criteriaType == Criterion::CriteriaType::groupTogether && groupTogetherMenuAction != nullptr) {
+                    groupTogetherMenuAction->setVisible(false);
+                }
+                else if (criteriaType == Criterion::CriteriaType::splitApart && splitApartMenuAction != nullptr) {
+                    splitApartMenuAction->setVisible(false);
+                }
             }
             break;
         }
@@ -558,18 +555,16 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
             }
             break;
         }
-        case Criterion::CriteriaType::requiredTeammates:
-        case Criterion::CriteriaType::preventedTeammates:
-        case Criterion::CriteriaType::requestedTeammates: {
+        case Criterion::CriteriaType::groupTogether:
+        case Criterion::CriteriaType::splitApart: {
             const int indexToRemove = teammateRulesExistence.indexOf(criteriaType);
             teammateRulesExistence.remove(indexToRemove);
             delete cardToDelete;
-            if(criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction != nullptr) {
-                requiredTeammatesMenuAction->setVisible(true);
-            } else if(criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction != nullptr) {
-                preventedTeammatesMenuAction->setVisible(true);
-            } else if(criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction != nullptr) {
-                requestedTeammatesMenuAction->setVisible(true);
+            if(criteriaType == Criterion::CriteriaType::groupTogether && groupTogetherMenuAction != nullptr) {
+                groupTogetherMenuAction->setVisible(true);
+            }
+            else if(criteriaType == Criterion::CriteriaType::splitApart && splitApartMenuAction != nullptr) {
+                splitApartMenuAction->setVisible(true);
             }
             break;
         }
@@ -907,12 +902,11 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
         return;
     }
 
-    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
-        // remove this student from all other students who might have them as required/prevented/requested
+    if(teamingOptions->haveAnyGroupTogethers || teamingOptions->haveAnySplitAparts) {
+        // remove this student from all other students who might have them as groupTogether / SplitApart
         for(auto &student : students) {
-            student.requiredWith.remove(ID);
-            student.preventedWith.remove(ID);
-            student.requestedWith.remove(ID);
+            student.splitApart.remove(ID);
+            student.groupTogether.remove(ID);
         }
     }
 
@@ -1283,8 +1277,8 @@ void gruepr::changeIdealTeamSize()
     teamingOptions->idealTeamSize = idealSize;
 
     // First, make sure we don't end up penalizing teams for having fewer requested teammates than the team size allows
-    if(teamingOptions->numberRequestedTeammatesGiven > idealSize) {
-        teamingOptions->numberRequestedTeammatesGiven = idealSize;
+    if(teamingOptions->numberGroupTogethersGiven > idealSize) {
+        teamingOptions->numberGroupTogethersGiven = idealSize;
     }
 
     // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size

@@ -47,6 +47,7 @@
 //  - added free response questions to surveymaker
 //  - Pulling in much of the ***incredible*** dissertation work by Nikhen to modernize the UI
 //  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
+//  - unified "required" and "requested" teammates
 //
 // TO DO FOR V13:
 /*
@@ -56,9 +57,6 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
 
 teamstabwidget.cpp:
     - bug: color of attributes are off in second tab when reopening from saved work, all are red
-
-//  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points)
-//  - unify required and requested teammates
 //  - remove deprecated qtnetwork function calls
 //  - bugfixes on adjusting teams
 */
