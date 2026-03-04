@@ -56,7 +56,7 @@ protected:
     QUrl redirectUri;
     quint16 port;
 
-    virtual QString getScopes() const = 0;
+    virtual QSet<QByteArray> getScopes() const = 0;
     virtual QString getClientID() const = 0;
     virtual QString getClientSecret() const = 0;
     virtual QString getClientAuthorizationUrl() const = 0;

@@ -191,7 +191,8 @@ HEADERS += \
         widgets/surveyMakerQuestion.h \
         widgets/switchButton.h \
         widgets/teamsTabItem.h \
-        widgets/teamTreeWidget.h
+        widgets/teamTreeWidget.h \
+        widgets/verticalspinboxstyle.h
 
 FORMS += \
       dialogs/attributeRulesDialog.ui \

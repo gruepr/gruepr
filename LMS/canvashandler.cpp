@@ -656,7 +656,9 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
     int numPages = 0;
 
     do {
-        reply = OAuthFlow->get(url);
+        QNetworkRequest request(url);
+        request.setRawHeader("Authorization", "Bearer " + OAuthFlow->token().toUtf8());
+        reply = manager->get(request);
 
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
@@ -888,8 +890,12 @@ void CanvasHandler::setBaseURL(const QString &baseAPIURL) {
     baseURL = baseAPIURL;
 }
 
-QString CanvasHandler::getScopes() const {
-    return SCOPES;
+QSet<QByteArray> CanvasHandler::getScopes() const {
+    QSet<QByteArray> result;
+    for (const auto &s : QString(SCOPES).split(' ', Qt::SkipEmptyParts)) {
+        result.insert(s.toUtf8());
+    }
+    return result;
 }
 
 QString CanvasHandler::getClientID() const {

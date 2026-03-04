@@ -57,8 +57,8 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
 
 teamstabwidget.cpp:
     - bug: color of attributes are off in second tab when reopening from saved work, all are red
-//  - remove deprecated qtnetwork function calls
-//  - bugfixes on adjusting teams
+    - bugfixes on adjusting teams
+    - tab name buttons are not auto-resized on mac
 */
 
 //
@@ -107,6 +107,7 @@ teamstabwidget.cpp:
 
 #include "gruepr_globals.h"
 #include "dialogs/startDialog.h"
+#include "widgets/verticalspinboxstyle.h"
 #include <QApplication>
 #include <QFontDatabase>
 #include <QScreen>
@@ -117,7 +118,7 @@ int main(int argc, char *argv[])
 {
     // Set up application
     #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
-        // remove darkmode on Windows
+        // remove darkmode on Windows (it is removed in the plist on macOS)
         qputenv("QT_QPA_PLATFORM", "windows:darkmode=0");
     #endif
     const QApplication a(argc, argv);
@@ -131,6 +132,11 @@ int main(int argc, char *argv[])
     const QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
     qApp->setProperty("_SCREENWIDTH", screenGeometry.width());
     qApp->setProperty("_SCREENHEIGHT", screenGeometry.height());
+
+    #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+        // give spinboxes vertically aligned up and down arrows (which is default on macOS)
+        a.setStyle(new VerticalSpinBoxStyle(a.style()));
+    #endif
 
     // Show splash screen
     const QPixmap splashPic(":/icons_new/splash_new.png");

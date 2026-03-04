@@ -9,16 +9,17 @@
 LMS::LMS(QObject *parent) :
     QObject(parent),
     redirectUri(QString(REDIRECT_URI)),
-    port(static_cast<quint16>(redirectUri.port(REDIRECT_URI_PORT))) {
-}
+    port(static_cast<quint16>(redirectUri.port(REDIRECT_URI_PORT)))
+{ }
 
-void LMS::initOAuth2() {
+void LMS::initOAuth2()
+{
     manager = new QNetworkAccessManager(this);
     manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
     manager->setTransferTimeout(TIMEOUT_TIME);
 
     OAuthFlow = new QOAuth2AuthorizationCodeFlow(manager, this);
-    OAuthFlow->setScope(getScopes());
+    OAuthFlow->setRequestedScopeTokens(getScopes());
     OAuthFlow->setAuthorizationUrl(getClientAuthorizationUrl());
     OAuthFlow->setTokenUrl(getClientAccessTokenUrl());
     OAuthFlow->setClientIdentifier(getClientID());
@@ -37,7 +38,8 @@ void LMS::initOAuth2() {
     //});
 }
 
-bool LMS::authenticate() {
+bool LMS::authenticate()
+{
     if(!OAuthFlow->refreshToken().isEmpty()) {
         OAuthFlow->refreshTokens();
     }
@@ -47,13 +49,18 @@ bool LMS::authenticate() {
     return true;
 }
 
-bool LMS::authenticated() {
+bool LMS::authenticated()
+{
     return OAuthFlow->status() == QAbstractOAuth::Status::Granted;
 }
 
-QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data) {
+QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data)
+{
+    QNetworkRequest request(url);
+    request.setRawHeader("Authorization", "Bearer " + OAuthFlow->token().toUtf8());
+
     QEventLoop loop;
-    auto *reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
+    auto *reply = ((method == Method::get)? manager->get(request) :  manager->post(request, data));
     //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
     //connect(reply, &QNetworkReply::uploadProgress, this, [](qint64 bytesSent, qint64 bytesTotal){qDebug() << "upload " << bytesSent <<" / " << bytesTotal;});
     //connect(reply, &QNetworkReply::downloadProgress, this, [](qint64 bytesReceived, qint64 bytesTotal){qDebug() << "download " << bytesReceived <<" / " << bytesTotal;});
@@ -74,7 +81,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         QEventLoop loop;
         QTimer::singleShot(RETRY_DELAY_TIME, &loop, &QEventLoop::quit);   // delay before retry
         loop.exec();
-        reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
+        reply = ((method == Method::get)? manager->get(request) : manager->post(request, data));
         //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
         //connect(reply, &QNetworkReply::uploadProgress, this, [](qint64 bytesSent, qint64 bytesTotal){qDebug() << "upload " << bytesSent <<" / " << bytesTotal;});
         //connect(reply, &QNetworkReply::downloadProgress, this, [](qint64 bytesReceived, qint64 bytesTotal){qDebug() << "download " << bytesReceived <<" / " << bytesTotal;});
@@ -99,7 +106,8 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
     return replyBody;
 }
 
-QDialog* LMS::actionDialog(QWidget *parent) {
+QDialog* LMS::actionDialog(QWidget *parent)
+{
     auto *dialog = new QDialog(parent);
     dialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
     actionDialogIcon = new QLabel(dialog);
@@ -138,7 +146,8 @@ QDialog* LMS::actionDialog(QWidget *parent) {
     return dialog;
 }
 
-void LMS::actionComplete(QDialog *busyDialog) {
+void LMS::actionComplete(QDialog *busyDialog)
+{
     if(busyDialog != nullptr) {
         busyDialog->accept();
         disconnect(busyDialog);

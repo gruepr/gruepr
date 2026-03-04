@@ -561,8 +561,12 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     }
 }
 
-QString GoogleHandler::getScopes() const {
-    return SCOPES;
+QSet<QByteArray> GoogleHandler::getScopes() const {
+    QSet<QByteArray> result;
+    for (const auto &s : QString(SCOPES).split(' ', Qt::SkipEmptyParts)) {
+        result.insert(s.toUtf8());
+    }
+    return result;
 }
 
 QString GoogleHandler::getClientID() const {
