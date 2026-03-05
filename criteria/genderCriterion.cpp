@@ -78,7 +78,7 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 
 void GenderCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                      const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
-                                     std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+                                     std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
 {
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -136,4 +136,69 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
         }
         criteriaScores[team] *= weight;
     }
+}
+
+QString GenderCriterion::headerLabel(const DataOptions *dataOptions) const {
+    return (dataOptions->genderType == GenderType::pronoun) ? tr("Pronouns") : tr("Gender");
+}
+
+Qt::TextElideMode GenderCriterion::headerElideMode() const {
+    return Qt::ElideNone;
+}
+
+QString GenderCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float /*criterionScore*/) const {
+    QStringList genderInitials;
+    if (dataOptions->genderType == GenderType::biol) {
+        genderInitials = QString(BIOLGENDERSINITIALS).split('/');
+    } else if (dataOptions->genderType == GenderType::adult) {
+        genderInitials = QString(ADULTGENDERSINITIALS).split('/');
+    } else if (dataOptions->genderType == GenderType::child) {
+        genderInitials = QString(CHILDGENDERSINITIALS).split('/');
+    } else {
+        genderInitials = QString(PRONOUNSINITIALS).split('/');
+    }
+
+    QString genderText;
+    if (team.numWomen > 0) {
+        genderText += QString::number(team.numWomen) + genderInitials.at(static_cast<int>(Gender::woman));
+        if (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0) genderText += ", ";
+    }
+    if (team.numMen > 0) {
+        genderText += QString::number(team.numMen) + genderInitials.at(static_cast<int>(Gender::man));
+        if (team.numNonbinary > 0 || team.numUnknown > 0) genderText += ", ";
+    }
+    if (team.numNonbinary > 0) {
+        genderText += QString::number(team.numNonbinary) + genderInitials.at(static_cast<int>(Gender::nonbinary));
+        if (team.numUnknown > 0) genderText += ", ";
+    }
+    if (team.numUnknown > 0) {
+        genderText += QString::number(team.numUnknown) + genderInitials.at(static_cast<int>(Gender::unknown));
+    }
+    return genderText;
+}
+
+QVariant GenderCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+    return team.numMen - team.numWomen;
+}
+
+QString GenderCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const {
+    QStringList genderOptions;
+    if (dataOptions->genderType == GenderType::biol) {
+        genderOptions = QString(BIOLGENDERS).split('/');
+    } else if (dataOptions->genderType == GenderType::adult) {
+        genderOptions = QString(ADULTGENDERS).split('/');
+    } else if (dataOptions->genderType == GenderType::child) {
+        genderOptions = QString(CHILDGENDERS).split('/');
+    } else {
+        genderOptions = QString(PRONOUNS).split('/');
+    }
+
+    QString text;
+    bool first = true;
+    for (const auto gen : student.gender) {
+        if (!first) text += ", ";
+        text += genderOptions.at(static_cast<int>(gen));
+        first = false;
+    }
+    return text;
 }

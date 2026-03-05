@@ -88,10 +88,10 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 
 void TeammatesCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                         const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
-                                        std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+                                        std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
 {
     // Get all IDs being teamed (so that we can make sure we only check the groupTogethers/splitAparts that are actually within this teamset)
-    std::set<long long> IDsBeingTeamed;
+    QSet<long long> IDsBeingTeamed;
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
@@ -102,59 +102,130 @@ void TeammatesCriterion::calculateScore(const StudentRecord *const students, con
 
     // Loop through each team
     studentNum = 0;
-    std::set<long long> IDsOnTeam;
-    std::vector<std::set<long long>> allRequestedIDs;
-    std::multiset<long long> allPreventedIDs;
+    QSet<long long> IDsOnTeam;
+    QList<const StudentRecord *> teamMembers;
 
     for(int team = 0; team < numTeams; team++) {
         IDsOnTeam.clear();
-        allRequestedIDs.clear();
-        allPreventedIDs.clear();
+        teamMembers.clear();
+        teamMembers.reserve(teamSizes[team]);
 
-        //loop through each student on team and collect their ID and their groupTogether/splitApart IDs
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
             const auto &currStudent = students[teammates[studentNum]];
             IDsOnTeam.insert(currStudent.ID);
-
-            std::set<long long> requestedByThisStudent;
-            for (const auto id : IDsBeingTeamed) {
-                if (criteriaType == CriteriaType::groupTogether  && currStudent.groupTogether.contains(id))
-                    requestedByThisStudent.insert(id);
-                if (criteriaType == CriteriaType::splitApart && currStudent.splitApart.contains(id))
-                    allPreventedIDs.insert(id);
-            }
-            allRequestedIDs.push_back(requestedByThisStudent);
+            teamMembers.append(&currStudent);
             studentNum++;
         }
 
-        criteriaScores[team] = 1;
+        const int penalties = scoreOneTeam(teamMembers, IDsOnTeam, IDsBeingTeamed, teamingOptions);
+        criteriaScores[team] = (penalties == 0) ? weight : 0;
 
-        if (criteriaType == CriteriaType::groupTogether && teamingOptions->haveAnyGroupTogethers) {
-            for (const auto& reqSet : allRequestedIDs) {
-                int found = 0;
-                for (const auto id : reqSet)
-                    if (IDsOnTeam.count(id)) {
+        if (penalties > 0 && penaltyStatus) {
+            penaltyPoints[team] += penalties;
+        }
+    }
+}
+
+float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
+                                                   const DataOptions *, const QSet<long long> &allIDsBeingTeamed)
+{
+    const QSet<long long> IDsOnTeam(team.studentIDs.begin(), team.studentIDs.end());
+
+    QList<const StudentRecord *> teamMembers;
+    teamMembers.reserve(team.size);
+    bool thisTeamHasGroupTogethers = false, thisTeamHasSplitAparts = false;
+    for (const auto studentID : team.studentIDs) {
+        int i = 0;
+        while (i < allStudents.size() && allStudents[i].ID != studentID) {
+            i++;
+        }
+        if (i < allStudents.size()) {
+            teamMembers.append(&allStudents[i]);
+            thisTeamHasGroupTogethers = thisTeamHasGroupTogethers || !allStudents[i].groupTogether.isEmpty();
+            thisTeamHasSplitAparts = thisTeamHasSplitAparts || !allStudents[i].splitApart.isEmpty();
+        }
+    }
+
+    if (criteriaType == CriteriaType::groupTogether && !thisTeamHasGroupTogethers) {
+        return Criterion::NO_SCORE;
+    }
+    if (criteriaType == CriteriaType::splitApart && !thisTeamHasSplitAparts) {
+        return Criterion::NO_SCORE;
+    }
+
+    const int penalties = scoreOneTeam(teamMembers, IDsOnTeam, allIDsBeingTeamed, teamingOptions);
+    return (penalties == 0) ? 1 : 0;
+}
+
+int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMembers, const QSet<long long> &idsOnTeam,
+                                     const QSet<long long> &idsBeingTeamed, const TeamingOptions *const teamingOptions) const
+{
+    int penalties = 0;
+
+    if (criteriaType == CriteriaType::groupTogether && teamingOptions->haveAnyGroupTogethers) {
+        for (const auto *const student : teamMembers) {
+            int found = 0;
+            int needed = 0;
+            for (const auto id : student->groupTogether) {
+                if (idsBeingTeamed.contains(id)) {
+                    needed++;
+                    if (idsOnTeam.contains(id)) {
                         found++;
                     }
-                if (found < std::min(int(reqSet.size()), teamingOptions->numberGroupTogethersGiven)) {
-                    criteriaScores[team] = 0;
-                    if (penaltyStatus) {
-                        penaltyPoints[team]++;
-                    }
                 }
             }
-        }
-        else if (criteriaType == CriteriaType::splitApart && teamingOptions->haveAnySplitAparts) {
-            for (const auto id : allPreventedIDs) {
-                if (IDsOnTeam.count(id) != 0) {
-                    criteriaScores[team] = 0;
-                    if (penaltyStatus) {
-                        penaltyPoints[team]++;
-                    }
-                }
+            if (found < std::min(needed, teamingOptions->numberGroupTogethersGiven)) {
+                penalties++;
             }
         }
-
-        criteriaScores[team] *= weight;
     }
+    else if (criteriaType == CriteriaType::splitApart && teamingOptions->haveAnySplitAparts) {
+        for (const auto *student : teamMembers) {
+            for (const auto id : student->splitApart) {
+                if (idsBeingTeamed.contains(id) && idsOnTeam.contains(id)) {
+                    penalties++;
+                }
+            }
+        }
+    }
+
+    return penalties;
+}
+
+QString TeammatesCriterion::headerLabel(const DataOptions *) const {
+    if (criteriaType == CriteriaType::groupTogether) {
+        return tr("Required\nteammates");
+    }
+    return tr("Prevented\nteammates");
+}
+
+Qt::TextElideMode TeammatesCriterion::headerElideMode() const {
+    return Qt::ElideNone;
+}
+
+QString TeammatesCriterion::teamDisplayText(const TeamRecord &, const DataOptions *, float criterionScore) const {
+    if (IS_NO_SCORE(criterionScore)) {
+        return QString::fromUtf8(" ");
+    }
+    if (criterionScore > 0) {
+        return QString::fromUtf8("✓");
+    }
+    return QString::fromUtf8("✗");
+}
+
+QVariant TeammatesCriterion::teamSortValue(const TeamRecord &, const DataOptions *, float criterionScore) const {
+    if (IS_NO_SCORE(criterionScore)) {
+        return 0;
+    }
+    if (criterionScore > 0) {
+        return 1;
+    }
+    return -1;
+}
+
+QString TeammatesCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const {
+    if (criteriaType == CriteriaType::groupTogether) {
+        return student.groupTogether.isEmpty() ? " " : QString(BULLET);
+    }
+    return student.splitApart.isEmpty() ? " " : QString(BULLET);
 }

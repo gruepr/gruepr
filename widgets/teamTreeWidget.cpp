@@ -1,6 +1,5 @@
 #include "teamTreeWidget.h"
 #include "gruepr_globals.h"
-#include "criteria/attributeCriterion.h"
 #include <QDropEvent>
 #include <QPainter>
 #include <QTextLayout>
@@ -32,7 +31,6 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::itemExpand);
 }
 
-
 void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
 {
     // only collapse teams (not students or sections)
@@ -51,7 +49,6 @@ void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
     }
 }
 
-
 void TeamTreeWidget::itemExpand(QTreeWidgetItem *item)
 {
     auto *newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
@@ -62,7 +59,6 @@ void TeamTreeWidget::itemExpand(QTreeWidgetItem *item)
         resizeColumnToContents(column);
     }
 }
-
 
 void TeamTreeWidget::collapseAll()
 {
@@ -85,7 +81,6 @@ void TeamTreeWidget::collapseAll()
     repaint();
 }
 
-
 void TeamTreeWidget::expandAll()
 {
     setUpdatesEnabled(false);
@@ -106,7 +101,6 @@ void TeamTreeWidget::expandAll()
     repaint();
 }
 
-
 void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     QStringList headerLabels;
@@ -125,50 +119,8 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
         if (criterion == nullptr) {
             continue;
         }
-        switch (criterion->criteriaType) {
-            case Criterion::CriteriaType::genderIdentity:
-                if (dataOptions->genderType == GenderType::pronoun) {
-                    headerLabels << tr("Pronouns");
-                } else {
-                    headerLabels << tr("Gender");
-                }
-                headerView->setColumnElideMode(i++, Qt::ElideNone);
-                break;
-            case Criterion::CriteriaType::urmIdentity:
-                headerLabels << tr("URM");
-                headerView->setColumnElideMode(i++, Qt::ElideNone);
-                break;
-            case Criterion::CriteriaType::gradeBalance:
-                headerLabels << tr("Grade");
-                headerView->setColumnElideMode(i++, Qt::ElideNone);
-                break;
-            case Criterion::CriteriaType::attributeQuestion: {
-                const auto *attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
-                if (attrCrit != nullptr) {
-                    if (dataOptions->attributeType[attrCrit->attributeIndex] == DataOptions::AttributeType::timezone) {
-                        headerLabels << tr("Timezone");
-                    } else {
-                        headerLabels << dataOptions->attributeQuestionText[attrCrit->attributeIndex].simplified();
-                    }
-                }
-                headerView->setColumnElideMode(i++, Qt::ElideMiddle);
-                break;
-            }
-            case Criterion::CriteriaType::scheduleMeetingTimes:
-                headerLabels << tr("Meeting\ntimes");
-                headerView->setColumnElideMode(i++, Qt::ElideNone);
-                break;
-            case Criterion::CriteriaType::groupTogether:
-                headerLabels << tr("Required\nteammates");
-                headerView->setColumnElideMode(i++, Qt::ElideNone);
-                break;
-            case Criterion::CriteriaType::splitApart:
-                headerLabels << tr("Prevented\nteammates");
-                headerView->setColumnElideMode(i++, Qt::ElideNone);
-                break;
-            default:
-                break;
-        }
+        headerLabels << criterion->headerLabel(dataOptions);
+        headerView->setColumnElideMode(i++, criterion->headerElideMode());
     }
 
     headerLabels << tr("display_order");
@@ -189,7 +141,6 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     clear();
 }
 
-
 void TeamTreeWidget::refreshSection(TeamTreeWidgetItem *sectionItem, const QString &sectionName)
 {
     if(sectionItem->treeItemType != TeamTreeWidgetItem::TreeItemType::section) {
@@ -199,26 +150,27 @@ void TeamTreeWidget::refreshSection(TeamTreeWidgetItem *sectionItem, const QStri
     sectionItem->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
 }
 
-
 void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum,
-                                 const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
+                                 const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions,
+                                 const QList<StudentRecord> &students, const QSet<long long> &IDsBeingTeamed)
 {
     if(teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) {
         return;
     }
 
-    //create team items and fill in information
+    // create team items and fill in information
     int column = 0;
+
+    // Name column
     teamItem->setText(column, tr("Team ") + team.name);
     teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
-
-    //Data items can be accessed later, in this case to determine sort order
     teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, tr("Team ") + team.name);
     teamItem->setData(column, TEAMINFO_SORT_ROLE, team.name); //sort based on team name
     teamItem->setData(column, TEAM_NUMBER_ROLE, teamNum);
     teamItem->setToolTip(column, team.tooltip);
     column++;
 
+    // Sections column
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
         teamItem->setText(column, QString::number(team.numSections));
         teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
@@ -228,191 +180,25 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         column++;
     }
 
-    // One column per scoring criterion
+    // One more column per scoring criterion
     for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-        const auto *criterion = teamingOptions->criteria[c];
+        auto *criterion = teamingOptions->criteria[c];
         if (criterion == nullptr) {
             continue;
         }
 
-        switch (criterion->criteriaType) {
-            case Criterion::CriteriaType::genderIdentity: {
-                QStringList genderInitials;
-                if (dataOptions->genderType == GenderType::biol) {
-                    genderInitials = QString(BIOLGENDERSINITIALS).split('/');
-                } else if (dataOptions->genderType == GenderType::adult) {
-                    genderInitials = QString(ADULTGENDERSINITIALS).split('/');
-                } else if (dataOptions->genderType == GenderType::child) {
-                    genderInitials = QString(CHILDGENDERSINITIALS).split('/');
-                } else {
-                    genderInitials = QString(PRONOUNSINITIALS).split('/');
-                }
-                QString genderText;
-                if (team.numWomen > 0) {
-                    genderText += QString::number(team.numWomen) + genderInitials.at(static_cast<int>(Gender::woman));
-                    if (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0) genderText += ", ";
-                }
-                if (team.numMen > 0) {
-                    genderText += QString::number(team.numMen) + genderInitials.at(static_cast<int>(Gender::man));
-                    if (team.numNonbinary > 0 || team.numUnknown > 0) genderText += ", ";
-                }
-                if (team.numNonbinary > 0) {
-                    genderText += QString::number(team.numNonbinary) + genderInitials.at(static_cast<int>(Gender::nonbinary));
-                    if (team.numUnknown > 0) genderText += ", ";
-                }
-                if (team.numUnknown > 0) {
-                    genderText += QString::number(team.numUnknown) + genderInitials.at(static_cast<int>(Gender::unknown));
-                }
-                teamItem->setText(column, genderText);
-                teamItem->setTextAlignment(column, Qt::AlignCenter);
-                teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, genderText);
-                teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numMen - team.numWomen);
-                teamItem->setToolTip(column, team.tooltip);
-                const auto score = findCriterionScore(team, teamingOptions, Criterion::CriteriaType::genderIdentity, -1);
-                if (score != std::nullopt) { teamItem->setBackground(column, scoreToColor(*score)); }
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::urmIdentity: {
-                teamItem->setText(column, QString::number(team.numURM));
-                teamItem->setTextAlignment(column, Qt::AlignCenter);
-                teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(team.numURM));
-                teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numURM);
-                teamItem->setToolTip(column, team.tooltip);
-                const auto score = findCriterionScore(team, teamingOptions, Criterion::CriteriaType::urmIdentity, -1);
-                if (score != std::nullopt) { teamItem->setBackground(column, scoreToColor(*score)); }
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::gradeBalance: {
-                float total = 0.0;
-                for (const float grade : team.gradeVals) { total += grade; }
-                const float average = team.size > 0 ? total / team.size : 0;
-                teamItem->setText(column, QString::number(double(average), 'f', 2));
-                teamItem->setTextAlignment(column, Qt::AlignCenter);
-                teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(double(average), 'f', 2));
-                teamItem->setData(column, TEAMINFO_SORT_ROLE, average);
-                teamItem->setToolTip(column, team.tooltip);
-                const auto score = findCriterionScore(team, teamingOptions, Criterion::CriteriaType::gradeBalance, -1);
-                if (score != std::nullopt) { teamItem->setBackground(column, scoreToColor(*score)); }
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::attributeQuestion: {
-                const auto *attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
-                if (attrCrit == nullptr) { column++; break; }
-                const int attribute = attrCrit->attributeIndex;
+        const float score = criterion->scoreForOneTeamInDisplay(students, team, teamingOptions, dataOptions, IDsBeingTeamed);
+        const QString text = criterion->teamDisplayText(team, dataOptions, score);
+        const QVariant sortVal = criterion->teamSortValue(team, dataOptions, score);
 
-                if (dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone) {
-                    // Timezone column
-                    const float firstVal = *(team.timezoneVals.cbegin());
-                    const float lastVal = *(team.timezoneVals.crbegin());
-                    QString timezoneText;
-                    if (firstVal == lastVal) {
-                        const int hour = int(firstVal);
-                        const int minutes = 60 * (firstVal - int(firstVal));
-                        timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));
-                    } else {
-                        const int hourF = int(firstVal), minutesF = 60 * (firstVal - int(firstVal));
-                        const int hourL = int(lastVal), minutesL = 60 * (lastVal - int(lastVal));
-                        timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(std::abs(minutesF), 2, 10, QChar('0'))
-                                       + " " + RIGHTARROW + " "
-                                       + QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(std::abs(minutesL), 2, 10, QChar('0'));
-                    }
-                    const int sortData = int(firstVal * 100 + lastVal);
-                    teamItem->setText(column, timezoneText);
-                    teamItem->setTextAlignment(column, Qt::AlignCenter);
-                    teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, timezoneText);
-                    teamItem->setData(column, TEAMINFO_SORT_ROLE, sortData);
-                    teamItem->setToolTip(column, team.tooltip);
-                } else {
-                    // Regular attribute column
-                    QString attributeText;
-                    double sortData = 0;
-                    auto firstTeamVal = team.attributeVals[attribute].cbegin();
-                    if (firstTeamVal != team.attributeVals[attribute].cend()) {
-                        if ((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                            (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-                            attributeText = QString::number(*firstTeamVal);
-                            sortData = *firstTeamVal;
-                            double divisor = 100;
-                            auto lastTeamVal = team.attributeVals[attribute].crbegin();
-                            if (*firstTeamVal != *lastTeamVal) {
-                                for (auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++) {
-                                    attributeText += ", " + QString::number(*val);
-                                    sortData += *val / divisor;
-                                    divisor *= 100;
-                                }
-                            }
-                        } else {
-                            attributeText = (*firstTeamVal <= 26 ? QString(char(*firstTeamVal - 1 + 'A'))
-                                                                 : QString(char((*firstTeamVal - 1) % 26 + 'A')).repeated(1 + ((*firstTeamVal - 1) / 26)));
-                            sortData = *firstTeamVal;
-                            double divisor = 10;
-                            for (auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++) {
-                                attributeText += ", " + (*val <= 26 ? QString(char(*val - 1 + 'A'))
-                                                                    : QString(char((*val - 1) % 26 + 'A')).repeated(1 + ((*val - 1) / 26)));
-                                sortData += *val / divisor;
-                                divisor *= 100;
-                            }
-                        }
-                    } else {
-                        attributeText = "?";
-                        sortData = -1;
-                    }
-                    teamItem->setText(column, attributeText);
-                    teamItem->setTextAlignment(column, Qt::AlignCenter);
-                    teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, attributeText);
-                    teamItem->setData(column, TEAMINFO_SORT_ROLE, sortData);
-                    teamItem->setToolTip(column, team.tooltip);
-                }
-                const auto score = findCriterionScore(team, teamingOptions, Criterion::CriteriaType::attributeQuestion, attribute);
-                if (score != std::nullopt) {
-                    teamItem->setBackground(column, scoreToColor(*score));
-                }
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::scheduleMeetingTimes: {
-                const int numAvailTimes = team.numMeetingTimes;
-                teamItem->setText(column, (team.size > 1) ? QString::number(numAvailTimes) : "  --  ");
-                teamItem->setTextAlignment(column, Qt::AlignCenter);
-                teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(numAvailTimes));
-                teamItem->setData(column, TEAMINFO_SORT_ROLE, numAvailTimes);
-                teamItem->setToolTip(column, team.tooltip);
-                const auto score = findCriterionScore(team, teamingOptions, Criterion::CriteriaType::scheduleMeetingTimes, -1);
-                if (score != std::nullopt) {
-                    teamItem->setBackground(column, scoreToColor(*score));
-                }
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::groupTogether:
-            case Criterion::CriteriaType::splitApart: {
-                const auto score = findCriterionScore(team, teamingOptions, criterion->criteriaType, -1);
-                QString statusText = "—";
-                int sortVal = 0;
-                if (score != std::nullopt) {
-                    if (*score > 0) {
-                        statusText = "✓";
-                        sortVal = 1;
-                    } else {
-                        statusText = "✗";
-                        sortVal = -1;
-                    }
-                    teamItem->setBackground(column, scoreToColor(*score));
-                }
-                teamItem->setText(column, statusText);
-                teamItem->setTextAlignment(column, Qt::AlignCenter);
-                teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, statusText);
-                teamItem->setData(column, TEAMINFO_SORT_ROLE, sortVal);
-                teamItem->setToolTip(column, team.tooltip);
-                column++;
-                break;
-            }
-            default:
-                break;
-        }
+        teamItem->setText(column, text);
+        teamItem->setTextAlignment(column, criterion->teamTextAlignment());
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, text);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, sortVal);
+        teamItem->setToolTip(column, team.tooltip);
+        teamItem->setBackground(column, criterion->teamDisplayColor(score));
+
+        column++;
     }
 
     // Display order column
@@ -423,7 +209,6 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         teamItem->setData(column, TEAMINFO_SORT_ROLE, teamNum);
     }
 }
-
 
 void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
@@ -447,119 +232,17 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
         column++;
     }
 
-    // One column per scoring criterion
+    // One more column per scoring criterion
     for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
         const auto *criterion = teamingOptions->criteria[c];
         if (criterion == nullptr) {
             continue;
         }
 
-        switch (criterion->criteriaType) {
-            case Criterion::CriteriaType::genderIdentity: {
-                QStringList genderOptions;
-                if (dataOptions->genderType == GenderType::biol) {
-                    genderOptions = QString(BIOLGENDERS).split('/');
-                } else if (dataOptions->genderType == GenderType::adult) {
-                    genderOptions = QString(ADULTGENDERS).split('/');
-                } else if (dataOptions->genderType == GenderType::child) {
-                    genderOptions = QString(CHILDGENDERS).split('/');
-                } else {
-                    genderOptions = QString(PRONOUNS).split('/');
-                }
-                QString genderText;
-                bool first = true;
-                for (const auto gen : stu.gender) {
-                    if (!first) genderText += ", ";
-                    genderText += genderOptions.at(static_cast<int>(gen));
-                    first = false;
-                }
-                studentItem->setText(column, genderText);
-                studentItem->setToolTip(column, stu.tooltip);
-                studentItem->setTextAlignment(column, Qt::AlignCenter);
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::urmIdentity: {
-                studentItem->setText(column, stu.URM ? tr("yes") : "");
-                studentItem->setToolTip(column, stu.tooltip);
-                studentItem->setTextAlignment(column, Qt::AlignCenter);
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::gradeBalance: {
-                studentItem->setText(column, QString::number(stu.grade));
-                studentItem->setTextAlignment(column, Qt::AlignCenter);
-                studentItem->setToolTip(column, stu.tooltip);
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::attributeQuestion: {
-                const auto *attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
-                if (attrCrit == nullptr) { column++; break; }
-                const int attribute = attrCrit->attributeIndex;
-
-                if (dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone) {
-                    const int hour = int(stu.timezone);
-                    const int minutes = 60 * (stu.timezone - int(stu.timezone));
-                    studentItem->setText(column, QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0')));
-                } else {
-                    auto value = stu.attributeVals[attribute].constBegin();
-                    if (*value != -1) {
-                        if (dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) {
-                            studentItem->setText(column, QString::number(*value));
-                        } else if (dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) {
-                            studentItem->setText(column, (*value <= 26 ? QString(char(*value - 1 + 'A'))
-                                                                       : QString(char((*value - 1) % 26 + 'A')).repeated(1 + ((*value - 1) / 26))));
-                        } else if (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
-                            QString vals;
-                            const auto lastVal = stu.attributeVals[attribute].constEnd();
-                            while (value != lastVal) {
-                                vals += (*value <= 26 ? QString(char(*value - 1 + 'A'))
-                                                      : QString(char((*value - 1) % 26 + 'A')).repeated(1 + ((*value - 1) / 26)));
-                                value++;
-                                if (value != lastVal) vals += ", ";
-                            }
-                            studentItem->setText(column, vals);
-                        } else if (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered) {
-                            QString vals;
-                            const auto lastVal = stu.attributeVals[attribute].constEnd();
-                            while (value != lastVal) {
-                                vals += QString::number(*value);
-                                value++;
-                                if (value != lastVal) vals += ", ";
-                            }
-                            studentItem->setText(column, vals);
-                        }
-                    } else {
-                        studentItem->setText(column, "?");
-                    }
-                }
-                studentItem->setToolTip(column, stu.tooltip);
-                studentItem->setTextAlignment(column, Qt::AlignCenter);
-                column++;
-                break;
-            }
-            case Criterion::CriteriaType::groupTogether:{
-                studentItem->setText(column, stu.groupTogether.isEmpty()? "" : QString(BULLET));
-                studentItem->setTextAlignment(column, Qt::AlignCenter);
-                studentItem->setToolTip(column, stu.tooltip);
-                column++;
-            }
-            case Criterion::CriteriaType::splitApart:{
-                studentItem->setText(column, stu.splitApart.isEmpty()? "" : QString(BULLET));
-                studentItem->setTextAlignment(column, Qt::AlignCenter);
-                studentItem->setToolTip(column, stu.tooltip);
-                column++;
-            }
-            default: {
-                // blank for schedule column
-                studentItem->setText(column, "");
-                studentItem->setToolTip(column, stu.tooltip);
-                column++;
-                break;
-            }
-
-        }
+        studentItem->setText(column, criterion->studentDisplayText(stu, dataOptions));
+        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setTextAlignment(column, criterion->studentTextAlignment());
+        column++;
     }
 }
 
@@ -581,7 +264,6 @@ void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
     dragDropEventLabel->setTextFormat(Qt::RichText);
 }
 
-
 void TeamTreeWidget::dragLeaveEvent(QDragLeaveEvent *event)
 {
     QTreeWidget::dragLeaveEvent(event);
@@ -592,7 +274,6 @@ void TeamTreeWidget::dragLeaveEvent(QDragLeaveEvent *event)
         dragDropEventLabel = nullptr;
     }
 }
-
 
 void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 {
@@ -707,7 +388,6 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     }
 }
 
-
 void TeamTreeWidget::dropEvent(QDropEvent *event)
 {
     if(dragDropEventLabel != nullptr) {
@@ -815,7 +495,6 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     }
 }
 
-
 void TeamTreeWidget::resorting(int column)
 {
     auto sortOrder = headerView->sortIndicatorOrder();
@@ -833,13 +512,11 @@ void TeamTreeWidget::resorting(int column)
     emit updateTeamOrder();
 }
 
-
 void TeamTreeWidget::itemEntered(const QModelIndex &index)
 {
     // select the item cursor is hovered over
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }
-
 
 void TeamTreeWidget::leaveEvent(QEvent *event)
 {
@@ -849,49 +526,6 @@ void TeamTreeWidget::leaveEvent(QEvent *event)
     }
 }
 
-QColor TeamTreeWidget::scoreToColor(float score)
-{
-    // Clamp to [0, 1] for color mapping (scores can exceed 1 for schedule extra credit)
-    const float clamped = std::clamp(score, 0.0f, 1.0f);
-
-    // Interpolate from red (0) through yellow (0.5) to green (1)
-    int r, g;
-    if (clamped < 0.5f) {
-        // Red to yellow
-        r = 255;
-        g = static_cast<int>(255 * (clamped / 0.5f));
-    } else {
-        // Yellow to green
-        r = static_cast<int>(255 * ((1.0f - clamped) / 0.5f));
-        g = 200;
-    }
-
-    // Use a light, semi-transparent tint so text remains readable
-    return QColor(r, g, 80, 60);
-}
-
-std::optional<float> TeamTreeWidget::findCriterionScore(const TeamRecord &team, const TeamingOptions *teamingOptions,
-                                                        Criterion::CriteriaType type, int attributeIndex)
-{
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        const auto *criterion = teamingOptions->criteria[i];
-        if (criterion == nullptr || criterion->criteriaType != type) {
-            continue;
-        }
-        if (type == Criterion::CriteriaType::attributeQuestion) {
-            const auto *attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
-            if (attrCrit == nullptr || attrCrit->attributeIndex != attributeIndex) {
-                continue;
-            }
-        }
-        // qDebug() << "findCriterionScore: type=" << (int)type
-        //          << "attrIdx=" << attributeIndex
-        //          << "found at i=" << i
-        //          << "score=" << team.criteriaScores[i];
-        return team.criteriaScores[i];
-    }
-    return std::nullopt;
-}
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -1052,65 +686,57 @@ void TeamTreeHeaderView::updateHeaderHeight()
 
 QString TeamTreeHeaderView::wrapText(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const
 {
-    const QStringList words = text.split(' ', Qt::SkipEmptyParts);
-    if (words.isEmpty()) {
-        m_lineCountPerColumn[logicalIndex] = 1;
-        return text;
-    }
+    // Respect explicit newlines first
+    const QStringList explicitLines = text.split('\n');
+    QStringList finalLines;
 
-    QStringList lines;
-    QString currentLine = words.first();
-
-    for (int i = 1; i < words.size(); i++) {
-        const QString candidate = currentLine + " " + words[i];
-        if (fm.horizontalAdvance(candidate) <= availableWidth) {
-            currentLine = candidate;
-        } else {
-            lines << currentLine;
-            currentLine = words[i];
+    for (const auto &line : explicitLines) {
+        const QStringList words = line.split(' ', Qt::SkipEmptyParts);
+        if (words.isEmpty()) {
+            finalLines << line;
+            continue;
         }
-    }
-    lines << currentLine;
 
-    // Elide any lines that are still too wide (single long words)
-    for (auto &line : lines) {
+        QString currentLine = words.first();
+        for (int i = 1; i < words.size(); i++) {
+            const QString candidate = currentLine + " " + words[i];
+            if (fm.horizontalAdvance(candidate) <= availableWidth) {
+                currentLine = candidate;
+            } else {
+                finalLines << currentLine;
+                currentLine = words[i];
+            }
+        }
+        finalLines << currentLine;
+    }
+
+    // Elide any lines that are still too wide
+    for (auto &line : finalLines) {
         if (fm.horizontalAdvance(line) > availableWidth) {
             line = fm.elidedText(line, Qt::ElideRight, availableWidth);
         }
     }
 
-    m_lineCountPerColumn[logicalIndex] = lines.size();
-    return lines.join("\n");
+    m_lineCountPerColumn[logicalIndex] = finalLines.size();
+    return finalLines.join("\n");
 }
 
 
 ///////////////////////////////////////////////////////////////////////
 
-TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, float teamScore)
+TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns)
 {
     treeItemType = type;
     if(treeItemType == TreeItemType::team && columns > 0) {
         for(int col = 0; col < columns; col++) {
             setForeground(col, Qt::black);
         }
-        setScoreColor(teamScore);
     }
     if(treeItemType == TreeItemType::section) {
         //sections are fixed--they cannot be dragged or dropped onto
         setFlags(flags() & ~Qt::ItemIsDragEnabled & ~Qt::ItemIsDropEnabled);
     }
 }
-
-void TeamTreeWidgetItem::setScoreColor(float teamScore)
-{
-    // if(teamScore < 0) {
-    //     setBackground(1, QColor::fromString(STARFISHHEX));
-    // }
-    // else {
-    setBackground(1, background(0));
-    //}
-}
-
 
 bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 {

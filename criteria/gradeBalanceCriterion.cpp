@@ -66,8 +66,8 @@ void GradeBalanceCriterion::generateCriteriaCard(TeamingOptions *const teamingOp
 }
 
 void GradeBalanceCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                  const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                                  std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+                                           const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
+                                           std::vector<float> &criteriaScores, std::vector<int> &/*penaltyPoints*/) const
 {
     // optimize based on _teamingOptions->maximumDeviationOfGroupGradeAverage;
 
@@ -97,4 +97,34 @@ void GradeBalanceCriterion::calculateScore(const StudentRecord *const students, 
         }
         criteriaScores[team] *= weight;
     }
+}
+
+QString GradeBalanceCriterion::headerLabel(const DataOptions *) const {
+    return tr("Grade");
+}
+
+Qt::TextElideMode GradeBalanceCriterion::headerElideMode() const {
+    return Qt::ElideNone;
+}
+
+QString GradeBalanceCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+    float total = 0.0f;
+    for (const float grade : team.gradeVals) {
+        total += grade;
+    }
+    const float average = team.size > 0 ? total / team.size : 0;
+    return QString::number(double(average), 'f', 2);
+}
+
+QVariant GradeBalanceCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+    float total = 0.0f;
+    for (const float grade : team.gradeVals) {
+        total += grade;
+    }
+    const float average = team.size > 0 ? total / team.size : 0;
+    return average;
+}
+
+QString GradeBalanceCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const {
+    return QString::number(student.grade);
 }

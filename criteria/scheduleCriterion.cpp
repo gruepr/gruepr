@@ -90,8 +90,8 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
 }
 
 void ScheduleCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                              const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                              std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+                                       const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                       std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
 {
     const int numDays = int(dataOptions->dayNames.size());
     const int numTimes = int(dataOptions->timeNames.size());
@@ -195,4 +195,27 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
         criteriaScores[team] /= teamingOptions->desiredTimeBlocksOverlap;
         criteriaScores[team] *= weight;
     }
+}
+
+QString ScheduleCriterion::headerLabel(const DataOptions *) const {
+    return tr("Meeting\ntimes");
+}
+
+Qt::TextElideMode ScheduleCriterion::headerElideMode() const {
+    return Qt::ElideNone;
+}
+
+QString ScheduleCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+    if (team.size > 1) {
+        return QString::number(team.numMeetingTimes);
+    }
+    return "  --  ";
+}
+
+QVariant ScheduleCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+    return team.numMeetingTimes;
+}
+
+QString ScheduleCriterion::studentDisplayText(const StudentRecord &, const DataOptions *) const {
+    return "";
 }

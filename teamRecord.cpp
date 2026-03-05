@@ -19,15 +19,6 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
     name = jsonTeamRecord["name"].toString();
     tooltip = jsonTeamRecord["tooltip"].toString();
 
-    if(jsonTeamRecord["criteriaScores"].type() != QJsonValue::Undefined) {
-        int i = 0;
-        const QJsonArray criteriaScoresArray = jsonTeamRecord["criteriaScores"].toArray();
-        for (const auto &val : criteriaScoresArray) {
-            criteriaScores[i] = val.toDouble();
-            i++;
-        }
-    }
-
     const QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         const QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
@@ -74,12 +65,9 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
 void TeamRecord::createTooltip()
 {
     QString toolTipText = "<html>";
-    if(score < 0) {
-        toolTipText += "<table><tr><td bgcolor=" STARFISHHEX "><b>" + QObject::tr("This team has a negative compatibility score, "
-                       "indicating one or more teaming requirements have not been met. "
-                       "You may want to relax some constraints and try to form teams again.") + "</b></td></tr></table><br>";
-    }
-    toolTipText += QObject::tr("Team ") + name + "<br>";
+    toolTipText += QObject::tr("Team ") + name + "<br>" +
+                   (score <= 0 ? "<span style=\"color: red; font-weight: bold;\">" : "") + QString::number(score, 'f', 1) + " % compatibility score" +
+                   (score <= 0 ? "</span>" : "") + "<br>";
     if(teamSetDataOptions->genderIncluded) {
         toolTipText += QObject::tr("Gender") + ":  ";
         QStringList genderSingularOptions, genderPluralOptions;
@@ -316,7 +304,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
 
 QJsonObject TeamRecord::toJson() const
 {
-    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, gradeValsArray, studentIDsArray, criteriaScoresArray;
+    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, gradeValsArray, studentIDsArray;
     for(const auto &attributeVal : attributeVals) {
         QJsonArray attributeValsArraySubArray;
         for (const auto &val : attributeVal) {
@@ -340,9 +328,6 @@ QJsonObject TeamRecord::toJson() const
     for(const auto &studentID : studentIDs) {
         studentIDsArray.append(studentID);
     }
-    for (int i = 0; i < MAX_CRITERIA; i++) {
-        criteriaScoresArray.append(criteriaScores[i]);
-    }
 
     QJsonObject content {
         {"LMSID", LMSID},
@@ -360,7 +345,6 @@ QJsonObject TeamRecord::toJson() const
         {"numStudentsWithAmbiguousSchedules", numStudentsWithAmbiguousSchedules},
         {"numMeetingTimes", numMeetingTimes},
         {"gradeVals", gradeValsArray},
-        {"criteriaScores", criteriaScoresArray},
         {"studentIDs", studentIDsArray},
         {"name", name},
         {"tooltip", tooltip},

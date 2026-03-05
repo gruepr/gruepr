@@ -75,6 +75,7 @@ macx {
 SOURCES += \
         criteria/URMIdentityCriterion.cpp \
         criteria/attributeCriterion.cpp \
+        criteria/criterion.cpp \
         criteria/genderCriterion.cpp \
         criteria/sectionCriterion.cpp \
         criteria/teammatesCriterion.cpp \

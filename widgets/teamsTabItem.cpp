@@ -72,6 +72,14 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     externalStudents = &incomingStudents;
     externalDoItButton = letsDoItButton;
 
+    // Build the set of all student IDs being teamed (stable across swaps/moves)
+    IDsBeingTeamed.clear();
+    for (const auto &team : std::as_const(teams)) {
+        for (const auto id : team.studentIDs) {
+            IDsBeingTeamed.insert(id);
+        }
+    }
+
     setContentsMargins(0, 0, 0, 0);
     auto *teamDataLayout = new QVBoxLayout;
     teamDataLayout->setContentsMargins(0, 0, 0, 0);
@@ -651,15 +659,13 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             for(const auto &stu : std::as_const(students)) {
                 if(studentATeam.studentIDs.first() == stu.ID) {
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentATeamItem, studentATeam,
-                                              studentATeamNum, &teams.dataOptions, teamingOptions);
+                                              studentATeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
                 }
                 else if(studentBTeam.studentIDs.first() == stu.ID) {
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentBTeamItem, studentBTeam,
-                                              studentBTeamNum, &teams.dataOptions, teamingOptions);
+                                              studentBTeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
                 }
             }
-            studentATeamItem->setScoreColor(studentATeam.score);
-            studentBTeamItem->setScoreColor(studentBTeam.score);
 
             //clear and refresh student items on both teams in table
             for(auto &child : studentATeamItem->takeChildren()) {
@@ -779,15 +785,13 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         for(const auto &stu : std::as_const(students)) {
             if(oldTeam.studentIDs.first() == stu.ID) {
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, oldTeamItem, oldTeam,
-                                          oldTeamNum, &teams.dataOptions, teamingOptions);
+                                          oldTeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
             }
             else if(newTeam.studentIDs.first() == stu.ID) {
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, newTeamItem, newTeam,
-                                          newTeamNum, &teams.dataOptions, teamingOptions);
+                                          newTeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
             }
         }
-        oldTeamItem->setScoreColor(oldTeam.score);
-        newTeamItem->setScoreColor(newTeam.score);
 
         //clear and refresh student items on both teams in table
         for(auto &child : oldTeamItem->takeChildren()) {
@@ -1194,28 +1198,6 @@ void TeamsTabItem::postTeamsToCanvas()
 
 void TeamsTabItem::refreshTeamDisplay()
 {
-    // Recalculate scores before rendering to ensure criteriaScores[i] is aligned
-    // with whatever criterion is currently at criteria[i]. Without this, if
-    // criteria[] order has changed since the last calcTeamScores call, the wrong
-    // score gets mapped to the wrong column.
-    //
-    // Two conditions must hold before it's safe to recalculate:
-    //   1. No null criteria pointers  -- rules out the fromJSON init path, where
-    //      criteria[] is all null until restoreCriterionTypes() runs.
-    //   2. No zero weights            -- rules out old saves that predate weights[]
-    //      being persisted to JSON (those tabs keep their stored criteriaScores).
-    bool canRecalculate = (teamingOptions->realNumScoringFactors > 0);
-    for (int i = 0; i < teamingOptions->realNumScoringFactors && canRecalculate; i++) {
-        canRecalculate = (teamingOptions->criteria[i] != nullptr)
-        && (teamingOptions->weights[i] > 0.f);
-    }
-    if (canRecalculate) {
-        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
-        for (auto &team : teams) {
-            team.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-        }
-    }
-
     //Create TeamTreeWidgetItems for the sections, teams, and students
     QList<TeamTreeWidgetItem*> sectionItems;
     sectionItems.reserve(sectionNames.size());
@@ -1242,9 +1224,9 @@ void TeamsTabItem::refreshTeamDisplay()
                 const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
                 const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;
                 if(firstStudent->section == sectionName) {
-                    teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
+                    teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount());
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::newTeam, teamItems.last(), team, teamNum,
-                                              &teams.dataOptions, teamingOptions);
+                                              &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
 
                     //remove all student items in the team
                     for(auto &studentItem : teamItems.last()->takeChildren()) {
@@ -1271,9 +1253,9 @@ void TeamsTabItem::refreshTeamDisplay()
         //iterate through teams
         int teamNum = 0;
         for(const auto &team : std::as_const(teams)) {
-            teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
+            teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount());
             teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::newTeam, teamItems.last(), team,
-                                      teamNum, &teams.dataOptions, teamingOptions);
+                                      teamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
 
             //remove all student items in the team
             for(auto &studentItem : teamItems.last()->takeChildren()) {

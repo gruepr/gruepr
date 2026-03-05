@@ -45,7 +45,6 @@ signals:
     void saveState();
 
 private slots:
-//FROMDEV    QWidget* createScoreLegend();
     void changeTeamNames(const int index);
     void toggleSectionsInTeamNames(bool addSectionNames);
     void randomizeTeamnames(bool random);
@@ -61,11 +60,9 @@ private slots:
     void saveTeams();
     void printTeams();
     void postTeamsToCanvas();
-//FROMDEV    void refreshSummaryTable(TeamingOptions teamingOptions);
 
 private:
     TeamTreeWidget *teamDataTree = nullptr;
-//FROMDEV    QTableWidget *summaryTable = nullptr;
     void refreshTeamDisplay();
     void refreshDisplayOrder();
     QList<int> getTeamNumbersInDisplayOrder() const;
@@ -75,6 +72,7 @@ private:
     QStringList sectionNames;
     TeamSet teams;
     QList<StudentRecord> students;
+    QSet<long long> IDsBeingTeamed;
     int numStudents = 1;
 
     struct UndoRedoItem{void (TeamsTabItem::*action)(const QList<int> &arguments);

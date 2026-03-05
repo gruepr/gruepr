@@ -13,10 +13,10 @@ void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 }
 
 void AttributeCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                               const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                               std::vector<float> &criteriaScores, std::vector<int> &_penaltyPoints)
+                                        const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                        std::vector<float> &criteriaScores, std::vector<int> &_penaltyPoints) const
 {
-    const bool thisIsTimezone = typeOfAttribute == DataOptions::AttributeType::timezone; //(_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
+    const bool thisIsTimezone = dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone;
     const bool penaltyStatus = this->penaltyStatus || teamingOptions->haveAnyRequiredAttributes[attributeIndex] ||
                                teamingOptions->haveAnyIncompatibleAttributes[attributeIndex];
     const int totNumAttributeLevels = int(dataOptions->attributeVals[attributeIndex].size());
@@ -37,7 +37,7 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
         }
 
         if (penaltyStatus){
-            /*            if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
+            /*if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
                 //get the values of all, put a penalty for each
                 if (_teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar){ //homogenous
                     if(thisIsTimezone) { //similar, penalize if uniqueItems > 1 (we can only have 1 unique)
@@ -145,4 +145,137 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
         }
         criteriaScores[team] *= weight;
     }
+}
+
+QString AttributeCriterion::headerLabel(const DataOptions *dataOptions) const {
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
+        return tr("Timezone");
+    }
+    return dataOptions->attributeQuestionText[attributeIndex].simplified();
+}
+
+Qt::TextElideMode AttributeCriterion::headerElideMode() const {
+    return Qt::ElideMiddle;
+}
+
+QString AttributeCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float /*criterionScore*/) const {
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
+        const float firstVal = *(team.timezoneVals.cbegin());
+        const float lastVal = *(team.timezoneVals.crbegin());
+        if (firstVal == lastVal) {
+            const int hour = int(firstVal);
+            const int minutes = 60 * (firstVal - int(firstVal));
+            return QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));
+        }
+        const int hourF = int(firstVal), minutesF = 60 * (firstVal - int(firstVal));
+        const int hourL = int(lastVal), minutesL = 60 * (lastVal - int(lastVal));
+        return QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(std::abs(minutesF), 2, 10, QChar('0'))
+               + " " + RIGHTARROW + " "
+               + QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(std::abs(minutesL), 2, 10, QChar('0'));
+    }
+
+    auto firstTeamVal = team.attributeVals[attributeIndex].cbegin();
+    if (firstTeamVal == team.attributeVals[attributeIndex].cend()) {
+        return "?";
+    }
+
+    QString text;
+    if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) ||
+        (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered)) {
+        text = QString::number(*firstTeamVal);
+        auto lastTeamVal = team.attributeVals[attributeIndex].crbegin();
+        if (*firstTeamVal != *lastTeamVal) {
+            for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
+                text += ", " + QString::number(*val);
+            }
+        }
+    } else {
+        text = valToLetter(*firstTeamVal);
+        for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
+            text += ", " + valToLetter(*val);
+        }
+    }
+    return text;
+}
+
+QVariant AttributeCriterion::teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float /*criterionScore*/) const {
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
+        const float firstVal = *(team.timezoneVals.cbegin());
+        const float lastVal = *(team.timezoneVals.crbegin());
+        return int(firstVal * 100 + lastVal);
+    }
+
+    auto firstTeamVal = team.attributeVals[attributeIndex].cbegin();
+    if (firstTeamVal == team.attributeVals[attributeIndex].cend()) {
+        return -1;
+    }
+
+    double sortData = *firstTeamVal;
+    if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) ||
+        (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered)) {
+        double divisor = 100;
+        for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
+            sortData += *val / divisor;
+            divisor *= 100;
+        }
+    } else {
+        double divisor = 10;
+        for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
+            sortData += *val / divisor;
+            divisor *= 100;
+        }
+    }
+    return sortData;
+}
+
+QString AttributeCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const {
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
+        const int hour = int(student.timezone);
+        const int minutes = 60 * (student.timezone - int(student.timezone));
+        return QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));
+    }
+
+    auto value = student.attributeVals[attributeIndex].constBegin();
+    if (*value == -1) {
+        return "?";
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) {
+        return QString::number(*value);
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::categorical) {
+        return valToLetter(*value);
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multicategorical) {
+        QString text;
+        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
+        while (value != lastVal) {
+            text += valToLetter(*value);
+            value++;
+            if (value != lastVal) text += ", ";
+        }
+        return text;
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered) {
+        QString text;
+        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
+        while (value != lastVal) {
+            text += QString::number(*value);
+            value++;
+            if (value != lastVal) text += ", ";
+        }
+        return text;
+    }
+
+    return "?";
+}
+
+QString AttributeCriterion::valToLetter(int val) {
+    if (val <= 26) {
+        return QString(char(val - 1 + 'A'));
+    }
+    return QString(char((val - 1) % 26 + 'A')).repeated(1 + ((val - 1) / 26));
 }

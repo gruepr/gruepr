@@ -30,7 +30,8 @@ public:
     void refreshSection(TeamTreeWidgetItem *sectionItem, const QString &sectionName);
     enum class RefreshType{newTeam, existingTeam};
     void refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum,
-                     const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
+                     const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions,
+                     const QList<StudentRecord> &students, const QSet<long long> &IDsBeingTeamed);
     void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu,
                         const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void setColumnHeaderIcon(int column, const QIcon &icon);
@@ -57,10 +58,6 @@ signals:
     void updateTeamOrder();
 
 private:
-
-    static QColor scoreToColor(float score);
-    static std::optional<float> findCriterionScore(const TeamRecord &team, const TeamingOptions *teamingOptions,
-                                                   Criterion::CriteriaType type, int attributeIndex);
     TeamTreeHeaderView *headerView = nullptr;
     TeamTreeWidgetItem *draggedItem = nullptr;
     TeamTreeWidgetItem *droppedItem = nullptr;
@@ -108,13 +105,12 @@ class TeamTreeWidgetItem : public QTreeWidgetItem
 {
 public:
     enum class TreeItemType{section, team, student} treeItemType;
-    explicit TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
+    explicit TeamTreeWidgetItem(TreeItemType type, int columns = 0);
     ~TeamTreeWidgetItem() override = default;
     TeamTreeWidgetItem(const TeamTreeWidgetItem&) = delete;
     TeamTreeWidgetItem operator= (const TeamTreeWidgetItem&) = delete;
     TeamTreeWidgetItem(TeamTreeWidgetItem&&) = delete;
     TeamTreeWidgetItem& operator= (TeamTreeWidgetItem&&) = delete;
-    void setScoreColor(float teamScore);
 
 private:
     bool operator<(const QTreeWidgetItem &other) const override;

@@ -109,16 +109,16 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     }
 
     // Create the drop indicator for drag-and-drop visual feedback
-    m_dropIndicator = new QFrame(this);
-    m_dropIndicator->setFixedHeight(4);
-    m_dropIndicator->setStyleSheet("background-color: " DEEPWATERHEX "; border-radius: 2px; margin: 0px 10px;");
-    m_dropIndicator->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    m_dropIndicator->hide();
-    m_bottomDropZone = new QWidget(this);
-    m_bottomDropZone->setFixedHeight(40);
-    m_bottomDropZone->setAcceptDrops(true);
-    m_bottomDropZone->installEventFilter(this);
-    m_bottomDropZone->hide();
+    dropIndicator = new QFrame(this);
+    dropIndicator->setFixedHeight(4);
+    dropIndicator->setStyleSheet("background-color: " DEEPWATERHEX "; border-radius: 2px; margin: 0px 10px;");
+    dropIndicator->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    dropIndicator->hide();
+    bottomDropZone = new QWidget(this);
+    bottomDropZone->setFixedHeight(40);
+    bottomDropZone->setAcceptDrops(true);
+    bottomDropZone->installEventFilter(this);
+    bottomDropZone->hide();
 
     //Defining all criteria cards
     criteriaCardsList.clear();
@@ -209,6 +209,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     ui->dataDisplayTabWidget->setTabsClosable(true);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
+    ui->dataDisplayTabWidget->tabBar()->setElideMode(Qt::ElideNone);
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabCloseRequested, this, &gruepr::dataDisplayTabClose);
 
     //Set alternate fonts on some UI features
@@ -335,7 +336,7 @@ void gruepr::moveCriteriaCard(int draggedIndex, int targetIndex) {
 
 bool gruepr::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == m_bottomDropZone) {
+    if (watched == bottomDropZone) {
         if (event->type() == QEvent::DragEnter) {
             auto *e = static_cast<QDragEnterEvent*>(event);
             if (e->mimeData()->hasText()) {
@@ -368,40 +369,40 @@ void gruepr::showDropIndicator(int targetIndex) {
         return;
     }
 
-    layout->removeWidget(m_dropIndicator);
+    layout->removeWidget(dropIndicator);
 
     if (targetIndex >= 0 && targetIndex < criteriaCardsList.size()) {
         // Insert indicator above the target card
         const int layoutIndex = layout->indexOf(criteriaCardsList[targetIndex]);
         if (layoutIndex >= 0) {
-            layout->insertWidget(layoutIndex, m_dropIndicator);
-            m_dropIndicator->show();
+            layout->insertWidget(layoutIndex, dropIndicator);
+            dropIndicator->show();
         }
     }
     else if (targetIndex == criteriaCardsList.size()) {
         // Insert indicator after the last card (above the bottom drop zone)
-        const int layoutIndex = layout->indexOf(m_bottomDropZone);
+        const int layoutIndex = layout->indexOf(bottomDropZone);
         if (layoutIndex >= 0) {
-            layout->insertWidget(layoutIndex, m_dropIndicator);
-            m_dropIndicator->show();
+            layout->insertWidget(layoutIndex, dropIndicator);
+            dropIndicator->show();
         }
     }
 }
 
 void gruepr::showBottomDropZone() {
-    m_bottomDropZone->show();
+    bottomDropZone->show();
 }
 
 void gruepr::hideDropIndicator() {
-    if (m_dropIndicator == nullptr) {
+    if (dropIndicator == nullptr) {
         return;
     }
     auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
     if (layout != nullptr) {
-        layout->removeWidget(m_dropIndicator);
+        layout->removeWidget(dropIndicator);
     }
-    m_dropIndicator->hide();
-    m_bottomDropZone->hide();
+    dropIndicator->hide();
+    bottomDropZone->hide();
 }
 
 void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
@@ -623,7 +624,7 @@ void gruepr::refreshCriteriaLayout(){
         layout->addWidget(criteriaCard);
         //prevCriteriaCard = criteriaCard;
     }
-    layout->addWidget(m_bottomDropZone);
+    layout->addWidget(bottomDropZone);
     layout->addWidget(addNewCriteriaCardButton);
     layout->addStretch(1);
 }
@@ -659,32 +660,21 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     getGenomeScore(_students.constData(), genome.data(), _numTeams, teamSizes.data(),
                    _teamingOptions, &_dataOptions, teamScores.data(), criteriaScores, penaltyPoints);
 
-    for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++){
-        for (int team = 0; team <_numTeams; team++){
-            _teams[team].criteriaScores[criterion] = criteriaScores[criterion][team];
-            //penalty
-            const int penaltyScore = -penaltyPoints[criterion];
-            //unweighted score
-            const float actualScore = criteriaScores[criterion][team]/_teamingOptions->weights[criterion];
-            //qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
-            //qDebug() << "weight from criterion->weight:" << _teamingOptions->criterionTypes[criterion]->weight;
-
-            //does not take into account penalty scores yet
-            _teams[team].criteriaScores[criterion] = actualScore;
-
-            // qDebug() << "team:" << team;
-            // qDebug() << "criterion:" << criterion;
-            // qDebug() << "penalty:" << -penaltyPoints[criterion];
-            // qDebug() << "actual score:" << actualScore;
-            // qDebug() << "score:" << criteriaScores[criterion][team];
-            // qDebug() << "score final:" << _teams[team].criterionScores[criterion];
-
-        }
-    }
-
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         _teams[teamnum].score = teamScores[teamnum];
     }
+
+/*  for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++){
+        for (int team = 0; team <_numTeams; team++){
+            const float actualScore = criteriaScores[criterion][team]/_teamingOptions->weights[criterion];
+            qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
+            qDebug() << "team:" << team;
+            qDebug() << "criterion:" << criterion;
+            qDebug() << "penalty:" << -penaltyPoints[criterion];
+            qDebug() << "actual score:" << actualScore;
+            qDebug() << "score:" << criteriaScores[criterion][team];
+        }
+    } */
 }
 
 QStringList gruepr::getTeamTabNames() const {

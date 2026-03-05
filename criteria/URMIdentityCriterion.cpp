@@ -47,8 +47,8 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOpt
 }
 
 void URMIdentityCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                          const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                                          std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+                                          const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
+                                          std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
 {
     if(!teamingOptions->isolatedURMPrevented) {
         return;
@@ -99,4 +99,24 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
 */
         criteriaScores[team] *= weight;
     }
+}
+
+QString URMIdentityCriterion::headerLabel(const DataOptions *) const {
+    return tr("URM");
+}
+
+Qt::TextElideMode URMIdentityCriterion::headerElideMode() const {
+    return Qt::ElideNone;
+}
+
+QString URMIdentityCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+    return QString::number(team.numURM);
+}
+
+QVariant URMIdentityCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+    return team.numURM;
+}
+
+QString URMIdentityCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const {
+    return student.URM ? tr("yes") : "";
 }

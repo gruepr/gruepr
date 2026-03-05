@@ -35,6 +35,7 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - Pulling in ***incredible*** dissertation work by Nikhen to modernize and simplify the UI
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //  - removed dark mode in windows
 //  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
@@ -45,7 +46,6 @@
 //  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
 //  - added free response questions to surveymaker
-//  - Pulling in much of the ***incredible*** dissertation work by Nikhen to modernize the UI
 //  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
 //  - unified "required" and "requested" teammates
 //
@@ -56,9 +56,8 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
 teamstabwidget.cpp:
-    - bug: color of attributes are off in second tab when reopening from saved work, all are red
     - bugfixes on adjusting teams
-    - tab name buttons are not auto-resized on mac
+    - tab name buttons are not auto-resized on mac? might be fixed now
 */
 
 //
@@ -66,7 +65,7 @@ teamstabwidget.cpp:
 //    NEW FEATURES:
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
-//  -- do for urm everything in parallel to gender:
+//  - do for urm everything in parallel to gender:
 //    - update addCriteriaCard for CriteriaType::urmIdentity
 //    - do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
 //    - replace isolatedURMPrevented with urmIdentityRule != 1

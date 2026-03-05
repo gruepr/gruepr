@@ -343,8 +343,8 @@ inline static const char LABELONLYBUTTON[] = "QPushButton {"
                                              "}";
 inline static const char ATTRIBUTESTACKWIDGETSTYLE[] = "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
 inline static const char TEAMTREEWIDGETSTYLE[] = "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
-                                                   "QTreeWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}"
-                                                   "QTreeWidget::item:hover{background-color: " BUBBLYHEX "; color: black;}"
+                                                   "QTreeWidget::item:selected{color: black; font-weight: bold;}"
+                                                   "QTreeWidget::item:hover{color: black; font-weight: bold;}"
                                                    "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
                                                    "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
                                                    "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
