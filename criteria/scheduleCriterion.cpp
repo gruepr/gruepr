@@ -219,3 +219,17 @@ QVariant ScheduleCriterion::teamSortValue(const TeamRecord &team, const DataOpti
 QString ScheduleCriterion::studentDisplayText(const StudentRecord &, const DataOptions *) const {
     return "";
 }
+
+QString ScheduleCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
+    QString text;
+    text += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize) +
+            tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
+    text += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
+    text += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
+    text += "\n" + tr("Schedule weight = ") + QString::number(double(weight));
+    return text;
+}
+
+QString ScheduleCriterion::exportStudentText(const StudentRecord &, const DataOptions *) const {
+    return {};
+}

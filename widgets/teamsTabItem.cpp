@@ -330,6 +330,28 @@ void TeamsTabItem::restoreCriterionTypes(const QList<GroupingCriteriaCard*> &cri
     }
     savedCriterionMap = QJsonArray();
 
+    // Initialize weights based on priority order
+    float weight = 10;
+    float sumOfWeights = 0;
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        if (teamingOptions->criteria[i] == nullptr) {
+            continue;
+        }
+        teamingOptions->criteria[i]->weight = weight;
+        sumOfWeights += weight;
+        weight /= 2;
+    }
+    float normFactor = teamingOptions->realNumScoringFactors / sumOfWeights;
+    if (!std::isfinite(normFactor)) {
+        normFactor = 0;
+    }
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        if (teamingOptions->criteria[i] == nullptr) {
+            continue;
+        }
+        teamingOptions->criteria[i]->weight *= normFactor;
+    }
+
     teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
     teamDataTree->sortByColumn(teamDataTree->columnCount() - 1, Qt::AscendingOrder);
     teamDataTree->setColumnHeaderIcon(0, QIcon(":/icons_new/upDownButton_white.png"));
@@ -828,7 +850,6 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
             newTeamItem->addChild(childItemsNewTeam[studentNum]);
         }
     }
-//FROMDEV    refreshSummaryTable(*teamingOptions);
     teamDataTree->setUpdatesEnabled(true);
     teamDataTree->repaint();
     emit saveState();
@@ -1359,75 +1380,16 @@ QStringList TeamsTabItem::createStdFileContents()
     if(teams.dataOptions.sectionIncluded) {
         instructorsFileContents += "\n" + tr("Section: ") + teamingOptions->sectionName;
     }
+
     instructorsFileContents += "\n\n" + tr("Teaming Options") + ":";
-    if(teams.dataOptions.genderIncluded) {
-        for(const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
-            for(const auto [operation, values] : valMap.asKeyValueRange()) {
-                for(const auto value : std::as_const(values)) {
-                    instructorsFileContents += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
-                                                          operation + " " + QString::number(value);
-                }
-            }
+    for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
+        const auto *criterion = teamingOptions->criteria[c];
+        if (criterion == nullptr) {
+            continue;
         }
-        instructorsFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Mixed gender teams required")) : "");
-    }
-    if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
-        instructorsFileContents += "\n" + tr("Isolated URM students prevented");
-    }
-    if(!teams.dataOptions.dayNames.isEmpty() && teamingOptions->scheduleWeight > 0) {
-        instructorsFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize) +
-                                                                         tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
-        instructorsFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
-        instructorsFileContents += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
-        instructorsFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions->scheduleWeight));
-    }
-    for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
-        instructorsFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
-                                   + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
-        // Check the attribute diversity type explicitly
-        if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::similar) {
-            instructorsFileContents += ", " + tr("similar");
-        } else if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::diverse) {
-            instructorsFileContents += ", " + tr("diverse");
-        } else {
-            instructorsFileContents += ", " + tr("ignored");
-        }
+        instructorsFileContents += criterion->exportTeamingOptionText(teamingOptions, &teams.dataOptions);
     }
     instructorsFileContents += "\n\n\n";
-    for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
-        QString questionWithResponses = tr("Multiple choice Q") + QString::number(attrib+1) + "\n" +
-                                        teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
-        for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
-            if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
-                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered) ||
-                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::timezone)) {
-                questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
-            }
-            else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
-                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multicategorical)) {
-                questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) :
-                                                                   QString(char(response%26 + 'A')).repeated(1 + (response/26)));
-                questionWithResponses += ". " + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
-            }
-        }
-        questionWithResponses += "\n\n\n";
-        instructorsFileContents += questionWithResponses;
-    }
-
-    // get the relevant gender terminology
-    QStringList genderOptions;
-    if(teams.dataOptions.genderType == GenderType::biol) {
-        genderOptions = QString(BIOLGENDERS7CHAR).split('/');
-    }
-    else if(teams.dataOptions.genderType == GenderType::adult) {
-        genderOptions = QString(ADULTGENDERS7CHAR).split('/');
-    }
-    else if(teams.dataOptions.genderType == GenderType::child) {
-        genderOptions = QString(CHILDGENDERS7CHAR).split('/');
-    }
-    else { //if(teams.dataOptions.genderType == GenderType::pronoun)
-        genderOptions = QString(PRONOUNS9CHAR).split('/');
-    }
 
     // get team numbers in the order that they are currently displayed/sorted
     const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
@@ -1436,7 +1398,7 @@ QStringList TeamsTabItem::createStdFileContents()
     for(const auto teamNum : teamDisplayNums) {
         const auto &team = teams[teamNum];
         instructorsFileContents += tr("Team ") + team.name + "  -  " +
-                                   tr("Score = ") + QString::number(double(team.score), 'f', 2) + "\n\n";
+                                   tr("Score = ") + QString::number(double(team.score), 'f', 1) + "\n\n";
         studentsFileContents += tr("Team ") + team.name + "\n\n";
 
         //loop through each teammate in the team
@@ -1445,71 +1407,12 @@ QStringList TeamsTabItem::createStdFileContents()
             if(student == nullptr) {
                 continue;
             }
-            if(teams.dataOptions.genderIncluded) {
-                QString genderText;
-                bool firstGender = true;
-                for(const auto gen : student->gender) {
-                    if(!firstGender) {
-                        genderText += ", ";
-                    }
-                    genderText += genderOptions.at(static_cast<int>(gen));
-                    firstGender = false;
+            for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
+                const auto *criterion = teamingOptions->criteria[c];
+                if (criterion == nullptr) {
+                    continue;
                 }
-                instructorsFileContents += " " + genderText + " ";
-            }
-            if(teams.dataOptions.URMIncluded) {
-                if(student->URM) {
-                    instructorsFileContents += tr(" URM ");
-                }
-                else {
-                    instructorsFileContents += "     ";
-                }
-            }
-            for(int attribute = 0; attribute < teams.dataOptions.numAttributes; attribute++) {
-                auto value = student->attributeVals[attribute].constBegin();
-                if(*value != -1) {
-                    if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
-                        instructorsFileContents += (QString::number(*value)).leftJustified(3);
-                    }
-                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
-                        instructorsFileContents += (QString::number(student->timezone)).leftJustified(5);
-                    }
-                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
-                        instructorsFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
-                                                                     (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
-                    }
-                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
-                        const auto lastValue = student->attributeVals[attribute].constEnd();
-                        QString attributeList;
-                        while(value != lastValue) {
-                            attributeList += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))) :
-                                                               (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
-                            value++;
-                            if(value != lastValue) {
-                                 attributeList += ",";
-                            }
-                        }
-                        instructorsFileContents += attributeList.leftJustified(3);
-                    }
-                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered) {
-                        const auto lastValue = student->attributeVals[attribute].constEnd();
-                        QString attributeList;
-                        while(value != lastValue) {
-                            attributeList += QString::number(*value);
-                            value++;
-                            if(value != lastValue) {
-                                 attributeList += ",";
-                            }
-                        }
-                        instructorsFileContents += attributeList.leftJustified(3);
-                    }
-                }
-                else {
-                    instructorsFileContents += (QString("?")).leftJustified(3);
-                }
-            }
-            if(teams.dataOptions.sectionIncluded && teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
-                instructorsFileContents += student->section;
+                instructorsFileContents += criterion->exportStudentText(*student, &teams.dataOptions);
             }
             const int nameSize = int((student->firstname + " " + student->lastname).size());
             instructorsFileContents += "\t" + student->firstname + " " + student->lastname +
@@ -1569,75 +1472,17 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         }
         customFileContents += "\n\n";
     }
+
     if(customFileOptions.includeTeamingData) {
         customFileContents += tr("Teaming Options") + ":";
-        if(teams.dataOptions.genderIncluded) {
-            for(const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
-                for(const auto [operation, values] : valMap.asKeyValueRange()) {
-                    for(const auto value : std::as_const(values)) {
-                        customFileContents += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
-                                              operation + " " + QString::number(value);
-                    }
-                }
+        for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
+            const auto *criterion = teamingOptions->criteria[c];
+            if (criterion == nullptr) {
+                continue;
             }
-            customFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Mixed gender teams required")) : "");
-        }
-        if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
-            customFileContents += "\n" + tr("Isolated URM students prevented");
-        }
-        if(!teams.dataOptions.dayNames.isEmpty() && teamingOptions->scheduleWeight > 0) {
-            customFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize)
-                                       + tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
-            customFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
-            customFileContents += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
-            customFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions->scheduleWeight));
-        }
-        for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
-            customFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
-                                  + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
-            if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::similar) {
-                customFileContents += ", " + tr("similar");
-            } else if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::diverse) {
-                customFileContents += ", " + tr("diverse");
-            } else {
-                customFileContents += ", " + tr("ignored");
-            }
+            customFileContents += criterion->exportTeamingOptionText(teamingOptions, &teams.dataOptions);
         }
         customFileContents += "\n\n\n";
-        for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
-            QString questionWithResponses = tr("Multiple choice Q") + QString::number(attrib+1) + "\n" +
-                                            teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
-            for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
-                if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
-                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered) ||
-                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::timezone)) {
-                    questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
-                }
-                else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
-                         (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multicategorical)) {
-                    questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) :
-                                                           QString(char(response%26 + 'A')).repeated(1 + (response/26)));
-                    questionWithResponses += ". " + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
-                }
-            }
-            questionWithResponses += "\n\n\n";
-            customFileContents += questionWithResponses;
-        }
-    }
-
-    // get the relevant gender terminology
-    QStringList genderOptions;
-    if(teams.dataOptions.genderType == GenderType::biol) {
-        genderOptions = QString(BIOLGENDERS7CHAR).split('/');
-    }
-    else if(teams.dataOptions.genderType == GenderType::adult) {
-        genderOptions = QString(ADULTGENDERS7CHAR).split('/');
-    }
-    else if(teams.dataOptions.genderType == GenderType::child) {
-        genderOptions = QString(CHILDGENDERS7CHAR).split('/');
-    }
-    else { //if(teams.dataOptions.genderType == GenderType::pronoun)
-        genderOptions = QString(PRONOUNS9CHAR).split('/');
     }
 
     // get team numbers in the order that they are currently displayed/sorted
@@ -1658,76 +1503,48 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
             if(student == nullptr) {
                 continue;
             }
-            if(teams.dataOptions.genderIncluded && customFileOptions.includeGender) {
-                QString genderText;
-                bool firstGender = true;
-                for(const auto gen : student->gender) {
-                    if(!firstGender) {
-                        genderText += ", ";
+
+            // Per-student criterion data, filtered by custom options
+            for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
+                const auto *criterion = teamingOptions->criteria[c];
+                if (criterion == nullptr) continue;
+
+                // Check whether this criterion's data should be included
+                bool include = false;
+                switch (criterion->criteriaType) {
+                case Criterion::CriteriaType::genderIdentity:
+                    include = teams.dataOptions.genderIncluded && customFileOptions.includeGender;
+                    break;
+                case Criterion::CriteriaType::urmIdentity:
+                    include = teams.dataOptions.URMIncluded && customFileOptions.includeURM;
+                    break;
+                case Criterion::CriteriaType::attributeQuestion: {
+                    const auto *attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
+                    if (attrCrit != nullptr && attrCrit->attributeIndex < customFileOptions.includeMultiChoice.size()) {
+                        include = customFileOptions.includeMultiChoice.at(attrCrit->attributeIndex);
                     }
-                    genderText += genderOptions.at(static_cast<int>(gen));
-                    firstGender = false;
+                    break;
                 }
-                customFileContents += " " + genderText + " ";
-            }
-            if(teams.dataOptions.URMIncluded && customFileOptions.includeURM) {
-                if(student->URM) {
-                    customFileContents += tr(" URM ");
+                case Criterion::CriteriaType::gradeBalance:
+                    include = customFileOptions.includeGrade;
+                    break;
+                default:
+                    break;
                 }
-                else {
-                    customFileContents += "     ";
-                }
-            }
-            for(int attribute = 0; attribute < teams.dataOptions.numAttributes; attribute++) {
-                if(customFileOptions.includeMultiChoice.at(attribute)) {
-                    auto value = student->attributeVals[attribute].constBegin();
-                    if(*value != -1) {
-                        if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
-                            customFileContents += (QString::number(*value)).leftJustified(3);
-                        }
-                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
-                            customFileContents += (QString::number(student->timezone)).leftJustified(5);
-                        }
-                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
-                            customFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
-                                                                    (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
-                        }
-                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
-                            const auto lastValue = student->attributeVals[attribute].constEnd();
-                            QString attributeList;
-                            while(value != lastValue) {
-                                attributeList += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))) :
-                                                      (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
-                                value++;
-                                if(value != lastValue) {
-                                    attributeList += ",";
-                                }
-                            }
-                            customFileContents += attributeList.leftJustified(3);
-                        }
-                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered) {
-                            const auto lastValue = student->attributeVals[attribute].constEnd();
-                            QString attributeList;
-                            while(value != lastValue) {
-                                attributeList += QString::number(*value);
-                                value++;
-                                if(value != lastValue) {
-                                    attributeList += ",";
-                                }
-                            }
-                            customFileContents += attributeList.leftJustified(3);
-                        }
-                    }
-                    else {
-                        customFileContents += (QString("?")).leftJustified(3);
-                    }
+
+                if (include) {
+                    customFileContents += criterion->exportStudentText(*student, &teams.dataOptions);
                 }
             }
+
+            // Section
             if(teams.dataOptions.sectionIncluded && customFileOptions.includeSect) {
                 customFileContents += student->section;
             }
+
+            // Name
             if((teams.dataOptions.firstNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeFirstName) ||
-               (teams.dataOptions.lastNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeLastName)) {
+                (teams.dataOptions.lastNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeLastName)) {
                 int nameSize = 0, nameWidth = 0;
                 customFileContents += "\t";
                 if(customFileOptions.includeFirstName) {
@@ -1743,35 +1560,38 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                     nameSize += int(student->lastname.size());
                     nameWidth += 15;
                 }
-                customFileContents += QString(std::max(2, nameWidth-nameSize), ' ');
+                customFileContents += QString(std::max(2, nameWidth - nameSize), ' ');
             }
+
+            // Email
             if(teams.dataOptions.emailField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeEmail) {
                 customFileContents += student->email;
             }
             customFileContents += "\n";
         }
+
+        // Schedule availability
         if(!teams.dataOptions.dayNames.isEmpty() && customFileOptions.includeSchedule) {
             customFileContents += "\n" + tr("Availability:") + "\n            ";
 
             for(const auto &dayName : std::as_const(teams.dataOptions.dayNames)) {
-                // using first 3 characters in day name as abbreviation
                 customFileContents += "  " + dayName.left(3) + "  ";
             }
             customFileContents += "\n";
 
             for(int time = 0; time < teams.dataOptions.timeNames.size(); time++) {
-                customFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
+                customFileContents += teams.dataOptions.timeNames.at(time) + QString((11 - teams.dataOptions.timeNames.at(time).size()), ' ');
                 for(int day = 0; day < teams.dataOptions.dayNames.size(); day++) {
                     QString percentage;
                     if(team.size > team.numStudentsWithAmbiguousSchedules) {
-                        percentage = QString::number((100*team.numStudentsAvailable[day][time]) /
-                                                     (team.size-team.numStudentsWithAmbiguousSchedules)) + "% ";
+                        percentage = QString::number((100 * team.numStudentsAvailable[day][time]) /
+                                                     (team.size - team.numStudentsWithAmbiguousSchedules)) + "% ";
                     }
                     else {
                         percentage = "?";
                     }
                     const QStringView left3 = QStringView{teams.dataOptions.dayNames.at(day).left(3)};
-                    customFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
+                    customFileContents += QString((4 + left3.size()) - percentage.size(), ' ') + percentage;
                 }
                 customFileContents += "\n";
             }

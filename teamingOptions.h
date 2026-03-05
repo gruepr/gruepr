@@ -32,18 +32,12 @@ public:
     float targetMinimumGroupGradeAverage = 0.0;         // the target minimum group average grade
     float targetMaximumGroupGradeAverage = 100.0;       // the target maximum group average grade
 
-    float weights[MAX_CRITERIA] = {};
-    bool penaltyStatus[MAX_CRITERIA] = {};
-    Criterion* criteria[MAX_CRITERIA] = {};
-    QList<int> attributeSelected;                       //which attributes the user selected for use in grouping
+    Criterion* criteria[MAX_CRITERIA] = {nullptr};
     Criterion::AttributeDiversity attributeDiversity[MAX_ATTRIBUTES]; 	// whether all students on a team have similar/different levels of each attribute
-    float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
     bool haveAnyRequiredAttributes[MAX_ATTRIBUTES];
     QList<int> requiredAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of required attribute value
     bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];
     QList< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
-    float scheduleWeight = 1;
-    float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
     int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of criteria to group by (excluding teamsize and section)
     bool haveAnyGroupTogethers = false;
     bool haveAnySplitAparts = false;

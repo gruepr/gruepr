@@ -254,7 +254,9 @@ QString AttributeCriterion::studentDisplayText(const StudentRecord &student, con
         while (value != lastVal) {
             text += valToLetter(*value);
             value++;
-            if (value != lastVal) text += ", ";
+            if (value != lastVal) {
+                text += ", ";
+            }
         }
         return text;
     }
@@ -265,7 +267,9 @@ QString AttributeCriterion::studentDisplayText(const StudentRecord &student, con
         while (value != lastVal) {
             text += QString::number(*value);
             value++;
-            if (value != lastVal) text += ", ";
+            if (value != lastVal) {
+                text += ", ";
+            }
         }
         return text;
     }
@@ -275,7 +279,81 @@ QString AttributeCriterion::studentDisplayText(const StudentRecord &student, con
 
 QString AttributeCriterion::valToLetter(int val) {
     if (val <= 26) {
-        return QString(char(val - 1 + 'A'));
+        return {char(val - 1 + 'A')};
     }
     return QString(char((val - 1) % 26 + 'A')).repeated(1 + ((val - 1) / 26));
+}
+
+QString AttributeCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *dataOptions) const {
+    QString text;
+    text += "\n" + tr("Multiple choice Q") + QString::number(attributeIndex + 1) + ": "
+            + tr("weight") + " = " + QString::number(double(weight));
+    if (teamingOptions->attributeDiversity[attributeIndex] == Criterion::AttributeDiversity::similar) {
+        text += ", " + tr("similar");
+    } else if (teamingOptions->attributeDiversity[attributeIndex] == Criterion::AttributeDiversity::diverse) {
+        text += ", " + tr("diverse");
+    } else {
+        text += ", " + tr("ignored");
+    }
+
+    text += "\n" + dataOptions->attributeQuestionText.at(attributeIndex) + "\n" + tr("Responses:");
+    for (int response = 0; response < dataOptions->attributeQuestionResponses[attributeIndex].size(); response++) {
+        if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) ||
+            (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered) ||
+            (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone)) {
+            text += "\n\t" + dataOptions->attributeQuestionResponses[attributeIndex].at(response);
+        }
+        else if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::categorical) ||
+                 (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multicategorical)) {
+            text += "\n\t" + (response < 26 ? QString(char(response + 'A')) :
+                                  QString(char(response % 26 + 'A')).repeated(1 + (response / 26)));
+            text += ". " + dataOptions->attributeQuestionResponses[attributeIndex].at(response);
+        }
+    }
+    text += "\n";
+
+    return text;
+}
+
+QString AttributeCriterion::exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const {
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
+        return QString::number(student.timezone).leftJustified(5);
+    }
+
+    auto value = student.attributeVals[attributeIndex].constBegin();
+    if (*value == -1) {
+        return QString("?").leftJustified(3);
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) {
+        return QString::number(*value).leftJustified(3);
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::categorical) {
+        return valToLetter(*value).leftJustified(3);
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multicategorical) {
+        QString text;
+        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
+        while (value != lastVal) {
+            text += valToLetter(*value);
+            value++;
+            if (value != lastVal) text += ",";
+        }
+        return text.leftJustified(3);
+    }
+
+    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered) {
+        QString text;
+        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
+        while (value != lastVal) {
+            text += QString::number(*value);
+            value++;
+            if (value != lastVal) text += ",";
+        }
+        return text.leftJustified(3);
+    }
+
+    return QString("?").leftJustified(3);
 }

@@ -160,7 +160,6 @@ void AttributeWidget::setValues()
     updateResponses();
 
     if(dataOptions->attributeVals[attribute].size() == 1) {
-        teamingOptions->attributeWeights[attribute] = 0;
         diverseCard->setEnabled(true);
         similarCard->setEnabled(true);
         setRequiredValuesButton->setEnabled(true);

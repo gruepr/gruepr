@@ -229,3 +229,11 @@ QString TeammatesCriterion::studentDisplayText(const StudentRecord &student, con
     }
     return student.splitApart.isEmpty() ? " " : QString(BULLET);
 }
+
+QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions *, const DataOptions *) const {
+    return {};
+}
+
+QString TeammatesCriterion::exportStudentText(const StudentRecord &, const DataOptions *) const {
+    return {};
+}

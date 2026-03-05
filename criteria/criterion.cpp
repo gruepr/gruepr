@@ -1,9 +1,15 @@
 #include "criterion.h"
 
 int Criterion::resolveCriteriaTypeKey(const QMetaEnum &e, const QString &name) {
-    if (name == "requiredTeammates")  return e.keyToValue("groupTogether");
-    if (name == "requestedTeammates") return e.keyToValue("groupTogether");
-    if (name == "preventedTeammates") return e.keyToValue("splitApart");
+    if (name == "requiredTeammates") {
+        return e.keyToValue("groupTogether");
+    }
+    if (name == "requestedTeammates") {
+        return e.keyToValue("groupTogether");
+    }
+    if (name == "preventedTeammates") {
+        return e.keyToValue("splitApart");
+    }
     return e.keyToValue(qPrintable(name));
 }
 

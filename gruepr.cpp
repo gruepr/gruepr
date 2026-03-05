@@ -485,7 +485,6 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute
             GroupingCriteriaCard *currentMultipleChoiceCard = initializedAttributeCriteriaCards[attribute];
             addedAttributeNumbersList.append(attribute);
             criteriaCardsList.append(currentMultipleChoiceCard);
-            teamingOptions->attributeSelected.contains(attribute);
             if(attribute < attributeMenuActions.size() && attributeMenuActions[attribute] != nullptr) {
                 attributeMenuActions[attribute]->setVisible(false);
             }
@@ -630,7 +629,7 @@ void gruepr::refreshCriteriaLayout(){
 }
 
 ////////////////////
-// A static public wrapper for the getGenomeScore function used internally
+// A static public wrapper for the getGenomeScore function
 // The calculated scores are updated into the .scores members of the _teams array sent to the function
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
@@ -679,8 +678,9 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
 
 QStringList gruepr::getTeamTabNames() const {
     QStringList names;
-    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++)
+    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
         names << ui->dataDisplayTabWidget->tabText(tab);
+    }
     return names;
 }
 
@@ -1499,14 +1499,11 @@ void gruepr::startOptimization()
         if (criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
             criteriaCard->criterion->criteriaType == Criterion::CriteriaType::teamSize) {
             continue;
-        } else {
-            teamingOptions->weights[index] = weight;
-            criteriaCard->criterion->weight = weight;
-            teamingOptions->penaltyStatus[index] = criteriaCard->criterion->penaltyStatus;
-            teamingOptions->criteria[index] = criteriaCard->criterion;
         }
-        sumOfWeights = sumOfWeights + weight;
-        weight = weight/2;
+        teamingOptions->criteria[index] = criteriaCard->criterion;
+        criteriaCard->criterion->weight = weight;
+        sumOfWeights += weight;
+        weight /= 2;
         index++;
     }
 
@@ -1524,8 +1521,7 @@ void gruepr::startOptimization()
 
     // convert weights to realWeights
     for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        teamingOptions->weights[i] *= normFactor;
-        teamingOptions->criteria[i]->weight = teamingOptions->weights[i];
+        teamingOptions->criteria[i]->weight *= normFactor;
     }
 
     teamingOptions->realMeetingBlockSize = std::ceil(teamingOptions->meetingBlockSize / dataOptions->scheduleResolution); // divide by length of time block in hours, rounded up
@@ -1832,7 +1828,6 @@ void gruepr::loadUI()
 
     //Initialize all cards, but do not add them to the layout
     for (int attribute = 0; attribute < dataOptions->numAttributes; attribute++){
-        teamingOptions->attributeSelected.removeAll(attribute);
         const QString title = "Multiple Choice: "+ dataOptions->attributeQuestionText.at(attribute);
         initializedAttributeCriteriaCards << new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, dataOptions, teamingOptions, this,
                                                                       title, true, attribute);
@@ -1842,10 +1837,6 @@ void gruepr::loadUI()
         currentAttributeCriterion->attributeWidget->setValues(); //update issue
         // Standard drag/drop/delete signals connected automatically in GroupingCriteriaCard constructor
 
-        //(re)set the weight to zero for any attributes with just one value in the data
-        if(dataOptions->attributeVals[attribute].size() == 1) {
-            teamingOptions->attributeWeights[attribute] = 0;
-        }
         currentAttributeCard->setVisible(false); //just initialize, but initially false visibility
     }
 
@@ -2401,15 +2392,21 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
         _teamScores[team] = 0;
     }
 
-    for (int i = 0; i < _teamingOptions->realNumScoringFactors; i++) {
-        _teamingOptions->criteria[i]->calculateScore(_students, _teammates, _numTeams, _teamSizes,
-                                                           _teamingOptions, _dataOptions, _criteriaScores[i], _penaltyPoints);
+    for (int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
+        if (_teamingOptions->criteria[criterion] == nullptr) {
+            continue;
+        }
+        _teamingOptions->criteria[criterion]->calculateScore(_students, _teammates, _numTeams, _teamSizes,
+                                                             _teamingOptions, _dataOptions, _criteriaScores[criterion], _penaltyPoints);
     }
 
     // Bring together for a final score for each team:
     // Score is normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < _numTeams; team++) {
         for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
+            if(_teamingOptions->criteria[criterion] == nullptr) {
+                continue;
+            }
             // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
             if(_teamingOptions->criteria[criterion]->criteriaType == Criterion::CriteriaType::scheduleMeetingTimes &&
                 _criteriaScores[criterion][team] > _teamingOptions->criteria[criterion]->weight &&

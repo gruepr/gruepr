@@ -42,6 +42,12 @@ public:
     static constexpr float NO_SCORE = std::numeric_limits<float>::quiet_NaN();
     static inline bool IS_NO_SCORE(float score) { return std::isnan(score); }
 
+    // Description of this criterion's settings for the teaming options summary in exports
+    virtual QString exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions */*dataOptions*/) const { return {}; }
+
+    // Per-student data for this criterion in export files (fixed-width formatted)
+    virtual QString exportStudentText(const StudentRecord &/*student*/, const DataOptions */*dataOptions*/) const { return {}; }
+
     float weight;
     enum class Precedence {fixed, need, want} precedence = Precedence::want;
     bool penaltyStatus;

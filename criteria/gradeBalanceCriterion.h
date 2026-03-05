@@ -23,6 +23,8 @@ public:
     QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const override;
     QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const override;
     QString studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const override;
+    QString exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *dataOptions) const override;
+    QString exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const override;
 
     const DataOptions *const dataOptions = nullptr;
     QDoubleSpinBox *minimumMeanGradeSpinBox = nullptr;

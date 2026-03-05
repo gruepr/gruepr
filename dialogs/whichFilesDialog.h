@@ -37,6 +37,7 @@ public:
         bool includeGender = false;
         bool includeURM = false;
         bool includeSect = false;
+        bool includeGrade = false;
         QList<bool> includeMultiChoice;
         bool includeSchedule = false;
     } customFileOptions;

@@ -202,3 +202,42 @@ QString GenderCriterion::studentDisplayText(const StudentRecord &student, const 
     }
     return text;
 }
+
+QString GenderCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
+    QString text;
+    for (const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
+        for (const auto [operation, values] : valMap.asKeyValueRange()) {
+            for (const auto value : std::as_const(values)) {
+                text += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
+                        operation + " " + QString::number(value);
+            }
+        }
+    }
+    if (teamingOptions->singleGenderPrevented) {
+        text += "\n" + tr("Mixed gender teams required");
+    }
+    return text;
+}
+
+QString GenderCriterion::exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const {
+    QStringList genderOptions;
+    if (dataOptions->genderType == GenderType::biol) {
+        genderOptions = QString(BIOLGENDERS7CHAR).split('/');
+    } else if (dataOptions->genderType == GenderType::adult) {
+        genderOptions = QString(ADULTGENDERS7CHAR).split('/');
+    } else if (dataOptions->genderType == GenderType::child) {
+        genderOptions = QString(CHILDGENDERS7CHAR).split('/');
+    } else {
+        genderOptions = QString(PRONOUNS9CHAR).split('/');
+    }
+    QString text;
+    bool first = true;
+    for (const auto gen : student.gender) {
+        if (!first) {
+            text += ", ";
+        }
+        text += genderOptions.at(static_cast<int>(gen));
+        first = false;
+    }
+    return " " + text + " ";
+}

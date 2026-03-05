@@ -17,13 +17,15 @@ public:
                         std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const override;
     // Need to override this one, because this criterion needs to see all teams for scoring any one team
     float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
-                       const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed) override;
+                                   const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed) override;
 
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;
     QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const override;
     QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const override;
     QString studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const override;
+    QString exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *dataOptions) const override;
+    QString exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const override;
 
     QPushButton *setTeammateRulesButton = nullptr;
     QLabel *pairingCountLabel = nullptr;

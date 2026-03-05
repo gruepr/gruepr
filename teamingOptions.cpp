@@ -5,11 +5,9 @@
 
 TeamingOptions::TeamingOptions()
 {
-    // initialize all attributes to unselected, diversity to diverse (i.e., heterogeneous), weights to 1, and incompatible attribute values to none
-    attributeSelected.clear();
+    // initialize all attributes' diversity to diverse (i.e., heterogeneous) and required and incompatible attribute values to none
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeDiversity[i] = Criterion::AttributeDiversity::diverse;
-        attributeWeights[i] = 1;
         haveAnyRequiredAttributes[i] = false;
         requiredAttributeValues[i].clear();
         haveAnyIncompatibleAttributes[i] = false;
@@ -47,10 +45,6 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
     targetMinimumGroupGradeAverage = jsonTeamingOptions["targetMinimumGroupGradeAverage"].toDouble();
     targetMaximumGroupGradeAverage = jsonTeamingOptions["targetMaximumGroupGradeAverage"].toDouble();
-    const QJsonArray attributeSelectedArray = jsonTeamingOptions["attributeSelected"].toArray();
-    for(const auto &item : attributeSelectedArray) {
-        attributeSelected << item.toInt();
-    }
     const QJsonArray attributeDiversityArray = jsonTeamingOptions["attributeDiversity"].toArray();
     auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
     int i = 0;
@@ -60,15 +54,6 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     }
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
         attributeDiversity[j] = Criterion::AttributeDiversity::diverse;
-    }
-    const QJsonArray attributeWeightsArray = jsonTeamingOptions["attributeWeights"].toArray();
-    i = 0;
-    for(const auto &item : attributeWeightsArray) {
-        attributeWeights[i] = item.toDouble();
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeWeights[j] = 1;
     }
     const QJsonArray haveAnyRequiredAttributesArray = jsonTeamingOptions["haveAnyRequiredAttributes"].toArray();
     i = 0;
@@ -105,18 +90,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
             incompatibleAttributeValues[i].append({pairOfVals[0].toInt(), pairOfVals[1].toInt()});
         }
     }
-    scheduleWeight = jsonTeamingOptions["scheduleWeight"].toDouble();
-    realScheduleWeight = jsonTeamingOptions["realScheduleWeight"].toDouble();
     realNumScoringFactors = jsonTeamingOptions["realNumScoringFactors"].toInt();
-    const QJsonArray weightsArray = jsonTeamingOptions["weights"].toArray();
-    i = 0;
-    for (const auto &item : weightsArray) {
-        weights[i] = float(item.toDouble());
-        i++;
-    }
-    for (int j = i; j < MAX_CRITERIA; j++) {
-        weights[j] = 1.0f;   // safe default: unweighted = raw score stays in [0,1]
-    }
     haveAnyGroupTogethers = jsonTeamingOptions.contains("haveAnyGroupTogethers") ?
                                 jsonTeamingOptions["haveAnyGroupTogethers"].toBool()
                                 : jsonTeamingOptions["haveAnyRequiredTeammates"].toBool() ||        // old Terminology
@@ -176,18 +150,13 @@ void TeamingOptions::reset()
 
 QJsonObject TeamingOptions::toJson() const
 {
-    QJsonArray attributeSelectedArray, attributeDiversityArray, attributeWeightsArray, weightsArray,
-               haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
+    QJsonArray attributeDiversityArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
                incompatibleAttributeValuesArray, smallerTeamsSizesArray, largerTeamsSizesArray, teamSizesDesiredArray,
                genderIdentityRulesArray, urmIdentityRulesArray;
     auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
 
-    for(const auto &attribute : attributeSelected) {
-        attributeSelectedArray.append(attribute);
-    }
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeDiversityArray.append(diversity.valueToKey(static_cast<int>(attributeDiversity[i])));
-        attributeWeightsArray.append(attributeWeights[i]);
         haveAnyRequiredAttributesArray.append(haveAnyRequiredAttributes[i]);
         QJsonArray requiredAttributeValuesArraySubArray;
         for (const auto &val : requiredAttributeValues[i]) {
@@ -203,9 +172,6 @@ QJsonObject TeamingOptions::toJson() const
             incompatibleAttributeValuesArraySubArray.append(pair);
         }
         incompatibleAttributeValuesArray.append(incompatibleAttributeValuesArraySubArray);
-    }
-    for (int i = 0; i < MAX_CRITERIA; i++) {
-        weightsArray.append(double(weights[i]));
     }
     for(const auto size : smallerTeamsSizes) {
         smallerTeamsSizesArray.append(size);
@@ -241,16 +207,11 @@ QJsonObject TeamingOptions::toJson() const
         {"minTimeBlocksOverlap", minTimeBlocksOverlap},
         {"meetingBlockSize", meetingBlockSize},
         {"realMeetingBlockSize", realMeetingBlockSize},
-        {"attributeSelected", attributeSelectedArray},
         {"attributeDiversity", attributeDiversityArray},
-        {"attributeWeights", attributeWeightsArray},
-        {"weights", weightsArray},
         {"haveAnyRequiredAttributes", haveAnyRequiredAttributesArray},
         {"requiredAttributeValues", requiredAttributeValuesArray},
         {"haveAnyIncompatibleAttributes", haveAnyIncompatibleAttributesArray},
         {"incompatibleAttributeValues", incompatibleAttributeValuesArray},
-        {"scheduleWeight", scheduleWeight},
-        {"realScheduleWeight", realScheduleWeight},
         {"realNumScoringFactors", realNumScoringFactors},
         {"haveAnyGroupTogethers", haveAnyGroupTogethers},
         {"haveAnySplitAparts", haveAnySplitAparts},

@@ -120,3 +120,14 @@ QVariant URMIdentityCriterion::teamSortValue(const TeamRecord &team, const DataO
 QString URMIdentityCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const {
     return student.URM ? tr("yes") : "";
 }
+
+QString URMIdentityCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
+    if (teamingOptions->isolatedURMPrevented) {
+        return "\n" + tr("Isolated URM students prevented");
+    }
+    return {};
+}
+
+QString URMIdentityCriterion::exportStudentText(const StudentRecord &student, const DataOptions *) const {
+    return student.URM ? tr(" URM ") : "     ";
+}

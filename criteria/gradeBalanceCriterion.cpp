@@ -128,3 +128,13 @@ QVariant GradeBalanceCriterion::teamSortValue(const TeamRecord &team, const Data
 QString GradeBalanceCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const {
     return QString::number(student.grade);
 }
+
+QString GradeBalanceCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
+    return "\n" + tr("Grade balance: target range ") +
+           QString::number(double(teamingOptions->targetMinimumGroupGradeAverage), 'f', 2) + " - " +
+           QString::number(double(teamingOptions->targetMaximumGroupGradeAverage), 'f', 2);
+}
+
+QString GradeBalanceCriterion::exportStudentText(const StudentRecord &student, const DataOptions *) const {
+    return QString::number(student.grade).leftJustified(5);
+}
