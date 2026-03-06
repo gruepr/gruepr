@@ -15,6 +15,7 @@ public:
     void calculateScore(const StudentRecord *const /*students*/, const int /*teammates*/[], const int /*numTeams*/, const int /*teamSizes*/[],
                                 const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
                                 std::vector<float> &/*criteriaScores*/, std::vector<int> &/*penaltyPoints*/) const override {};
+    Criterion* clone() const override { return nullptr; }
 
     QString headerLabel(const DataOptions *) const override { return {}; }
     Qt::TextElideMode headerElideMode() const override { return Qt::ElideNone; }

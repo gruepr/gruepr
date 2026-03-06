@@ -56,14 +56,12 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
 teamstabwidget.cpp:
-    - bugfixes on adjusting teams
     - tab name buttons are not auto-resized on mac? might be fixed now
 */
 
 //
 // TO DO:
 //    NEW FEATURES:
-//  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - do for urm everything in parallel to gender:
 //    - update addCriteriaCard for CriteriaType::urmIdentity

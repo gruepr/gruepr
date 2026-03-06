@@ -1,5 +1,11 @@
 #include "teamsTabItem.h"
 #include "gruepr.h"
+#include "criteria/attributeCriterion.h"
+#include "criteria/genderCriterion.h"
+#include "criteria/gradeBalanceCriterion.h"
+#include "criteria/scheduleCriterion.h"
+#include "criteria/teammatesCriterion.h"
+#include "criteria/URMIdentityCriterion.h"
 #include "dialogs/customTeamnamesDialog.h"
 #include "LMS/canvashandler.h"
 #include "widgets/labelWithInstantTooltip.h"
@@ -28,7 +34,17 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet
                            const QStringList &incomingSectionNames, const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent)
     : QWidget(parent)
 {
-    teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made to use in print/save
+    // Clone criteria and teamingOptions so this tab owns independent copies
+    teamingOptions = new TeamingOptions(incomingTeamingOptions);
+
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        if (incomingTeamingOptions.criteria[i] != nullptr) {
+            teamingOptions->criteria[i] = incomingTeamingOptions.criteria[i]->clone();
+        } else {
+            teamingOptions->criteria[i] = nullptr;
+        }
+    }
+
     sectionNames = incomingSectionNames;
     teams = incomingTeamSet;
     students = incomingStudents;
@@ -44,8 +60,11 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
     :QWidget(parent)
 {
     teamingOptions = new TeamingOptions(jsonTeamsTab["teamingOptions"].toObject());
-    savedCriterionMap = jsonTeamsTab["criterionMap"].toArray();
-    sectionNames = incomingSectionNames;
+    if (jsonTeamsTab.contains("criteria")) {
+        savedCriteriaJson = jsonTeamsTab["criteria"].toArray();
+    } else {
+        savedCriteriaJson = jsonTeamsTab["criterionMap"].toArray(); // previous name, for backwards compatibility
+    }    sectionNames = incomingSectionNames;
     numStudents = jsonTeamsTab["numStudents"].toInt();
     const QJsonArray studentsArray = jsonTeamsTab["students"].toArray();
     students.reserve(studentsArray.size());
@@ -225,6 +244,10 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     connect(postTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::postTeamsToCanvas);
     savePrintLayout->addWidget(postTeamsButton);
 
+    if (tabType == TabType::fromJSON) {
+        restoreCriteria(&teams.dataOptions);
+    }
+
     teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
     if(tabType == TabType::newTab) {
         teamDataTree->sortByColumn(0, Qt::AscendingOrder);
@@ -250,6 +273,11 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
 
 TeamsTabItem::~TeamsTabItem()
 {
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        delete teamingOptions->criteria[i];
+        teamingOptions->criteria[i] = nullptr;
+    }
+
     delete teamingOptions;
 }
 
@@ -268,12 +296,15 @@ QJsonObject TeamsTabItem::toJson() const
         studentsArray.append(student.toJson());
     }
 
-    auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
-    QJsonArray criterionMapArray;
+    QJsonArray criterionArray;
     for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
         QJsonObject entry;
         if (teamingOptions->criteria[i] != nullptr) {
+            auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
             entry["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(teamingOptions->criteria[i]->criteriaType));
+            entry["weight"] = teamingOptions->criteria[i]->weight;
+            entry["penaltyStatus"] = teamingOptions->criteria[i]->penaltyStatus;
+            entry["settings"] = teamingOptions->criteria[i]->settingsToJson();
             if (teamingOptions->criteria[i]->criteriaType == Criterion::CriteriaType::attributeQuestion) {
                 const auto *attrCrit = qobject_cast<AttributeCriterion*>(teamingOptions->criteria[i]);
                 if (attrCrit != nullptr) {
@@ -281,13 +312,13 @@ QJsonObject TeamsTabItem::toJson() const
                 }
             }
         }
-        criterionMapArray.append(entry);
+        criterionArray.append(entry);
     }
 
 
     QJsonObject content {
         {"teamingOptions", teamingOptions->toJson()},
-        {"criterionMap", criterionMapArray},
+        {"criteria", criterionArray},
         {"teams", teamsArray},
         {"students", studentsArray},
         {"numStudents", numStudents},
@@ -299,58 +330,55 @@ QJsonObject TeamsTabItem::toJson() const
     return content;
 }
 
-void TeamsTabItem::restoreCriterionTypes(const QList<GroupingCriteriaCard*> &criteriaCards)
+void TeamsTabItem::restoreCriteria(const DataOptions *dataOptions)
 {
-    for (int i = 0; i < savedCriterionMap.size() && i < teamingOptions->realNumScoringFactors; i++) {
-        const QJsonObject entry = savedCriterionMap[i].toObject();
+    for (int i = 0; i < savedCriteriaJson.size(); i++) {
+        const QJsonObject entry = savedCriteriaJson[i].toObject();
         auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
         const int typeInt = Criterion::resolveCriteriaTypeKey(criteriaTypeEnum, entry["criteriaType"].toString());
         if (typeInt == -1) {
-            teamingOptions->criteria[i] = nullptr;
             continue;
         }
         const auto type = static_cast<Criterion::CriteriaType>(typeInt);
-        const int attrIndex = entry.contains("attributeIndex") ? entry["attributeIndex"].toInt() : -1;
+        const float weight = entry["weight"].toDouble(0);
+        const bool penalty = entry["penaltyStatus"].toBool(false);
 
-        teamingOptions->criteria[i] = nullptr;
-
-        for (auto *card : criteriaCards) {
-            if (card->criterion == nullptr || card->criterion->criteriaType != type) {
-                continue;
-            }
-            if (type == Criterion::CriteriaType::attributeQuestion) {
-                const auto *attrCrit = qobject_cast<AttributeCriterion*>(card->criterion);
-                if (attrCrit == nullptr || attrCrit->attributeIndex != attrIndex) {
-                    continue;
-                }
-            }
-            teamingOptions->criteria[i] = card->criterion;
+        Criterion *criterion = nullptr;
+        switch (type) {
+        case Criterion::CriteriaType::genderIdentity:
+            criterion = new GenderCriterion(dataOptions, type, weight, penalty);
+            break;
+        case Criterion::CriteriaType::urmIdentity:
+            criterion = new URMIdentityCriterion(dataOptions, type, weight, penalty);
+            break;
+        case Criterion::CriteriaType::attributeQuestion: {
+            const int attrIdx = entry["attributeIndex"].toInt();
+            criterion = new AttributeCriterion(dataOptions, type, weight, penalty, nullptr, attrIdx);
             break;
         }
-    }
-    savedCriterionMap = QJsonArray();
+        case Criterion::CriteriaType::scheduleMeetingTimes:
+            criterion = new ScheduleCriterion(dataOptions, type, weight, penalty);
+            break;
+        case Criterion::CriteriaType::groupTogether:
+        case Criterion::CriteriaType::splitApart:
+            criterion = new TeammatesCriterion(type, weight, penalty);
+            break;
+        case Criterion::CriteriaType::gradeBalance:
+            criterion = new GradeBalanceCriterion(dataOptions, type, weight, penalty);
+            break;
+        default:
+            break;
+        }
 
-    // Initialize weights based on priority order
-    float weight = 10;
-    float sumOfWeights = 0;
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        if (teamingOptions->criteria[i] == nullptr) {
-            continue;
+        if (criterion != nullptr) {
+            if (entry.contains("settings")) {
+                criterion->settingsFromJson(entry["settings"].toObject());
+            }
+            teamingOptions->criteria[i] = criterion;
         }
-        teamingOptions->criteria[i]->weight = weight;
-        sumOfWeights += weight;
-        weight /= 2;
     }
-    float normFactor = teamingOptions->realNumScoringFactors / sumOfWeights;
-    if (!std::isfinite(normFactor)) {
-        normFactor = 0;
-    }
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        if (teamingOptions->criteria[i] == nullptr) {
-            continue;
-        }
-        teamingOptions->criteria[i]->weight *= normFactor;
-    }
+    teamingOptions->realNumScoringFactors = savedCriteriaJson.size();
+    savedCriteriaJson = QJsonArray();
 
     teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
     teamDataTree->sortByColumn(teamDataTree->columnCount() - 1, Qt::AscendingOrder);
@@ -359,6 +387,7 @@ void TeamsTabItem::restoreCriterionTypes(const QList<GroupingCriteriaCard*> &cri
     refreshTeamDisplay();
     refreshDisplayOrder();
 }
+
 
 void TeamsTabItem::changeTeamNames(const int index)
 {
@@ -724,7 +753,6 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             }
         }
     }
-//FROMDEV    refreshSummaryTable(*teamingOptions);
     teamDataTree->setUpdatesEnabled(true);
     teamDataTree->repaint();
     emit saveState();
@@ -1507,7 +1535,9 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
             // Per-student criterion data, filtered by custom options
             for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
                 const auto *criterion = teamingOptions->criteria[c];
-                if (criterion == nullptr) continue;
+                if (criterion == nullptr) {
+                    continue;
+                }
 
                 // Check whether this criterion's data should be included
                 bool include = false;

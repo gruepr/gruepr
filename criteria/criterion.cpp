@@ -64,5 +64,5 @@ QColor Criterion::teamDisplayColor(float criterionScore) const
         g = 255;
     }
 
-    return QColor(r, g, 80, 60);
+    return {r, g, 80, 60};
 }

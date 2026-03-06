@@ -17,7 +17,7 @@ void DropCSVFrame::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasUrls()) {
         event->acceptProposedAction();
-        setStyleSheet(DRAGENTERDROPFRAME);
+        setStyleSheet(BASICFRAME);
     }
 }
 void DropCSVFrame::dragLeaveEvent(QDragLeaveEvent *event)

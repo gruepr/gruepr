@@ -5,6 +5,10 @@
 #include "dialogs/identityRulesDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 
+Criterion* URMIdentityCriterion::clone() const {
+    return new URMIdentityCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+}
+
 void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);

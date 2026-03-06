@@ -33,12 +33,11 @@ public:
     float targetMaximumGroupGradeAverage = 100.0;       // the target maximum group average grade
 
     Criterion* criteria[MAX_CRITERIA] = {nullptr};
-    Criterion::AttributeDiversity attributeDiversity[MAX_ATTRIBUTES]; 	// whether all students on a team have similar/different levels of each attribute
+    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of criteria to group by (excluding teamsize and section)
     bool haveAnyRequiredAttributes[MAX_ATTRIBUTES];
     QList<int> requiredAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of required attribute value
     bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];
     QList< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
-    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of criteria to group by (excluding teamsize and section)
     bool haveAnyGroupTogethers = false;
     bool haveAnySplitAparts = false;
     int numberGroupTogethersGiven = REQUESTED_TEAMMATES_ALL;
@@ -52,11 +51,6 @@ public:
     QString sectionName;
     enum class SectionType {noSections, allTogether, allSeparately, oneSection} sectionType = SectionType::noSections;
     int teamsetNumber = 1;                              // which teamset are we working on now?
-    inline static const int MAXWEIGHT = 10;             // the maximum value the user can assign for an attribute or schedule weight
-    inline static const QString WEIGHTTOOLTIP = "<html>" + QObject::tr("The relative importance of this question in forming the teams. The range is from 0 to ") +
-                                                QString::number(TeamingOptions::MAXWEIGHT) + ".</html>";
-    inline static const QString SCHEDULEWEIGHTTOOLTIP = "<html>" + QObject::tr("The relative importance of the schedule in forming the teams. The range is from 0 to ") +
-                                                        QString::number(TeamingOptions::MAXWEIGHT) + ".</html>";
 };
 
 #endif // TEAMINGOPTIONS_H

@@ -1,12 +1,35 @@
 #include "attributeCriterion.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 
+Criterion* AttributeCriterion::clone() const {
+    auto *copy = new AttributeCriterion(dataOptions, criteriaType, weight, penaltyStatus, nullptr, attributeIndex);
+    copy->diversity = diversity;
+    return copy;
+}
+
+QJsonObject AttributeCriterion::settingsToJson() const {
+    QJsonObject json;
+    auto diversityEnum = QMetaEnum::fromType<AttributeDiversity>();
+    json["diversity"] = diversityEnum.valueToKey(static_cast<int>(diversity));
+    return json;
+}
+
+void AttributeCriterion::settingsFromJson(const QJsonObject &json) {
+    if (json.contains("diversity")) {
+        auto diversityEnum = QMetaEnum::fromType<AttributeDiversity>();
+        const int val = diversityEnum.keyToValue(qPrintable(json["diversity"].toString()));
+        if (val != -1) {
+            diversity = static_cast<AttributeDiversity>(val);
+        }
+    }
+}
+
 void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 
     auto *attributeContentLayout = new QHBoxLayout();
-    attributeWidget = new AttributeWidget(attributeIndex, dataOptions, teamingOptions, parentCard);
+    attributeWidget = new AttributeWidget(attributeIndex, dataOptions, teamingOptions, this, parentCard);
     attributeContentLayout->addWidget(attributeWidget);
 
     parentCard->setContentAreaLayout(*attributeContentLayout);
@@ -136,10 +159,10 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
             }
 
             //Calculation assumes diverse (i.e., 0 if team is fully similar and +1 if fully diverse); flip it if want similar
-            if(teamingOptions->attributeDiversity[attributeIndex] == Criterion::AttributeDiversity::similar) {
+            if(diversity == Criterion::AttributeDiversity::similar) {
                 criteriaScores[team] = 1 - criteriaScores[team];
             }
-            else if(teamingOptions->attributeDiversity[attributeIndex] == Criterion::AttributeDiversity::ignored) {
+            else if(diversity == Criterion::AttributeDiversity::ignored) {
                 criteriaScores[team] = 0;
             }
         }
@@ -284,15 +307,17 @@ QString AttributeCriterion::valToLetter(int val) {
     return QString(char((val - 1) % 26 + 'A')).repeated(1 + ((val - 1) / 26));
 }
 
-QString AttributeCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *dataOptions) const {
+QString AttributeCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions *dataOptions) const {
     QString text;
-    text += "\n" + tr("Multiple choice Q") + QString::number(attributeIndex + 1) + ": "
-            + tr("weight") + " = " + QString::number(double(weight));
-    if (teamingOptions->attributeDiversity[attributeIndex] == Criterion::AttributeDiversity::similar) {
+    text += "\n" + tr("Multiple choice question: ") +
+            tr("weight") + " = " + QString::number(double(weight));
+    if (diversity == Criterion::AttributeDiversity::similar) {
         text += ", " + tr("similar");
-    } else if (teamingOptions->attributeDiversity[attributeIndex] == Criterion::AttributeDiversity::diverse) {
+    }
+    else if (diversity == Criterion::AttributeDiversity::diverse) {
         text += ", " + tr("diverse");
-    } else {
+    }
+    else {
         text += ", " + tr("ignored");
     }
 

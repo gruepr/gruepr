@@ -5,6 +5,10 @@
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QVBoxLayout>
 
+Criterion* TeammatesCriterion::clone() const {
+    return new TeammatesCriterion(criteriaType, weight, penaltyStatus);
+}
+
 void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
@@ -192,18 +196,21 @@ int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMem
     return penalties;
 }
 
-QString TeammatesCriterion::headerLabel(const DataOptions *) const {
+QString TeammatesCriterion::headerLabel(const DataOptions *) const
+{
     if (criteriaType == CriteriaType::groupTogether) {
         return tr("Required\nteammates");
     }
     return tr("Prevented\nteammates");
 }
 
-Qt::TextElideMode TeammatesCriterion::headerElideMode() const {
+Qt::TextElideMode TeammatesCriterion::headerElideMode() const
+{
     return Qt::ElideNone;
 }
 
-QString TeammatesCriterion::teamDisplayText(const TeamRecord &, const DataOptions *, float criterionScore) const {
+QString TeammatesCriterion::teamDisplayText(const TeamRecord &, const DataOptions *, float criterionScore) const
+{
     if (IS_NO_SCORE(criterionScore)) {
         return QString::fromUtf8(" ");
     }
@@ -213,7 +220,8 @@ QString TeammatesCriterion::teamDisplayText(const TeamRecord &, const DataOption
     return QString::fromUtf8("✗");
 }
 
-QVariant TeammatesCriterion::teamSortValue(const TeamRecord &, const DataOptions *, float criterionScore) const {
+QVariant TeammatesCriterion::teamSortValue(const TeamRecord &, const DataOptions *, float criterionScore) const
+{
     if (IS_NO_SCORE(criterionScore)) {
         return 0;
     }
@@ -223,17 +231,36 @@ QVariant TeammatesCriterion::teamSortValue(const TeamRecord &, const DataOptions
     return -1;
 }
 
-QString TeammatesCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const {
+QString TeammatesCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const
+{
     if (criteriaType == CriteriaType::groupTogether) {
         return student.groupTogether.isEmpty() ? " " : QString(BULLET);
     }
     return student.splitApart.isEmpty() ? " " : QString(BULLET);
 }
 
-QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions *, const DataOptions *) const {
+QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const
+{
+    if (criteriaType == CriteriaType::groupTogether && teamingOptions->haveAnyGroupTogethers) {
+        QString text = "\n" + tr("Required teammates active");
+        if (teamingOptions->numberGroupTogethersGiven >= MAX_STUDENTS) {
+            text += tr(", all requests granted");
+        }
+        else {
+            text += tr(", up to ") + QString::number(teamingOptions->numberGroupTogethersGiven) +
+                    tr(" per student granted");
+        }
+        return text;
+    }
+
+    if (criteriaType == CriteriaType::splitApart && teamingOptions->haveAnySplitAparts) {
+        return "\n" + tr("Prevented teammates active");
+    }
+
     return {};
 }
 
-QString TeammatesCriterion::exportStudentText(const StudentRecord &, const DataOptions *) const {
+QString TeammatesCriterion::exportStudentText(const StudentRecord &, const DataOptions *) const
+{
     return {};
 }

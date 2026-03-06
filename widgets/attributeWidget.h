@@ -9,14 +9,16 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
+class AttributeCriterion;
+
 
 class AttributeWidget : public QWidget
 {
 Q_OBJECT
 
 public:
-    explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOptions,
-                             TeamingOptions *const incomingTeamingOptions, QWidget *parent = nullptr);
+explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,
+                             AttributeCriterion *incomingCriterion, QWidget *parent = nullptr);
 
     void setValues();
     void updateResponses(const std::map<QString, int> &responseCounts={});
@@ -34,6 +36,7 @@ private:
     const int attribute;
     const DataOptions *const dataOptions;
     TeamingOptions *const teamingOptions;
+    AttributeCriterion *criterion = nullptr;
 
     inline static const int BARGRAPHWIDTH = 40;
     inline static const QString DIVERSETOOLTIP = QObject::tr("Teammates will have a range of responses to this question.");

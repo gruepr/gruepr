@@ -5,9 +5,7 @@
 
 TeamingOptions::TeamingOptions()
 {
-    // initialize all attributes' diversity to diverse (i.e., heterogeneous) and required and incompatible attribute values to none
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeDiversity[i] = Criterion::AttributeDiversity::diverse;
         haveAnyRequiredAttributes[i] = false;
         requiredAttributeValues[i].clear();
         haveAnyIncompatibleAttributes[i] = false;
@@ -45,18 +43,8 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
     targetMinimumGroupGradeAverage = jsonTeamingOptions["targetMinimumGroupGradeAverage"].toDouble();
     targetMaximumGroupGradeAverage = jsonTeamingOptions["targetMaximumGroupGradeAverage"].toDouble();
-    const QJsonArray attributeDiversityArray = jsonTeamingOptions["attributeDiversity"].toArray();
-    auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
-    int i = 0;
-    for(const auto &item : attributeDiversityArray) {
-        attributeDiversity[i] = static_cast<Criterion::AttributeDiversity>(diversity.keyToValue(qPrintable(item.toString())));
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeDiversity[j] = Criterion::AttributeDiversity::diverse;
-    }
     const QJsonArray haveAnyRequiredAttributesArray = jsonTeamingOptions["haveAnyRequiredAttributes"].toArray();
-    i = 0;
+    int i = 0;
     for(const auto &item : haveAnyRequiredAttributesArray) {
         haveAnyRequiredAttributes[i] = item.toBool();
         i++;
@@ -150,13 +138,11 @@ void TeamingOptions::reset()
 
 QJsonObject TeamingOptions::toJson() const
 {
-    QJsonArray attributeDiversityArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
+    QJsonArray haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
                incompatibleAttributeValuesArray, smallerTeamsSizesArray, largerTeamsSizesArray, teamSizesDesiredArray,
                genderIdentityRulesArray, urmIdentityRulesArray;
-    auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
 
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeDiversityArray.append(diversity.valueToKey(static_cast<int>(attributeDiversity[i])));
         haveAnyRequiredAttributesArray.append(haveAnyRequiredAttributes[i]);
         QJsonArray requiredAttributeValuesArraySubArray;
         for (const auto &val : requiredAttributeValues[i]) {
@@ -207,7 +193,6 @@ QJsonObject TeamingOptions::toJson() const
         {"minTimeBlocksOverlap", minTimeBlocksOverlap},
         {"meetingBlockSize", meetingBlockSize},
         {"realMeetingBlockSize", realMeetingBlockSize},
-        {"attributeDiversity", attributeDiversityArray},
         {"haveAnyRequiredAttributes", haveAnyRequiredAttributesArray},
         {"requiredAttributeValues", requiredAttributeValuesArray},
         {"haveAnyIncompatibleAttributes", haveAnyIncompatibleAttributesArray},

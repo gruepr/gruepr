@@ -10,6 +10,7 @@ class TeammatesCriterion : public Criterion {
 
 public:
     using Criterion::Criterion;
+    Criterion* clone() const override;
 
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],

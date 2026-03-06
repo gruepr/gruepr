@@ -12,6 +12,10 @@ public:
                        GroupingCriteriaCard *parent = nullptr, const int attribute = 0) :
         Criterion(criteriaType, weight, penaltyStatus, parent), dataOptions(dataOptions), attributeIndex(attribute){ };
 
+    Criterion* clone() const override;
+    QJsonObject settingsToJson() const override;
+    void settingsFromJson(const QJsonObject &json) override;
+
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
@@ -27,6 +31,7 @@ public:
 
     const DataOptions *const dataOptions;
     const int attributeIndex;
+    AttributeDiversity diversity = AttributeDiversity::diverse;
     AttributeWidget *attributeWidget = nullptr;
 
 private:

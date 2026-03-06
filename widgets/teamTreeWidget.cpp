@@ -24,9 +24,10 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     setAutoScroll(true);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setStyle(new NoHoverStyle(style()));
+    setItemDelegate(new NoHoverDelegate(this));
+    setSelectionMode(QAbstractItemView::NoSelection);
 
-    connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
-    connect(this, &QTreeWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
     connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::itemCollapse);
     connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::itemExpand);
 }
@@ -511,20 +512,6 @@ void TeamTreeWidget::resorting(int column)
         }
     }
     emit updateTeamOrder();
-}
-
-void TeamTreeWidget::itemEntered(const QModelIndex &index)
-{
-    // select the item cursor is hovered over
-    setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-}
-
-void TeamTreeWidget::leaveEvent(QEvent *event)
-{
-    selectionModel()->clearSelection();
-    if(event != nullptr) {
-        QWidget::leaveEvent(event);
-    }
 }
 
 

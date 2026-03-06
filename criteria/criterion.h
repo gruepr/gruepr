@@ -27,6 +27,11 @@ public:
         weight(weight), penaltyStatus(penaltyStatus), criteriaType(criteriaType), parentCard(parent) {};
     ~Criterion() override = default;
 
+    // function to create criterion copies owned by each teamsTabWidget
+    virtual Criterion* clone() const = 0;
+    virtual QJsonObject settingsToJson() const { return {}; }
+    virtual void settingsFromJson(const QJsonObject &/*json*/) {}
+
     // generate the UI for the criterion display in gruepr
     virtual void generateCriteriaCard(TeamingOptions *const teamingOptions) = 0;
 
@@ -66,5 +71,32 @@ public:
 protected:
     GroupingCriteriaCard *parentCard;
 };
+
+
+/*
+ * PROCESS TO CREATE A NEW TYPE OF CRITERION:
+
+1. Add enum value in criterion.h → CriteriaType enum
+2. Create the subclass — new .h and .cpp files inheriting from Criterion. Implement all required methods:
+
+    generateCriteriaCard — builds the UI card
+    calculateScore — batch scoring for the GA
+    clone — returns a copy for team tabs
+    headerLabel — column header text
+    headerElideMode — how to elide the header
+    teamDisplayText — what to show in the team row
+    teamSortValue — sort key for the column
+    studentDisplayText — what to show in the student row
+    exportTeamingOptionText — text for the instructor export header
+    exportStudentText — per-student text for the instructor export
+    Optionally override: teamTextAlignment, studentTextAlignment, teamDisplayColor, scoreForOneTeamInDisplay, settingsToJson, settingsFromJson
+
+3. gruepr.cpp — add menu action in the constructor, add case in addCriteriaCard, add case in deleteCriteriaCard
+4. teamsTabItem.cpp — add #include for the new subclass, add case in restoreCriteria's switch
+5. gruepr.h — add member pointers if the criterion is singleton (like gender/URM), or add to a tracking list if multiple can exist
+6. Add to .pro — include the new source files
+
+
+*/
 
 #endif // CRITERION_H

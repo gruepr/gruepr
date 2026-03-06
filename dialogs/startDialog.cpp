@@ -47,26 +47,6 @@ StartDialog::StartDialog(QWidget *parent)
     theGrid->setRowMinimumHeight(row++, TOPSPACERHEIGHT);
 
     auto *topLabel = new QLabel(tr("What would you like to do?"), this);
-    //commented FROMDEV:
-    // int fontId = QFontDatabase::addApplicationFont(":/fonts/PaytoneOne-Regular.ttf");
-    // QString fontFamily = QFontDatabase::applicationFontFamilies(fontId).at(0);
-    // QFont paytoneFont(fontFamily, 16); // Set size 16
-    // QPushButton* grueprIcon = new QPushButton(this);
-    // grueprIcon->setIcon(QIcon(":/icons_new/icon.svg"));
-    // grueprIcon->setText("gruepr");
-    // grueprIcon->setIconSize(QSize(60,60));
-    // grueprIcon->setFont(paytoneFont);
-    // grueprIcon->setStyleSheet(
-    //     "QPushButton {"
-    //     "   border: none;"
-    //     "   background: transparent;"
-    //     "   color: black;"  // Adjust text color if needed
-    //     "}"
-    //     "QPushButton:focus { outline: none; }"  // Remove focus outline
-    //     "QPushButton:hover { background: transparent; }"  // No hover effect
-    //     "QPushButton:pressed { background: transparent; }" // No press effect
-    //     );
-
     topLabel->setStyleSheet(LABEL24PTSTYLE);
     theGrid->addWidget(topLabel, row++, col, 1, -1, Qt::AlignCenter);
 

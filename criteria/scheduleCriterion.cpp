@@ -5,6 +5,10 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
+Criterion* ScheduleCriterion::clone() const {
+    return new ScheduleCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+}
+
 void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);

@@ -242,15 +242,6 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
 
     // initialize the priority order of criteria cards
     initializeCriteriaCardPriorities();
-
-    // Restore criterion types for each saved team tab
-    const QList<GroupingCriteriaCard*> allCards = criteriaCardsList + initializedAttributeCriteriaCards;
-    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
-        auto *teamTab = qobject_cast<TeamsTabItem*>(ui->dataDisplayTabWidget->widget(tab));
-        if (teamTab != nullptr) {
-            teamTab->restoreCriterionTypes(allCards);
-        }
-    }
     populateCriterionTypes();
 
     QList<QPushButton *> buttons = {letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton};

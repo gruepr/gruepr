@@ -1,12 +1,14 @@
 #include "attributeWidget.h"
+#include "criteria/attributeCriterion.h"
 #include "dialogs/attributeRulesDialog.h"
 #include <QButtonGroup>
 #include <QGridLayout>
 #include <QPainter>
 
-AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomingDataOptions,
-                                 TeamingOptions *const incomingTeamingOptions, QWidget *parent)
-    : QWidget(parent), attribute(attribute), dataOptions(incomingDataOptions), teamingOptions(incomingTeamingOptions)
+AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,
+                                 AttributeCriterion *incomingCriterion, QWidget *parent)
+    : QWidget(parent), attribute(attribute), dataOptions(incomingDataOptions),
+      teamingOptions(incomingTeamingOptions), criterion(incomingCriterion)
 {
     setContentsMargins(0,0,0,0);
 
@@ -88,11 +90,11 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
                                        QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
                                    );
     });
-    connect(diverseButton, &QRadioButton::clicked, this, [this, attribute]() {
-        teamingOptions->attributeDiversity[attribute] = Criterion::AttributeDiversity::diverse;
+    connect(diverseButton, &QRadioButton::clicked, this, [this]() {
+        criterion->diversity = Criterion::AttributeDiversity::diverse;
     });
-    connect(similarButton, &QRadioButton::clicked, this, [this, attribute]() {
-        teamingOptions->attributeDiversity[attribute] = Criterion::AttributeDiversity::similar;
+    connect(similarButton, &QRadioButton::clicked, this, [this]() {
+        criterion->diversity = Criterion::AttributeDiversity::similar;
     });
 
     attributeSettingsLayout->addLayout(attributeDiversityLayout, 2);
@@ -160,10 +162,10 @@ void AttributeWidget::setValues()
     updateResponses();
 
     if(dataOptions->attributeVals[attribute].size() == 1) {
-        diverseCard->setEnabled(true);
-        similarCard->setEnabled(true);
-        setRequiredValuesButton->setEnabled(true);
-        setIncompatibleValuesButton->setEnabled(true);
+        diverseCard->setEnabled(false);
+        similarCard->setEnabled(false);
+        setRequiredValuesButton->setEnabled(false);
+        setIncompatibleValuesButton->setEnabled(false);
     }
     else {
         diverseCard->setEnabled(true);
@@ -172,7 +174,7 @@ void AttributeWidget::setValues()
         setIncompatibleValuesButton->setEnabled(true);
     }
 
-    const bool similar = (teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar);
+    const bool similar = (criterion->diversity == Criterion::AttributeDiversity::similar);
     diverseButton->setChecked(!similar);
     similarButton->setChecked(similar);
 }

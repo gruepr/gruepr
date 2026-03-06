@@ -11,6 +11,8 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QMap>
+#include <QPainter>
+#include <QProxyStyle>
 #include <QStyledItemDelegate>
 #include <QTreeWidget>
 
@@ -41,10 +43,8 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent *event) override;        // get rid of tooltip if drag leaves
     void dragMoveEvent(QDragMoveEvent *event) override;          // update tooltip during drag
     void dropEvent(QDropEvent *event) override;                  // handle when the dragged item is being dropped to allow swapping of teammates or teams
-    void leaveEvent(QEvent *event) override;
 
 private slots:
-    void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it
     void itemCollapse(QTreeWidgetItem *item);
     void itemExpand(QTreeWidgetItem *item);
 
@@ -114,6 +114,61 @@ public:
 
 private:
     bool operator<(const QTreeWidgetItem &other) const override;
+};
+
+///////////////////////////////////////////////////////////////////////
+// Two classes to handle translucent highlighting of each row on hovering the mouse
+
+class NoHoverDelegate : public QStyledItemDelegate
+{
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+    void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
+    {
+        QStyledItemDelegate::initStyleOption(option, index);
+        // Save hover state, then strip it so platform doesn't paint its own highlight
+        option->state &= ~QStyle::State_Selected;
+    }
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        const bool hovered = option.state & QStyle::State_MouseOver;
+
+        // Strip hover before default painting
+        QStyleOptionViewItem opt(option);
+        opt.state &= ~QStyle::State_MouseOver;
+        QStyledItemDelegate::paint(painter, opt, index);
+
+        // Paint translucent overlay if hovered
+        if (hovered) {
+            QColor overlay(OPENWATERHEX);
+            overlay.setAlpha(33);
+            painter->fillRect(option.rect, overlay);
+        }
+    }
+};
+
+class NoHoverStyle : public QProxyStyle
+{
+public:
+    using QProxyStyle::QProxyStyle;
+    void drawPrimitive(PrimitiveElement element, const QStyleOption *option,
+                       QPainter *painter, const QWidget *widget = nullptr) const override
+    {
+        if (element == PE_PanelItemViewRow || element == PE_PanelItemViewItem) {
+            QStyleOption opt(*option);
+            const bool hovered = opt.state & State_MouseOver;
+            opt.state &= ~(State_MouseOver | State_Selected);
+            QProxyStyle::drawPrimitive(element, &opt, painter, widget);
+            if (hovered) {
+                QColor overlay(OPENWATERHEX);
+                overlay.setAlpha(33);
+                painter->fillRect(opt.rect, overlay);
+            }
+            return;
+        }
+        QProxyStyle::drawPrimitive(element, option, painter, widget);
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////

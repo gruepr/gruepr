@@ -6,6 +6,10 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
+Criterion* GradeBalanceCriterion::clone() const {
+    return new GradeBalanceCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+}
+
 void GradeBalanceCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
