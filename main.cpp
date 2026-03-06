@@ -55,8 +55,7 @@
 dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
-teamstabwidget.cpp:
-    - tab name buttons are not auto-resized on mac? might be fixed now
+    - scale the penalty points with weight
 */
 
 //
@@ -79,6 +78,7 @@ teamstabwidget.cpp:
 //  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
 //
 //    INTERNAL:
+//  - continue refactoring items from teamingOptions into each crierion, ultimately getting rid of teamingOptions
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
 //      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
 //      - much harder: replace arrays for all of the attribute-related stuff

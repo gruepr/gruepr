@@ -26,7 +26,6 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setStyle(new NoHoverStyle(style()));
     setItemDelegate(new NoHoverDelegate(this));
-    setSelectionMode(QAbstractItemView::NoSelection);
 
     connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::itemCollapse);
     connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::itemExpand);
