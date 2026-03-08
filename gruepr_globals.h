@@ -83,6 +83,13 @@ inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: " 
                                                                     "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                     "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
 
+inline static const char PILLCARDSELECTED[] = "QPushButton { background-color: " FOAMHEX "; color: " DEEPWATERHEX "; border: 1.5px solid " DEEPWATERHEX "; "
+                                                            "border-radius: 8px; padding: 10px 8px; font-family: 'DM Sans'; font-size: 12pt; }";
+
+inline static const char PILLCARDUNSELECTED[] = "QPushButton { background-color: white; color: gray; border: 1.5px solid lightGray; "
+                                                              "border-radius: 8px; padding: 10px 8px; font-family: 'DM Sans'; font-size: 12pt; }"
+                                                "QPushButton:hover { background-color: " FOAMHEX "; border-color: gray; }";
+
 inline static const char SMALLBUTTONSTYLEINVERTED[] = "QPushButton {background-color: white; "
                                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; "
                                                                    "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
@@ -359,7 +366,7 @@ inline static const char STANDARDBUTTON[] = "QPushButton { background-color: rgb
                                                          " border: 1px solid" DEEPWATERHEX "; font-size: 10pt; }"
                                             "QPushButton:hover { background-color: rgba(180, 180, 180, 140); }";
 
-inline static const char LABELONLYBUTTON[] = "QPushButton { background-color: none;  border: none; }";
+inline static const char LABELONLYBUTTON[] = "QPushButton { background-color: none;  border: none; font-family:'DM Sans'; font-size: 10pt;}";
 
 inline static const char ATTRIBUTESTACKWIDGETSTYLE[] = "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
 

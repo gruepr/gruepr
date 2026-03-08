@@ -1,4 +1,5 @@
 #include "loadDataDialog.h"
+#include "ui_loadDataDialog.h"
 #include "LMS/canvashandler.h"
 #include "LMS/googlehandler.h"
 #include "dialogs/baseTimeZoneDialog.h"
@@ -13,192 +14,134 @@
 #include <QStandardPaths>
 #include <QTimer>
 
-loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
-    setWindowTitle(tr("gruepr - Form teams"));
-    setWindowIcon(QIcon(":/icons_new/icon.svg"));
-    //setMinimumSize(BASEWINDOWWIDTH, BASEWINDOWHEIGHT);
+loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
+{
+    ui = new Ui::loadDataDialog;
+    ui->setupUi(this);
+
     QSettings savedSettings;
-    setStyleSheet("background-color: white");
 
-    auto *mainLayout = new QVBoxLayout();
-    mainLayout->setSpacing(5);
+    ui->headerLabel->setStyleSheet(LABEL14PTSTYLE);
 
-    auto *headerLabel = new QLabel("Load your student data to form teams");
+    // "Choose a data source" label
+    ui->chooseSourceLabel->setStyleSheet("QLabel { color: #888; font-size: 10pt; font-weight: 500; letter-spacing: 0.5px; }");
 
-    headerLabel->setStyleSheet(LABEL14PTSTYLE);
-    auto *dropCSVFileFrame = new DropCSVFrame(this);
-    dropCSVFileFrame->setStyleSheet(DROPFRAME);
-    dropCSVFileFrame->setMinimumWidth(0);
-    dropCSVFileFrame->setMinimumHeight(200);
-    dropCSVFileFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    ui->csvSourceButton->setStyleSheet(PILLCARDSELECTED);
+    ui->googleSourceButton->setStyleSheet(PILLCARDUNSELECTED);
+    ui->canvasSourceButton->setStyleSheet(PILLCARDUNSELECTED);
+    ui->prevWorkSourceButton->setStyleSheet(PILLCARDUNSELECTED);
 
-    auto *uploadButton = new QPushButton(this);
-    uploadButton->setIcon(QIcon(":/icons_new/upload.png"));
-    uploadButton->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
-    uploadButton->setStyleSheet(UPLOADBUTTONSTYLE);
+    // CSV page
+    ui->dropCSVFileFrame->setStyleSheet(DROPFRAME);
+    ui->uploadButton->setStyleSheet(UPLOADBUTTONSTYLE);
+    ui->uploadSourceLabel->setStyleSheet(LABEL10PTSTYLE);
+    ui->acceptedFormatsLabel->setStyleSheet(LABEL10PTSTYLE);
 
-    auto *uploadSourceLabel = new QLabel("Drag & drop or Choose file to upload.", this);
-    auto *acceptedFormatsLabel = new QLabel("Accepted format: .csv");
-    uploadSourceLabel->setStyleSheet(LABEL10PTSTYLE);
-    acceptedFormatsLabel->setStyleSheet(LABEL10PTSTYLE);
+    // Google page
+    ui->googleDescriptionLabel->setStyleSheet(LABEL10PTSTYLE);
+    ui->loadDataFromGoogleFormButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
-    auto *dropCSVFileFrameLayout = new QVBoxLayout();
+    // Canvas page
+    ui->canvasDescriptionLabel->setStyleSheet(LABEL10PTSTYLE);
+    ui->loadDataFromCanvasSurveyButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
-    dropCSVFileFrameLayout->addWidget(uploadButton, 0, Qt::AlignCenter);
-    dropCSVFileFrameLayout->addWidget(uploadSourceLabel, 0, Qt::AlignCenter);
-    dropCSVFileFrameLayout->addWidget(acceptedFormatsLabel, 0, Qt::AlignCenter);
-    dropCSVFileFrameLayout->setContentsMargins(0, 0, 0, 0);
-    dropCSVFileFrameLayout->setSpacing(5);
+    // Previous work page
+    ui->prevWorkDescriptionLabel->setStyleSheet(LABEL10PTSTYLE);
+    ui->prevWorkComboBox->setStyleSheet(COMBOBOXSTYLE);
+    ui->loadPrevWorkButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
-    dropCSVFileFrame->setLayout(dropCSVFileFrameLayout);
+    // Data source bar
+    ui->dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
+                                       "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
+    ui->dataSourceLabel->setStyleSheet(LABELONLYBUTTON);
 
-    auto *otherDataSourcesLayout = new QHBoxLayout();
-    auto *otherDataSourcesLabel = new QLabel("Other data sources", this);
-    otherDataSourcesLabel->setStyleSheet(LABEL12PTSTYLE);
+    // Confirm / Cancel
+    ui->cancelButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    ui->reviewCategoriesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    ui->confirmButton->setStyleSheet(SMALLBUTTONSTYLE);
 
-    auto *googleFormFrame = new QFrame(this);
-    googleFormFrame->setStyleSheet(BASICFRAME);
-    auto *googleFormFrameLayout = new QVBoxLayout();
-    googleFormFrame->setLayout(googleFormFrameLayout);
-    //add Label, button
-    auto *googleFormLabel = new QPushButton(this);
-    googleFormLabel->setIcon(QIcon(":/icons_new/google.png"));
-    googleFormLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
-    googleFormLabel->setText("Google Form");
-    googleFormLabel->setStyleSheet(LABELONLYBUTTON);
+    //--- Set the file icon on the data source label ---
+    const QPixmap icon(":/icons_new/file.png");
+    const int h = ui->dataSourceLabel->height();
+    ui->dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
 
-    auto *loadDataFromGoogleFormButton = new QPushButton(this);
-    loadDataFromGoogleFormButton->setIcon(QIcon(":/icons_new/upload.png"));
-    loadDataFromGoogleFormButton->setIconSize(QSize(SMALLERICONSIZE,SMALLERICONSIZE));
-    loadDataFromGoogleFormButton->setText("Load data from google form results");
-    loadDataFromGoogleFormButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    googleFormFrameLayout->addWidget(googleFormLabel, 0, Qt::AlignLeft);
-    googleFormFrameLayout->addWidget(loadDataFromGoogleFormButton, 0, Qt::AlignLeft);
+    //--- Set up the source selector button group for mutual exclusivity ---
+    sourceButtonGroup = new QButtonGroup(this);
+    sourceButtonGroup->setExclusive(true);
+    sourceButtonGroup->addButton(ui->csvSourceButton, CsvPage);
+    sourceButtonGroup->addButton(ui->googleSourceButton, GooglePage);
+    sourceButtonGroup->addButton(ui->canvasSourceButton, CanvasPage);
+    sourceButtonGroup->addButton(ui->prevWorkSourceButton, PrevWorkPage);
+    ui->sourceStack->setCurrentIndex(CsvPage);
 
-    //Canvas Survey Frame
-    auto *canvasSurveyFrame = new QFrame(this);
-    canvasSurveyFrame->setStyleSheet(BASICFRAME);
-    auto *canvasSurveyFrameLayout = new QVBoxLayout();
-    canvasSurveyFrame->setLayout(canvasSurveyFrameLayout);
-    auto *canvasSurveyLabel = new QPushButton(this);
-    canvasSurveyLabel->setIcon(QIcon(":/icons_new/canvas.png"));
-    canvasSurveyLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
-    canvasSurveyLabel->setText("Canvas Survey");
-    canvasSurveyLabel->setStyleSheet(LABELONLYBUTTON);
+    connect(sourceButtonGroup, &QButtonGroup::idClicked, this, [this](int id) {
+        ui->sourceStack->setCurrentIndex(id);
+        // Update pill card styles: selected gets filled style, others get outline style
+        for(auto *button : sourceButtonGroup->buttons()) {
+            button->setStyleSheet(sourceButtonGroup->id(button) == id ? PILLCARDSELECTED : PILLCARDUNSELECTED);
+        }
+    });
 
-    auto *loadDataFromCanvasSurveyButton = new QPushButton(this);
-    loadDataFromCanvasSurveyButton->setIcon(QIcon(":/icons_new/upload.png"));
-    loadDataFromCanvasSurveyButton->setIconSize(QSize(SMALLERICONSIZE,SMALLERICONSIZE));
-    loadDataFromCanvasSurveyButton->setText("Load data from canvas survey results");
-    loadDataFromCanvasSurveyButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    canvasSurveyFrameLayout->addWidget(canvasSurveyLabel, 0, Qt::AlignLeft);
-    canvasSurveyFrameLayout->addWidget(loadDataFromCanvasSurveyButton, 0, Qt::AlignLeft);
-
-    //Reopen Prev Work Frame
-    auto *reopenPrevWorkFrame = new QFrame(this);
-    reopenPrevWorkFrame->setStyleSheet(BASICFRAME);
-    auto *reopenPrevWorkFrameLayout = new QVBoxLayout();
-    reopenPrevWorkFrame->setLayout(reopenPrevWorkFrameLayout);
-
-    auto *reopenPrevWorkLabel = new QPushButton(this);
-    reopenPrevWorkLabel->setIcon(QIcon(":/icons_new/save.png"));
-    reopenPrevWorkLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
-    reopenPrevWorkLabel->setText("Reopen previous work");
-    reopenPrevWorkLabel->setStyleSheet(LABELONLYBUTTON);
-
-    auto *prevWorkComboBoxLayout = new QHBoxLayout();
-    prevWorkComboBox = new QComboBox(this);
-    auto *loadPrevWorkButton = new QPushButton (this);
-    loadPrevWorkButton->setIcon(QIcon(":/icons_new/upload.png"));
-    loadPrevWorkButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    prevWorkComboBoxLayout->addWidget(prevWorkComboBox, 3);
-    prevWorkComboBoxLayout->addWidget(loadPrevWorkButton, 1);
-    prevWorkComboBox->setStyleSheet(COMBOBOXSTYLE);
-    prevWorkComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    reopenPrevWorkFrameLayout->addWidget(reopenPrevWorkLabel, 0, Qt::AlignLeft);
-    reopenPrevWorkFrameLayout->addLayout(prevWorkComboBoxLayout);
-
+    //--- Populate the previous work combobox from QSettings ---
     const int numPrevWorks = savedSettings.beginReadArray("prevWorks");
-    prevWorkComboBox->setVisible(numPrevWorks > 0);
+    ui->prevWorkComboBox->setVisible(numPrevWorks > 0);
+    // Hide the previous work source button if there are no saved sessions
+    ui->prevWorkSourceButton->setVisible(numPrevWorks > 0);
     if(numPrevWorks > 0) {
         QList<std::tuple<QDateTime, QString, QString, QString>> prevWorkInfos;   //lastModifiedDate, displayName, lastModifiedDateString, fileName
         prevWorkInfos.reserve(numPrevWorks);
         for (int prevWork = 0; prevWork < numPrevWorks; prevWork++) {
             savedSettings.setArrayIndex(prevWork);
             const QString displayName = savedSettings.value("prevWorkName", "").toString();
-            const QDateTime lastModifiedDate = QDateTime::fromString(savedSettings.value("prevWorkDate", "").toString(), QLocale::system().dateTimeFormat(QLocale::LongFormat));
+            const QDateTime lastModifiedDate = QDateTime::fromString(savedSettings.value("prevWorkDate", "").toString(),
+                                                                     QLocale::system().dateTimeFormat(QLocale::LongFormat));
             const QString lastModifiedDateString = lastModifiedDate.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat));
             const QString fileName = savedSettings.value("prevWorkFile", "").toString();
             if(!displayName.isEmpty() && !lastModifiedDateString.isEmpty() && !fileName.isEmpty()) {
                 prevWorkInfos.emplaceBack(lastModifiedDate, displayName, lastModifiedDateString, fileName);
             }
         }
-        std::sort(prevWorkInfos.begin(), prevWorkInfos.end(), [](std::tuple<QDateTime, QString, QString, QString> a, std::tuple<QDateTime, QString, QString, QString> b)
-                  {return std::get<0>(a) > std::get<0>(b);});  // sort by last modified date descending
+        std::sort(prevWorkInfos.begin(), prevWorkInfos.end(),
+                  [](const std::tuple<QDateTime, QString, QString, QString> &a,
+                     const std::tuple<QDateTime, QString, QString, QString> &b) {
+                      return std::get<0>(a) > std::get<0>(b);   // sort by last modified date descending
+                  });
         for(const auto &prevWork : prevWorkInfos) {
-            prevWorkComboBox->addItem(std::get<1>(prevWork) + " [Last opened: " + std::get<2>(prevWork) + "]", std::get<3>(prevWork));
+            ui->prevWorkComboBox->addItem(std::get<1>(prevWork) + " [Last opened: " + std::get<2>(prevWork) + "]",
+                                          std::get<3>(prevWork));
         }
     }
     savedSettings.endArray();
 
-    otherDataSourcesLayout->addWidget(googleFormFrame, 0);
-    otherDataSourcesLayout->addWidget(canvasSurveyFrame, 0);
-    otherDataSourcesLayout->addWidget(reopenPrevWorkFrame, 0);
-
-    dataSourceFrame = new QFrame(this);
-    dataSourceLabel = new QPushButton(this);
-    auto *dataSourceFrameLayout = new QHBoxLayout();
-    dataSourceFrameLayout->addWidget(dataSourceLabel);
-    dataSourceFrame->setLayout(dataSourceFrameLayout);
-    dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
-                                       "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
-    dataSourceLabel->setStyleSheet(LABELONLYBUTTON);
-    dataSourceFrame->setEnabled(false);
-    dataSourceLabel->setEnabled(false);
-    dataSourceLabel->setText("No data source loaded.");
-    const QPixmap icon(":/icons_new/file.png");
-    const int h = dataSourceLabel->height();
-    dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
-
-    confirmCancelButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
-    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setText(tr("Confirm"));
-    confirmCancelButtonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-
-    connect(dropCSVFileFrame, &DropCSVFrame::itemDropped, this, [this](const QString &filePathString) {
+    connect(ui->dropCSVFileFrame, &DropCSVFrame::itemDropped, this, [this](const QString &filePathString) {
         source = DataOptions::DataSource::fromDragDropFile;
         loadData(filePathString);
     });
-
-    connect(uploadButton, &QPushButton::clicked, this, [this](){
+    connect(ui->uploadButton, &QPushButton::clicked, this, [this]() {
         source = DataOptions::DataSource::fromUploadFile;
         loadData("");
     });
-    connect(loadDataFromGoogleFormButton, &QPushButton::clicked, this, [this](){
+    connect(ui->loadDataFromGoogleFormButton, &QPushButton::clicked, this, [this]() {
         source = DataOptions::DataSource::fromGoogle;
         loadData("");
     });
-    connect(loadDataFromCanvasSurveyButton, &QPushButton::clicked, this, [this](){
+    connect(ui->loadDataFromCanvasSurveyButton, &QPushButton::clicked, this, [this]() {
         source = DataOptions::DataSource::fromCanvas;
         loadData("");
     });
-    connect(loadPrevWorkButton, &QPushButton::clicked, this, [this](){
+    connect(ui->loadPrevWorkButton, &QPushButton::clicked, this, [this]() {
         source = DataOptions::DataSource::fromPrevWork;
         loadData("");
     });
-    connect(confirmCancelButtonBox, &QDialogButtonBox::accepted, this, &loadDataDialog::accept);
-    connect(confirmCancelButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(ui->confirmButton, &QPushButton::clicked, this, &loadDataDialog::accept);
+    connect(ui->reviewCategoriesButton, &QPushButton::clicked, this, &loadDataDialog::acceptWithManualCategories);
+    connect(ui->cancelButton, &QPushButton::clicked, this, &QDialog::reject);
 
-    mainLayout->addWidget(headerLabel, 0, Qt::AlignCenter);
-    mainLayout->addWidget(dropCSVFileFrame);
-    mainLayout->addStretch(1);
-    mainLayout->addWidget(otherDataSourcesLabel, 0, Qt::AlignLeft);
-    mainLayout->addLayout(otherDataSourcesLayout);
-    mainLayout->addWidget(dataSourceFrame);
-    mainLayout->addWidget(confirmCancelButtonBox);
+}
 
-    setLayout(mainLayout);
+loadDataDialog::~loadDataDialog()
+{
+    delete ui;
 }
 
 bool loadDataDialog::getFromDropFile(QString filePathString){
@@ -227,8 +170,8 @@ bool loadDataDialog::getFromDropFile(QString filePathString){
     source = DataOptions::DataSource::fromDragDropFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
-    const int h = dataSourceLabel->height();
-    dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
+    const int h = ui->dataSourceLabel->height();
+    ui->dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
     return true;
 }
 
@@ -273,8 +216,8 @@ void loadDataDialog::loadData(QString filePathString)
     }
 
     if(source == DataOptions::DataSource::fromPrevWork) {
-        confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-        confirmCancelButtonBox->button(QDialogButtonBox::Ok)->animateClick();
+        ui->confirmButton->setEnabled(true);
+        ui->confirmButton->animateClick();
         return;
     }
 
@@ -289,11 +232,12 @@ void loadDataDialog::loadData(QString filePathString)
         return;
     }
 
-    dataSourceFrame->setEnabled(true);
-    dataSourceLabel->setEnabled(true);
-    dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSourceName);
+    ui->dataSourceFrame->setEnabled(true);
+    ui->dataSourceLabel->setEnabled(true);
+    ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSourceName);
 
-    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    ui->confirmButton->setEnabled(true);
+    ui->reviewCategoriesButton->setEnabled(true);
 }
 
 CsvFile* loadDataDialog::getSurveyFile(){
@@ -396,8 +340,8 @@ bool loadDataDialog::getFromFile()
     source = DataOptions::DataSource::fromUploadFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
-    const int h = dataSourceLabel->height();
-    dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
+    const int h = ui->dataSourceLabel->height();
+    ui->dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
     return true;
 }
 
@@ -487,8 +431,8 @@ bool loadDataDialog::getFromGoogle()
     source = DataOptions::DataSource::fromGoogle;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = googleFormName;
-    const int h = dataSourceLabel->height();
-    dataSourceLabel->setIcon(GoogleHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
+    const int h = ui->dataSourceLabel->height();
+    ui->dataSourceLabel->setIcon(GoogleHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
 }
@@ -593,15 +537,15 @@ bool loadDataDialog::getFromCanvas()
     source = DataOptions::DataSource::fromCanvas;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = canvasSurveyName;
-    const int h = dataSourceLabel->height();
-    dataSourceLabel->setIcon(CanvasHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
+    const int h = ui->dataSourceLabel->height();
+    ui->dataSourceLabel->setIcon(CanvasHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
 }
 
 bool loadDataDialog::getFromPrevWork()
 {
-    QFile savedFile(prevWorkComboBox->currentData().toString(), this);
+    QFile savedFile(ui->prevWorkComboBox->currentData().toString(), this);
     if(!savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
         return false;
     }
@@ -638,33 +582,43 @@ bool loadDataDialog::getFromPrevWork()
     return true;
 }
 
-
-
-void loadDataDialog::accept() {
+void loadDataDialog::accept()
+{
     if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
         QDialog::accept();
         return;
     }
 
-    if((dataOptions->dataSource == DataOptions::DataSource::fromUploadFile) ||
-       (dataOptions->dataSource == DataOptions::DataSource::fromDragDropFile) ||
-       (false /* Checkbox to manually choose to select categories */)) {
+    finalizeAccept(false);
+}
+
+void loadDataDialog::acceptWithManualCategories()
+{
+    if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
+        QDialog::accept();
+        return;
+    }
+
+    finalizeAccept(true);
+}
+
+void loadDataDialog::finalizeAccept(bool showCategorizingDialog)
+{
+    if(showCategorizingDialog) {
         const QScopedPointer<CategorizingDialog> categorizingDataDialog(new CategorizingDialog(this, surveyFile, source));
-        auto categorizing_result = categorizingDataDialog->exec();
-        if (categorizing_result != QDialog::Accepted){
+        if(categorizingDataDialog->exec() != QDialog::Accepted) {
             return;
         }
     }
 
     if(!readData()) {
-        confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-        dataSourceFrame->setEnabled(false);
-        dataSourceLabel->setEnabled(false);
-        dataSourceLabel->setText(tr("No survey loaded"));
+        ui->confirmButton->setEnabled(false);
+        ui->reviewCategoriesButton->setEnabled(false);
+        ui->dataSourceFrame->setEnabled(false);
+        ui->dataSourceLabel->setEnabled(false);
+        ui->dataSourceLabel->setText(tr("No survey loaded"));
         students.clear();
         return;
-    } else {
-        QDialog::accept();
     }
 
     QDialog::accept();
@@ -790,8 +744,9 @@ bool loadDataDialog::readData()
         allTimeNames.removeOne("");
 
         //sort allTimeNames smartly, using string -> hour of day float; any timeName not found is put at the beginning of the list
-        std::sort(allTimeNames.begin(), allTimeNames.end(), [] (const QString &a, const QString &b)
-                  {return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);});
+        std::sort(allTimeNames.begin(), allTimeNames.end(), [] (const QString &a, const QString &b) {
+            return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);
+        });
         dataOptions->timeNames = allTimeNames;
 
         // Set the schedule resolution (in units of hours) by looking at all the time values.
@@ -805,7 +760,7 @@ bool loadDataDialog::readData()
                 dataOptions->scheduleResolution = 0.25;
                 break;
             }
-            else if(numOfQuarterHours == 2) {
+            if(numOfQuarterHours == 2) {
                 dataOptions->scheduleResolution = 0.5;
             }
         }

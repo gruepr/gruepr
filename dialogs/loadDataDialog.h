@@ -5,14 +5,19 @@
 #include "dataOptions.h"
 #include "dialogs/startDialog.h"
 #include "studentRecord.h"
-#include <QComboBox>
+#include <QButtonGroup>
 #include <QDialog>
+
+namespace Ui {
+class loadDataDialog;
+}
 
 class loadDataDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit loadDataDialog(StartDialog *parent = nullptr);
+    ~loadDataDialog() override;
 
     DataOptions *dataOptions = nullptr;
     QList<StudentRecord> students;
@@ -20,10 +25,13 @@ public:
 
 public slots:
     void accept() override;
+    void acceptWithManualCategories();
 
 private:
+    Ui::loadDataDialog *ui;
     StartDialog *parent;
     void loadData(QString filePathString);
+    void finalizeAccept(bool showCategorizingDialog);
     CsvFile *surveyFile = nullptr;
     bool getFromFile();
     bool getFromGoogle();
@@ -33,10 +41,7 @@ private:
     bool readData();
     bool readQuestionsFromHeader();
     DataOptions::DataSource source = DataOptions::DataSource::fromUploadFile;
-    QDialogButtonBox *confirmCancelButtonBox = nullptr;
-    QFrame *dataSourceFrame = nullptr;
-    QPushButton *dataSourceLabel = nullptr;
-    QComboBox *prevWorkComboBox = nullptr;
+    QButtonGroup *sourceButtonGroup = nullptr;
     QList<StudentRecord> roster;
     inline static const QString HEADERTEXT = QObject::tr("Question text");
     inline static const QString CATEGORYTEXT = QObject::tr("Category");
@@ -47,6 +52,8 @@ private:
     inline static const int BASICICONSIZE = 30;
     inline static const int SMALLERICONSIZE = 20;
 
+    // Page indices for the stacked widget
+    enum SourcePage { CsvPage = 0, GooglePage = 1, CanvasPage = 2, PrevWorkPage = 3 };
 };
 
 #endif // LOADDATADIALOG_H

@@ -197,6 +197,7 @@ HEADERS += \
 
 FORMS += \
       dialogs/attributeRulesDialog.ui \
+      dialogs/loadDataDialog.ui \
       dialogs/sampleQuestionsDialog.ui \
       dialogs/teammatesRulesDialog.ui \
       dialogs/whichFilesDialog.ui \

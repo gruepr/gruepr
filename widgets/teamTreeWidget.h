@@ -88,6 +88,7 @@ private:
     void updateHeaderHeight();
     QString wrapText(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const;
     static const int MAX_SECTION_WIDTH = 200;
+    static const int MAX_HEADER_HEIGHT = 150;
 
     Qt::TextElideMode m_elideMode;
     QMap<int, Qt::TextElideMode> m_columnElideModes;
@@ -121,6 +122,8 @@ private:
 
 class NoHoverDelegate : public QStyledItemDelegate
 {
+    Q_OBJECT
+
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
     void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
@@ -150,6 +153,8 @@ public:
 
 class NoHoverStyle : public QProxyStyle
 {
+    Q_OBJECT
+
 public:
     using QProxyStyle::QProxyStyle;
     void drawPrimitive(PrimitiveElement element, const QStyleOption *option,

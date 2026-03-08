@@ -667,7 +667,7 @@ void TeamTreeHeaderView::updateHeaderHeight()
     for (const auto lines : std::as_const(m_lineCountPerColumn)) {
         maxLines = std::max(maxLines, lines);
     }
-    const int maxHeight = (fontMetrics().height() * maxLines) + 12;
+    const int maxHeight = qMin((fontMetrics().height() * maxLines) + 12, MAX_HEADER_HEIGHT);
 
     setMinimumHeight(maxHeight);
     updateGeometry();
@@ -697,6 +697,13 @@ QString TeamTreeHeaderView::wrapText(int logicalIndex, const QString &text, int 
             }
         }
         finalLines << currentLine;
+    }
+
+    // Truncate to the number of lines that fit within MAX_HEADER_HEIGHT
+    const int maxLines = qMax(1, (MAX_HEADER_HEIGHT - 12) / fm.height());
+    if (finalLines.size() > maxLines) {
+        finalLines = finalLines.mid(0, maxLines);
+        finalLines.last() += QStringLiteral("\u2026");  // add an elipsis if truncating the height
     }
 
     // Elide any lines that are still too wide
