@@ -15,7 +15,7 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qtcharts qtnetworkauth'
+          modules: 'qtnetworkauth'
           cache: true
 
       - name: Build universal libomp

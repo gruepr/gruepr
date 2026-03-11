@@ -50,20 +50,15 @@
 //  - unified "required" and "requested" teammates
 //
 // TO DO FOR V13:
-/*
-    - scale the penalty points with weight
-    - make the weight not decrease so rapidly - not 1/2 each time but maybe 3/4 each time
-*/
-
+//  - do for urm everything in parallel to gender:
+//    - do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
+//    - replace isolatedURMPrevented with urmIdentityRule != 1
+//  - dialogs/identityrulesdialog: must accept wider variety of rules (>, >=, <, <=) (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
 //
 // TO DO:
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
-//  - do for urm everything in parallel to gender:
-//    - update addCriteriaCard for CriteriaType::urmIdentity
-//    - do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
-//    - replace isolatedURMPrevented with urmIdentityRule != 1
-//  - dialogs/identityrulesdialog: must accept wider variety of rules (>, >=, <, <=) (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
+//  - scale the penalty points with weight
 //  - Implement avg. grade question/criterion
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so

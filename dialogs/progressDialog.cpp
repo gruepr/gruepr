@@ -1,6 +1,7 @@
 #include "progressDialog.h"
 #include "gruepr_globals.h"
 #include <QDialogButtonBox>
+#include <QPainter>
 #include <QRegularExpression>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -9,7 +10,7 @@
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-progressDialog::progressDialog(const QString &currSection, QChartView *chart, QWidget *parent)
+progressDialog::progressDialog(const QString &currSection, QWidget *chart, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window
@@ -135,7 +136,7 @@ void progressDialog::reject()
     QDialog::reject();
 }
 
-void progressDialog::statsButtonPushed(QChartView *chart)
+void progressDialog::statsButtonPushed(QWidget *chart)
 {
     graphShown = !graphShown;
 

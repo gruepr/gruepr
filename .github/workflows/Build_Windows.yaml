@@ -16,7 +16,7 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2022_64'
-        modules: 'qtcharts qtnetworkauth'
+        modules: 'qtnetworkauth'
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: actions/checkout@v3
     

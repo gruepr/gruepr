@@ -1494,19 +1494,14 @@ void gruepr::startOptimization()
         teamingOptions->criteria[index] = criteriaCard->criterion;
         criteriaCard->criterion->weight = weight;
         sumOfWeights += weight;
-        weight /= 2;
+        weight *= 0.75;
         index++;
     }
 
     teamingOptions->realNumScoringFactors = index; //initialize realNumScoringFactors to contain number of criteria to optimize
 
-    if (index == 0){
-        //just do the randomization bcs no priority
-    }
-
     float normFactor = teamingOptions->realNumScoringFactors / sumOfWeights;
     if(!std::isfinite(normFactor)) {
-        // pretty sure this should never be true given the math above!
         normFactor = 0;
     }
 
@@ -1569,13 +1564,11 @@ void gruepr::startOptimization()
 
         // Create progress display plot
         progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
-        auto *chartView = new QChartView(progressChart);
-        chartView->setRenderHint(QPainter::Antialiasing);
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
         const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " +
                                                           teamingOptions->sectionName) : "");
-        progressWindow = new progressDialog(sectionName, chartView, this);
+        progressWindow = new progressDialog(sectionName, progressChart, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
                                                                          connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
@@ -2220,11 +2213,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                             sharedTeamingOptions, sharedDataOptions, unusedTeamScores.data(),
                                             criteriaScores, penaltyPoints);
-            int totalPenaltyPoints = 0;
-            for(int team = 0; team < sharedNumTeams; team++) {
-                totalPenaltyPoints += penaltyPoints[team];
-            }
-            unpenalizedGenomePresent = unpenalizedGenomePresent || (totalPenaltyPoints == 0);
+            unpenalizedGenomePresent = unpenalizedGenomePresent || std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
         }
     }
 
@@ -2290,11 +2279,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                                     sharedTeamingOptions, sharedDataOptions, unusedTeamScores.data(),
                                                     criteriaScores, penaltyPoints);
-                    int totalPenaltyPoints = 0;
-                    for(int team = 0; team < sharedNumTeams; team++) {
-                        totalPenaltyPoints += penaltyPoints[team];
-                    }
-                    unpenalizedGenomePresent = unpenalizedGenomePresent || (totalPenaltyPoints == 0);
+                    unpenalizedGenomePresent = unpenalizedGenomePresent || std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
                 }
             }
 

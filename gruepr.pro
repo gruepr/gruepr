@@ -7,7 +7,7 @@
 gruepr_version = 13.0
 copyright_year = 2019-2026
 
-QT += core gui widgets concurrent network printsupport charts networkauth designer
+QT += core gui widgets concurrent network printsupport networkauth designer
 
 TARGET = gruepr
 TEMPLATE = app
@@ -67,32 +67,19 @@ macx {
 }
 
 # Run ASan:
-# win32: QMAKE_CXXFLAGS += /fsanitize=address /Zi
-# win32: QMAKE_LFLAGS += /DEBUG
 # macx: QMAKE_CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
 # macx: QMAKE_LFLAGS += -fsanitize=address
 
 SOURCES += \
-        criteria/URMIdentityCriterion.cpp \
         criteria/attributeCriterion.cpp \
         criteria/criterion.cpp \
         criteria/genderCriterion.cpp \
+        criteria/gradeBalanceCriterion.cpp \
+        criteria/scheduleCriterion.cpp \
         criteria/sectionCriterion.cpp \
         criteria/teammatesCriterion.cpp \
         criteria/teamsizeCriterion.cpp \
-        csvfile.cpp \
-        dataOptions.cpp \
-        GA.cpp \
-        gruepr.cpp \
-        gruepr_globals.cpp \
-        Levenshtein.cpp \
-        main.cpp \
-        studentRecord.cpp \
-        surveyMakerWizard.cpp \
-        teamingOptions.cpp \
-        teamRecord.cpp \
-        criteria/gradeBalanceCriterion.cpp \
-        criteria/scheduleCriterion.cpp \
+        criteria/URMIdentityCriterion.cpp \
         dialogs/attributeRulesDialog.cpp \
         dialogs/baseTimeZoneDialog.cpp \
         dialogs/categorizingDialog.cpp \
@@ -131,29 +118,29 @@ SOURCES += \
         widgets/surveyMakerQuestion.cpp \
         widgets/switchButton.cpp \
         widgets/teamsTabItem.cpp \
-        widgets/teamTreeWidget.cpp
+        widgets/teamTreeWidget.cpp \
+        csvfile.cpp \
+        dataOptions.cpp \
+        GA.cpp \
+        gruepr.cpp \
+        gruepr_globals.cpp \
+        Levenshtein.cpp \
+        main.cpp \
+        studentRecord.cpp \
+        surveyMakerWizard.cpp \
+        teamingOptions.cpp \
+        teamRecord.cpp
 
 HEADERS += \
-        criteria/URMIdentityCriterion.h \
         criteria/attributeCriterion.h \
+        criteria/criterion.h \
         criteria/genderCriterion.h \
+        criteria/gradeBalanceCriterion.h \
+        criteria/scheduleCriterion.h \
         criteria/sectionCriterion.h \
         criteria/teammatesCriterion.h \
         criteria/teamsizeCriterion.h \
-        csvfile.h \
-        dataOptions.h \
-        GA.h \
-        gruepr.h \
-        gruepr_globals.h \
-        Levenshtein.h \
-        studentRecord.h \
-        survey.h \
-        surveyMakerWizard.h \
-        teamingOptions.h \
-        teamRecord.h \
-        criteria/criterion.h \
-        criteria/gradeBalanceCriterion.h \
-        criteria/scheduleCriterion.h \
+        criteria/URMIdentityCriterion.h \
         dialogs/attributeRulesDialog.h \
         dialogs/baseTimeZoneDialog.h \
         dialogs/categorizingDialog.h \
@@ -193,24 +180,35 @@ HEADERS += \
         widgets/switchButton.h \
         widgets/teamsTabItem.h \
         widgets/teamTreeWidget.h \
-        widgets/verticalspinboxstyle.h
+        widgets/verticalspinboxstyle.h \
+        csvfile.h \
+        dataOptions.h \
+        GA.h \
+        gruepr.h \
+        gruepr_globals.h \
+        Levenshtein.h \
+        studentRecord.h \
+        survey.h \
+        surveyMakerWizard.h \
+        teamingOptions.h \
+        teamRecord.h
 
 FORMS += \
-      dialogs/attributeRulesDialog.ui \
-      dialogs/loadDataDialog.ui \
-      dialogs/sampleQuestionsDialog.ui \
-      dialogs/teammatesRulesDialog.ui \
-      dialogs/whichFilesDialog.ui \
-      gruepr.ui
+        dialogs/attributeRulesDialog.ui \
+        dialogs/loadDataDialog.ui \
+        dialogs/sampleQuestionsDialog.ui \
+        dialogs/teammatesRulesDialog.ui \
+        dialogs/whichFilesDialog.ui \
+        gruepr.ui
 
 RESOURCES += \
-          gruepr.qrc
+        gruepr.qrc
 
 DISTFILES += \
-    .github/workflows/Build.yaml \
-    .github/workflows/Build_Windows.yaml \
-    .github/workflows/Build_macOS.yaml \
-    .signpath/policies/gruepr/release-signing.yml \
-    .signpath/policies/gruepr/test-signing.yml \
-    macOS/DMG_background.png \
-    macOS/MyAppInfo.plist
+        .github/workflows/Build.yaml \
+        .github/workflows/Build_Windows.yaml \
+        .github/workflows/Build_macOS.yaml \
+        .signpath/policies/gruepr/release-signing.yml \
+        .signpath/policies/gruepr/test-signing.yml \
+        macOS/DMG_background.png \
+        macOS/MyAppInfo.plist
