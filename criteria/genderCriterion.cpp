@@ -20,15 +20,16 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
     isolatedNonbinary->setChecked(teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].contains(1));
     mixedGender = new QCheckBox(tr("Require mixed gender teams"), parentCard);
     mixedGender->setChecked(teamingOptions->singleGenderPrevented);
-    // complicatedGenderRule = new QPushButton(tr("Something more complicated"), parentCard);
-    // complicatedGenderRule->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    // complicatedGenderRule->setFixedHeight(40);
-    // complicatedGenderRule->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    complicatedGenderRule = new QPushButton(tr("Something more complicated..."), parentCard);
+    complicatedGenderRule->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    complicatedGenderRule->setFixedHeight(40);
+    complicatedGenderRule->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
     genderContentLayout->addWidget(isolatedWomen);
     genderContentLayout->addWidget(isolatedMen);
     genderContentLayout->addWidget(isolatedNonbinary);
     genderContentLayout->addWidget(mixedGender);
-    // genderContentLayout->addWidget(complicatedGenderRule);
+    genderContentLayout->addWidget(complicatedGenderRule);
     parentCard->setContentAreaLayout(*genderContentLayout);   
 
     connect(isolatedWomen, &QCheckBox::checkStateChanged, this, [teamingOptions](Qt::CheckState state) {
@@ -70,14 +71,14 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
     connect(mixedGender, &QCheckBox::checkStateChanged, this, [teamingOptions](Qt::CheckState state) {
         teamingOptions->singleGenderPrevented = (state == Qt::Checked);
     });
-    // connect(complicatedGenderRule, &QPushButton::clicked, this, [this, teamingOptions]() {
-    //     //FROMDEV: Need to generalize so that not only one gender identity at a time
-    //     auto *window = new IdentityRulesDialog(this->parentCard, Gender::woman, teamingOptions, dataOptions);
-    //     window->exec();
-    //     isolatedWomen->setChecked(teamingOptions->genderIdentityRules[Gender::woman]["!="].contains(1));
-    //     isolatedMen->setChecked(teamingOptions->genderIdentityRules[Gender::man]["!="].contains(1));
-    //     isolatedNonbinary->setChecked(teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].contains(1));
-    // });
+    connect(complicatedGenderRule, &QPushButton::clicked, this, [this, teamingOptions]() {
+         auto *window = new IdentityRulesDialog(this->parentCard, IdentityRulesDialog::Mode::gender, teamingOptions, dataOptions);
+         window->exec();
+         isolatedWomen->setChecked(teamingOptions->genderIdentityRules[Gender::woman]["!="].contains(1));
+         isolatedMen->setChecked(teamingOptions->genderIdentityRules[Gender::man]["!="].contains(1));
+         isolatedNonbinary->setChecked(teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].contains(1));
+         delete window;
+    });
 }
 
 void GenderCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],

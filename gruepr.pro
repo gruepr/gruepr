@@ -91,7 +91,6 @@ SOURCES += \
         dialogs/editOrAddStudentDialog.cpp \
         dialogs/editSectionNamesDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
-        dialogs/gatherURMResponsesDialog.cpp \
         dialogs/identityRulesDialog.cpp \
         dialogs/listTableDialog.cpp \
         dialogs/loadDataDialog.cpp \
@@ -152,7 +151,6 @@ HEADERS += \
         dialogs/editOrAddStudentDialog.h \
         dialogs/editSectionNamesDialog.h \
         dialogs/findMatchingNameDialog.h \
-        dialogs/gatherURMResponsesDialog.h \
         dialogs/identityRulesDialog.h \
         dialogs/listTableDialog.h \
         dialogs/loadDataDialog.h \

@@ -50,15 +50,15 @@
 //  - unified "required" and "requested" teammates
 //
 // TO DO FOR V13:
-//  - do for urm everything in parallel to gender:
-//    - do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
-//    - replace isolatedURMPrevented with urmIdentityRule != 1
-//  - dialogs/identityrulesdialog: must accept wider variety of rules (>, >=, <, <=) (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
+//  - fix styling of comboboxes in identityrulesdialog - just the hovered item has light blue, not dark blue, background
+//  - fix that urm criteria isn't giving penalty when x != 0 is not met (i.e., every team required to have at least 1 x) - or at least the team compatibility score is not showing up negative in the tooltip or the genome score chart
+//  - allow identityrulesdialog to group multiple identities, such as "latino or latinx != 1"
 //
 // TO DO:
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - scale the penalty points with weight
+//  - dialogs/identityrulesdialog: accept wider variety of rules (>, >=, <, <=)
 //  - Implement avg. grade question/criterion
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so

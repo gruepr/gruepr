@@ -255,7 +255,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
             }
         }
         if(teamSetDataOptions->URMIncluded) {
-            if(stu->URM) {
+            if (!stu->URMResponse.isEmpty() && stu->URMResponse != "--") {
                 numURM++;
             }
         }

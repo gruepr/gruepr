@@ -20,27 +20,28 @@ class IdentityRulesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit IdentityRulesDialog(QWidget *parent = nullptr, const Gender identity = Gender::woman,
-                                 TeamingOptions *teamingOptions = nullptr, const DataOptions *dataOptions = nullptr);
-    QHBoxLayout* createIdentityOperatorRule(Gender identity, QString operatorString, int noOfIdentity);
+    enum class Mode {gender, urm};
+
+    explicit IdentityRulesDialog(QWidget *parent, Mode mode, TeamingOptions *teamingOptions, const DataOptions *dataOptions);
 
 private slots:
     void addNewIdentityRule();
-    void removeIdentityRule(const QString &operatorString, int noOfIdentity);
 
 private:
-    void updateDialog();
     void populateTable();
+    void saveRules();
+    void addRow(const QString &identityText, const QString &operation = "!=", int value = 0);
+
+    // Returns the list of identity category strings for the combo box
+    QStringList identityOptions() const;
+
     QTableWidget *rulesTable = nullptr;
     QScrollArea *scrollArea = nullptr;
-    QWidget *scrollContentWidget = nullptr;
-    QVBoxLayout *rulesLayout = nullptr;
-
-    Gender genderIdentity;
-    QMap<Gender, TeamingOptions::identityRule> identityRules;
     QVBoxLayout *mainLayout = nullptr;
-    TeamingOptions *teamingOptions = nullptr;
-    const DataOptions *dataOptions = nullptr;
+
+    TeamingOptions *const teamingOptions;
+    const DataOptions *const dataOptions;
+    const Mode mode;
 };
 
 #endif // IDENTITYRULESDIALOG_H

@@ -827,8 +827,6 @@ void gruepr::editAStudent()
     const int reply = win->exec();
     if(reply == QDialog::Accepted) {
         studentBeingEdited->createTooltip(*dataOptions);
-        studentBeingEdited->URM = teamingOptions->URMResponsesConsideredUR.contains(studentBeingEdited->URMResponse);
-
         rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     }
 
@@ -934,7 +932,6 @@ void gruepr::addAStudent()
         if(reply == QDialog::Accepted) {
             newStudent.ID = students.size();
             newStudent.createTooltip(*dataOptions);
-            newStudent.URM = teamingOptions->URMResponsesConsideredUR.contains(newStudent.URMResponse);
             newStudent.ambiguousSchedule = (newStudent.availabilityChart.count("√") == 0 ||
                                            (newStudent.availabilityChart.count("√") == (dataOptions->dayNames.size() * dataOptions->timeNames.size())));
             students << newStudent;
@@ -1034,7 +1031,6 @@ void gruepr::compareStudentsToRoster()
                         if(!emails.isEmpty()) {
                             newStudent.email = rosterEmail;
                         }
-                        newStudent.URM = teamingOptions->URMResponsesConsideredUR.contains(newStudent.URMResponse);
                         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
                             newStudent.attributeVals[attribute] << -1;
                         }
@@ -1473,16 +1469,8 @@ void gruepr::chooseTeamSizes(int index)
 
 void gruepr::startOptimization()
 {
-    // User wants no isolated URM, so note the URM students
-    if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented) {
-        for(auto &student : students) {
-            student.URM = teamingOptions->URMResponsesConsideredUR.contains(student.URMResponse);
-        }
-    }
-
-    // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-
-    //Initialize weights based on priority
+    // Initialize weights based on priority then normalize all score factor weights using norm factor = number of factors / total weights of all factors
+    // First criterion has weight 10, then each subsequent criterion is 3/4 the weight of the prev. one
     float weight = 10;
     float sumOfWeights = 0;
     int index = 0;
@@ -1499,12 +1487,10 @@ void gruepr::startOptimization()
     }
 
     teamingOptions->realNumScoringFactors = index; //initialize realNumScoringFactors to contain number of criteria to optimize
-
     float normFactor = teamingOptions->realNumScoringFactors / sumOfWeights;
     if(!std::isfinite(normFactor)) {
         normFactor = 0;
     }
-
     // convert weights to realWeights
     for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
         teamingOptions->criteria[i]->weight *= normFactor;

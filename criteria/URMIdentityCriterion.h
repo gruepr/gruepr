@@ -2,7 +2,7 @@
 #define URMIDENTITYCRITERION_H
 
 #include "criterion.h"
-#include <QCheckBox>
+#include <QLabel>
 #include <QPushButton>
 
 class URMIdentityCriterion : public Criterion {
@@ -16,6 +16,9 @@ public:
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
                         std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const override;
+    // Need to override this one, because this criterion needs to see all teams for scoring any one team
+    float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
+                                   const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed) override;
     Criterion* clone() const override;
 
     QString headerLabel(const DataOptions *dataOptions) const override;
@@ -27,9 +30,8 @@ public:
     QString exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const override;
 
     const DataOptions *const dataOptions;
-    QCheckBox *isolatedURM = nullptr;
-    QPushButton *chooseURMResponses = nullptr;
-//    QPushButton *complicatedURMRule = nullptr;
+    QPushButton *editRulesButton = nullptr;
+    QLabel *ruleCountLabel = nullptr;
 };
 
 #endif // URMIDENTITYCRITERION_H

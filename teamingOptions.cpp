@@ -29,14 +29,19 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
             urmIdentityRules[ruleVal.at(0)][ruleVal.at(1)].append(ruleVal.at(2).toInt());
         }
     }
-    singleGenderPrevented = jsonTeamingOptions["singleGenderPrevented"].toBool();
-    isolatedURMPrevented = jsonTeamingOptions["isolatedURMPrevented"].toBool();
-    const QJsonArray URMResponsesConsideredURArray = jsonTeamingOptions["URMResponsesConsideredUR"].toArray();
-    URMResponsesConsideredUR.clear();
-    URMResponsesConsideredUR.reserve(URMResponsesConsideredURArray.size());
-    for(const auto &item : URMResponsesConsideredURArray) {
-        URMResponsesConsideredUR << item.toString();
+    if (jsonTeamingOptions.contains("isolatedURMPrevented") &&
+        jsonTeamingOptions["isolatedURMPrevented"].toBool()) {
+        // Migrate old format: convert URMResponsesConsideredUR + isolatedURMPrevented
+        // into per-response urmIdentityRules entries.
+        const QJsonArray oldURMResponses = jsonTeamingOptions["URMResponsesConsideredUR"].toArray();
+        for (const auto &item : oldURMResponses) {
+            const QString response = item.toString();
+            if (!urmIdentityRules[response]["!="].contains(1)) {
+                urmIdentityRules[response]["!="].append(1);
+            }
+        }
     }
+    singleGenderPrevented = jsonTeamingOptions["singleGenderPrevented"].toBool();
     desiredTimeBlocksOverlap = jsonTeamingOptions["desiredTimeBlocksOverlap"].toInt();
     minTimeBlocksOverlap = jsonTeamingOptions["minTimeBlocksOverlap"].toInt();
     meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
@@ -123,7 +128,6 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
 void TeamingOptions::reset()
 {
     // reset the variables that depend on the datafile
-    URMResponsesConsideredUR.clear();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         haveAnyRequiredAttributes[i] = false;
         requiredAttributeValues[i].clear();
@@ -187,8 +191,6 @@ QJsonObject TeamingOptions::toJson() const
         {"genderIdentityRules", genderIdentityRulesArray},
         {"urmIdentityRules", urmIdentityRulesArray},
         {"singleGenderPrevented", singleGenderPrevented},
-        {"isolatedURMPrevented", isolatedURMPrevented},
-        {"URMResponsesConsideredUR", QJsonArray::fromStringList(URMResponsesConsideredUR)},
         {"desiredTimeBlocksOverlap", desiredTimeBlocksOverlap},
         {"minTimeBlocksOverlap", minTimeBlocksOverlap},
         {"meetingBlockSize", meetingBlockSize},

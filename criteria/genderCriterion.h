@@ -32,7 +32,7 @@ public:
     QCheckBox *isolatedMen = nullptr;
     QCheckBox *isolatedNonbinary = nullptr;
     QCheckBox *mixedGender = nullptr;
-//    QPushButton *complicatedGenderRule = nullptr;
+    QPushButton *complicatedGenderRule = nullptr;
 };
 
 #endif // GENDERCRITERION_H

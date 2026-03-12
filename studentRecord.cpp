@@ -36,7 +36,6 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         // this is for backwards compatability--studentRecord formerly saved a single gender
         gender = {static_cast<Gender>(jsonStudentRecord["gender"].toInt())};
     }
-    URM = jsonStudentRecord["URM"].toBool();
     timezone = jsonStudentRecord["timezone"].toDouble();
     ambiguousSchedule = jsonStudentRecord["ambiguousSchedule"].toBool();
     surveyTimestamp = QDateTime::fromString(jsonStudentRecord["surveyTimestamp"].toString(), Qt::ISODate);
@@ -146,7 +145,6 @@ void StudentRecord::clear() {
     LMSID = -1;
     duplicateRecord = false;
     gender = {Gender::unknown};
-    URM = false;
     for(auto &day : unavailable) {
         for(auto &time : day) {
             time = true;
@@ -294,16 +292,10 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString field = fields.at(fieldnum).toLower().trimmed();
             if(field == "") {
-                field = QObject::tr("--");
+                field = "--";
             }
             URMResponse = field;
         }
-        else {
-            URM = false;
-        }
-    }
-    else {
-        URM = false;
     }
 
     // attributes
@@ -635,7 +627,6 @@ QJsonObject StudentRecord::toJson() const
         {"LMSID", LMSID},
         {"duplicateRecord", duplicateRecord},
         {"genders", gendersArray},
-        {"URM", URM},
         {"unavailable", unavailableArray},
         {"timezone", timezone},
         {"ambiguousSchedule", ambiguousSchedule},
