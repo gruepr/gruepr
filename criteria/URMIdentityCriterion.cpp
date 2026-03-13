@@ -3,9 +3,47 @@
 #include "teamingOptions.h"
 #include "dialogs/identityRulesDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include <QJsonArray>
 
 Criterion* URMIdentityCriterion::clone() const {
-    return new URMIdentityCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+    auto *copy = new URMIdentityCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+    copy->identityRules = identityRules;
+    return copy;
+}
+
+QJsonObject URMIdentityCriterion::settingsToJson() const {
+    QJsonObject json;
+    QJsonArray rulesArray;
+    for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
+        for (const auto [operation, values] : valMap.asKeyValueRange()) {
+            for (const auto value : values) {
+                rulesArray.append(identityKey + "," + operation + "," + QString::number(value));
+            }
+        }
+    }
+    json["identityRules"] = rulesArray;
+    return json;
+}
+
+void URMIdentityCriterion::settingsFromJson(const QJsonObject &json) {
+    identityRules.clear();
+    const QJsonArray rulesArray = json["identityRules"].toArray();
+    for (const auto &val : rulesArray) {
+        const QStringList parts = val.toString().split(',');
+        if (parts.size() == 3) {
+            identityRules[parts.at(0)][parts.at(1)].append(parts.at(2).toInt());
+        }
+    }
+}
+
+QStringList URMIdentityCriterion::identityOptions() const {
+    QStringList options;
+    for (const QString &resp : std::as_const(dataOptions->URMResponses)) {
+        if (resp != "--") {
+            options << resp;
+        }
+    }
+    return options;
 }
 
 void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
@@ -13,7 +51,7 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOpt
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *urmContentLayout = new QVBoxLayout();
 
-    editRulesButton = new QPushButton(tr("Edit the race/ethnicity rules..."), parentCard);
+    editRulesButton = new QPushButton(tr("Edit the racial/ethnic identity rules..."), parentCard);
     editRulesButton->setFixedHeight(40);
     editRulesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     editRulesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -26,9 +64,9 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOpt
 
 
     // Helper to update the rule count label
-    auto updateRuleCount = [this, teamingOptions]() {
+    auto updateRuleCount = [this]() {
         int count = 0;
-        for (const auto [response, valMap] : teamingOptions->urmIdentityRules.asKeyValueRange()) {
+        for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
             for (const auto [operation, values] : valMap.asKeyValueRange()) {
                 count += values.size();
             }
@@ -39,8 +77,9 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOpt
 
     updateRuleCount();
 
-    connect(editRulesButton, &QPushButton::clicked, this, [this, teamingOptions, updateRuleCount]() {
-        auto *window = new IdentityRulesDialog(this->parentCard, IdentityRulesDialog::Mode::urm, teamingOptions, dataOptions);
+    connect(editRulesButton, &QPushButton::clicked, this, [this, updateRuleCount]() {
+        auto *window = new IdentityRulesDialog(this->parentCard, &identityRules, identityOptions(), tr("Racial/Ethnic Identity Rules"),
+                          tr("Set rules for racial/ethnic identity responses. For example, \"Latino != 1\" would  prevent a team from having exactly 1 Latino student."));
         window->exec();
         delete window;
         updateRuleCount();
@@ -74,9 +113,14 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
 
         // Apply per-response identity rules from urmIdentityRules
         // First check responses that are present on the team.
-        auto applyRule = [&](const QString &response, int count) {
-            const auto &unallowed = teamingOptions->urmIdentityRules.value(response).value("!=");
-            for (const int val : unallowed) {
+        auto applyRule = [&](const QString &ruleKey) {
+            const QStringList identities = ruleKey.split('|');
+            int count = 0;
+            for (const QString &identity : identities) {
+                count += urmResponseCounts.value(identity, 0);
+            }
+            const auto &unallowed = identityRules.value(ruleKey).value("!=");
+            for (int val : unallowed) {
                 if (count == val) {
                     penaltyApplied = true;
                     if (penaltyStatus) {
@@ -87,16 +131,8 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
             }
         };
 
-        for (auto it = urmResponseCounts.cbegin(); it != urmResponseCounts.cend(); ++it) {
-            applyRule(it.key(), it.value());
-        }
-
-        // Next check rules for responses NOT present on the team (count == 0).
-        // This handles rules like "latino != 0" (require at least one).
-        for (const auto &response : teamingOptions->urmIdentityRules.keys()) {
-            if (!urmResponseCounts.contains(response)) {
-                applyRule(response, 0);
-            }
+        for (const auto &ruleKey : identityRules.keys()) {
+            applyRule(ruleKey);
         }
 
         if (penaltyApplied) {
@@ -112,14 +148,14 @@ float URMIdentityCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> 
                                                      const QSet<long long> &/*allIDsBeingTeamed*/)
 {
     // If there are no URM rules at all, nothing is relevant
-    if (teamingOptions->urmIdentityRules.isEmpty()) {
+    if (identityRules.isEmpty()) {
         return Criterion::NO_SCORE;
     }
 
     // A rule with "!= 0" means every team is relevant (even teams with zero of that identity violate it).
     // Otherwise, relevance requires at least one team member whose response matches a rule key.
     bool anyRuleWithZero = false;
-    for (const auto [response, valMap] : teamingOptions->urmIdentityRules.asKeyValueRange()) {
+    for (const auto [response, valMap] : identityRules.asKeyValueRange()) {
         if (valMap.value("!=").contains(0)) {
             anyRuleWithZero = true;
             break;
@@ -131,8 +167,11 @@ float URMIdentityCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> 
         for (const auto studentID : team.studentIDs) {
             for (const auto &student : allStudents) {
                 if (student.ID == studentID) {
-                    if (teamingOptions->urmIdentityRules.contains(student.URMResponse)) {
-                        anyRelevant = true;
+                    for (const auto &ruleKey : identityRules.keys()) {
+                        if (ruleKey.split('|').contains(student.URMResponse)) {
+                            anyRelevant = true;
+                            break;
+                        }
                     }
                     break;
                 }
@@ -152,14 +191,14 @@ float URMIdentityCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> 
 }
 
 QString URMIdentityCriterion::headerLabel(const DataOptions *) const {
-    return tr("Race/Ethnicity");
+    return tr("Racial/Ethnic Identity");
 }
 
 Qt::TextElideMode URMIdentityCriterion::headerElideMode() const {
     return Qt::ElideNone;
 }
 
-QString URMIdentityCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *, float criterionScore) const {
+QString URMIdentityCriterion::teamDisplayText(const TeamRecord &, const DataOptions *, float criterionScore) const {
     if (IS_NO_SCORE(criterionScore)) {
         return QString::fromUtf8(" ");
     }
@@ -169,7 +208,7 @@ QString URMIdentityCriterion::teamDisplayText(const TeamRecord &team, const Data
     return QString::fromUtf8("✗");
 }
 
-QVariant URMIdentityCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float criterionScore) const {
+QVariant URMIdentityCriterion::teamSortValue(const TeamRecord &, const DataOptions *, float criterionScore) const {
     if (IS_NO_SCORE(criterionScore)) {
         return 0;
     }
@@ -185,10 +224,11 @@ QString URMIdentityCriterion::studentDisplayText(const StudentRecord &student, c
 
 QString URMIdentityCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
     QString text;
-    for (const auto [response, valMap] : teamingOptions->urmIdentityRules.asKeyValueRange()) {
+    for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
         for (const auto [operation, values] : valMap.asKeyValueRange()) {
             for (const auto value : std::as_const(values)) {
-                text += "\n" + tr("Race/ethnicity identity rule: ") + response + " " +
+                const QString displayKey = QString(identityKey).replace('|', tr(" or "));
+                text += "\n" + tr("Racial/ethnic identity rule: ") + displayKey + " " +
                         operation + " " + QString::number(value);
             }
         }

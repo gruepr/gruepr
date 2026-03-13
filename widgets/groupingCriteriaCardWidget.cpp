@@ -37,10 +37,13 @@
 #include <QPainter>
 #include <QPropertyAnimation>
 
+int GroupingCriteriaCard::fixedCardOffset = 0;
+
 GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
                                            QWidget *parent, QString title, bool draggable, const int attribute)
     : QFrame(parent)
 {
+
     switch(criterionType) {
     case Criterion::CriteriaType::section:
         criterion = new SectionCriterion(criterionType, 0, true, this);
@@ -54,7 +57,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         criterion = new GenderCriterion(dataOptions, criterionType, 0, true, this);
         break;
     case Criterion::CriteriaType::urmIdentity:
-        criterion = new URMIdentityCriterion(dataOptions, criterionType, 0, false, this);
+        criterion = new URMIdentityCriterion(dataOptions, criterionType, 0, true, this);
         break;
     case Criterion::CriteriaType::attributeQuestion:
         if(dataOptions != nullptr && attribute != -1) {
@@ -197,7 +200,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
             priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
         break;
         case Criterion::Precedence::want:
-            priorityOrderLabel->setText(tr("Preference") + " # " + QString::number(this->priorityOrder)); // + " - " + tr("Want");
+            priorityOrderLabel->setText(tr("Preference") + " # " + QString::number(priorityOrder + 1 - fixedCardOffset)); // + " - " + tr("Want");
             priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
         break;
     }
@@ -238,7 +241,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     setLayout(mainVerticalLayout);
     setContentsMargins(2,2,2,2);
     connect(deleteGroupingCriteriaCardButton, &QPushButton::clicked, this, [this](){
-        emit deleteCardRequested(this->priorityOrder);
+        emit deleteCardRequested(priorityOrder);
     });
     connect(toggleButton, &QToolButton::toggled, this, &GroupingCriteriaCard::toggle);
     connect(dragHandleButton, &QToolButton::pressed, this, &GroupingCriteriaCard::dragStarted);
@@ -443,8 +446,9 @@ void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event)
     if (event->mimeData()->hasText()) {
         event->acceptProposedAction();
         m_lastPos = mapToViewport(event->position());
-        if (!m_dragTimer.isActive())
+        if (!m_dragTimer.isActive()) {
             m_dragTimer.start();
+        }
         emit dragEnteredCard(this->priorityOrder);
     }
 }
@@ -479,21 +483,21 @@ int GroupingCriteriaCard::getPriorityOrder() const
     return priorityOrder;
 }
 
-void GroupingCriteriaCard::setPriorityOrder(int priorityOrder)
+void GroupingCriteriaCard::setPriorityOrder(int newPriorityOrder)
 {
-    //qDebug() << "set priority for " << priorityOrder;
-    this->priorityOrder = priorityOrder;
+    //qDebug() << "set priority for " << newPriorityOrder;
+    priorityOrder = newPriorityOrder;
     QString labelText;
     switch(criterion->precedence) {
     case Criterion::Precedence::fixed:
         labelText = "";
         break;
     case Criterion::Precedence::need:
-        labelText = tr("Requirement");// "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
+        labelText = tr("Requirement");// "# " + QString::number(priorityOrder+1) + " - " + tr("Need");
         priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
         break;
     case Criterion::Precedence::want:
-        labelText = tr("Preference") + " # " + QString::number(this->priorityOrder+1); // + " - " + tr("Want");
+        labelText = tr("Preference") + " # " + QString::number(priorityOrder + 1 - fixedCardOffset); // + " - " + tr("Want");
         priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
         break;
     }
@@ -515,11 +519,11 @@ void GroupingCriteriaCard::setPrecedence(Criterion::Precedence precedence)
         labelText = "";
         break;
     case Criterion::Precedence::need:
-        labelText = tr("Requirement");// "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
+        labelText = tr("Requirement");// "# " + QString::number(priorityOrder+1) + " - " + tr("Need");
         priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
         break;
     case Criterion::Precedence::want:
-        labelText = tr("Preference") + " # " + QString::number(this->priorityOrder+1); // + " - " + tr("Want");
+        labelText = tr("Preference") + " # " + QString::number(priorityOrder + 1 - fixedCardOffset); // + " - " + tr("Want");
         priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
         break;
     }

@@ -3,23 +3,55 @@
 #include "teamingOptions.h"
 #include "dialogs/identityRulesDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include <QJsonArray>
 
 Criterion* GenderCriterion::clone() const {
-    return new GenderCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+    auto *copy = new GenderCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+    copy->identityRules = identityRules;
+    copy->singleGenderPrevented = singleGenderPrevented;
+    return copy;
 }
+
+QJsonObject GenderCriterion::settingsToJson() const {
+    QJsonObject json;
+    QJsonArray rulesArray;
+    for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
+        for (const auto [operation, values] : valMap.asKeyValueRange()) {
+            for (const auto value : values) {
+                rulesArray.append(identityKey + "," + operation + "," + QString::number(value));
+            }
+        }
+    }
+    json["identityRules"] = rulesArray;
+    json["singleGenderPrevented"] = singleGenderPrevented;
+    return json;
+}
+
+void GenderCriterion::settingsFromJson(const QJsonObject &json) {
+    identityRules.clear();
+    const QJsonArray rulesArray = json["identityRules"].toArray();
+    for (const auto &val : rulesArray) {
+        const QStringList parts = val.toString().split(',');
+        if (parts.size() == 3) {
+            identityRules[parts.at(0)][parts.at(1)].append(parts.at(2).toInt());
+        }
+    }
+    singleGenderPrevented = json["singleGenderPrevented"].toBool();
+}
+
 
 void GenderCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *genderContentLayout = new QVBoxLayout();
     isolatedWomen = new QCheckBox(tr("Prevent isolated women"), parentCard);
-    isolatedWomen->setChecked(teamingOptions->genderIdentityRules[Gender::woman]["!="].contains(1));
+    isolatedWomen->setChecked(identityRules[womanKey]["!="].contains(1));
     isolatedMen = new QCheckBox(tr("Prevent isolated men"));
-    isolatedMen->setChecked(teamingOptions->genderIdentityRules[Gender::man]["!="].contains(1));
+    isolatedMen->setChecked(identityRules[manKey]["!="].contains(1));
     isolatedNonbinary = new QCheckBox(tr("Prevent isolated nonbinary students"), parentCard);
-    isolatedNonbinary->setChecked(teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].contains(1));
+    isolatedNonbinary->setChecked(identityRules[nonbinaryKey]["!="].contains(1));
     mixedGender = new QCheckBox(tr("Require mixed gender teams"), parentCard);
-    mixedGender->setChecked(teamingOptions->singleGenderPrevented);
+    mixedGender->setChecked(singleGenderPrevented);
     complicatedGenderRule = new QPushButton(tr("Something more complicated..."), parentCard);
     complicatedGenderRule->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     complicatedGenderRule->setFixedHeight(40);
@@ -32,51 +64,52 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
     genderContentLayout->addWidget(complicatedGenderRule);
     parentCard->setContentAreaLayout(*genderContentLayout);   
 
-    connect(isolatedWomen, &QCheckBox::checkStateChanged, this, [teamingOptions](Qt::CheckState state) {
+    connect(isolatedWomen, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
         if (state == Qt::Checked) {
-            if (!teamingOptions->genderIdentityRules[Gender::woman]["!="].contains(1)){
-                teamingOptions->genderIdentityRules[Gender::woman]["!="].append(1);
+            if (!identityRules[womanKey]["!="].contains(1)){
+                identityRules[womanKey]["!="].append(1);
             }
         } else {
-            teamingOptions->genderIdentityRules[Gender::woman]["!="].removeOne(1);
-            if (teamingOptions->genderIdentityRules[Gender::woman]["!="].isEmpty()){
-                teamingOptions->genderIdentityRules[Gender::woman].remove("!=");
+            identityRules[womanKey]["!="].removeOne(1);
+            if (identityRules[womanKey]["!="].isEmpty()){
+                identityRules[womanKey].remove("!=");
             }
         }
     });
-    connect(isolatedMen, &QCheckBox::checkStateChanged, this, [teamingOptions](Qt::CheckState state) {
+    connect(isolatedMen, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
         if (state == Qt::Checked) {
-            if (!teamingOptions->genderIdentityRules[Gender::man]["!="].contains(1)){
-                teamingOptions->genderIdentityRules[Gender::man]["!="].append(1);
+            if (!identityRules[manKey]["!="].contains(1)){
+                identityRules[manKey]["!="].append(1);
             }
         } else {
-            teamingOptions->genderIdentityRules[Gender::man]["!="].removeOne(1);
-            if (teamingOptions->genderIdentityRules[Gender::man]["!="].isEmpty()){
-                teamingOptions->genderIdentityRules[Gender::man].remove("!=");
+            identityRules[manKey]["!="].removeOne(1);
+            if (identityRules[manKey]["!="].isEmpty()){
+                identityRules[manKey].remove("!=");
             }
         }
     });
-    connect(isolatedNonbinary, &QCheckBox::checkStateChanged, this, [teamingOptions](Qt::CheckState state) {
+    connect(isolatedNonbinary, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
         if (state == Qt::Checked) {
-            if (!teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].contains(1)){
-                teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].append(1);
+            if (!identityRules[nonbinaryKey]["!="].contains(1)){
+                identityRules[nonbinaryKey]["!="].append(1);
             }
         } else {
-            teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].removeOne(1);
-            if (teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].isEmpty()){
-                teamingOptions->genderIdentityRules[Gender::nonbinary].remove("!=");
+            identityRules[nonbinaryKey]["!="].removeOne(1);
+            if (identityRules[nonbinaryKey]["!="].isEmpty()){
+                identityRules[nonbinaryKey].remove("!=");
             }
         }
     });
-    connect(mixedGender, &QCheckBox::checkStateChanged, this, [teamingOptions](Qt::CheckState state) {
-        teamingOptions->singleGenderPrevented = (state == Qt::Checked);
+    connect(mixedGender, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
+        singleGenderPrevented = (state == Qt::Checked);
     });
-    connect(complicatedGenderRule, &QPushButton::clicked, this, [this, teamingOptions]() {
-         auto *window = new IdentityRulesDialog(this->parentCard, IdentityRulesDialog::Mode::gender, teamingOptions, dataOptions);
+    connect(complicatedGenderRule, &QPushButton::clicked, this, [this]() {
+         auto *window = new IdentityRulesDialog(this->parentCard, &identityRules, identityOptions(), "Gender Identity Rules",
+                        tr("Set rules for gender identities. For example, \"Woman != 1\" would prevent a team from having exactly 1 woman."));
          window->exec();
-         isolatedWomen->setChecked(teamingOptions->genderIdentityRules[Gender::woman]["!="].contains(1));
-         isolatedMen->setChecked(teamingOptions->genderIdentityRules[Gender::man]["!="].contains(1));
-         isolatedNonbinary->setChecked(teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].contains(1));
+         isolatedWomen->setChecked(identityRules[womanKey]["!="].contains(1));
+         isolatedMen->setChecked(identityRules[manKey]["!="].contains(1));
+         isolatedNonbinary->setChecked(identityRules[nonbinaryKey]["!="].contains(1));
          delete window;
     });
 }
@@ -96,24 +129,28 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
         }
 
         // Count how many of each gender on the team
-        int numWomen = 0;
-        int numMen = 0;
-        int numNonbinary = 0;
-        for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
-            if(students[teammates[studentNum]].gender.contains(Gender::man)) {
-                numMen++;
+        QMap<QString, int> genderCounts;
+        for (int teammate = 0; teammate < teamSizes[team]; teammate++) {
+            const auto &stu = students[teammates[studentNum]];
+            if (stu.gender.contains(Gender::woman)) {
+                genderCounts[womanKey]++;
             }
-            else if(students[teammates[studentNum]].gender.contains(Gender::woman)) {
-                numWomen++;
+            if (stu.gender.contains(Gender::man)) {
+                genderCounts[manKey]++;
             }
-            else if(students[teammates[studentNum]].gender.contains(Gender::nonbinary)) {
-                numNonbinary++;
+            if (stu.gender.contains(Gender::nonbinary)) {
+                genderCounts[nonbinaryKey]++;
             }
             studentNum++;
         }
 
-        auto applyRule = [&](Gender g, int count) {
-            const auto& unallowed = teamingOptions->genderIdentityRules.value(g).value("!=");
+        auto applyRule = [&](const QString &ruleKey) {
+            const QStringList identities = ruleKey.split('|');
+            int count = 0;
+            for (const QString &identity : identities) {
+                count += genderCounts.value(identity, 0);
+            }
+            const auto &unallowed = identityRules.value(ruleKey).value("!=");
             for (int val : unallowed) {
                 if (count == val) {
                     penaltyApplied = true;
@@ -125,11 +162,12 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
             }
         };
 
-        applyRule(Gender::woman, numWomen);
-        applyRule(Gender::man, numMen);
-        applyRule(Gender::nonbinary, numNonbinary);
+        for (const auto &ruleKey : identityRules.keys()) {
+            applyRule(ruleKey);
+        }
 
-        if (teamingOptions->singleGenderPrevented && (numMen == 0 || numWomen == 0)) {
+        if (singleGenderPrevented &&
+            (genderCounts.value(manKey, 0) == 0 || genderCounts.value(womanKey, 0) == 0)) {
             penaltyApplied = true;
             if (penaltyStatus) {
                 penaltyPoints[team]++;
@@ -141,6 +179,17 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
         }
         criteriaScores[team] *= weight;
     }
+}
+
+QStringList GenderCriterion::identityOptions() const {
+    // returning all gender values in the data, converted to standard values
+    QStringList options;
+    for (const Gender g : std::as_const(dataOptions->genderValues)) {
+        if (g != Gender::unknown) {
+            options << grueprGlobal::genderToString(g);
+        }
+    }
+    return options;
 }
 
 QString GenderCriterion::headerLabel(const DataOptions *dataOptions) const {
@@ -166,15 +215,21 @@ QString GenderCriterion::teamDisplayText(const TeamRecord &team, const DataOptio
     QString genderText;
     if (team.numWomen > 0) {
         genderText += QString::number(team.numWomen) + genderInitials.at(static_cast<int>(Gender::woman));
-        if (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0) genderText += ", ";
+        if (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0) {
+            genderText += ", ";
+        }
     }
     if (team.numMen > 0) {
         genderText += QString::number(team.numMen) + genderInitials.at(static_cast<int>(Gender::man));
-        if (team.numNonbinary > 0 || team.numUnknown > 0) genderText += ", ";
+        if (team.numNonbinary > 0 || team.numUnknown > 0) {
+            genderText += ", ";
+        }
     }
     if (team.numNonbinary > 0) {
         genderText += QString::number(team.numNonbinary) + genderInitials.at(static_cast<int>(Gender::nonbinary));
-        if (team.numUnknown > 0) genderText += ", ";
+        if (team.numUnknown > 0) {
+            genderText += ", ";
+        }
     }
     if (team.numUnknown > 0) {
         genderText += QString::number(team.numUnknown) + genderInitials.at(static_cast<int>(Gender::unknown));
@@ -201,7 +256,9 @@ QString GenderCriterion::studentDisplayText(const StudentRecord &student, const 
     QString text;
     bool first = true;
     for (const auto gen : student.gender) {
-        if (!first) text += ", ";
+        if (!first) {
+            text += ", ";
+        }
         text += genderOptions.at(static_cast<int>(gen));
         first = false;
     }
@@ -210,15 +267,16 @@ QString GenderCriterion::studentDisplayText(const StudentRecord &student, const 
 
 QString GenderCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
     QString text;
-    for (const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
+    for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
         for (const auto [operation, values] : valMap.asKeyValueRange()) {
             for (const auto value : std::as_const(values)) {
-                text += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
+                const QString displayKey = QString(identityKey).replace('|', tr(" or "));
+                text += "\n" + tr("Gender identity rule: ") + displayKey + " " +
                         operation + " " + QString::number(value);
             }
         }
     }
-    if (teamingOptions->singleGenderPrevented) {
+    if (singleGenderPrevented) {
         text += "\n" + tr("Mixed gender teams required");
     }
     return text;

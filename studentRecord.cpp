@@ -294,7 +294,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
             if(field == "") {
                 field = "--";
             }
-            URMResponse = field;
+            URMResponse = field.replace('|', '-');  // need to sanitize out the delimiter that might be used for identity rules later
         }
     }
 

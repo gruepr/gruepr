@@ -48,6 +48,8 @@ public:
     GroupingCriteriaCard(GroupingCriteriaCard&&) = delete;
     GroupingCriteriaCard& operator= (GroupingCriteriaCard&&) = delete;
 
+    static int fixedCardOffset;
+
     Criterion *criterion = nullptr;
 
     //QCheckBox *includePenaltyCheckBox = nullptr;
@@ -74,7 +76,7 @@ public:
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     int getPriorityOrder() const;
-    void setPriorityOrder(int priorityOrder);
+    void setPriorityOrder(int newPriorityOrder);
     Criterion::Precedence getPrecedence() const;
     void setPrecedence(Criterion::Precedence precedence);
     void stopDragTimer();

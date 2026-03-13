@@ -1,21 +1,19 @@
 #include "identityRulesDialog.h"
-#include "qcombobox.h"
-#include "qheaderview.h"
-#include "qmessagebox.h"
-#include "qscrollarea.h"
-#include "qspinbox.h"
+#include <QCombobox>
+#include <QHeaderView>
+#include <QListView>
+#include <QMessageBox>
+#include <QScrollArea>
+#include <QSpinBox>
 
-IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, Mode mode, TeamingOptions *teamingOptions, const DataOptions *dataOptions)
-    : QDialog(parent), mainLayout(new QVBoxLayout(this)), teamingOptions(teamingOptions), dataOptions(dataOptions), mode(mode)
+IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterion::IdentityRule> *identityRules,
+                                         const QStringList &identityOptions, const QString &title, const QString &hint)
+    : QDialog(parent), mainLayout(new QVBoxLayout(this)), identityRules(identityRules), options(identityOptions)
+
 {
-    const QString title = (mode == Mode::gender) ? tr("Gender Identity Rules")
-                                                 : tr("Race/Ethnicity Identity Rules");
     setWindowTitle(title);
     setMinimumSize(LG_DLG_SIZE, SM_DLG_SIZE);
 
-    const QString hint = (mode == Mode::gender)?
-        tr("Set rules for gender identities. For example, \"Woman != 1\" would prevent a team from having exactly 1 woman.")
-        : tr("Set rules for race/ethnicity responses. For example, \"Latino != 1\" would  prevent a team from having exactly 1 Latino student.");
     auto *instructions = new QLabel(hint, this);
     instructions->setStyleSheet(QString(INSTRUCTIONSLABELSTYLE));
     instructions->setAlignment(Qt::AlignCenter);
@@ -78,34 +76,33 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, Mode mode, TeamingOpti
 
 void IdentityRulesDialog::addNewIdentityRule()
 {
-    const QStringList options = identityOptions();
-    addRow(options.isEmpty() ? "" : options.first());
+    const QString defaultIdentity = options.isEmpty() ? "" : options.first();
+    addRow(defaultIdentity, 0);
 }
 
-void IdentityRulesDialog::populateTable()
-{
+void IdentityRulesDialog::populateTable() {
     rulesTable->setRowCount(0);
-
-    if (mode == Mode::gender) {
-        for (const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
-            if (gender == Gender::unknown) {
-                continue;
-            }
-            for (const auto [operation, values] : valMap.asKeyValueRange()) {
-                for (const int val : std::as_const(values)) {
-                    addRow(grueprGlobal::genderToString(gender), "!=", val);
-                }
-            }
-        }
-    } else {
-        for (const auto [response, valMap] : teamingOptions->urmIdentityRules.asKeyValueRange()) {
-            for (const auto [operation, values] : valMap.asKeyValueRange()) {
-                for (const int val : std::as_const(values)) {
-                    addRow(response, "!=", val);
-                }
-            }
+    for (const auto [identityKey, valMap] : identityRules->asKeyValueRange()) {
+        const QList<int> &noInRule = valMap.value("!=");
+        for (const int val : noInRule) {
+            addRow(identityKey, val);
         }
     }
+}
+
+QString IdentityRulesDialog::identityKeyFromRow(int row) const
+{
+    const auto *combo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 0));
+    if (!combo) {
+        return {};
+    }
+    // If the combo text contains " or ", convert back to | delimited key
+    QString key = combo->currentText();
+    key.replace(" or ", "|");
+    // Sort the parts so the key is canonical
+    QStringList parts = key.split('|');
+    parts.sort();
+    return parts.join('|');
 }
 
 void IdentityRulesDialog::saveRules()
@@ -113,121 +110,89 @@ void IdentityRulesDialog::saveRules()
     // Validate: check for placeholders and duplicates
     QSet<QString> seen;
     for (int row = 0; row < rulesTable->rowCount(); ++row) {
-        const auto *combo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 0));
-        const auto *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
-        if (!combo || !spinBox) {
+        const QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
+        if (!spinBox) {
             continue;
         }
-
-        const QString key = combo->currentText() + "|" + QString::number(spinBox->value());
-        if (seen.contains(key)) {
+        const QString identityKey = identityKeyFromRow(row);
+        const QString uniqueKey = identityKey + "|" + QString::number(spinBox->value());
+        if (seen.contains(uniqueKey)) {
             QMessageBox::warning(this, tr("Duplicate Rule"),
                                  tr("There are duplicate rules. Each identity + count combination must be unique."));
             return;
         }
-        seen.insert(key);
+        seen.insert(uniqueKey);
     }
 
     // Rebuild the rules map from the table
-    if (mode == Mode::gender) {
-        teamingOptions->genderIdentityRules.clear();
-        for (int row = 0; row < rulesTable->rowCount(); ++row) {
-            const auto *combo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 0));
-            const auto *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
-            if (!combo || !spinBox) {
-                continue;
-            }
-            const Gender g = grueprGlobal::stringToGender(combo->currentText());
-            teamingOptions->genderIdentityRules[g]["!="].append(spinBox->value());
+    identityRules->clear();
+    for (int row = 0; row < rulesTable->rowCount(); ++row) {
+        const QString identityKey = identityKeyFromRow(row);
+        const QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
+        if (identityKey.isEmpty() || !spinBox) {
+            continue;
         }
-    } else {
-        teamingOptions->urmIdentityRules.clear();
-        for (int row = 0; row < rulesTable->rowCount(); ++row) {
-            const auto *combo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 0));
-            const auto *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
-            if (!combo || !spinBox) {
-                continue;
-            }
-            const QString response = combo->currentText();
-            teamingOptions->urmIdentityRules[response]["!="].append(spinBox->value());
-        }
+        (*identityRules)[identityKey]["!="].append(spinBox->value());
     }
 
     accept();
 }
 
-void IdentityRulesDialog::addRow(const QString &identityText, const QString &operation, int value)
+void IdentityRulesDialog::addRow(const QString &identityKey, int value)
 {
     const int row = rulesTable->rowCount();
     rulesTable->insertRow(row);
 
-    int column = 0;
-
     // Column 0: identity combo box
+    // For now single-select; will become multi-select later.
+    // If identityKey contains '|', display it joined with " or ".
     auto *identityCombo = new QComboBox(this);
-    identityCombo->addItems(identityOptions());
-    identityCombo->setCurrentText(identityText);
+    identityCombo->addItems(options);
+    if (identityKey.contains('|')) {
+        // Grouped key — add it as a custom entry so it displays correctly
+        const QString displayText = QString(identityKey).replace('|', " or ");
+        identityCombo->addItem(displayText);
+        identityCombo->setCurrentText(displayText);
+    } else {
+        identityCombo->setCurrentText(identityKey);
+    }
     identityCombo->setStyleSheet(COMBOBOXSTYLE);
-    rulesTable->setCellWidget(row, column++, identityCombo);
+    auto *popupView = new QListView(identityCombo);
+    popupView->setStyleSheet(
+        "QListView {background-color: white; color: " DEEPWATERHEX "; outline: none; font-family: 'DM Sans'; font-size: 12pt;}"
+        "QListView::item {padding: 4px;}"
+        "QListView::item:selected {background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt;}"
+        "QListView::item:hover {background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt;}");
+    identityCombo->setView(popupView);
+    rulesTable->setCellWidget(row, 0, identityCombo);
 
-    // Column 1: operation (fixed for now to "!=")
-    auto *operatorItem = new QTableWidgetItem(operation);
+    // Column 1: operator (fixed to "!=")
+    auto *operatorItem = new QTableWidgetItem("!=");
     operatorItem->setFlags(operatorItem->flags() & ~Qt::ItemIsEditable);
     operatorItem->setForeground(QBrush(QColor(DEEPWATERHEX)));
     operatorItem->setTextAlignment(Qt::AlignCenter);
-    rulesTable->setItem(row, column++, operatorItem);
+    rulesTable->setItem(row, 1, operatorItem);
 
     // Column 2: count spinbox
     auto *spinBox = new QSpinBox(this);
     spinBox->setMinimum(0);
     spinBox->setValue(value);
     spinBox->setStyleSheet(SPINBOXSTYLE);
-    rulesTable->setCellWidget(row, column++, spinBox);
+    rulesTable->setCellWidget(row, 2, spinBox);
 
     // Column 3: remove button
     auto *removeButton = new QPushButton(this);
     removeButton->setIcon(QIcon(":/icons_new/trashButton.png"));
     removeButton->setStyleSheet("QPushButton {background-color: " TRANSPARENT "; border: none;}"
-                                "QPushButton:hover {background-color: " BUBBLYHEX ";}");
+                                "QPushButton:hover {background-color: #f0f0f0;}");
     removeButton->setCursor(Qt::PointingHandCursor);
-    connect(removeButton, &QPushButton::clicked, this, [this, removeButton, column]() {
-        // Find the current row of this button (handles shifting after deletions)
+    rulesTable->setCellWidget(row, 3, removeButton);
+    connect(removeButton, &QPushButton::clicked, this, [this, removeButton]() {
         for (int r = 0; r < rulesTable->rowCount(); ++r) {
-            if (rulesTable->cellWidget(r, column) == removeButton) {
+            if (rulesTable->cellWidget(r, 3) == removeButton) {
                 rulesTable->removeRow(r);
                 return;
             }
         }
     });
-    rulesTable->setCellWidget(row, column++, removeButton);
-}
-
-
-QStringList IdentityRulesDialog::identityOptions() const
-{
-    QStringList options;
-    if (mode == Mode::gender) {
-        // Offer the gender identities that exist in the data (skip unknown)
-        for (const Gender g : std::as_const(dataOptions->genderValues)) {
-            if (g != Gender::unknown) {
-                options << grueprGlobal::genderToString(g);
-            }
-        }
-        // Always include the big three even if not yet seen in data
-        const QStringList defaults = {grueprGlobal::genderToString(Gender::woman),
-                                      grueprGlobal::genderToString(Gender::man),
-                                      grueprGlobal::genderToString(Gender::nonbinary)};
-        for (const QString &d : defaults) {
-            if (!options.contains(d)) {
-                options << d;
-            }
-        }
-    } else {
-        for (const QString &resp : std::as_const(dataOptions->URMResponses)) {
-            if (resp != "--") {
-                options << resp;
-            }
-        }
-    }
-    return options;
 }

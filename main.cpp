@@ -51,7 +51,6 @@
 //
 // TO DO FOR V13:
 //  - fix styling of comboboxes in identityrulesdialog - just the hovered item has light blue, not dark blue, background
-//  - fix that urm criteria isn't giving penalty when x != 0 is not met (i.e., every team required to have at least 1 x) - or at least the team compatibility score is not showing up negative in the tooltip or the genome score chart
 //  - allow identityrulesdialog to group multiple identities, such as "latino or latinx != 1"
 //
 // TO DO:

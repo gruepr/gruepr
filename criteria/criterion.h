@@ -23,6 +23,8 @@ public:
                                                                 // similar = homogeneous (i.e., all teammates have the same value)
     Q_ENUM(AttributeDiversity)
 
+    using IdentityRule = QMap<QString, QList<int>>;             // A map from a logic operation (e.g., "!=") to a set of values (e.g., 1, 2)
+
     Criterion(CriteriaType criteriaType, float weight = 0, bool penaltyStatus = false, GroupingCriteriaCard *parent = nullptr) :
         weight(weight), penaltyStatus(penaltyStatus), criteriaType(criteriaType), parentCard(parent) {};
     ~Criterion() override = default;

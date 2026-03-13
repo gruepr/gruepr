@@ -17,7 +17,11 @@ public:
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
                         std::vector<float> & criteriaScores, std::vector<int> &penaltyPoints) const override;
+
     Criterion* clone() const override;
+    QJsonObject settingsToJson() const override;
+    void settingsFromJson(const QJsonObject &json) override;
+    QStringList identityOptions() const;
 
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;
@@ -33,6 +37,13 @@ public:
     QCheckBox *isolatedNonbinary = nullptr;
     QCheckBox *mixedGender = nullptr;
     QPushButton *complicatedGenderRule = nullptr;
+
+    QMap<QString, IdentityRule> identityRules;   // key: "Woman" or "Man|Nonbinary"
+    bool singleGenderPrevented = false;
+
+    const QString womanKey = grueprGlobal::genderToString(Gender::woman);
+    const QString manKey = grueprGlobal::genderToString(Gender::man);
+    const QString nonbinaryKey = grueprGlobal::genderToString(Gender::nonbinary);
 };
 
 #endif // GENDERCRITERION_H

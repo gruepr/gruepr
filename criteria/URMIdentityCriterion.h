@@ -20,6 +20,9 @@ public:
     float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
                                    const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed) override;
     Criterion* clone() const override;
+    QJsonObject settingsToJson() const override;
+    void settingsFromJson(const QJsonObject &json) override;
+    QStringList identityOptions() const;
 
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;
@@ -32,6 +35,8 @@ public:
     const DataOptions *const dataOptions;
     QPushButton *editRulesButton = nullptr;
     QLabel *ruleCountLabel = nullptr;
+
+    QMap<QString, IdentityRule> identityRules;
 };
 
 #endif // URMIDENTITYCRITERION_H

@@ -1,10 +1,7 @@
 #ifndef IDENTITYRULESDIALOG_H
 #define IDENTITYRULESDIALOG_H
 
-#include "dataOptions.h"
-#include "qscrollarea.h"
-#include "qtablewidget.h"
-#include "teamingOptions.h"
+#include "criteria/criterion.h"
 #include <QCheckBox>
 #include <QDialog>
 #include <QHBoxLayout>
@@ -12,7 +9,9 @@
 #include <QList>
 #include <QMap>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QString>
+#include <QTableWidget>
 #include <QVBoxLayout>
 
 class IdentityRulesDialog : public QDialog
@@ -20,9 +19,8 @@ class IdentityRulesDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum class Mode {gender, urm};
-
-    explicit IdentityRulesDialog(QWidget *parent, Mode mode, TeamingOptions *teamingOptions, const DataOptions *dataOptions);
+    explicit IdentityRulesDialog(QWidget *parent, QMap<QString, Criterion::IdentityRule> *identityRules, const QStringList &identityOptions,
+                                 const QString &title = "Identity Rules", const QString &hint = "");
 
 private slots:
     void addNewIdentityRule();
@@ -30,18 +28,15 @@ private slots:
 private:
     void populateTable();
     void saveRules();
-    void addRow(const QString &identityText, const QString &operation = "!=", int value = 0);
-
-    // Returns the list of identity category strings for the combo box
-    QStringList identityOptions() const;
+    void addRow(const QString &identityKey, int value);
+    QString identityKeyFromRow(int row) const;
 
     QTableWidget *rulesTable = nullptr;
     QScrollArea *scrollArea = nullptr;
     QVBoxLayout *mainLayout = nullptr;
 
-    TeamingOptions *const teamingOptions;
-    const DataOptions *const dataOptions;
-    const Mode mode;
+    QMap<QString, Criterion::IdentityRule> *identityRules = nullptr;
+    QStringList options;   // the individual identity values to choose from
 };
 
 #endif // IDENTITYRULESDIALOG_H

@@ -150,6 +150,8 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     connect(teamSizeCriterion->teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
     criteriaCardsList.append(teamsizeCriteriaCard);
 
+    GroupingCriteriaCard::fixedCardOffset = (dataOptions->sectionIncluded ? 1 : 0) + 1; // +1 for teamsize, always present
+
     //Construct button and menu to add new criteria cards
     addNewCriteriaMenu = new QMenu(this);
     addNewCriteriaMenu->setStyleSheet(MENUSTYLE);
@@ -413,7 +415,7 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
         case Criterion::CriteriaType::urmIdentity: {
             if(urmIdentityCard == nullptr) {
                 urmIdentityCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
-                                                           QString("Racial/Ethnic/Cultural Identity"), true);
+                                                           QString("Racial/Ethnic Identity"), true);
                 criteriaCardsList.append(urmIdentityCard);
                 if(urmMenuAction != nullptr) {
                     urmMenuAction->setVisible(false);
