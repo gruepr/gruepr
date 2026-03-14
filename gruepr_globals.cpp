@@ -58,19 +58,28 @@ bool grueprGlobal::internetIsGood() {
 
 QString grueprGlobal::genderToString(const Gender gender) {
     switch (gender) {
-        case Gender::woman: return "Woman";
-        case Gender::man: return "Man";
-        case Gender::nonbinary: return "Nonbinary";
-        case Gender::unknown: return "Unknown";
-        default: return "Unknown";
+        case Gender::woman:
+            return "Woman";
+        case Gender::man:
+            return "Man";
+        case Gender::nonbinary:
+            return "Nonbinary";
+        default:
+            return "Unknown";
     }
 }
 
 // Convert string to enum
 Gender grueprGlobal::stringToGender(const QString& genderStr) {
-    if (genderStr == "Woman") return Gender::woman;
-    if (genderStr == "Man") return Gender::man;
-    if (genderStr == "Nonbinary") return Gender::nonbinary;
+    if (genderStr == "Woman") {
+        return Gender::woman;
+    }
+    if (genderStr == "Man") {
+        return Gender::man;
+    }
+    if (genderStr == "Nonbinary") {
+        return Gender::nonbinary;
+    }
     return Gender::unknown; // Default to unknown if input is invalid
 }
 

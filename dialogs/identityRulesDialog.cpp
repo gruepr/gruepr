@@ -1,31 +1,54 @@
 #include "identityRulesDialog.h"
-#include <QCombobox>
+#include "gruepr_globals.h"
+#include "widgets/checkableComboBox.h"
+#include "widgets/labelWithInstantTooltip.h"
 #include <QHeaderView>
-#include <QListView>
 #include <QMessageBox>
-#include <QScrollArea>
+#include <QPushButton>
 #include <QSpinBox>
 
 IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterion::IdentityRule> *identityRules,
-                                         const QStringList &identityOptions, const QString &title, const QString &hint)
+                                         const QStringList &identityOptions, const QString &title)
     : QDialog(parent), mainLayout(new QVBoxLayout(this)), identityRules(identityRules), options(identityOptions)
 
 {
     setWindowTitle(title);
     setMinimumSize(LG_DLG_SIZE, SM_DLG_SIZE);
 
-    auto *instructions = new QLabel(hint, this);
-    instructions->setStyleSheet(QString(INSTRUCTIONSLABELSTYLE));
-    instructions->setAlignment(Qt::AlignCenter);
-    instructions->setWordWrap(true);
-    mainLayout->addWidget(instructions);
+    auto *helpFrame = new QFrame(this);
+    helpFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
+    auto *helpLayout = new QHBoxLayout(helpFrame);
+    auto *helpIcon = new LabelWithInstantTooltip("", this);
+    helpIcon->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    helpIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    helpLayout->addWidget(helpIcon);
+    auto *explanation = new LabelWithInstantTooltip(tr("Help me understand these rules"), this);
+    explanation->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    helpLayout->addWidget(explanation);
+    const QString identityOne = options[0];
+    const QString identityTwo = options.size() > 1? options[1] : options[0];
+    const QString identityThree = options.size() > 2? options[2] : identityOne;
+    const QString helpText = tr("<html><span style=\"color: black;\">Use this dialog to set the identity rules for forming teams. For example:"
+                                "<ul>") +
+                                "<li> <strong>" + identityOne + tr(" does not equal 0</strong><br>"
+                                            "means every team must have 1 or more ") + identityOne + " students.</li>"
+                                "<li> <strong>" + identityTwo + tr(" or ") + identityThree + tr(" does not equal 1</strong><br>"
+                                            "groups ") + identityTwo + tr(" and ") + identityThree + tr(" together and prevents a "
+                                            "team from having exactly 1 student from either identity.</li>") +
+                                "</ul>";
+    helpIcon->setToolTipText(helpText);
+    explanation->setToolTipText(helpText);
+    mainLayout->addWidget(helpFrame, 0, Qt::AlignLeft);
+
 
     // Table
     rulesTable = new QTableWidget(this);
     rulesTable->verticalHeader()->setVisible(false);
     rulesTable->setColumnCount(4);
-    rulesTable->setHorizontalHeaderLabels({tr("Identity"), tr("Operator"), tr("Count"), ""});
-    rulesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    rulesTable->setHorizontalHeaderLabels({tr("Identity"), "", tr("Count"), ""});
+    rulesTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    rulesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    rulesTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     rulesTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
     rulesTable->setColumnWidth(3, 40);
     rulesTable->setSelectionMode(QAbstractItemView::NoSelection);
@@ -92,17 +115,13 @@ void IdentityRulesDialog::populateTable() {
 
 QString IdentityRulesDialog::identityKeyFromRow(int row) const
 {
-    const auto *combo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 0));
+    const auto *combo = qobject_cast<CheckableComboBox *>(rulesTable->cellWidget(row, 0));
     if (!combo) {
         return {};
     }
-    // If the combo text contains " or ", convert back to | delimited key
-    QString key = combo->currentText();
-    key.replace(" or ", "|");
-    // Sort the parts so the key is canonical
-    QStringList parts = key.split('|');
-    parts.sort();
-    return parts.join('|');
+    QStringList checked = combo->checkedItems();
+    checked.sort();
+    return checked.join('|');
 }
 
 void IdentityRulesDialog::saveRules()
@@ -115,9 +134,14 @@ void IdentityRulesDialog::saveRules()
             continue;
         }
         const QString identityKey = identityKeyFromRow(row);
+        if (identityKey.isEmpty()) {
+            grueprGlobal::errorMessage(this, tr("Invalid Rule"),
+                                 tr("Each rule must have at least one identity selected."));
+            return;
+        }
         const QString uniqueKey = identityKey + "|" + QString::number(spinBox->value());
         if (seen.contains(uniqueKey)) {
-            QMessageBox::warning(this, tr("Duplicate Rule"),
+            grueprGlobal::errorMessage(this, tr("Duplicate Rule"),
                                  tr("There are duplicate rules. Each identity + count combination must be unique."));
             return;
         }
@@ -144,30 +168,25 @@ void IdentityRulesDialog::addRow(const QString &identityKey, int value)
     rulesTable->insertRow(row);
 
     // Column 0: identity combo box
-    // For now single-select; will become multi-select later.
-    // If identityKey contains '|', display it joined with " or ".
-    auto *identityCombo = new QComboBox(this);
+    auto *identityCombo = new CheckableComboBox(this);
     identityCombo->addItems(options);
-    if (identityKey.contains('|')) {
-        // Grouped key — add it as a custom entry so it displays correctly
-        const QString displayText = QString(identityKey).replace('|', " or ");
-        identityCombo->addItem(displayText);
-        identityCombo->setCurrentText(displayText);
-    } else {
-        identityCombo->setCurrentText(identityKey);
-    }
-    identityCombo->setStyleSheet(COMBOBOXSTYLE);
-    auto *popupView = new QListView(identityCombo);
-    popupView->setStyleSheet(
-        "QListView {background-color: white; color: " DEEPWATERHEX "; outline: none; font-family: 'DM Sans'; font-size: 12pt;}"
-        "QListView::item {padding: 4px;}"
-        "QListView::item:selected {background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt;}"
-        "QListView::item:hover {background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt;}");
-    identityCombo->setView(popupView);
+    const QStringList checkedIdentities = identityKey.split('|');
+    identityCombo->setStyleSheet(
+        "QComboBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
+                    "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+        "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                            "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+        "QComboBox::drop-down {border-width: 0px;}"
+        "QComboBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 9px; border-width: 0px;}"
+        "QComboBox QAbstractItemView {background-color: white; color: " DEEPWATERHEX "; "
+                                     "font-family: 'DM Sans'; font-size: 12pt;}"
+        "QComboBox QAbstractItemView::item {padding: 4px;}"
+        "QComboBox QAbstractItemView::item:hover {background-color: " DEEPWATERHEX "; color: white;}");
+    identityCombo->setCheckedItems(checkedIdentities);
     rulesTable->setCellWidget(row, 0, identityCombo);
 
     // Column 1: operator (fixed to "!=")
-    auto *operatorItem = new QTableWidgetItem("!=");
+    auto *operatorItem = new QTableWidgetItem(" does not equal ");
     operatorItem->setFlags(operatorItem->flags() & ~Qt::ItemIsEditable);
     operatorItem->setForeground(QBrush(QColor(DEEPWATERHEX)));
     operatorItem->setTextAlignment(Qt::AlignCenter);

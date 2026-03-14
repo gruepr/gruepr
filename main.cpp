@@ -50,8 +50,6 @@
 //  - unified "required" and "requested" teammates
 //
 // TO DO FOR V13:
-//  - fix styling of comboboxes in identityrulesdialog - just the hovered item has light blue, not dark blue, background
-//  - allow identityrulesdialog to group multiple identities, such as "latino or latinx != 1"
 //
 // TO DO:
 //    NEW FEATURES:

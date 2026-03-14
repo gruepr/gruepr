@@ -105,6 +105,7 @@ SOURCES += \
         LMS/googlehandler.cpp \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
+        widgets/checkableComboBox.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/dropcsvframe.cpp \
         widgets/frameThatForwardsMouseClicks.cpp \
@@ -165,6 +166,7 @@ HEADERS += \
         LMS/googlehandler.h \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
+        widgets/checkableComboBox.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/dropcsvframe.h \
         widgets/frameThatForwardsMouseClicks.h \

@@ -34,6 +34,18 @@ void URMIdentityCriterion::settingsFromJson(const QJsonObject &json) {
             identityRules[parts.at(0)][parts.at(1)].append(parts.at(2).toInt());
         }
     }
+
+    // display the settings on the criteria card
+    if (ruleCountLabel) {
+        int count = 0;
+        for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
+            for (const auto [operation, values] : valMap.asKeyValueRange()) {
+                count += values.size();
+            }
+        }
+        ruleCountLabel->setText(count == 0 ? tr("No rules set")
+                                           : QString::number(count) + (count == 1 ? tr(" rule set") : tr(" rules set")));
+    }
 }
 
 QStringList URMIdentityCriterion::identityOptions() const {
@@ -46,7 +58,7 @@ QStringList URMIdentityCriterion::identityOptions() const {
     return options;
 }
 
-void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
+void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *urmContentLayout = new QVBoxLayout();
@@ -78,8 +90,7 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOpt
     updateRuleCount();
 
     connect(editRulesButton, &QPushButton::clicked, this, [this, updateRuleCount]() {
-        auto *window = new IdentityRulesDialog(this->parentCard, &identityRules, identityOptions(), tr("Racial/Ethnic Identity Rules"),
-                          tr("Set rules for racial/ethnic identity responses. For example, \"Latino != 1\" would  prevent a team from having exactly 1 Latino student."));
+        auto *window = new IdentityRulesDialog(this->parentCard, &identityRules, identityOptions(), tr("Racial/Ethnic Identity Rules"));
         window->exec();
         delete window;
         updateRuleCount();
@@ -87,7 +98,7 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOpt
 }
 
 void URMIdentityCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                          const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
+                                          const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
                                           std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
 {
     int studentNum = 0;
@@ -120,7 +131,7 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
                 count += urmResponseCounts.value(identity, 0);
             }
             const auto &unallowed = identityRules.value(ruleKey).value("!=");
-            for (int val : unallowed) {
+            for (const int val : unallowed) {
                 if (count == val) {
                     penaltyApplied = true;
                     if (penaltyStatus) {
@@ -222,7 +233,7 @@ QString URMIdentityCriterion::studentDisplayText(const StudentRecord &student, c
     return student.URMResponse;
 }
 
-QString URMIdentityCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
+QString URMIdentityCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions *) const {
     QString text;
     for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
         for (const auto [operation, values] : valMap.asKeyValueRange()) {

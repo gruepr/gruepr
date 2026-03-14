@@ -22,6 +22,11 @@ void AttributeCriterion::settingsFromJson(const QJsonObject &json) {
             diversity = static_cast<AttributeDiversity>(val);
         }
     }
+
+    // display settings on the criteria card
+    if (attributeWidget) {
+        attributeWidget->setValues();
+    }
 }
 
 void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
@@ -364,7 +369,9 @@ QString AttributeCriterion::exportStudentText(const StudentRecord &student, cons
         while (value != lastVal) {
             text += valToLetter(*value);
             value++;
-            if (value != lastVal) text += ",";
+            if (value != lastVal){
+                text += ",";
+            }
         }
         return text.leftJustified(3);
     }
@@ -375,7 +382,9 @@ QString AttributeCriterion::exportStudentText(const StudentRecord &student, cons
         while (value != lastVal) {
             text += QString::number(*value);
             value++;
-            if (value != lastVal) text += ",";
+            if (value != lastVal){
+                text += ",";
+            }
         }
         return text.leftJustified(3);
     }

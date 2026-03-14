@@ -2,13 +2,8 @@
 #define IDENTITYRULESDIALOG_H
 
 #include "criteria/criterion.h"
-#include <QCheckBox>
 #include <QDialog>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QList>
 #include <QMap>
-#include <QPushButton>
 #include <QScrollArea>
 #include <QString>
 #include <QTableWidget>
@@ -20,7 +15,7 @@ class IdentityRulesDialog : public QDialog
 
 public:
     explicit IdentityRulesDialog(QWidget *parent, QMap<QString, Criterion::IdentityRule> *identityRules, const QStringList &identityOptions,
-                                 const QString &title = "Identity Rules", const QString &hint = "");
+                                 const QString &title = "Identity Rules");
 
 private slots:
     void addNewIdentityRule();

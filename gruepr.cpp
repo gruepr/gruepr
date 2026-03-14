@@ -235,10 +235,16 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
         if (type == Criterion::CriteriaType::section || type == Criterion::CriteriaType::teamSize) {
             continue; // already created
         }
+
         if (type == Criterion::CriteriaType::attributeQuestion) {
             addCriteriaCard(type, cardJson["attributeIndex"].toInt());
+
         } else {
             addCriteriaCard(type);
+        }
+
+        if (cardJson.contains("criteriaSettings")) {
+            criteriaCardsList.last()->criterion->settingsFromJson(cardJson["criteriaSettings"].toObject());
         }
     }
 
@@ -1855,6 +1861,7 @@ void gruepr::saveState()
                 const auto *attrCriterion = qobject_cast<AttributeCriterion*>(card->criterion);
                 cardjson["attributeIndex"] = attrCriterion->attributeIndex;
             }
+            cardjson["criteriaSettings"] = card->criterion->settingsToJson();
             criteriacardsjsons.append(cardjson);
         }
         content["criteriaCards"] = criteriacardsjsons;

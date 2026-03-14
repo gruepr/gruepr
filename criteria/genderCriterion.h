@@ -39,7 +39,6 @@ public:
     QPushButton *complicatedGenderRule = nullptr;
 
     QMap<QString, IdentityRule> identityRules;   // key: "Woman" or "Man|Nonbinary"
-    bool singleGenderPrevented = false;
 
     const QString womanKey = grueprGlobal::genderToString(Gender::woman);
     const QString manKey = grueprGlobal::genderToString(Gender::man);
