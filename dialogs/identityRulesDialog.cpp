@@ -16,7 +16,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterio
     setMinimumSize(LG_DLG_SIZE, SM_DLG_SIZE);
 
     auto *helpFrame = new QFrame(this);
-    helpFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
+    helpFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: black;");
     auto *helpLayout = new QHBoxLayout(helpFrame);
     auto *helpIcon = new LabelWithInstantTooltip("", this);
     helpIcon->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
@@ -33,7 +33,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterio
                                 "<li> <strong>" + identityOne + tr(" does not equal 0</strong><br>"
                                             "means every team must have 1 or more ") + identityOne + " students.</li>"
                                 "<li> <strong>" + identityTwo + tr(" or ") + identityThree + tr(" does not equal 1</strong><br>"
-                                            "groups ") + identityTwo + tr(" and ") + identityThree + tr(" together and prevents a "
+                                            "considers ") + identityTwo + tr(" and ") + identityThree + tr(" as interchangable and prevents a "
                                             "team from having exactly 1 student from either identity.</li>") +
                                 "</ul>";
     helpIcon->setToolTipText(helpText);

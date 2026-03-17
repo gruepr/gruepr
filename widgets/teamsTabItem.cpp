@@ -2,7 +2,6 @@
 #include "gruepr.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/genderCriterion.h"
-#include "criteria/gradeBalanceCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/teammatesCriterion.h"
 #include "criteria/URMIdentityCriterion.h"
@@ -363,9 +362,6 @@ void TeamsTabItem::restoreCriteria(const DataOptions *dataOptions)
         case Criterion::CriteriaType::splitApart:
             criterion = new TeammatesCriterion(type, weight, penalty);
             break;
-        case Criterion::CriteriaType::gradeBalance:
-            criterion = new GradeBalanceCriterion(dataOptions, type, weight, penalty);
-            break;
         default:
             break;
         }
@@ -583,7 +579,7 @@ void TeamsTabItem::updateTeamNamesInTableAndTooltips()
     while(item != nullptr) {
         if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
             const int teamNum = item->data(0, TEAM_NUMBER_ROLE).toInt();
-            teams[teamNum].createTooltip();
+            teams[teamNum].createTooltip(students);
             item->setText(0, tr("Team ") + teams[teamNum].name);
             item->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
             item->setData(0, TEAMINFO_DISPLAY_ROLE, tr("Team ") + teams[teamNum].name);
@@ -651,7 +647,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         // Re-score the teams and refresh all the info
         gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
         teams[studentATeamNum].refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-        teams[studentATeamNum].createTooltip();
+        teams[studentATeamNum].createTooltip(students);
 
         //get the team item in the tree
         auto *teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
@@ -704,9 +700,9 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             (studentBTeamItem != nullptr) && (studentBTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
             gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
             studentATeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-            studentATeam.createTooltip();
+            studentATeam.createTooltip(students);
             studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-            studentBTeam.createTooltip();
+            studentBTeam.createTooltip(students);
             for(const auto &stu : std::as_const(students)) {
                 if(studentATeam.studentIDs.first() == stu.ID) {
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentATeamItem, studentATeam,
@@ -829,9 +825,9 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         (newTeamItem != nullptr) && (newTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
         gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
         oldTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-        oldTeam.createTooltip();
+        oldTeam.createTooltip(students);
         newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-        newTeam.createTooltip();
+        newTeam.createTooltip(students);
         for(const auto &stu : std::as_const(students)) {
             if(oldTeam.studentIDs.first() == stu.ID) {
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, oldTeamItem, oldTeam,
@@ -1555,9 +1551,6 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                     }
                     break;
                 }
-                case Criterion::CriteriaType::gradeBalance:
-                    include = customFileOptions.includeGrade;
-                    break;
                 default:
                     break;
                 }

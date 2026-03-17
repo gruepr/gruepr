@@ -6,9 +6,9 @@
 #include <QPainter>
 
 AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,
-                                 AttributeCriterion *incomingCriterion, QWidget *parent)
-    : QWidget(parent), attribute(attribute), dataOptions(incomingDataOptions),
-      teamingOptions(incomingTeamingOptions), criterion(incomingCriterion)
+                                 AttributeCriterion *incomingCriterion, DataOptions::AttributeType attributeType, QWidget *parent)
+    : QWidget(parent), attribute(attribute), attributeType(attributeType), dataOptions(incomingDataOptions),
+    teamingOptions(incomingTeamingOptions), criterion(incomingCriterion)
 {
     setContentsMargins(0,0,0,0);
 
@@ -71,13 +71,72 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     similarButton->setChecked(false);
     connect(similarCard, &FrameThatForwardsMouseClicks::clicked, similarButton, &QRadioButton::click);
 
+    // Create the "Average" card for numerical types
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        averageCard = new FrameThatForwardsMouseClicks(this);
+        averageCard->setFixedSize(100, 100);
+        averageCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        averageCard->setToolTip(SIMILARTOOLTIP);
+        averageButton = new QRadioButton(this);
+        averageButton->setIcon(QIcon(":/icons_new/similar.png"));
+        averageButton->setIconSize(QSize(50, 50));
+        averageButton->setStyleSheet("font-size: 15px;");
+        auto *averageLayout = new QVBoxLayout(averageCard);
+        auto *averageLabel = new QLabel("Maintain\nAverage", this);
+        averageButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
+        averageLayout->addWidget(averageButton, 0, Qt::AlignTop);
+        averageLayout->addWidget(averageLabel,0,Qt::AlignBottom);
+        averageCard->setStyleSheet(QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE);
+        averageButton->setChecked(false);
+        connect(averageCard, &FrameThatForwardsMouseClicks::clicked, averageButton, &QRadioButton::click);
+/*
+        minimumSpinBox = new QDoubleSpinBox(parentCard);
+        minimumSpinBox->setPrefix(tr("Min: "));
+        minimumSpinBox->setMinimum(static_cast<double>(lo));
+        minimumSpinBox->setMaximum(static_cast<double>(hi));
+        minimumSpinBox->setValue(targetMin <= lo ? static_cast<double>(lo) : static_cast<double>(targetMin));
+        minimumSpinBox->setSingleStep(1.0);
+        minimumSpinBox->setDecimals(2);
+        minimumSpinBox->setMinimumHeight(40);
+
+        maximumSpinBox = new QDoubleSpinBox(parentCard);
+        maximumSpinBox->setPrefix(tr("Max: "));
+        maximumSpinBox->setMinimum(static_cast<double>(lo));
+        maximumSpinBox->setMaximum(static_cast<double>(hi));
+        maximumSpinBox->setValue(targetMax >= hi ? static_cast<double>(hi) : static_cast<double>(targetMax));
+        maximumSpinBox->setSingleStep(1.0);
+        maximumSpinBox->setDecimals(2);
+        maximumSpinBox->setMinimumHeight(40);
+
+        // Sync initial values into the criterion
+        targetMin = static_cast<float>(minimumSpinBox->value());
+        targetMax = static_cast<float>(maximumSpinBox->value());
+
+        auto *spinLayout = new QHBoxLayout();
+        spinLayout->addWidget(minimumSpinBox);
+        spinLayout->addWidget(maximumSpinBox);
+
+        auto *spinVLayout = new QVBoxLayout();
+        spinVLayout->addWidget(new QLabel(tr("Target group average range:")));
+        spinVLayout->addLayout(spinLayout);
+*/
+    }
+
     // Add the cards to the horizontal layout and update styles when toggled
     attributeDiversityLayout->addWidget(diverseCard);
     attributeDiversityLayout->addSpacing(4);
     attributeDiversityLayout->addWidget(similarCard);
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        attributeDiversityLayout->addSpacing(4);
+        attributeDiversityLayout->addWidget(averageCard);
+    }
+
     auto *radioButtonGroup = new QButtonGroup(this);
     radioButtonGroup->addButton(similarButton);
     radioButtonGroup->addButton(diverseButton);
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        radioButtonGroup->addButton(averageButton);
+    }
     connect(diverseButton, &QRadioButton::toggled, diverseCard, [this](bool checked) {
         diverseCard->setStyleSheet(checked ?
                                        QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE :
@@ -90,62 +149,77 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
                                        QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
                                    );
     });
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        connect(averageButton, &QRadioButton::toggled, averageCard, [this](bool checked) {
+            averageCard->setStyleSheet(checked ?
+                                           QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE :
+                                           QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
+                                       );
+        });
+    }
     connect(diverseButton, &QRadioButton::clicked, this, [this]() {
         criterion->diversity = Criterion::AttributeDiversity::diverse;
     });
     connect(similarButton, &QRadioButton::clicked, this, [this]() {
         criterion->diversity = Criterion::AttributeDiversity::similar;
     });
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        connect(averageButton, &QRadioButton::clicked, this, [this]() {
+            criterion->diversity = Criterion::AttributeDiversity::average;
+        });
+    }
 
     attributeSettingsLayout->addLayout(attributeDiversityLayout, 2);
 
-    setRequiredValuesButton = new QPushButton(tr("Required Student"), this);
-    setRequiredValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    setRequiredValuesButton->setToolTip(REQUIREDTOOLTIP);
-    setIncompatibleValuesButton = new QPushButton(tr("Separated Students"), this);
-    setIncompatibleValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    setIncompatibleValuesButton->setToolTip(INCOMPATTOOLTIP);
-    connect(setRequiredValuesButton, &QPushButton::clicked, this, [this] {
-        const int currAttribute = this->attribute;
+    if(attributeType != DataOptions::AttributeType::numerical) {
+        setRequiredValuesButton = new QPushButton(tr("Required Student"), this);
+        setRequiredValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        setRequiredValuesButton->setToolTip(REQUIREDTOOLTIP);
+        setIncompatibleValuesButton = new QPushButton(tr("Separated Students"), this);
+        setIncompatibleValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        setIncompatibleValuesButton->setToolTip(INCOMPATTOOLTIP);
+        connect(setRequiredValuesButton, &QPushButton::clicked, this, [this] {
+            const int currAttribute = this->attribute;
 
-        //Open specialized dialog box to collect attribute values that are required on each team
-        auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::required, this);
+            //Open specialized dialog box to collect attribute values that are required on each team
+            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::required, this);
 
-        //If user clicks OK, replace with new sets of values
-        const int reply = win->exec();
-        if(reply == QDialog::Accepted) {
-            teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
-            teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+            //If user clicks OK, replace with new sets of values
+            const int reply = win->exec();
+            if(reply == QDialog::Accepted) {
+                teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
+                teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
 
-            teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
-            teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
-        }
+                teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
+                teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+            }
 
-        delete win;
-    });
-    connect(setIncompatibleValuesButton, &QPushButton::clicked, this, [this] {
-        const int currAttribute = this->attribute;
+            delete win;
+        });
+        connect(setIncompatibleValuesButton, &QPushButton::clicked, this, [this] {
+            const int currAttribute = this->attribute;
 
-        //Open specialized dialog box to collect attribute values that are required on each team
-        auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::incompatible, this);
+            //Open specialized dialog box to collect attribute values that are required on each team
+            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::incompatible, this);
 
-        //If user clicks OK, replace with new sets of values
-        const int reply = win->exec();
-        if(reply == QDialog::Accepted) {
-            teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
-            teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+            //If user clicks OK, replace with new sets of values
+            const int reply = win->exec();
+            if(reply == QDialog::Accepted) {
+                teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
+                teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
 
-            teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
-            teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
-        }
+                teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
+                teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+            }
 
-        delete win;
-    });
+            delete win;
+        });
 
-    attributeSettingsLayout->addWidget(setRequiredValuesButton, 1);
-    auto *buttonSpacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    attributeSettingsLayout->addItem(buttonSpacer);
-    attributeSettingsLayout->addWidget(setIncompatibleValuesButton, 1);
+        attributeSettingsLayout->addWidget(setRequiredValuesButton, 1);
+        auto *buttonSpacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        attributeSettingsLayout->addItem(buttonSpacer);
+        attributeSettingsLayout->addWidget(setIncompatibleValuesButton, 1);
+    }
     mainLayout->addLayout(attributeSettingsLayout, 3);
 }
 
@@ -154,6 +228,9 @@ void AttributeWidget::setValues()
     if(attribute >= dataOptions->numAttributes) {
         diverseCard->setEnabled(false);
         similarCard->setEnabled(false);
+        if(attributeType == DataOptions::AttributeType::numerical) {
+            averageCard->setEnabled(false);
+        }
         setRequiredValuesButton->setEnabled(false);
         setIncompatibleValuesButton->setEnabled(false);
         return;
@@ -161,7 +238,7 @@ void AttributeWidget::setValues()
 
     updateResponses();
 
-    if(dataOptions->attributeVals[attribute].size() == 1) {
+    if(attributeType != DataOptions::AttributeType::numerical && dataOptions->attributeVals_discrete[attribute].size() == 1) {
         diverseCard->setEnabled(false);
         similarCard->setEnabled(false);
         setRequiredValuesButton->setEnabled(false);
@@ -170,17 +247,37 @@ void AttributeWidget::setValues()
     else {
         diverseCard->setEnabled(true);
         similarCard->setEnabled(true);
-        setRequiredValuesButton->setEnabled(true);
-        setIncompatibleValuesButton->setEnabled(true);
+        if(attributeType == DataOptions::AttributeType::numerical) {
+            averageCard->setEnabled(true);
+        }
+        else {
+            setRequiredValuesButton->setEnabled(true);
+            setIncompatibleValuesButton->setEnabled(true);
+        }
     }
 
-    const bool similar = (criterion->diversity == Criterion::AttributeDiversity::similar);
-    diverseButton->setChecked(!similar);
-    similarButton->setChecked(similar);
+    diverseButton->setChecked(criterion->diversity == Criterion::AttributeDiversity::diverse);
+    similarButton->setChecked(criterion->diversity == Criterion::AttributeDiversity::similar);
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        averageButton->setChecked(criterion->diversity == Criterion::AttributeDiversity::average);
+    }
 }
 
 void AttributeWidget::updateResponses(const std::map<QString, int> &responseCounts)
 {
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        const auto minVal = *dataOptions->attributeVals_continuous[attribute].cbegin();
+        const auto maxVal = *dataOptions->attributeVals_continuous[attribute].crbegin();
+        const auto meanVal = std::accumulate(dataOptions->attributeVals_continuous[attribute].cbegin(),
+                                             dataOptions->attributeVals_continuous[attribute].cend(), 0.0) /
+                             dataOptions->attributeVals_continuous[attribute].size();
+        auto *responseLabel = new QLabel(QString("Minimum: %1<br>Average: %2<br>Maximum: %3").arg(minVal).arg(meanVal, 0, 'f', 2).arg(maxVal));
+        responseLabel->setStyleSheet(LABEL10PTSTYLE);
+        responseLabel->setWordWrap(true);
+        responsesLayout->addWidget(responseLabel);
+        return;
+    }
+
     setUpdatesEnabled(false);
 
     // clear the responsesLayout

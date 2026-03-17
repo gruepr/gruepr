@@ -74,7 +74,6 @@ SOURCES += \
         criteria/attributeCriterion.cpp \
         criteria/criterion.cpp \
         criteria/genderCriterion.cpp \
-        criteria/gradeBalanceCriterion.cpp \
         criteria/scheduleCriterion.cpp \
         criteria/sectionCriterion.cpp \
         criteria/teammatesCriterion.cpp \
@@ -135,7 +134,6 @@ HEADERS += \
         criteria/attributeCriterion.h \
         criteria/criterion.h \
         criteria/genderCriterion.h \
-        criteria/gradeBalanceCriterion.h \
         criteria/scheduleCriterion.h \
         criteria/sectionCriterion.h \
         criteria/teammatesCriterion.h \

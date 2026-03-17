@@ -104,69 +104,6 @@ Preview a standard file by hovering over the title.</string>
             <string>Each Teammate</string>
            </property>
            <layout class="QGridLayout" name="demographicGridLayout">
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="lastnamecheckBox">
-              <property name="text">
-               <string>Last Name</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QCheckBox" name="emailcheckBox">
-              <property name="text">
-               <string>Email Address</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="QCheckBox" name="Q8checkBox">
-              <property name="text">
-               <string>Question 8</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QCheckBox" name="Q5checkBox">
-              <property name="text">
-               <string>Question 5</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="URMcheckBox">
-              <property name="text">
-               <string>URM Status</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="2">
-             <widget class="QCheckBox" name="Q12checkBox">
-              <property name="text">
-               <string>Question 12</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="0">
-             <widget class="QCheckBox" name="Q10checkBox">
-              <property name="text">
-               <string>Question 10</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="1">
-             <widget class="QCheckBox" name="Q11checkBox">
-              <property name="text">
-               <string>Question 11</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QCheckBox" name="Q2checkBox">
-              <property name="text">
-               <string>Question 2</string>
-              </property>
-             </widget>
-            </item>
             <item row="1" column="2">
              <widget class="QCheckBox" name="sectioncheckBox">
               <property name="text">
@@ -174,45 +111,17 @@ Preview a standard file by hovering over the title.</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
-             <widget class="QCheckBox" name="gendercheckBox">
+            <item row="7" column="2">
+             <widget class="QCheckBox" name="Q15checkBox">
               <property name="text">
-               <string>Gender</string>
+               <string>Question 15</string>
               </property>
              </widget>
             </item>
-            <item row="8" column="1">
-             <widget class="QCheckBox" name="Q14checkBox">
+            <item row="5" column="2">
+             <widget class="QCheckBox" name="Q9checkBox">
               <property name="text">
-               <string>Question 14</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QCheckBox" name="Q4checkBox">
-              <property name="text">
-               <string>Question 4</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QCheckBox" name="Q1checkBox">
-              <property name="text">
-               <string>Question 1</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0" colspan="3">
-             <widget class="QLabel" name="multipleChoiceLabel">
-              <property name="text">
-               <string>Multiple Choice Questions:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="2">
-             <widget class="QCheckBox" name="Q3checkBox">
-              <property name="text">
-               <string>Question 3</string>
+               <string>Question 9</string>
               </property>
              </widget>
             </item>
@@ -223,45 +132,129 @@ Preview a standard file by hovering over the title.</string>
               </property>
              </widget>
             </item>
-            <item row="6" column="2">
-             <widget class="QCheckBox" name="Q9checkBox">
+            <item row="3" column="1">
+             <widget class="QCheckBox" name="Q2checkBox">
               <property name="text">
-               <string>Question 9</string>
+               <string>Question 2</string>
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
-             <widget class="QCheckBox" name="Q7checkBox">
-              <property name="text">
-               <string>Question 7</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="2">
-             <widget class="QCheckBox" name="Q6checkBox">
-              <property name="text">
-               <string>Question 6</string>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="2">
-             <widget class="QCheckBox" name="Q15checkBox">
-              <property name="text">
-               <string>Question 15</string>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="0">
+            <item row="7" column="0">
              <widget class="QCheckBox" name="Q13checkBox">
               <property name="text">
                <string>Question 13</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QCheckBox" name="gradecheckBox">
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="URMcheckBox">
               <property name="text">
-               <string>Grade Balance</string>
+               <string>URM Status</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QCheckBox" name="Q10checkBox">
+              <property name="text">
+               <string>Question 10</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="3">
+             <widget class="QLabel" name="multipleChoiceLabel">
+              <property name="text">
+               <string>Multiple Choice Questions:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QCheckBox" name="Q14checkBox">
+              <property name="text">
+               <string>Question 14</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QCheckBox" name="Q4checkBox">
+              <property name="text">
+               <string>Question 4</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="lastnamecheckBox">
+              <property name="text">
+               <string>Last Name</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QCheckBox" name="Q8checkBox">
+              <property name="text">
+               <string>Question 8</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QCheckBox" name="Q11checkBox">
+              <property name="text">
+               <string>Question 11</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QCheckBox" name="emailcheckBox">
+              <property name="text">
+               <string>Email Address</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QCheckBox" name="Q3checkBox">
+              <property name="text">
+               <string>Question 3</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="2">
+             <widget class="QCheckBox" name="Q6checkBox">
+              <property name="text">
+               <string>Question 6</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QCheckBox" name="Q1checkBox">
+              <property name="text">
+               <string>Question 1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QCheckBox" name="Q5checkBox">
+              <property name="text">
+               <string>Question 5</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="gendercheckBox">
+              <property name="text">
+               <string>Gender</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QCheckBox" name="Q7checkBox">
+              <property name="text">
+               <string>Question 7</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="2">
+             <widget class="QCheckBox" name="Q12checkBox">
+              <property name="text">
+               <string>Question 12</string>
               </property>
              </widget>
             </item>

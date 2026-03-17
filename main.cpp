@@ -50,13 +50,27 @@
 //  - unified "required" and "requested" teammates
 //
 // TO DO FOR V13:
+/*
+
+factor out student.timezone (needed for studentDisplayText), since that's stored in student.attributeVals_continuous[attributeIndex] now
+
+Need to load the similar/diverse/average seting on load
+
+Create average image for attribute widget
+
+editOrAddStudentDialog numerical widget. The code stub uses a QDoubleSpinBox — you'll need to decide on the actual widget (spinbox vs. line
+edit with validator) and hook it up in the dialog's construction path the same way comboboxes are built for ordered/categorical types.
+
+Add numerical type to surveymaker attribute page
+
+categorizingdialog: Make header wordwrapped like in teamtreewidget
+*/
 //
 // TO DO:
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - scale the penalty points with weight
 //  - dialogs/identityrulesdialog: accept wider variety of rules (>, >=, <, <=)
-//  - Implement avg. grade question/criterion
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)

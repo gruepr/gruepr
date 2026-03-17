@@ -6,7 +6,8 @@ DataOptions::DataOptions()
 {
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeField[i] = FIELDNOTPRESENT;
-        attributeVals[i].clear();
+        attributeVals_discrete[i].clear();
+        attributeVals_continuous[i].clear();
         attributeQuestionResponseCounts[i].clear();
         attributeType[i] = AttributeType::categorical;
     }
@@ -38,8 +39,6 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     dataSourceName = jsonDataOptions["dataSourceName"].toString();
     dataSource = static_cast<DataSource>(jsonDataOptions["dataSource"].toInt());
     saveStateFileName = jsonDataOptions["saveStateFileName"].toString();
-    gradeIncluded = jsonDataOptions["gradeIncluded"].toBool();
-    gradeField = jsonDataOptions["gradeField"].toInt();
 
     const QJsonArray notesFieldArray = jsonDataOptions["notesField"].toArray();
     notesFields.reserve(notesFieldArray.size());
@@ -138,18 +137,39 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         attributeQuestionResponseCounts[j].clear();
     }
 
-    const QJsonArray attributeValsArray = jsonDataOptions["attributeVals"].toArray();
+    const QJsonArray discreteValsArray = jsonDataOptions.contains("discreteVals")
+                                             ? jsonDataOptions["discreteVals"].toArray()
+                                             : jsonDataOptions["attributeVals"].toArray();
     i = 0;
-    for(const auto &item : attributeValsArray) {
-        attributeVals[i].clear();
-        const QJsonArray attributeValsArraySubarray = item.toArray();
-        for(const auto &val : attributeValsArraySubarray) {
-            attributeVals[i].insert(val.toInt());
+    for(const auto &item : discreteValsArray) {
+        attributeVals_discrete[i].clear();
+        for(const auto &val : item.toArray()) {
+            attributeVals_discrete[i].insert(val.toInt());
         }
         i++;
     }
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeVals[j].clear();
+        attributeVals_discrete[j].clear();
+    }
+
+    if(jsonDataOptions.contains("continuousVals")) {
+        const QJsonArray continuousValsArray = jsonDataOptions["continuousVals"].toArray();
+        i = 0;
+        for(const auto &item : continuousValsArray) {
+            attributeVals_continuous[i].clear();
+            for(const auto &val : item.toArray()) {
+                attributeVals_continuous[i].insert(static_cast<float>(val.toDouble()));
+            }
+            i++;
+        }
+        for(int j = i; j < MAX_ATTRIBUTES; j++) {
+            attributeVals_continuous[j].clear();
+        }
+    }
+    else {
+        for(int j = 0; j < MAX_ATTRIBUTES; j++) {
+            attributeVals_continuous[j].clear();
+        }
     }
 
     const QJsonArray URMResponsesArray = jsonDataOptions["URMResponses"].toArray();
@@ -161,7 +181,12 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
     genderValues.reserve(GendersArray.size());
     for(const auto &item : GendersArray) {
-        genderValues << grueprGlobal::stringToGender(item.toString());
+        if(item.isDouble()) {
+            genderValues << static_cast<Gender>(item.toInt());
+        }
+        else if(item.isString()) {
+            genderValues << grueprGlobal::stringToGender(item.toString());
+        }
     }
 
     const QVariantMap GenderIdentitiesCountMap = jsonDataOptions["GenderIdentitiesCount"].toObject().toVariantMap();
@@ -213,8 +238,9 @@ bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &ti
 QJsonObject DataOptions::toJson() const
 {
     QJsonArray notesFieldArray, scheduleFieldArray, attributeFieldArray, attributeTypeArray,
-               attributeQuestionResponsesArray, attributeQuestionResponseCountsArray, attributeValsArray,
-               prefTeammatesFieldArray, prefNonTeammatesFieldArray, gendersArray;
+               attributeQuestionResponsesArray, attributeQuestionResponseCountsArray,
+               discreteValsArray, continuousValsArray, prefTeammatesFieldArray,
+               prefNonTeammatesFieldArray, gendersArray;
 
     for (const int field : notesFields) {
         notesFieldArray.append(field);
@@ -237,11 +263,16 @@ QJsonObject DataOptions::toJson() const
             attributeQuestionResponseCountsObj.insert(item.first, item.second);
         }
         attributeQuestionResponseCountsArray.append(attributeQuestionResponseCountsObj);
-        QJsonArray attributeValsArraySubArray;
-        for (const auto &val : attributeVals[i]) {
-            attributeValsArraySubArray.append(val);
+        QJsonArray discreteValsArraySubArray;
+        for (const auto &val : attributeVals_discrete[i]) {
+            discreteValsArraySubArray.append(val);
         }
-        attributeValsArray.append(attributeValsArraySubArray);
+        discreteValsArray.append(discreteValsArraySubArray);
+        QJsonArray continuousValsArraySubArray;
+        for (const auto &val : attributeVals_continuous[i]) {
+            continuousValsArraySubArray.append(val);
+        }
+        continuousValsArray.append(continuousValsArraySubArray);
     }
     for (const Gender genderValue : genderValues) {
         gendersArray.append(grueprGlobal::genderToString(genderValue));
@@ -283,8 +314,6 @@ QJsonObject DataOptions::toJson() const
         {"timezoneField", timezoneField},
         {"homeTimezoneUsed", homeTimezoneUsed},
         {"baseTimezone", baseTimezone},
-        {"gradeIncluded", gradeIncluded},
-        {"gradeField", gradeField},
         {"attributeType", attributeTypeArray},
         {"prefTeammatesField", prefTeammatesFieldArray},
         {"prefNonTeammatesField", prefNonTeammatesFieldArray},
@@ -292,7 +321,8 @@ QJsonObject DataOptions::toJson() const
         {"attributeQuestionText", QJsonArray::fromStringList(attributeQuestionText)},
         {"attributeQuestionResponses", attributeQuestionResponsesArray},
         {"attributeQuestionResponseCounts", attributeQuestionResponseCountsArray},
-        {"attributeVals", attributeValsArray},
+        {"discreteVals", discreteValsArray},
+        {"continuousVals", continuousValsArray},
         {"URMResponses", QJsonArray::fromStringList(URMResponses)},
         {"Genders", gendersArray},
         {"GenderIdentitiesCount", GenderIdentitiesCountObj},

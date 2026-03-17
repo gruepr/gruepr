@@ -49,16 +49,15 @@ public:
     int timezoneField = FIELDNOTPRESENT;            // which field has the timezone info?
     bool homeTimezoneUsed = false;                  // whether the students' schedules refer to their own timezone
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
-    bool gradeIncluded = false;                     // is grade data included in the survey?
-    int gradeField = FIELDNOTPRESENT;               // which field in surveyFile has gradeInfo?
-    enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? Are multiple values allowed?
+    enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered, numerical} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered, timezone, categorical, or numerical? Are multiple values allowed?
     QList<int> prefTeammatesField;                  // which field(s) in surveyFile has the preferred teammates info?
     QList<int> prefNonTeammatesField;               // which field(s) in surveyFile has the preferred non-teammates info?
     QStringList sectionNames;                       // all of the section names
     QStringList attributeQuestionText;              // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[MAX_ATTRIBUTES];         // the list of responses to each of the attribute questions
     std::map<QString, int> attributeQuestionResponseCounts[MAX_ATTRIBUTES];  // a count of how many students gave each response
-    std::set<int> attributeVals[MAX_ATTRIBUTES];    // what values can each attribute have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
+    std::set<int> attributeVals_discrete[MAX_ATTRIBUTES];           // what values can the ordered or categorical attributes have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
+    std::set<float> attributeVals_continuous[MAX_ATTRIBUTES];       // what values do the timezone and numerical attributes have?
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
     QList<Gender> genderValues;
     std::map<Gender, int> countOfGenderIdentities;      //Identity : Number in Population

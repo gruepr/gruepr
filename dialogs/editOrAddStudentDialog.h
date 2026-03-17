@@ -5,6 +5,7 @@
 #include "studentRecord.h"
 #include <QComboBox>
 #include <QDialog>
+#include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -32,6 +33,7 @@ private:
     QList<QPushButton*> attributeSelectorButtons;
     QList<QComboBox*> attributeCombobox;
     QList<QGroupBox*> attributeMultibox;
+    QList<QDoubleSpinBox*> attributeSpinBox;
     bool tempUnavailability[MAX_DAYS][MAX_BLOCKS_PER_DAY];
 };
 

@@ -168,7 +168,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     if(dataOptions->numAttributes != 0) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
-        explanation.last()->setText(tr("Multiple choice questions"));
+        explanation.last()->setText(tr("Multiple choice or numerical questions"));
 
         auto *attributeFrame = new QFrame(this);
         attributeFrame->setStyleSheet(BLUEFRAME);
@@ -282,7 +282,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 layout->addWidget(responsesFrame, Qt::AlignLeft);
             }
 
-            // create the combobox or group of checkboxes as relevant
+            // create the spinbox, combobox, or group of checkboxes as relevant
             if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::categorical)) {
                 attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
                 attributeCombobox << new QComboBox(this);
@@ -293,13 +293,13 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeCombobox.last()->setEditable(false);
                 attributeCombobox.last()->insertItem(0, tr("no response/unknown"), -1);
                 attributeCombobox.last()->insertSeparator(1);
-                auto attributeValIter = dataOptions->attributeVals[attribute].cbegin();
+                auto attributeValIter = dataOptions->attributeVals_discrete[attribute].cbegin();
                 auto attributeResIter = dataOptions->attributeQuestionResponses[attribute].cbegin();
                 int indexOfStudentValue = 0;
                 for(int i = 0; i < prefixes.size(); i++) {
                     const QStringList resValAndText({QString::number(*attributeValIter), *attributeResIter});
                     attributeCombobox.last()->insertItem(i+2, prefixes[i], resValAndText);
-                    if(!student.attributeResponse[attribute].isEmpty() && (student.attributeVals[attribute].first() == *attributeValIter)) {
+                    if(!student.attributeResponse[attribute].isEmpty() && (student.attributeVals_discrete[attribute].first() == *attributeValIter)) {
                         indexOfStudentValue = i+2;
                     }
                     attributeValIter++;
@@ -307,6 +307,15 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 }
                 attributeCombobox.last()->setCurrentIndex(indexOfStudentValue);
                 layout->addWidget(attributeCombobox.last());
+            }
+            else if((type == DataOptions::AttributeType::numerical)) {
+                attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
+                attributeSpinBox << new QDoubleSpinBox(this);
+                attributeSpinBox.last()->installEventFilter(new MouseWheelBlocker(attributeSpinBox.last()));
+                attributeSpinBox.last()->setFocusPolicy(Qt::StrongFocus);
+                attributeSpinBox.last()->setStyleSheet(DOUBLESPINBOXSTYLE);
+                attributeSpinBox.last()->setValue(student.attributeVals_continuous[attribute].constFirst());
+                layout->addWidget(attributeSpinBox.last());
             }
             else if(type == DataOptions::AttributeType::timezone) {
                 attributeQuestionText->setText(tr("Timezone"));
@@ -344,14 +353,14 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeMultibox << new QGroupBox(this);
                 attributeMultibox.last()->setFlat(true);
                 auto *internalLayout = new QVBoxLayout;
-                auto attributeValIter = dataOptions->attributeVals[attribute].cbegin();
+                auto attributeValIter = dataOptions->attributeVals_discrete[attribute].cbegin();
                 auto attributeResIter = dataOptions->attributeQuestionResponses[attribute].cbegin();
                 for(int option = 0, totNumOptions = int(dataOptions->attributeQuestionResponses[attribute].size()); option < totNumOptions; option++) {
                     auto *responseCheckBox = new QCheckBox(prefixes.at(option), this);
                     responseCheckBox->setStyleSheet(CHECKBOXSTYLE);
                     responseCheckBox->setProperty("responseValue", *attributeValIter);
                     responseCheckBox->setProperty("responseText", *attributeResIter);
-                    responseCheckBox->setChecked(student.attributeVals[attribute].contains(*attributeValIter));
+                    responseCheckBox->setChecked(student.attributeVals_discrete[attribute].contains(*attributeValIter));
                     attributeValIter++;
                     attributeResIter++;
                     internalLayout->addWidget(responseCheckBox);
@@ -492,46 +501,42 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     int multiboxNum = 0, comboboxNum = 0;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const DataOptions::AttributeType type = dataOptions->attributeType[attribute];
-        student.attributeVals[attribute].clear();
+        student.attributeVals_discrete[attribute].clear();
+        student.attributeVals_continuous[attribute].clear();
         student.attributeResponse[attribute].clear();
-        if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
+
+        if(type == DataOptions::AttributeType::numerical) {
+            auto *spinBox = attributeSpinBox.at(comboboxNum);
+            if(spinBox != nullptr) {
+                student.attributeVals_continuous[attribute] << static_cast<float>(spinBox->value());
+                student.attributeResponse[attribute] = QString::number(spinBox->value(), 'f', 2);
+            }
+            comboboxNum++;
+        }
+        else if((type == DataOptions::AttributeType::multicategorical) ||
+                 (type == DataOptions::AttributeType::multiordered)) {
             QStringList attributeResponse;
-            for(int itemNum = 0, totNumItems = attributeMultibox.at(multiboxNum)->layout()->count(); itemNum < totNumItems; itemNum++) {
-                // loop through all items in the attributeMultibox: make sure it's a checkbox, then add the response if it's checked
-                auto *optionCheckBox = qobject_cast<QCheckBox *>(attributeMultibox.at(multiboxNum)->layout()->itemAt(itemNum)->widget());
-                if((optionCheckBox != nullptr) && (optionCheckBox->isChecked())) {
-                    student.attributeVals[attribute] << optionCheckBox->property("responseValue").toInt();
-                    attributeResponse << optionCheckBox->property("responseText").toString();
+            for(int itemNum = 0, tot = attributeMultibox.at(multiboxNum)->layout()->count();
+                 itemNum < tot; itemNum++) {
+                auto *cb = qobject_cast<QCheckBox *>(
+                    attributeMultibox.at(multiboxNum)->layout()->itemAt(itemNum)->widget());
+                if(cb != nullptr && cb->isChecked()) {
+                    student.attributeVals_discrete[attribute] << cb->property("responseValue").toInt();
+                    attributeResponse << cb->property("responseText").toString();
                 }
             }
             student.attributeResponse[attribute] = attributeResponse.join(',');
-
-            if(student.attributeVals[attribute].isEmpty()) {
-                student.attributeVals[attribute] << -1;
-                student.attributeResponse[attribute] = "";
+            if(student.attributeVals_discrete[attribute].isEmpty()) {
+                student.attributeVals_discrete[attribute] << -1;
             }
             multiboxNum++;
         }
-        else {
-            if(attributeCombobox.at(comboboxNum)->currentIndex() == 0) {
-                student.attributeVals[attribute] << -1;
-                student.attributeResponse[attribute] = "";
-                if(type == DataOptions::AttributeType::timezone) {
-                    student.timezone = 0;
-                }
-            }
-            else {
-                student.attributeResponse[attribute] = attributeCombobox.at(comboboxNum)->currentText();
-                if(type == DataOptions::AttributeType::timezone) {
-                    student.timezone = attributeCombobox.at(comboboxNum)->currentData().toFloat();
-                    student.attributeVals[attribute] << int(student.timezone);
-                    student.attributeResponse[attribute] = attributeCombobox.at(comboboxNum)->currentText();
-                }
-                else {
-                    const QStringList resValAndText = attributeCombobox[comboboxNum]->currentData().toStringList();
-                    student.attributeVals[attribute] << resValAndText[0].toInt();
-                    student.attributeResponse[attribute] = resValAndText[1];
-                }
+        else if(type != DataOptions::AttributeType::timezone) {
+            // ordered, categorical
+            auto *combo = attributeCombobox.at(comboboxNum);
+            student.attributeVals_discrete[attribute] << combo->currentData().toInt();
+            if(combo->currentData().toInt() != -1) {
+                student.attributeResponse[attribute] = combo->currentText();
             }
             comboboxNum++;
         }

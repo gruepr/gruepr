@@ -13,29 +13,10 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
     numMen = jsonTeamRecord["numMen"].toInt();
     numNonbinary = jsonTeamRecord["numNonbinary"].toInt();
     numUnknown = jsonTeamRecord["numUnknown"].toInt();
-    numURM = jsonTeamRecord["numURM"].toInt();
     numStudentsWithAmbiguousSchedules = jsonTeamRecord["numStudentsWithAmbiguousSchedules"].toInt();
     numMeetingTimes = jsonTeamRecord["numMeetingTimes"].toInt();
     name = jsonTeamRecord["name"].toString();
     tooltip = jsonTeamRecord["tooltip"].toString();
-
-    const QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
-    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        const QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
-        for (const auto &val : attributeValsArraySubArray) {
-            attributeVals[i].insert(val.toInt());
-        }
-    }
-
-    const QJsonArray timezoneValsArray = jsonTeamRecord["timezoneVals"].toArray();
-    for (const auto &val : timezoneValsArray) {
-        timezoneVals.insert(val.toDouble());
-    }
-
-    const QJsonArray gradeValsArray = jsonTeamRecord["gradeVals"].toArray();
-    for (const auto &val : gradeValsArray) {
-        gradeVals << val.toDouble();
-    }
 
     const QJsonArray numStudentsAvailableArray = jsonTeamRecord["numStudentsAvailable"].toArray();
     for(int i = 0; i < MAX_DAYS; i++) {
@@ -62,7 +43,7 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
 }
 
 
-void TeamRecord::createTooltip()
+void TeamRecord::createTooltip(const QList<StudentRecord> &students)
 {
     QString toolTipText = "<html>";
     toolTipText += QObject::tr("Team ") + name + "<br>" +
@@ -109,61 +90,95 @@ void TeamRecord::createTooltip()
             toolTipText += QString::number(numUnknown) + " " + ((numUnknown == 1)? (genderSingularOptions.at(static_cast<int>(Gender::unknown))) : (genderPluralOptions.at(static_cast<int>(Gender::unknown))));
         }
     }
-    if(teamSetDataOptions->URMIncluded) {
-        toolTipText += "<br>" + QObject::tr("URM") + ":  " + QString::number(numURM);
-    }
     const int numAttributesWOTimezone = teamSetDataOptions->numAttributes - (teamSetDataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
-        toolTipText += "<br>" + QObject::tr("Multiple choice Q") + QString::number(attribute + 1) + ":  ";
-        auto teamVals = attributeVals[attribute].cbegin();
-        auto lastVal = attributeVals[attribute].cend();
-        if((teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-           (teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-            // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
-            if(*teamVals == -1) {
-                teamVals++;
+        const auto type = teamSetDataOptions->attributeType[attribute];
+        toolTipText += "<br>" + QObject::tr("Q") + QString::number(attribute + 1) + ":  ";
+
+        if(type == DataOptions::AttributeType::numerical) {
+            // Show team mean
+            float sum = 0; int count = 0;
+            for(const auto &sid : std::as_const(studentIDs)) {
+                for(const auto &stu : students) {
+                    if(stu.ID == sid && !stu.attributeVals_continuous[attribute].isEmpty()) {
+                        sum += stu.attributeVals_continuous[attribute].front();
+                        count++;
+                        break;
+                    }
+                }
+            }
+            toolTipText += count > 0 ? QString::number(double(sum / count), 'f', 2) : "?";
+            continue;
+        }
+
+        // Collect discrete values from team members into a set
+        std::set<int> teamDiscreteVals;
+        for(const auto &id : std::as_const(studentIDs)) {
+            for(const auto &stu : students) {
+                if(stu.ID == id) {
+                    teamDiscreteVals.insert(stu.attributeVals_discrete[attribute].constBegin(),
+                                            stu.attributeVals_discrete[attribute].constEnd());
+                    break;
+                }
+            }
+        }
+
+        auto teamVals = teamDiscreteVals.cbegin();
+        auto lastVal  = teamDiscreteVals.cend();
+
+        if(type == DataOptions::AttributeType::ordered ||
+           type == DataOptions::AttributeType::multiordered) {
+            if(teamVals != lastVal && *teamVals == -1) {
+                teamVals++; // skip unknown sentinel
             }
             if(teamVals != lastVal) {
-                if(*teamVals == *attributeVals[attribute].crbegin()) {
-                    toolTipText += QString::number(*teamVals);
-                }
-                else {
-                    toolTipText += QString::number(*teamVals) + " - " + QString::number(*attributeVals[attribute].crbegin());
+                const int lo = *teamVals;
+                const int hi = *teamDiscreteVals.crbegin();
+                toolTipText += (lo == hi) ? QString::number(lo)
+                                           : QString::number(lo) + " - " + QString::number(hi);
+            } else {
+                toolTipText += "?";
+            }
+        }
+        else { // categorical / multicategorical
+            if(teamVals != lastVal) {
+                auto fmt = [](int v) {
+                    return v <= 0  ? QString("?")
+                         : v <= 26 ? QString(char(v - 1 + 'A'))
+                                   : QString(char((v-1)%26 + 'A')).repeated(1 + (v-1)/26);
+                };
+                toolTipText += fmt(*teamVals);
+                for(++teamVals; teamVals != lastVal; ++teamVals) {
+                    toolTipText += ", " + fmt(*teamVals);
                 }
             }
             else {
                 toolTipText += "?";
             }
         }
-        else if((teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) ||
-                (teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)) {
-            // attribute is categorical, so important info is the list of values
-            // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
-            toolTipText += (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
-            for(teamVals++; teamVals != lastVal; teamVals++) {
-                toolTipText += ", " + (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
+    }
+
+    // Timezone row
+    if(teamSetDataOptions->timezoneIncluded) {
+        std::set<float> tzVals;
+        for(const auto &sid : std::as_const(studentIDs)) {
+            for(const auto &stu : students) {
+                if(stu.ID == sid) { tzVals.insert(stu.timezone); break; }
             }
         }
-    }
-    if(teamSetDataOptions->timezoneIncluded) {
-        const float timezoneA = *timezoneVals.cbegin();
-        const float timezoneB = *timezoneVals.crbegin();
-        QString timezoneText;
-        if(timezoneA == timezoneB) {
-            const int hour = int(timezoneA);
-            const int minutes = int(60*(timezoneA - int(timezoneA)));
-            timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));;
+        if(!tzVals.empty()) {
+            const float tzA = *tzVals.cbegin(), tzB = *tzVals.crbegin();
+            auto fmtTz = [](float tz) {
+                const int h = int(tz), m = int(60*(tz - int(tz)));
+                return QString("%1%2:%3").arg(h >= 0 ? "+" : "").arg(h)
+                                         .arg(std::abs(m), 2, 10, QChar('0'));
+            };
+            toolTipText += "<br>" + QObject::tr("Timezones:  GMT");
+            toolTipText += (tzA == tzB) ? fmtTz(tzA)
+                                        : fmtTz(tzA) + " " + RIGHTARROW + " " + fmtTz(tzB);
         }
-        else {
-            const int hourA = int(timezoneA);
-            const int hourB = int(timezoneB);
-            const int minutesA = int(60*(timezoneA - int(timezoneA)));
-            const int minutesB = int(60*(timezoneB - int(timezoneB)));
-            timezoneText = (QString("%1%2:%3 ") + RIGHTARROW + " %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(std::abs(minutesA), 2, 10, QChar('0'))
-                                                                  .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(std::abs(minutesB), 2, 10, QChar('0'));
-        }
-        toolTipText += "<br>" + QObject::tr("Timezones:  GMT") + timezoneText;
     }
+
     if(!teamSetDataOptions->dayNames.isEmpty()) {
         toolTipText += "<br>--<br>" + QObject::tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
@@ -209,13 +224,8 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     numMen = 0;
     numNonbinary = 0;
     numUnknown = 0;
-    numURM = 0;
     numStudentsWithAmbiguousSchedules = 0;
     numMeetingTimes = 0;
-    gradeVals.clear();
-    for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
-        attributeVals[attribute].clear();
-    }
     const int numDays = teamSetDataOptions->dayNames.size();
     const int numTimes = teamSetDataOptions->timeNames.size();
     for(int day = 0; day < numDays; day++) {
@@ -230,6 +240,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
         for(auto &student : std::as_const(students)) {
             if(student.ID == studentIDs.at(teammate)) {
                 stu = &student;
+                break;
             }
         }
         if(stu == nullptr) {
@@ -254,17 +265,6 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
                 numUnknown++;
             }
         }
-        if(teamSetDataOptions->URMIncluded) {
-            if (!stu->URMResponse.isEmpty() && stu->URMResponse != "--") {
-                numURM++;
-            }
-        }
-        for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
-            attributeVals[attribute].insert(stu->attributeVals[attribute].constBegin(), stu->attributeVals[attribute].constEnd());
-        }
-        if(teamSetDataOptions->gradeIncluded) {
-            gradeVals.append(stu->grade);
-        }
 
         if(!stu->ambiguousSchedule) {
             for(int day = 0; day < numDays; day++) {
@@ -277,9 +277,6 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
         }
         else {
             numStudentsWithAmbiguousSchedules++;
-        }
-        if(teamSetDataOptions->timezoneIncluded) {
-            timezoneVals.insert(stu->timezone);
         }
     }
 
@@ -304,26 +301,13 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
 
 QJsonObject TeamRecord::toJson() const
 {
-    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, gradeValsArray, studentIDsArray;
-    for(const auto &attributeVal : attributeVals) {
-        QJsonArray attributeValsArraySubArray;
-        for (const auto &val : attributeVal) {
-            attributeValsArraySubArray.append(val);
-        }
-        attributeValsArray.append(attributeValsArraySubArray);
-    }
-    for(const auto &timezoneVal : timezoneVals) {
-        timezoneValsArray.append(timezoneVal);
-    }
+    QJsonArray numStudentsAvailableArray, studentIDsArray;
     for(const auto &numStudentsAvailableInADay : numStudentsAvailable) {
         QJsonArray numStudentsAvailableArraySubArray;
         for(const int numStudentsAvailableNow : numStudentsAvailableInADay) {
             numStudentsAvailableArraySubArray.append(numStudentsAvailableNow);
         }
         numStudentsAvailableArray.append(numStudentsAvailableArraySubArray);
-    }
-    for(const auto &grade : gradeVals) {
-        gradeValsArray.append(grade);
     }
     for(const auto &studentID : studentIDs) {
         studentIDsArray.append(studentID);
@@ -338,13 +322,9 @@ QJsonObject TeamRecord::toJson() const
         {"numMen", numMen},
         {"numNonbinary", numNonbinary},
         {"numUnknown", numUnknown},
-        {"numURM", numURM},
-        {"attributeVals", attributeValsArray},
-        {"timezoneVals", timezoneValsArray},
         {"numStudentsAvailable", numStudentsAvailableArray},
         {"numStudentsWithAmbiguousSchedules", numStudentsWithAmbiguousSchedules},
         {"numMeetingTimes", numMeetingTimes},
-        {"gradeVals", gradeValsArray},
         {"studentIDs", studentIDsArray},
         {"name", name},
         {"tooltip", tooltip},

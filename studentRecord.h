@@ -31,13 +31,13 @@ public:
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
     QSet<long long> groupTogether;                      // set of student IDs that this student should be placed on a team with
     QSet<long long> splitApart;                         // set of student IDs that this student should be prevented from being on a team with
-    QList<int> attributeVals[MAX_ATTRIBUTES];           // rating for each attribute (when set, each rating is numerical value from 1 -> attributeLevels[attribute])
+    QList<int>   attributeVals_discrete[MAX_ATTRIBUTES];   // categorical index or discrete integer value for multiple choice attributes; -1 = unknown
+    QList<float> attributeVals_continuous[MAX_ATTRIBUTES]; // float value for timezone and numerical attributes; empty = unknown
     QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
     QString firstname;
     QString lastname;
     QString email;
     QString section;									// section data stored as text
-    float grade;                                        // grade stored as float
     QString prefTeammates;
     QString prefNonTeammates;
     QString notes;										// any special notes for this student

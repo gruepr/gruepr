@@ -15,12 +15,13 @@ class Criterion : public QObject {
 
 public:
     enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion, scheduleMeetingTimes,
-                             groupTogether, splitApart, gradeBalance};
+                             groupTogether, splitApart};
     Q_ENUM(CriteriaType)
     static int resolveCriteriaTypeKey(const QMetaEnum &e, const QString &name);  // needed to migrate old enum names to new
 
-    enum class AttributeDiversity {diverse, ignored, similar};  // diverse = heterogeneous (i.e., teammates have a range of values)
-                                                                // similar = homogeneous (i.e., all teammates have the same value)
+    enum class AttributeDiversity {diverse, ignored, similar, average};  // diverse = heterogeneous (i.e., teammates have a range of values)
+                                                                      // similar = homogeneous (i.e., all teammates have the same value)
+                                                                      // mean = each team aims to have an average value near the population average
     Q_ENUM(AttributeDiversity)
 
     using IdentityRule = QMap<QString, QList<int>>;             // A map from a logic operation (e.g., "!=") to a set of values (e.g., 1, 2)
@@ -63,8 +64,8 @@ public:
     // functions for displaying the criterion results in the TeamTree data display
     virtual QString headerLabel(const DataOptions *dataOptions) const = 0;
     virtual Qt::TextElideMode headerElideMode() const = 0;
-    virtual QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const = 0;
-    virtual QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const = 0;
+    virtual QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const = 0;
+    virtual QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const = 0;
     virtual Qt::AlignmentFlag teamTextAlignment() const { return Qt::AlignCenter; }
     virtual QColor teamDisplayColor(float criterionScore) const;    // default is a 0->1 red->green gradient
     virtual QString studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const = 0;

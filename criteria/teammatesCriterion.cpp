@@ -209,7 +209,7 @@ Qt::TextElideMode TeammatesCriterion::headerElideMode() const
     return Qt::ElideNone;
 }
 
-QString TeammatesCriterion::teamDisplayText(const TeamRecord &, const DataOptions *, float criterionScore) const
+QString TeammatesCriterion::teamDisplayText(const TeamRecord &, const DataOptions *, float criterionScore, const QList<StudentRecord> &/*students*/) const
 {
     if (IS_NO_SCORE(criterionScore)) {
         return QString::fromUtf8(" ");
@@ -220,7 +220,7 @@ QString TeammatesCriterion::teamDisplayText(const TeamRecord &, const DataOption
     return QString::fromUtf8("✗");
 }
 
-QVariant TeammatesCriterion::teamSortValue(const TeamRecord &, const DataOptions *, float criterionScore) const
+QVariant TeammatesCriterion::teamSortValue(const TeamRecord &, const DataOptions *, float criterionScore, const QList<StudentRecord> &/*students*/) const
 {
     if (IS_NO_SCORE(criterionScore)) {
         return 0;

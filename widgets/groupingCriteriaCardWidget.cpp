@@ -22,7 +22,6 @@
 #include "gruepr.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/genderCriterion.h"
-#include "criteria/gradeBalanceCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/sectionCriterion.h"
 #include "criteria/teammatesCriterion.h"
@@ -80,9 +79,6 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     case Criterion::CriteriaType::groupTogether:
     case Criterion::CriteriaType::splitApart:
         criterion = new TeammatesCriterion(criterionType, 0, true, this);
-        break;
-    case Criterion::CriteriaType::gradeBalance:
-        criterion = new GradeBalanceCriterion(dataOptions, criterionType, 0, false, this);
         break;
     }
 

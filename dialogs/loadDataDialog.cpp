@@ -285,7 +285,7 @@ bool loadDataDialog::readQuestionsFromHeader()
                                                         {"Timezone","(time zone)", 1},
                                                         {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                         {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
-                                                        {"Multiple Choice", ".*", MAX_ATTRIBUTES},
+                                                        {"Multiple Choice or Numerical", ".*", MAX_ATTRIBUTES},
                                                         {"Notes", "", MAX_NOTES}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < surveyFile->numFields; i++) {
@@ -643,8 +643,6 @@ bool loadDataDialog::readData()
     dataOptions->lastNameField = int(surveyFile->fieldMeanings.indexOf("Last Name"));
     dataOptions->emailField = int(surveyFile->fieldMeanings.indexOf("Email Address"));
     dataOptions->genderField = int(surveyFile->fieldMeanings.indexOf("Gender"));
-    dataOptions->gradeField = int(surveyFile->fieldMeanings.indexOf("Grade"));
-    dataOptions->gradeIncluded = (dataOptions->gradeField != DataOptions::FIELDNOTPRESENT);
     dataOptions->genderIncluded = (dataOptions->genderField != DataOptions::FIELDNOTPRESENT);
     dataOptions->URMField = int(surveyFile->fieldMeanings.indexOf("Racial/ethnic identity"));
     dataOptions->URMIncluded = (dataOptions->URMField != DataOptions::FIELDNOTPRESENT);
@@ -674,11 +672,11 @@ bool loadDataDialog::readData()
         dataOptions->notesFields << int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex)));
     }
-    // attribute fields, adding timezone field as an attribute if it exists
+    // attribute fields
     lastFoundIndex = 0;
-    dataOptions->numAttributes = int(surveyFile->fieldMeanings.count("Multiple Choice"));
+    dataOptions->numAttributes = int(surveyFile->fieldMeanings.count("Multiple Choice or Numerical"));
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-        dataOptions->attributeField[attribute] = int(surveyFile->fieldMeanings.indexOf("Multiple Choice", lastFoundIndex));
+        dataOptions->attributeField[attribute] = int(surveyFile->fieldMeanings.indexOf("Multiple Choice or Numerical", lastFoundIndex));
         QString questionText = surveyFile->headerValues.at(dataOptions->attributeField[attribute]);
         // if this is coming from Canvas, remove the leading integer (a prepended Canvas question ID number) from the question
         if(source == DataOptions::DataSource::fromCanvas) {
@@ -688,7 +686,7 @@ bool loadDataDialog::readData()
             questionText = questionText.mid(match.capturedLength(1));
         }
         dataOptions->attributeQuestionText << questionText;
-        lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Multiple Choice", lastFoundIndex)));
+        lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Multiple Choice or Numerical", lastFoundIndex)));
     }
     if(dataOptions->timezoneIncluded) {
         dataOptions->attributeField[dataOptions->numAttributes] = dataOptions->timezoneField;
@@ -908,7 +906,6 @@ bool loadDataDialog::readData()
                 currStudent.lastname = studentOnRoster.lastname;
                 currStudent.email = studentOnRoster.email;
                 currStudent.section = studentOnRoster.section;
-                currStudent.grade = studentOnRoster.grade;
                 for(auto &day : currStudent.unavailable) {
                     for(auto &time : day) {
                         time = false;
@@ -982,12 +979,17 @@ bool loadDataDialog::readData()
             // The regex to recognize ordered/numerical is:
             // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
             static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+            static const QRegularExpression isJustAFloat(R"(^-?\d+(\.\d+)?$)");
             if(dataOptions->attributeField[attribute] == dataOptions->timezoneField) {
                 attributeType = DataOptions::AttributeType::timezone;
             }
             else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
                                  {return response.contains(',');})) {
                 attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
+            }
+            else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
+                                 {return isJustAFloat.match(response).hasMatch();})) {
+                attributeType = DataOptions::AttributeType::numerical;
             }
             else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
                                  {return startsWithInteger.match(response).hasMatch();})) {
@@ -1015,20 +1017,26 @@ bool loadDataDialog::readData()
                 }
             }
 
-            // sort alphanumerically unless it's timezone, in which case sort according to offset from GMT
-            if(attributeType != DataOptions::AttributeType::timezone) {
-                QCollator sortAlphanumerically;
-                sortAlphanumerically.setNumericMode(true);
-                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-                std::sort(responses.begin(), responses.end(), sortAlphanumerically);
-            }
-            else {
+            // sort alphanumerically unless it's timezone, in which case sort according to offset from GMT, or numerical, in which case sort by float value
+            if(attributeType == DataOptions::AttributeType::timezone) {
                 std::sort(responses.begin(), responses.end(), [] (const QString &A, const QString &B) {
                     float timezoneA = 0, timezoneB = 0;
                     QString unusedtimezoneName;
                     DataOptions::parseTimezoneInfoFromText(A, unusedtimezoneName, timezoneA);
                     DataOptions::parseTimezoneInfoFromText(B, unusedtimezoneName, timezoneB);
-                    return timezoneA < timezoneB;});
+                    return timezoneA < timezoneB;
+                });
+            }
+            else if(attributeType == DataOptions::AttributeType::numerical) {
+                std::sort(responses.begin(), responses.end(), [] (const QString &A, const QString &B) {
+                    return A.toFloat() < B.toFloat();
+                });
+            }
+            else {
+                QCollator sortAlphanumerically;
+                sortAlphanumerically.setNumericMode(true);
+                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+                std::sort(responses.begin(), responses.end(), sortAlphanumerically);
             }
 
             // set values associated with each response and create a spot to hold the responseCounts
@@ -1036,21 +1044,26 @@ bool loadDataDialog::readData()
                 (attributeType == DataOptions::AttributeType::multiordered)) {
                 // ordered/numerical values. value is based on number at start of response
                 for(const auto &response : std::as_const(responses)) {
-                    dataOptions->attributeVals[attribute].insert(startsWithInteger.match(response).captured(1).toInt());
+                    dataOptions->attributeVals_discrete[attribute].insert(startsWithInteger.match(response).captured(1).toInt());
                     dataOptions->attributeQuestionResponseCounts[attribute].insert({response, 0});
                 }
+            }
+            else if(attributeType == DataOptions::AttributeType::numerical) {
+                // No discrete response set — store observed float range in continuous vals.
+                // The student loop below will insert into attributeVals_continuous.
+                // Response counts are not meaningful for free-range numbers; leave empty.
             }
             else if((attributeType == DataOptions::AttributeType::categorical) ||
                      (attributeType == DataOptions::AttributeType::multicategorical)) {
                 // categorical values. value is based on index of response within sorted list
                 for(int i = 1; i <= responses.size(); i++) {
-                    dataOptions->attributeVals[attribute].insert(i);
+                    dataOptions->attributeVals_discrete[attribute].insert(i);
                     dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
                 }
             }
-            else {
+            else { // timezone
                 for(int i = 1; i <= responses.size(); i++) {
-                    dataOptions->attributeVals[attribute].insert(i);
+                    dataOptions->attributeVals_discrete[attribute].insert(i);
                     dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
                 }
             }
@@ -1058,38 +1071,46 @@ bool loadDataDialog::readData()
             // set numerical value of each student's response and record in dataOptions a tally for each response
             for(auto &student : students) {
                 const QString &currentStudentResponse = student.attributeResponse[attribute];
-                QList<int> &currentStudentAttributeVals = student.attributeVals[attribute];
-                if(!student.attributeResponse[attribute].isEmpty()) {
-                    if(attributeType == DataOptions::AttributeType::ordered) {
-                        // for numerical/ordered, set numerical value of students' attribute responses according to the number at the start of the response
-                        currentStudentAttributeVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
+                QList<int> &discreteVals = student.attributeVals_discrete[attribute];
+                QList<float> &continuousVals = student.attributeVals_continuous[attribute];
+
+                if(!currentStudentResponse.isEmpty()) {
+                    if(attributeType == DataOptions::AttributeType::numerical) {
+                        const float val = currentStudentResponse.trimmed().toFloat();
+                        continuousVals << val;
+                        dataOptions->attributeVals_continuous[attribute].insert(val);
+                        // No response count tracking for free-range numbers.
+                    }
+                    else if(attributeType == DataOptions::AttributeType::ordered) {
+                        discreteVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
                         dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
                     else if((attributeType == DataOptions::AttributeType::categorical) ||
                              (attributeType == DataOptions::AttributeType::timezone)) {
-                        // set numerical value instead according to their place in the sorted list of responses
-                        currentStudentAttributeVals << int(responses.indexOf(currentStudentResponse)) + 1;
+                        discreteVals << int(responses.indexOf(currentStudentResponse)) + 1;
                         dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
                     else if(attributeType == DataOptions::AttributeType::multicategorical) {
-                        //multicategorical - set numerical values according to each value
-                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                        for(const auto &responseFromStudent : setOfResponsesFromStudent) {
-                            currentStudentAttributeVals << int(responses.indexOf(responseFromStudent.trimmed())) + 1;
-                            dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                        const QStringList parts = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                        for(const auto &part : parts) {
+                            discreteVals << int(responses.indexOf(part.trimmed())) + 1;
+                            dataOptions->attributeQuestionResponseCounts[attribute][part.trimmed()]++;
                         }
                     }
                     else if(attributeType == DataOptions::AttributeType::multiordered) {
-                        //multiordered - set numerical values according to the numbers at the start of the responses
-                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                        for(const auto &responseFromStudent : setOfResponsesFromStudent) {
-                            currentStudentAttributeVals << startsWithInteger.match(responseFromStudent.trimmed()).captured(1).toInt();
-                            dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                        const QStringList parts = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                        for(const auto &part : parts) {
+                            discreteVals << startsWithInteger.match(part.trimmed()).captured(1).toInt();
+                            dataOptions->attributeQuestionResponseCounts[attribute][part.trimmed()]++;
                         }
                     }
+                    // For timezone the float value is set separately via student.timezone;
+                    // the discrete sentinel (index into sorted tz list) is set above via
+                    // the categorical branch, which is correct existing behaviour.
                 }
                 else {
-                    currentStudentAttributeVals << -1;
+                    discreteVals << -1;  // unknown sentinel for discrete types
+                    // for numerical/timezone, empty continuousVals means unknown
                 }
             }
         }

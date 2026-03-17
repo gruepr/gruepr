@@ -4,6 +4,7 @@
 #include "dataOptions.h"
 #include "teamingOptions.h"
 #include <widgets/frameThatForwardsMouseClicks.h>
+#include <QDoubleSpinBox>
 #include <QLabel>
 #include <QPushButton>
 #include <QRadioButton>
@@ -18,7 +19,7 @@ Q_OBJECT
 
 public:
 explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,
-                             AttributeCriterion *incomingCriterion, QWidget *parent = nullptr);
+                             AttributeCriterion *incomingCriterion, DataOptions::AttributeType attributeType, QWidget *parent = nullptr);
 
     void setValues();
     void updateResponses(const std::map<QString, int> &responseCounts={});
@@ -27,13 +28,18 @@ explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOpt
     QPushButton *setIncompatibleValuesButton = nullptr;
     FrameThatForwardsMouseClicks *diverseCard = nullptr;
     FrameThatForwardsMouseClicks *similarCard = nullptr;
-    QRadioButton *similarButton = nullptr;
+    FrameThatForwardsMouseClicks *averageCard = nullptr;
     QRadioButton *diverseButton = nullptr;
+    QRadioButton *similarButton = nullptr;
+    QRadioButton *averageButton = nullptr;
+    QDoubleSpinBox *minimumSpinBox = nullptr;
+    QDoubleSpinBox *maximumSpinBox = nullptr;
 
 private:
     QVBoxLayout *responsesLayout = nullptr;
     QList<QWidget*> responseRows;
     const int attribute;
+    const DataOptions::AttributeType attributeType;
     const DataOptions *const dataOptions;
     TeamingOptions *const teamingOptions;
     AttributeCriterion *criterion = nullptr;

@@ -192,10 +192,9 @@ bool CategorizingDialog::initializeComboBoxes()
                                                   {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
                                                   {"Section", "which section are you enrolled", 1},
                                                   {"Timezone","(time zone)", 1},
-                                                  {"Grade", "(grade)|(marks)", 1},
                                                   {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
-                                                  {"Multiple Choice", ".*", MAX_ATTRIBUTES},
+                                                  {"Multiple Choice or Numerical", ".*", MAX_ATTRIBUTES},
                                                   {"Notes", "", MAX_NOTES}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < surveyFile->numFields; i++) {

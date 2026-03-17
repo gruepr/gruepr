@@ -139,7 +139,6 @@ private:
     GroupingCriteriaCard *genderIdentityCriteriaCard = nullptr;
     GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
     GroupingCriteriaCard *urmIdentityCard = nullptr;
-    GroupingCriteriaCard *gradeBalanceCriteriaCard = nullptr;
     QList<Criterion::CriteriaType> teammateRulesExistence;
     QList<GroupingCriteriaCard*> initializedAttributeCriteriaCards;
     QList<AttributeWidget*> attributeWidgets;
@@ -149,7 +148,6 @@ private:
     QMenu *addNewCriteriaMenu = nullptr;
     QAction *genderMenuAction = nullptr;
     QAction *urmMenuAction = nullptr;
-    QAction *gradeMenuAction = nullptr;
     QAction *scheduleMenuAction = nullptr;
     QAction *groupTogetherMenuAction = nullptr;
     QAction *splitApartMenuAction = nullptr;

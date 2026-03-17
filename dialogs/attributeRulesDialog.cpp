@@ -36,8 +36,8 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     incompatibleValues = teamingOptions.incompatibleAttributeValues[attribute];
     const DataOptions::AttributeType attributeType = dataOptions.attributeType[attribute];
     attributeValues.clear();
-    attributeValues.reserve(dataOptions.attributeVals[attribute].size());
-    auto valueIter = dataOptions.attributeVals[attribute].cbegin();
+    attributeValues.reserve(dataOptions.attributeVals_discrete[attribute].size());
+    auto valueIter = dataOptions.attributeVals_discrete[attribute].cbegin();
     for(const auto &response : dataOptions.attributeQuestionResponses[attribute]) {
         attributeValues.append({*valueIter, response});
         valueIter++;

@@ -188,8 +188,8 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         }
 
         const float score = criterion->scoreForOneTeamInDisplay(students, team, teamingOptions, dataOptions, IDsBeingTeamed);
-        const QString text = criterion->teamDisplayText(team, dataOptions, score);
-        const QVariant sortVal = criterion->teamSortValue(team, dataOptions, score);
+        const QString text = criterion->teamDisplayText(team, dataOptions, score, students);
+        const QVariant sortVal = criterion->teamSortValue(team, dataOptions, score, students);
 
         teamItem->setText(column, text);
         teamItem->setTextAlignment(column, criterion->teamTextAlignment());

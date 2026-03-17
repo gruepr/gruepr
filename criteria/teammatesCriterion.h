@@ -10,6 +10,7 @@ class TeammatesCriterion : public Criterion {
 
 public:
     using Criterion::Criterion;
+
     Criterion* clone() const override;
 
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
@@ -22,8 +23,8 @@ public:
 
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;
-    QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const override;
-    QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore = 0) const override;
+    QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const override;
+    QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const override;
     QString studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const override;
     QString exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *dataOptions) const override;
     QString exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const override;

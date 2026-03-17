@@ -44,9 +44,6 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     const bool sect = dataOptions->sectionIncluded && sectionType == TeamingOptions::SectionType::allTogether;
     ui->sectioncheckBox->setVisible(sect);
     connect(ui->sectioncheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSect = checked;});
-    const bool grade = dataOptions->gradeIncluded;
-    ui->gradecheckBox->setVisible(grade);
-    connect(ui->gradecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeGrade = checked;});
     QList<QCheckBox*> multichoiceCheckboxes = {ui->Q1checkBox, ui->Q2checkBox, ui->Q3checkBox, ui->Q4checkBox, ui->Q5checkBox, ui->Q6checkBox,
                                                ui->Q7checkBox, ui->Q8checkBox, ui->Q9checkBox, ui->Q10checkBox, ui->Q11checkBox, ui->Q12checkBox,
                                                ui->Q13checkBox, ui->Q14checkBox, ui->Q15checkBox};
@@ -63,7 +60,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     connect(ui->schedulecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSchedule = checked;});
 
     ui->multipleChoiceLabel->setVisible(anyMultiChoice);
-    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || grade || anyMultiChoice);
+    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyMultiChoice);
     ui->CustomFileContentsBox->hide();
 
     ui->studentFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);

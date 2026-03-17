@@ -237,7 +237,7 @@ Qt::TextElideMode GenderCriterion::headerElideMode() const {
     return Qt::ElideNone;
 }
 
-QString GenderCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float /*criterionScore*/) const {
+QString GenderCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float /*criterionScore*/, const QList<StudentRecord> &/*students*/) const {
     QStringList genderInitials;
     if (dataOptions->genderType == GenderType::biol) {
         genderInitials = QString(BIOLGENDERSINITIALS).split('/');
@@ -274,7 +274,7 @@ QString GenderCriterion::teamDisplayText(const TeamRecord &team, const DataOptio
     return genderText;
 }
 
-QVariant GenderCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+QVariant GenderCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/, const QList<StudentRecord> &/*students*/) const {
     return team.numMen - team.numWomen;
 }
 

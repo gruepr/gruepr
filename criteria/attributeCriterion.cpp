@@ -1,9 +1,14 @@
 #include "attributeCriterion.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QVBoxLayout>
 
 Criterion* AttributeCriterion::clone() const {
     auto *copy = new AttributeCriterion(dataOptions, criteriaType, weight, penaltyStatus, nullptr, attributeIndex);
-    copy->diversity = diversity;
+    copy->diversity  = diversity;
+    copy->targetMin  = targetMin;
+    copy->targetMax  = targetMax;
     return copy;
 }
 
@@ -11,172 +16,292 @@ QJsonObject AttributeCriterion::settingsToJson() const {
     QJsonObject json;
     auto diversityEnum = QMetaEnum::fromType<AttributeDiversity>();
     json["diversity"] = diversityEnum.valueToKey(static_cast<int>(diversity));
+    json["targetMin"] = static_cast<double>(targetMin);
+    json["targetMax"] = static_cast<double>(targetMax);
     return json;
 }
 
 void AttributeCriterion::settingsFromJson(const QJsonObject &json) {
-    if (json.contains("diversity")) {
+    if(json.contains("diversity")) {
         auto diversityEnum = QMetaEnum::fromType<AttributeDiversity>();
         const int val = diversityEnum.keyToValue(qPrintable(json["diversity"].toString()));
-        if (val != -1) {
+        if(val != -1) {
             diversity = static_cast<AttributeDiversity>(val);
         }
     }
-
-    // display settings on the criteria card
-    if (attributeWidget) {
-        attributeWidget->setValues();
-    }
+    targetMin = static_cast<float>(json["targetMin"].toDouble(0.0));
+    targetMax = static_cast<float>(json["targetMax"].toDouble(100.0));
 }
 
-void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
-{
-    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-
-    auto *attributeContentLayout = new QHBoxLayout();
-    attributeWidget = new AttributeWidget(attributeIndex, dataOptions, teamingOptions, this, parentCard);
-    attributeContentLayout->addWidget(attributeWidget);
-
-    parentCard->setContentAreaLayout(*attributeContentLayout);
+void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions) {
+    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
+                              DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    auto *contentLayout = new QHBoxLayout();
+    attributeWidget = new AttributeWidget(attributeIndex, dataOptions, teamingOptions, this, dataOptions->attributeType[attributeIndex], parentCard);
+    contentLayout->addWidget(attributeWidget);
+    parentCard->setContentAreaLayout(*contentLayout);
 }
 
 void AttributeCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
                                         std::vector<float> &criteriaScores, std::vector<int> &_penaltyPoints) const
 {
-    const bool thisIsTimezone = dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone;
-    const bool penaltyStatus = this->penaltyStatus || teamingOptions->haveAnyRequiredAttributes[attributeIndex] ||
-                               teamingOptions->haveAnyIncompatibleAttributes[attributeIndex];
-    const int totNumAttributeLevels = int(dataOptions->attributeVals[attributeIndex].size());
-    const int totRangeAttributeLevels = *(dataOptions->attributeVals[attributeIndex].crbegin()) - *(dataOptions->attributeVals[attributeIndex].cbegin());
+    const auto type = dataOptions->attributeType[attributeIndex];
+    const bool thisIsNumerical = (type == DataOptions::AttributeType::numerical);
+    const bool thisIsTimezone  = (type == DataOptions::AttributeType::timezone);
+
+    // For discrete types: derive total level count and range from DataOptions
+    const int totNumAttributeLevels = thisIsNumerical || thisIsTimezone ? 0 :
+                                          static_cast<int>(dataOptions->attributeVals_discrete[attributeIndex].size());
+
+    int totRangeAttributeLevels;
+    if(thisIsNumerical) {
+        totRangeAttributeLevels = *dataOptions->attributeVals_continuous[attributeIndex].crbegin()
+                                  - *dataOptions->attributeVals_continuous[attributeIndex].cbegin();
+    }
+    else if(thisIsTimezone || dataOptions->attributeVals_discrete[attributeIndex].empty()) {
+        totRangeAttributeLevels = 0;
+    }
+    else {
+        totRangeAttributeLevels = *dataOptions->attributeVals_discrete[attributeIndex].crbegin()
+                                    - *dataOptions->attributeVals_discrete[attributeIndex].cbegin();
+    }
+
+    // For numerical: compute overall mean across the entire student array
+    // (students[] here is the full cohort array; numTeams * teamSizes gives total number of students)
+    float overallMean = 0.0f;
+    if(thisIsNumerical) {
+        int totalStudents = 0;
+        for(int t = 0; t < numTeams; t++) {
+            totalStudents += teamSizes[t];
+        }
+        int count = 0;
+        for(int s = 0; s < totalStudents; s++) {
+            if(!students[s].attributeVals_continuous[attributeIndex].isEmpty()) {
+                overallMean += students[s].attributeVals_continuous[attributeIndex].first();
+                count++;
+            }
+        }
+        if(count > 0) {
+            overallMean /= count;
+        }
+    }
+
+    const bool doPenalty = this->penaltyStatus
+                           || teamingOptions->haveAnyRequiredAttributes[attributeIndex]
+                           || teamingOptions->haveAnyIncompatibleAttributes[attributeIndex];
 
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
-        // gather all the attribute values on the team
-        std::multiset<int> attributeLevelsInTeam;
-        std::multiset<float> timezoneLevelsInTeam;
+        if(diversity == Criterion::AttributeDiversity::ignored) {
+            criteriaScores[team] = 0.0f;
+            continue;
+        }
+
+        // Gather values for this team
+        std::multiset<int>   discreteLevels;
+        std::multiset<float> continuousLevels;
+
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
-            attributeLevelsInTeam.insert(students[teammates[studentNum]].attributeVals[attributeIndex].constBegin(),
-                                         students[teammates[studentNum]].attributeVals[attributeIndex].constEnd());
+            const auto &stu = students[teammates[studentNum]];
             if(thisIsTimezone) {
-                timezoneLevelsInTeam.insert(students[teammates[studentNum]].timezone);
+                // discrete sentinel still used for unknown-detection
+                discreteLevels.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
+                                      stu.attributeVals_discrete[attributeIndex].constEnd());
+                continuousLevels.insert(stu.timezone);
+            }
+            else if(thisIsNumerical) {
+                continuousLevels.insert(stu.attributeVals_continuous[attributeIndex].constBegin(),
+                                        stu.attributeVals_continuous[attributeIndex].constEnd());
+            }
+            else {
+                discreteLevels.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
+                                      stu.attributeVals_discrete[attributeIndex].constEnd());
             }
             studentNum++;
         }
 
-        if (penaltyStatus){
-            /*if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
-                //get the values of all, put a penalty for each
-                if (_teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar){ //homogenous
-                    if(thisIsTimezone) { //similar, penalize if uniqueItems > 1 (we can only have 1 unique)
-                        std::set<int> uniqueItems(timezoneLevelsInTeam.begin(), timezoneLevelsInTeam.end());
-                        int duplicatedValues = timezoneLevelsInTeam.size() - uniqueItems.size();  // Count unique values
-                        int uniqueCount = uniqueItems.size();
-                        if (uniqueCount > 1) {
-                            _penaltyPoints[team] += uniqueCount - 1; // Penalize for extra unique values
-                        }
-                    } else { //if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                        //(_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
-                        std::set<int> uniqueItems(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
-                        int duplicatedValues = attributeLevelsInTeam.size() - uniqueItems.size();  // Count unique values
-                        int uniqueCount = uniqueItems.size();
-                        if (uniqueCount > 1) {
-                            _penaltyPoints[team] += uniqueCount - 1; // Penalize for extra unique values
-                        }
-                    }
-                } else { //heterogenous, penalize same values
-                    if(thisIsTimezone) {
-                        std::set<int> uniqueItems(timezoneLevelsInTeam.begin(), timezoneLevelsInTeam.end());
-                        int duplicatedValues = std::max(0, int(timezoneLevelsInTeam.size() - uniqueItems.size()));
-                        _penaltyPoints[team] += duplicatedValues;
-
-                    } else { //if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                        //(_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
-                        std::set<int> uniqueItems(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
-                        int duplicatedValues = std::max(0, int(attributeLevelsInTeam.size() - uniqueItems.size()));
-                        _penaltyPoints[team] += duplicatedValues;
-
-                    }
-                }
-            }*/
-
+        // ── Penalties ──────────────────────────────────────────────────────
+        if(doPenalty && !thisIsNumerical) {
             if(teamingOptions->haveAnyIncompatibleAttributes[attributeIndex]) {
-                // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
                 for(const auto &pair : std::as_const(teamingOptions->incompatibleAttributeValues[attributeIndex])) {
-                    //getting the attribute level count for each incompatible attribute value
-                    const int n = int(attributeLevelsInTeam.count(pair.first));
+                    const int n = static_cast<int>(discreteLevels.count(pair.first));
                     if(pair.first == pair.second) {
-                        _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
+                        _penaltyPoints[team] += (n * (n - 1)) / 2;
                     }
                     else {
-                        const int m = int(attributeLevelsInTeam.count(pair.second));
-                        _penaltyPoints[team] += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
+                        const int m = static_cast<int>(discreteLevels.count(pair.second));
+                        _penaltyPoints[team] += n * m;
                     }
                 }
             }
-
-            // Add a penalty per required attribute response not found
             if(teamingOptions->haveAnyRequiredAttributes[attributeIndex]) {
-                // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
                 for(const auto value : std::as_const(teamingOptions->requiredAttributeValues[attributeIndex])) {
-                    if(attributeLevelsInTeam.count(value) == 0) {
+                    if(discreteLevels.count(value) == 0) {
                         _penaltyPoints[team]++;
                     }
                 }
             }
         }
 
-        // Remove attribute values of -1 (unknown/not set) and then determine attribute scores
-        attributeLevelsInTeam.erase(-1);
+        // Remove the unknown sentinel before scoring
+        discreteLevels.erase(-1);
 
-        //calculating score from homogeneity/heterogeneity
-        if((weight > 0) && (!attributeLevelsInTeam.empty())) {
-            if(thisIsTimezone) {
-                // "attribute" is timezone, so use range of timezone values
-                criteriaScores[team] = (*timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin()) / totRangeAttributeLevels;
-            }
-            else if((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) ||
-                     (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered)) {
-                // attribute has meaningful ordering/numerical values--diverse range means mostly
-                // max. spread between max and min values BUT ALSO, to a lesser extent, the number of unique values
-                const int rangeOfVals = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last = largest val; cbegin is 1st = smallest
-                int numUniqueVals = 0;
-                int prevVal = -1;
-                for(const auto currVal : attributeLevelsInTeam) {
-                    if(currVal != prevVal) {
-                        numUniqueVals++;
-                    }
-                    prevVal = currVal;
-                }
-                criteriaScores[team] = (0.75 * rangeOfVals / totRangeAttributeLevels) + (0.25 * (numUniqueVals - 1) / (totNumAttributeLevels - 1));
+        // ── Scoring ────────────────────────────────────────────────────────
+        if(thisIsNumerical) {
+            if(continuousLevels.empty()) {
+                criteriaScores[team] = 0.0f;
             }
             else {
-                // attribute is categorical or multicategorical--diverse range means maximum number of unique values
-                int numUniqueVals = 0;
-                int prevVal = -1;
-                for(const auto currVal : attributeLevelsInTeam) {
-                    if(currVal != prevVal) {
-                        numUniqueVals++;
+                if(diversity == Criterion::AttributeDiversity::average) {
+                    // Score = how close the team mean is to the overall mean, normalised over the observed data range.
+                    float teamSum = 0.0f;
+                    for(const float v : continuousLevels) {
+                        teamSum += v;
                     }
-                    prevVal = currVal;
-                }
-                criteriaScores[team] = (numUniqueVals - 1.0f) / (totNumAttributeLevels - 1.0f);
-            }
+                    const float teamMean = teamSum / static_cast<float>(continuousLevels.size());
 
-            //Calculation assumes diverse (i.e., 0 if team is fully similar and +1 if fully diverse); flip it if want similar
-            if(diversity == Criterion::AttributeDiversity::similar) {
-                criteriaScores[team] = 1 - criteriaScores[team];
-            }
-            else if(diversity == Criterion::AttributeDiversity::ignored) {
-                criteriaScores[team] = 0;
+                    // Determine the range to normalise against:
+                    // prefer the observed range stored in DataOptions; fall back to targetMin/Max.
+                    float rangeSpan = 1.0f;
+                    const auto &contRange = dataOptions->attributeVals_continuous[attributeIndex];
+                    if(contRange.size() >= 2) {
+                        rangeSpan = *contRange.crbegin() - *contRange.cbegin();
+                    }
+                    else if(targetMax > targetMin) {
+                        rangeSpan = targetMax - targetMin;
+                    }
+                    if(rangeSpan < 1e-6f) {
+                        rangeSpan = 1.0f;  // guard against zero-range data
+                    }
+
+                    const float deviation = std::abs(teamMean - overallMean);
+                    criteriaScores[team] = std::max(0.0f, 1.0f - (deviation / (rangeSpan * 0.5f)));
+                }
+                else if(diversity == Criterion::AttributeDiversity::similar ||
+                           diversity == Criterion::AttributeDiversity::diverse) {
+
+                    // spread: fraction of population range covered by the sample
+                    if(totRangeAttributeLevels <= 0.0f || continuousLevels.size() < 2) {
+                        criteriaScores[team] = 0.0f;
+                        continue;
+                    }
+                    const float spread = (*continuousLevels.crbegin() - *continuousLevels.cbegin()) / totRangeAttributeLevels;
+                    if(continuousLevels.size() == 2) {
+                        criteriaScores[team] = spread * weight;
+                        continue;
+                    }
+
+                    // uniformity: 1 - Gini coefficient of gaps between consecutive sorted values
+                    // compute the gaps (sample is already sorted via multiset)
+                    std::vector<float> gaps;
+                    gaps.reserve(continuousLevels.size() - 1);
+                    auto prev = continuousLevels.cbegin();
+                    for(auto it = std::next(prev); it != continuousLevels.cend(); ++it) {
+                        gaps.push_back(*it - *prev);
+                        prev = it;
+                    }
+
+                    // Gini = sum of |g_i - g_j| / (2 * numGaps * sumOfGaps)
+                    float sumOfGaps = 0.0f;
+                    for(const float g : gaps) {
+                        sumOfGaps += g;
+                    }
+                    if(sumOfGaps <= 0.0f) {
+                        // all values identical
+                        criteriaScores[team] = 0.0f;
+                        continue;
+                    }
+
+                    float sumAbsDiffs = 0.0f;
+                    const int numGaps = static_cast<int>(gaps.size());
+                    for(int i = 0; i < numGaps; i++) {
+                        for(int j = i + 1; j < numGaps; j++) {
+                            sumAbsDiffs += std::abs(gaps[i] - gaps[j]);
+                        }
+                    }
+                    sumAbsDiffs *= 2.0f;  // account for both (i,j) and (j,i)
+
+                    const float gini = sumAbsDiffs / (2.0f * numGaps * sumOfGaps);
+                    const float uniformity = 1.0f - gini;
+
+                    criteriaScores[team] = spread * uniformity;
+
+                    if(diversity == Criterion::AttributeDiversity::similar) {
+                        criteriaScores[team] = 1.0f - criteriaScores[team];
+                    }
+                }
             }
         }
+        else if(thisIsTimezone) {
+            if((weight > 0) && !continuousLevels.empty()) {
+                const float tzRange = *continuousLevels.crbegin() - *continuousLevels.cbegin();
+                // totRangeAttributeLevels is 0 for timezone — use the actual observed tz span
+                // (kept consistent with pre-refactor behaviour: score = range / totRange)
+                const float totTzRange = dataOptions->attributeVals_continuous[attributeIndex].size() >= 2
+                                             ? *dataOptions->attributeVals_continuous[attributeIndex].crbegin()
+                                                   - *dataOptions->attributeVals_continuous[attributeIndex].cbegin()
+                                             : 24.0f;  // fallback: 24-hour span
+                const float span = totTzRange > 0.0f ? totTzRange : 24.0f;
+                criteriaScores[team] = tzRange / span;
+                if(diversity == Criterion::AttributeDiversity::similar) {
+                    criteriaScores[team] = 1.0f - criteriaScores[team];
+                }
+            }
+            else {
+                criteriaScores[team] = 0.0f;
+            }
+        }
+        else {
+            // Discrete types: ordered/multiordered, categorical/multicategorical
+            if((weight > 0) && !discreteLevels.empty()) {
+                if((type == DataOptions::AttributeType::ordered) ||
+                    (type == DataOptions::AttributeType::multiordered)) {
+                    // Score weighted toward range, with a lesser contribution from unique-value count
+                    const int rangeOfVals = *discreteLevels.crbegin() - *discreteLevels.cbegin();
+                    int numUniqueVals = 0, prevVal = -1;
+                    for(const auto v : discreteLevels) {
+                        if(v != prevVal) {
+                            numUniqueVals++;
+                        }
+                        prevVal = v;
+                    }
+                    const float rangePart = totRangeAttributeLevels > 0 ?
+                                                static_cast<float>(rangeOfVals) / totRangeAttributeLevels : 0.0f;
+                    const float uniquePart = totNumAttributeLevels > 1 ?
+                                                static_cast<float>(numUniqueVals - 1) / (totNumAttributeLevels - 1) : 0.0f;
+                    criteriaScores[team] = 0.75f * rangePart + 0.25f * uniquePart;
+                }
+                else {
+                    // categorical / multicategorical: maximise unique values
+                    int numUniqueVals = 0, prevVal = -1;
+                    for(const auto v : discreteLevels) {
+                        if(v != prevVal) {
+                            numUniqueVals++;
+                        }
+                        prevVal = v;
+                    }
+                    criteriaScores[team] = totNumAttributeLevels > 1
+                                               ? static_cast<float>(numUniqueVals - 1) / (totNumAttributeLevels - 1)
+                                               : 0.0f;
+                }
+
+                // Calculation above assumes diverse = +1, similar = 0; flip if needed
+                if(diversity == Criterion::AttributeDiversity::similar) {
+                    criteriaScores[team] = 1.0f - criteriaScores[team];
+                }
+            }
+            else {
+                criteriaScores[team] = 0.0f;
+            }
+        }
+
         criteriaScores[team] *= weight;
     }
 }
 
 QString AttributeCriterion::headerLabel(const DataOptions *dataOptions) const {
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
+    if(dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
         return tr("Timezone");
     }
     return dataOptions->attributeQuestionText[attributeIndex].simplified();
@@ -186,208 +311,327 @@ Qt::TextElideMode AttributeCriterion::headerElideMode() const {
     return Qt::ElideMiddle;
 }
 
-QString AttributeCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float /*criterionScore*/) const {
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
-        const float firstVal = *(team.timezoneVals.cbegin());
-        const float lastVal = *(team.timezoneVals.crbegin());
-        if (firstVal == lastVal) {
-            const int hour = int(firstVal);
-            const int minutes = 60 * (firstVal - int(firstVal));
-            return QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));
+QString AttributeCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions,
+                                            float /*criterionScore*/, const QList<StudentRecord> &students) const
+{
+    const auto type = dataOptions->attributeType[attributeIndex];
+
+    // ── Timezone ───────────────────────────────────────────────────────────
+    if(type == DataOptions::AttributeType::timezone) {
+        std::set<float> tzVals;
+        for(const auto id : team.studentIDs) {
+            for(const auto &stu : students) {
+                if(stu.ID == id) {
+                    tzVals.insert(stu.timezone);
+                    break;
+                }
+            }
         }
-        const int hourF = int(firstVal), minutesF = 60 * (firstVal - int(firstVal));
-        const int hourL = int(lastVal), minutesL = 60 * (lastVal - int(lastVal));
-        return QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(std::abs(minutesF), 2, 10, QChar('0'))
-               + " " + RIGHTARROW + " "
-               + QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(std::abs(minutesL), 2, 10, QChar('0'));
+        if(tzVals.empty()) {
+            return "?";
+        }
+        const float lo = *tzVals.cbegin(), hi = *tzVals.crbegin();
+        auto fmtTz = [](float tz) {
+            const int h = int(tz);
+            const int m = std::abs(static_cast<int>(60.0f * (tz - int(tz))));
+            return QString("%1%2:%3").arg(h >= 0 ? "+" : "").arg(h).arg(m, 2, 10, QChar('0'));
+        };
+        if(lo == hi) {
+            return fmtTz(lo);
+        }
+        return fmtTz(lo) + " " + RIGHTARROW + " " + fmtTz(hi);
     }
 
-    auto firstTeamVal = team.attributeVals[attributeIndex].cbegin();
-    if (firstTeamVal == team.attributeVals[attributeIndex].cend()) {
+    // ── Numerical ──────────────────────────────────────────────────────────
+    if(type == DataOptions::AttributeType::numerical) {
+        float sum = 0.0f; int count = 0;
+        for(const auto id : team.studentIDs) {
+            for(const auto &stu : students) {
+                if(stu.ID == id) {
+                    if(!stu.attributeVals_continuous[attributeIndex].isEmpty()) {
+                        sum += stu.attributeVals_continuous[attributeIndex].first();
+                        count++;
+                    }
+                    break;
+                }
+            }
+        }
+        return count > 0 ? QString::number(double(sum / count), 'f', 2) : "?";
+    }
+
+    // ── Discrete (ordered, categorical, multi-*) ───────────────────────────
+    std::set<int> teamVals;
+    for(const auto id : team.studentIDs) {
+        for(const auto &stu : students) {
+            if(stu.ID == id) {
+                teamVals.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
+                                stu.attributeVals_discrete[attributeIndex].constEnd());
+                break;
+            }
+        }
+    }
+    teamVals.erase(-1);     // Strip the unknown sentinel before display — same as calculateScore does
+    if(teamVals.empty()) {
         return "?";
     }
 
-    QString text;
-    if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) ||
-        (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered)) {
-        text = QString::number(*firstTeamVal);
-        auto lastTeamVal = team.attributeVals[attributeIndex].crbegin();
-        if (*firstTeamVal != *lastTeamVal) {
-            for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
-                text += ", " + QString::number(*val);
+    auto first = teamVals.cbegin();
+    if((type == DataOptions::AttributeType::ordered) ||
+        (type == DataOptions::AttributeType::multiordered)) {
+        QString text = QString::number(*first);
+        const int last = *teamVals.crbegin();
+        if(*first != last) {
+            for(auto it = std::next(first); it != teamVals.end(); ++it) {
+                text += ", " + QString::number(*it);
             }
         }
-    } else {
-        text = valToLetter(*firstTeamVal);
-        for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
-            text += ", " + valToLetter(*val);
-        }
+        return text;
+    }
+    QString text = valToLetter(*first);
+    for(auto it = std::next(first); it != teamVals.end(); ++it) {
+        text += ", " + valToLetter(*it);
     }
     return text;
 }
 
-QVariant AttributeCriterion::teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float /*criterionScore*/) const {
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
-        const float firstVal = *(team.timezoneVals.cbegin());
-        const float lastVal = *(team.timezoneVals.crbegin());
-        return int(firstVal * 100 + lastVal);
+QVariant AttributeCriterion::teamSortValue(const TeamRecord &team,
+                                           const DataOptions *dataOptions,
+                                           float /*criterionScore*/,
+                                           const QList<StudentRecord> &students) const
+{
+    const auto type = dataOptions->attributeType[attributeIndex];
+
+    // ── Timezone ───────────────────────────────────────────────────────────
+    if(type == DataOptions::AttributeType::timezone) {
+        std::set<float> tzVals;
+        for(const auto sid : team.studentIDs) {
+            for(const auto &stu : students) {
+                if(stu.ID == sid) {
+                    tzVals.insert(stu.timezone); break;
+                }
+            }
+        }
+        if(tzVals.empty()) {
+            return -1;
+        }
+        // Encode as single int: lo * 100 + hi (same encoding as before)
+        return static_cast<int>(*tzVals.cbegin() * 100 + *tzVals.crbegin());
     }
 
-    auto firstTeamVal = team.attributeVals[attributeIndex].cbegin();
-    if (firstTeamVal == team.attributeVals[attributeIndex].cend()) {
+    // ── Numerical ──────────────────────────────────────────────────────────
+    if(type == DataOptions::AttributeType::numerical) {
+        float sum = 0.0f; int count = 0;
+        for(const auto sid : team.studentIDs) {
+            for(const auto &stu : students) {
+                if(stu.ID == sid) {
+                    if(!stu.attributeVals_continuous[attributeIndex].isEmpty()) {
+                        sum += stu.attributeVals_continuous[attributeIndex].front();
+                        count++;
+                    }
+                    break;
+                }
+            }
+        }
+        return count > 0 ? static_cast<double>(sum / count) : -1.0;
+    }
+
+    // ── Discrete ───────────────────────────────────────────────────────────
+    std::set<int> teamVals;
+    for(const auto sid : team.studentIDs) {
+        for(const auto &stu : students) {
+            if(stu.ID == sid) {
+                teamVals.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
+                                stu.attributeVals_discrete[attributeIndex].constEnd());
+                break;
+            }
+        }
+    }
+    // Strip unknown sentinel — sort value should reflect real data only
+    teamVals.erase(-1);
+    if(teamVals.empty()) {
         return -1;
     }
 
-    double sortData = *firstTeamVal;
-    if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) ||
-        (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered)) {
-        double divisor = 100;
-        for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
-            sortData += *val / divisor;
-            divisor *= 100;
+    auto first = teamVals.cbegin();
+    double sortData = *first;
+    if((type == DataOptions::AttributeType::ordered) ||
+        (type == DataOptions::AttributeType::multiordered)) {
+        double divisor = 100.0;
+        for(auto it = std::next(first); it != teamVals.end(); ++it) {
+            sortData += *it / divisor;
+            divisor *= 100.0;
         }
-    } else {
-        double divisor = 10;
-        for (auto val = std::next(firstTeamVal); val != team.attributeVals[attributeIndex].end(); val++) {
-            sortData += *val / divisor;
-            divisor *= 100;
+    }
+    else {
+        double divisor = 10.0;
+        for(auto it = std::next(first); it != teamVals.end(); ++it) {
+            sortData += *it / divisor;
+            divisor *= 100.0;
         }
     }
     return sortData;
 }
 
-QString AttributeCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const {
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
-        const int hour = int(student.timezone);
-        const int minutes = 60 * (student.timezone - int(student.timezone));
-        return QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));
+QString AttributeCriterion::studentDisplayText(const StudentRecord &student,
+                                               const DataOptions *dataOptions) const
+{
+    const auto type = dataOptions->attributeType[attributeIndex];
+
+    if(type == DataOptions::AttributeType::timezone) {
+        const int h = int(student.timezone);
+        const int m = std::abs(static_cast<int>(60.0f * (student.timezone - int(student.timezone))));
+        return QString("%1%2:%3").arg(h >= 0 ? "+" : "").arg(h).arg(m, 2, 10, QChar('0'));
     }
 
-    auto value = student.attributeVals[attributeIndex].constBegin();
-    if (*value == -1) {
+    if(type == DataOptions::AttributeType::numerical) {
+        if(student.attributeVals_continuous[attributeIndex].isEmpty()) {
+            return "?";
+        }
+        return QString::number(double(student.attributeVals_continuous[attributeIndex].front()), 'f', 2);
+    }
+
+    // Discrete types
+    auto value = student.attributeVals_discrete[attributeIndex].constBegin();
+    if(student.attributeVals_discrete[attributeIndex].isEmpty() || *value == -1) {
         return "?";
     }
 
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) {
+    if(type == DataOptions::AttributeType::ordered) {
         return QString::number(*value);
     }
-
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::categorical) {
+    if(type == DataOptions::AttributeType::categorical) {
         return valToLetter(*value);
     }
-
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multicategorical) {
+    if(type == DataOptions::AttributeType::multicategorical) {
         QString text;
-        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
-        while (value != lastVal) {
+        const auto end = student.attributeVals_discrete[attributeIndex].constEnd();
+        while(value != end) {
             text += valToLetter(*value);
-            value++;
-            if (value != lastVal) {
+            if(++value != end) {
                 text += ", ";
             }
         }
         return text;
     }
-
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered) {
+    if(type == DataOptions::AttributeType::multiordered) {
         QString text;
-        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
-        while (value != lastVal) {
+        const auto end = student.attributeVals_discrete[attributeIndex].constEnd();
+        while(value != end) {
             text += QString::number(*value);
-            value++;
-            if (value != lastVal) {
+            if(++value != end) {
                 text += ", ";
             }
         }
         return text;
     }
-
     return "?";
 }
 
-QString AttributeCriterion::valToLetter(int val) {
-    if (val <= 26) {
-        return {char(val - 1 + 'A')};
-    }
-    return QString(char((val - 1) % 26 + 'A')).repeated(1 + ((val - 1) / 26));
-}
+QString AttributeCriterion::exportTeamingOptionText(const TeamingOptions * /*teamingOptions*/,
+                                                    const DataOptions *dataOptions) const
+{
+    const auto type = dataOptions->attributeType[attributeIndex];
+    QString text = "\n" + tr("Question: ") +
+                   tr("weight") + " = " + QString::number(double(weight));
 
-QString AttributeCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions *dataOptions) const {
-    QString text;
-    text += "\n" + tr("Multiple choice question: ") +
-            tr("weight") + " = " + QString::number(double(weight));
-    if (diversity == Criterion::AttributeDiversity::similar) {
-        text += ", " + tr("similar");
-    }
-    else if (diversity == Criterion::AttributeDiversity::diverse) {
-        text += ", " + tr("diverse");
+    if(type == DataOptions::AttributeType::numerical) {
+        text += ", " + tr("numerical balance");
+        text += "\n" + dataOptions->attributeQuestionText.at(attributeIndex);
+        text += "\n" + tr("Target group average range: ") +
+                QString::number(double(targetMin), 'f', 2) + " - " +
+                QString::number(double(targetMax), 'f', 2);
     }
     else {
-        text += ", " + tr("ignored");
-    }
-
-    text += "\n" + dataOptions->attributeQuestionText.at(attributeIndex) + "\n" + tr("Responses:");
-    for (int response = 0; response < dataOptions->attributeQuestionResponses[attributeIndex].size(); response++) {
-        if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) ||
-            (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered) ||
-            (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone)) {
-            text += "\n\t" + dataOptions->attributeQuestionResponses[attributeIndex].at(response);
+        if(diversity == Criterion::AttributeDiversity::similar) {
+            text += ", " + tr("similar");
         }
-        else if ((dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::categorical) ||
-                 (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multicategorical)) {
-            text += "\n\t" + (response < 26 ? QString(char(response + 'A')) :
-                                  QString(char(response % 26 + 'A')).repeated(1 + (response / 26)));
-            text += ". " + dataOptions->attributeQuestionResponses[attributeIndex].at(response);
+        else if(diversity == Criterion::AttributeDiversity::diverse) {
+            text += ", " + tr("diverse");
+        }
+        else {
+            text += ", " + tr("ignored");
+        }
+
+        text += "\n" + dataOptions->attributeQuestionText.at(attributeIndex) +
+                "\n" + tr("Responses:");
+
+        for(int r = 0; r < dataOptions->attributeQuestionResponses[attributeIndex].size(); r++) {
+            if((type == DataOptions::AttributeType::ordered) ||
+                (type == DataOptions::AttributeType::multiordered) ||
+                (type == DataOptions::AttributeType::timezone)) {
+                text += "\n\t" + dataOptions->attributeQuestionResponses[attributeIndex].at(r);
+            }
+            else if((type == DataOptions::AttributeType::categorical) ||
+                     (type == DataOptions::AttributeType::multicategorical)) {
+                text += "\n\t" + (r < 26 ? QString(char(r + 'A'))
+                                         : QString(char(r % 26 + 'A')).repeated(1 + r / 26));
+                text += ". " + dataOptions->attributeQuestionResponses[attributeIndex].at(r);
+            }
         }
     }
     text += "\n";
-
     return text;
 }
 
-QString AttributeCriterion::exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const {
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::timezone) {
+QString AttributeCriterion::exportStudentText(const StudentRecord &student,
+                                              const DataOptions *dataOptions) const
+{
+    const auto type = dataOptions->attributeType[attributeIndex];
+
+    if(type == DataOptions::AttributeType::timezone) {
         return QString::number(student.timezone).leftJustified(5);
     }
 
-    auto value = student.attributeVals[attributeIndex].constBegin();
-    if (*value == -1) {
+    if(type == DataOptions::AttributeType::numerical) {
+        if(student.attributeVals_continuous[attributeIndex].isEmpty()) {
+            return QString("?").leftJustified(5);
+        }
+        return QString::number(double(student.attributeVals_continuous[attributeIndex].front()), 'f', 2)
+            .leftJustified(5);
+    }
+
+    auto value = student.attributeVals_discrete[attributeIndex].constBegin();
+    if(student.attributeVals_discrete[attributeIndex].isEmpty() || *value == -1) {
         return QString("?").leftJustified(3);
     }
 
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::ordered) {
+    if(type == DataOptions::AttributeType::ordered) {
         return QString::number(*value).leftJustified(3);
     }
-
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::categorical) {
+    if(type == DataOptions::AttributeType::categorical) {
         return valToLetter(*value).leftJustified(3);
     }
-
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multicategorical) {
+    if(type == DataOptions::AttributeType::multicategorical) {
         QString text;
-        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
-        while (value != lastVal) {
+        const auto end = student.attributeVals_discrete[attributeIndex].constEnd();
+        while(value != end) {
             text += valToLetter(*value);
-            value++;
-            if (value != lastVal){
+            if(++value != end) {
                 text += ",";
             }
         }
         return text.leftJustified(3);
     }
-
-    if (dataOptions->attributeType[attributeIndex] == DataOptions::AttributeType::multiordered) {
+    if(type == DataOptions::AttributeType::multiordered) {
         QString text;
-        const auto lastVal = student.attributeVals[attributeIndex].constEnd();
-        while (value != lastVal) {
+        const auto end = student.attributeVals_discrete[attributeIndex].constEnd();
+        while(value != end) {
             text += QString::number(*value);
-            value++;
-            if (value != lastVal){
+            if(++value != end) {
                 text += ",";
             }
         }
         return text.leftJustified(3);
     }
-
     return QString("?").leftJustified(3);
+}
+
+QString AttributeCriterion::valToLetter(int val) {
+    if(val <= 0)  {
+        return "?";
+    }
+    if(val <= 26) {
+        return {char(val - 1 + 'A')};
+    }
+    return QString(char((val - 1) % 26 + 'A')).repeated(1 + (val - 1) / 26);
 }

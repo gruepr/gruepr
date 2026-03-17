@@ -180,10 +180,6 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
             attributeMenuActions.append(currentMCQAction);
         }
     }
-    if (dataOptions->gradeIncluded){
-        gradeMenuAction = addNewCriteriaMenu->addAction("Grade");
-        connect(gradeMenuAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::gradeBalance);});
-    }
     if (!dataOptions->scheduleField.empty()){
         scheduleMenuAction = new QAction("Meeting Times", this);
         connect(scheduleMenuAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::scheduleMeetingTimes);});
@@ -457,17 +453,6 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             }
             break;
         }
-        case Criterion::CriteriaType::gradeBalance: {
-            if (gradeBalanceCriteriaCard == nullptr) {
-                gradeBalanceCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
-                                                                    QString("Grade Balance"), true);
-                criteriaCardsList.append(gradeBalanceCriteriaCard);
-                if (gradeMenuAction != nullptr) {
-                    gradeMenuAction->setVisible(false);
-                }
-            }
-            break;
-        }
         default: {
             break;
         }
@@ -564,14 +549,6 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
             }
             else if(criteriaType == Criterion::CriteriaType::splitApart && splitApartMenuAction != nullptr) {
                 splitApartMenuAction->setVisible(true);
-            }
-            break;
-        }
-        case Criterion::CriteriaType::gradeBalance: {
-            delete cardToDelete;
-            gradeBalanceCriteriaCard = nullptr;
-            if(gradeMenuAction != nullptr) {
-                gradeMenuAction->setVisible(true);
             }
             break;
         }
@@ -812,6 +789,10 @@ void gruepr::editAStudent()
 
     // remove this student's current attribute responses from the counts in dataOptions
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
+            // No response count to decrement for numerical types
+            continue;
+        }
         const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
@@ -840,6 +821,10 @@ void gruepr::editAStudent()
 
     // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
+            // No response count to decrement for numerical types
+            continue;
+        }
         const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
@@ -1040,7 +1025,8 @@ void gruepr::compareStudentsToRoster()
                             newStudent.email = rosterEmail;
                         }
                         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-                            newStudent.attributeVals[attribute] << -1;
+                            newStudent.attributeVals_discrete[attribute] << -1;
+                            newStudent.attributeVals_continuous[attribute] << 0;
                         }
                         newStudent.ambiguousSchedule = true;
                         newStudent.createTooltip(*dataOptions);
@@ -1669,7 +1655,7 @@ void gruepr::optimizationComplete()
 
     for(int team = 0; team < teams.size(); team++) {
         teams[team].name = QString::number(team+1);
-        teams[team].createTooltip();
+        teams[team].createTooltip(students);
     }
 
     // Sort teams by 1st student's name, then set default teamnames and create tooltips
@@ -1806,15 +1792,13 @@ void gruepr::loadUI()
 
     //Initialize all cards, but do not add them to the layout
     for (int attribute = 0; attribute < dataOptions->numAttributes; attribute++){
-        const QString title = "Multiple Choice: "+ dataOptions->attributeQuestionText.at(attribute);
-        initializedAttributeCriteriaCards << new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, dataOptions, teamingOptions, this,
-                                                                      title, true, attribute);
+        const QString title = "Attribute: "+ dataOptions->attributeQuestionText.at(attribute);
+        initializedAttributeCriteriaCards << new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, dataOptions,
+                                                                       teamingOptions, this, title, true, attribute);
         auto *currentAttributeCard = initializedAttributeCriteriaCards.last();
         const auto &currentAttributeCriterion = qobject_cast<AttributeCriterion*>(currentAttributeCard->criterion);
         attributeWidgets << currentAttributeCriterion->attributeWidget;
         currentAttributeCriterion->attributeWidget->setValues(); //update issue
-        // Standard drag/drop/delete signals connected automatically in GroupingCriteriaCard constructor
-
         currentAttributeCard->setVisible(false); //just initialize, but initially false visibility
     }
 

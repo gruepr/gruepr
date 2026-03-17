@@ -209,14 +209,14 @@ Qt::TextElideMode ScheduleCriterion::headerElideMode() const {
     return Qt::ElideNone;
 }
 
-QString ScheduleCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+QString ScheduleCriterion::teamDisplayText(const TeamRecord &team, const DataOptions *, float /*criterionScore*/, const QList<StudentRecord> &/*students*/) const {
     if (team.size > 1) {
         return QString::number(team.numMeetingTimes);
     }
     return "  --  ";
 }
 
-QVariant ScheduleCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/) const {
+QVariant ScheduleCriterion::teamSortValue(const TeamRecord &team, const DataOptions *, float /*criterionScore*/, const QList<StudentRecord> &/*students*/) const {
     return team.numMeetingTimes;
 }
 
