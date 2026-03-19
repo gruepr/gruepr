@@ -425,7 +425,7 @@ QVariant AttributeCriterion::teamSortValue(const TeamRecord &team,
             for(const auto &stu : students) {
                 if(stu.ID == sid) {
                     if(!stu.attributeVals_continuous[attributeIndex].isEmpty()) {
-                        sum += stu.attributeVals_continuous[attributeIndex].front();
+                        sum += stu.attributeVals_continuous[attributeIndex].first();
                         count++;
                     }
                     break;
@@ -487,7 +487,7 @@ QString AttributeCriterion::studentDisplayText(const StudentRecord &student,
         if(student.attributeVals_continuous[attributeIndex].isEmpty()) {
             return "?";
         }
-        return QString::number(double(student.attributeVals_continuous[attributeIndex].front()), 'f', 2);
+        return QString::number(double(student.attributeVals_continuous[attributeIndex].first()), 'f', 2);
     }
 
     // Discrete types
@@ -586,7 +586,7 @@ QString AttributeCriterion::exportStudentText(const StudentRecord &student,
         if(student.attributeVals_continuous[attributeIndex].isEmpty()) {
             return QString("?").leftJustified(5);
         }
-        return QString::number(double(student.attributeVals_continuous[attributeIndex].front()), 'f', 2)
+        return QString::number(double(student.attributeVals_continuous[attributeIndex].first()), 'f', 2)
             .leftJustified(5);
     }
 

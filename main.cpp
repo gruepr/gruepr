@@ -47,12 +47,11 @@
 //  - several bugfixes related to resorting teams
 //  - added free response questions to surveymaker
 //  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
+//  - expanded "attribute" questions to allow for multiple choice or free-response-number questions
 //  - unified "required" and "requested" teammates
 //
 // TO DO FOR V13:
 /*
-
-factor out student.timezone (needed for studentDisplayText), since that's stored in student.attributeVals_continuous[attributeIndex] now
 
 Need to load the similar/diverse/average seting on load
 

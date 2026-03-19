@@ -67,6 +67,7 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
     datasetTableWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     datasetTableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     datasetTableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    datasetTableWidget->horizontalHeader()->setStretchLastSection(false);
     datasetTableWidget->setStyleSheet(QString("QTableView{gridline-color: lightGray; font-family: 'DM Sans'; font-size: 12pt;}"
                                                 "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; "
                                                 "border-bottom: none; background-color: " DEEPWATERHEX ";}"
@@ -110,21 +111,32 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
 void CategorizingDialog::populateTable(){
     datasetTableWidget->setColumnCount(surveyFile->numFields);
     surveyFile->readDataRow(CsvFile::ReadLocation::beginningOfFile);
-    QStringList columnNames = surveyFile->fieldValues;
-    for (int column = 0; column < columnNames.count(); column++){
+    QList<int> columnWidths;
+    for (const auto &columnName : std::as_const(surveyFile->fieldValues)){
         auto *columnWidget = new QWidget(this);
         auto *columnWidgetLayout = new QVBoxLayout();
         columnWidgetLayout->setSpacing(0);
         columnWidgetLayout->setContentsMargins(0, 0, 0, 0);
         columnWidget->setLayout(columnWidgetLayout);
-        auto *columnName = new QLabel(columnNames[column], this);
+        auto *columnLabel = new QLabel(columnName, this);
+        columnLabel->setStyleSheet(FAKETABLEHEADERWIDGETSTYLE);
+        columnLabel->ensurePolished();
+        columnLabel->setWordWrap(false);  // we handle wrapping ourselves with \n
+        const QFontMetrics fm(columnLabel->font());
+        const int naturalWidth = fm.horizontalAdvance(columnName) + 8;  // 8 for padding
+        const int columnWidth = std::min(naturalWidth, MAX_COLUMN_WIDTH);
+        const int availableWidth = columnWidth - 8;
+        const QString wrappedText = wrapAndElideText(columnName, availableWidth, MAX_HEADER_LINES, fm);
+        columnLabel->setText(wrappedText);
+        columnLabel->setToolTip(columnName);  // full text on hover
         auto *columnComboBox = new QComboBox(this);
         columnComboBox->setStyleSheet(COMBOBOXSTYLE);
         columnComboBox->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        columnComboBox->installEventFilter(new MouseWheelBlocker(columnComboBox));  // as it's too easy to mistake scrolling through the rows with changing the value
-        columnWidgetLayout->addWidget(columnName);
+        columnComboBox->installEventFilter(new MouseWheelBlocker(columnComboBox));
+        columnWidgetLayout->addWidget(columnLabel);
         columnWidgetLayout->addWidget(columnComboBox);
-        columnName->setStyleSheet(FAKETABLEHEADERWIDGETSTYLE);
+        columnWidths.append(columnWidth);
+        columnWidget->setFixedWidth(columnWidth);
         datasetTableHeaderLayout->addWidget(columnWidget);
         dataTypeComboBoxes.append(columnComboBox);
         columnWidgets.append(columnWidget);
@@ -133,7 +145,9 @@ void CategorizingDialog::populateTable(){
     initializeComboBoxes();
 
     for (int i = 0; i < columnWidgets.count(); i++){
-        datasetTableWidget->setColumnWidth(i, columnWidgets[i]->sizeHint().width());
+        const int finalWidth = std::max(columnWidths[i], dataTypeComboBoxes[i]->sizeHint().width());
+        columnWidgets[i]->setFixedWidth(finalWidth);
+        datasetTableWidget->setColumnWidth(i, finalWidth);
     }
 
     int row = 0;
@@ -369,4 +383,51 @@ void CategorizingDialog::validateFieldSelectorBoxes(int callingRow)
         }
         box->blockSignals(false);
     }
+}
+
+QString CategorizingDialog::wrapAndElideText(const QString &text, int availableWidth, int maxLines, const QFontMetrics &fm)
+{
+    // If the text fits on one line, no wrapping needed
+    if (fm.horizontalAdvance(text) <= availableWidth) {
+        return text;
+    }
+
+    // Respect explicit newlines first
+    const QStringList explicitLines = text.split('\n');
+    QStringList finalLines;
+
+    for (const auto &line : explicitLines) {
+        const QStringList words = line.split(' ', Qt::SkipEmptyParts);
+        if (words.isEmpty()) {
+            finalLines << line;
+            continue;
+        }
+
+        QString currentLine = words.first();
+        for (int i = 1; i < words.size(); i++) {
+            const QString candidate = currentLine + " " + words[i];
+            if (fm.horizontalAdvance(candidate) <= availableWidth) {
+                currentLine = candidate;
+            } else {
+                finalLines << currentLine;
+                currentLine = words[i];
+            }
+        }
+        finalLines << currentLine;
+    }
+
+    // Truncate to maxLines
+    if (finalLines.size() > maxLines) {
+        finalLines = finalLines.mid(0, maxLines);
+        finalLines.last() += QStringLiteral("\u2026");
+    }
+
+    // Elide any individual lines that are still too wide
+    for (auto &line : finalLines) {
+        if (fm.horizontalAdvance(line) > availableWidth) {
+            line = fm.elidedText(line, Qt::ElideRight, availableWidth);
+        }
+    }
+
+    return finalLines.join("\n");
 }
