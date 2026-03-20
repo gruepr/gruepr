@@ -53,16 +53,11 @@
 // TO DO FOR V13:
 /*
 
-Need to load the similar/diverse/average seting on load
-
-Create average image for attribute widget
-
 editOrAddStudentDialog numerical widget. The code stub uses a QDoubleSpinBox — you'll need to decide on the actual widget (spinbox vs. line
 edit with validator) and hook it up in the dialog's construction path the same way comboboxes are built for ordered/categorical types.
 
 Add numerical type to surveymaker attribute page
 
-categorizingdialog: Make header wordwrapped like in teamtreewidget
 */
 //
 // TO DO:

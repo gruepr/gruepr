@@ -1,5 +1,17 @@
 #include "criterion.h"
 
+QJsonObject Criterion::settingsToJson() const {
+    QJsonObject json;
+    json["weight"] = weight;
+    json["penaltyStatus"] = penaltyStatus;
+    return json;
+}
+
+void Criterion::settingsFromJson(const QJsonObject &json) {
+    weight = json["weight"].toDouble(0);
+    penaltyStatus = json["penaltyStatus"].toBool(false);
+}
+
 int Criterion::resolveCriteriaTypeKey(const QMetaEnum &e, const QString &name) {
     if (name == "requiredTeammates") {
         return e.keyToValue("groupTogether");

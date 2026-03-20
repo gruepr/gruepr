@@ -8,7 +8,7 @@
 
 struct Question
 {
-    enum class QuestionType{shorttext, dropdown, radiobutton, checkbox, schedule, longtext};
+    enum class QuestionType{shorttext, dropdown, radiobutton, checkbox, schedule, longtext, freeresponsenumber};
 
     Question(const QString &questionText = "", const QuestionType questionType = QuestionType::longtext, const QStringList &responseOptions = {}) :
           text(questionText), type(questionType), options(responseOptions) {};

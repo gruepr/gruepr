@@ -12,7 +12,7 @@ Criterion* GenderCriterion::clone() const {
 }
 
 QJsonObject GenderCriterion::settingsToJson() const {
-    QJsonObject json;
+    QJsonObject json = Criterion::settingsToJson();
     QJsonArray rulesArray;
     for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
         for (const auto [operation, values] : valMap.asKeyValueRange()) {
@@ -26,6 +26,7 @@ QJsonObject GenderCriterion::settingsToJson() const {
 }
 
 void GenderCriterion::settingsFromJson(const QJsonObject &json) {
+    Criterion::settingsFromJson(json);
     identityRules.clear();
     const QJsonArray rulesArray = json["identityRules"].toArray();
     for (const auto &val : rulesArray) {

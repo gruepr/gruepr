@@ -301,8 +301,6 @@ QJsonObject TeamsTabItem::toJson() const
         if (teamingOptions->criteria[i] != nullptr) {
             auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
             entry["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(teamingOptions->criteria[i]->criteriaType));
-            entry["weight"] = teamingOptions->criteria[i]->weight;
-            entry["penaltyStatus"] = teamingOptions->criteria[i]->penaltyStatus;
             entry["settings"] = teamingOptions->criteria[i]->settingsToJson();
             if (teamingOptions->criteria[i]->criteriaType == Criterion::CriteriaType::attributeQuestion) {
                 const auto *attrCrit = qobject_cast<AttributeCriterion*>(teamingOptions->criteria[i]);
@@ -339,28 +337,26 @@ void TeamsTabItem::restoreCriteria(const DataOptions *dataOptions)
             continue;
         }
         const auto type = static_cast<Criterion::CriteriaType>(typeInt);
-        const float weight = entry["weight"].toDouble(0);
-        const bool penalty = entry["penaltyStatus"].toBool(false);
 
         Criterion *criterion = nullptr;
         switch (type) {
         case Criterion::CriteriaType::genderIdentity:
-            criterion = new GenderCriterion(dataOptions, type, weight, penalty);
+            criterion = new GenderCriterion(dataOptions, type);
             break;
         case Criterion::CriteriaType::urmIdentity:
-            criterion = new URMIdentityCriterion(dataOptions, type, weight, penalty);
+            criterion = new URMIdentityCriterion(dataOptions, type);
             break;
         case Criterion::CriteriaType::attributeQuestion: {
             const int attrIdx = entry["attributeIndex"].toInt();
-            criterion = new AttributeCriterion(dataOptions, type, weight, penalty, nullptr, attrIdx);
+            criterion = new AttributeCriterion(dataOptions, type, 0, false, nullptr, attrIdx);
             break;
         }
         case Criterion::CriteriaType::scheduleMeetingTimes:
-            criterion = new ScheduleCriterion(dataOptions, type, weight, penalty);
+            criterion = new ScheduleCriterion(dataOptions, type);
             break;
         case Criterion::CriteriaType::groupTogether:
         case Criterion::CriteriaType::splitApart:
-            criterion = new TeammatesCriterion(type, weight, penalty);
+            criterion = new TeammatesCriterion(type);
             break;
         default:
             break;

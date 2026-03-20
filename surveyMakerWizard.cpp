@@ -40,7 +40,7 @@ SurveyMakerWizard::SurveyMakerWizard()
 
     setPage(Page::introtitle, new IntroPage);
     setPage(Page::demographics, new DemographicsPage);
-    setPage(Page::multichoice, new MultipleChoicePage);
+    setPage(Page::attribute, new AttributePage);
     setPage(Page::schedule, new SchedulePage);
     setPage(Page::courseinfo, new CourseInfoPage);
     setPage(Page::freeresponse, new FreeResponsePage);
@@ -135,17 +135,17 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             }
 
             if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble()) {
-                const int numMultiChoiceQuestions = loadObject["numAttributes"].toInt();
-                setField("multiChoiceNumQuestions", numMultiChoiceQuestions);   // need to set the number before setting the texts, responses, or multis
-                QList<QString> multiChoiceQuestionTexts;
+                const int numAttributeQuestions = loadObject["numAttributes"].toInt();
+                setField("attributeNumQuestions", numAttributeQuestions);   // need to set the number before setting the texts, responses, or multis
+                QList<QString> attributeQuestionTexts;
                 QList<QList<QString>> multiChoiceQuestionResponses;
                 QList<bool> multiChoiceQuestionMultis;
                 auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
-                for(int question = 0; question < numMultiChoiceQuestions; question++) {
-                    multiChoiceQuestionTexts << "";
+                for(int question = 0; question < numAttributeQuestions; question++) {
+                    attributeQuestionTexts << "";
                     if(loadObject.contains("Attribute" + QString::number(question+1)+"Question") &&
                         loadObject["Attribute" + QString::number(question+1)+"Question"].isString()) {
-                        multiChoiceQuestionTexts.last() = loadObject["Attribute" + QString::number(question+1)+"Question"].toString();
+                        attributeQuestionTexts.last() = loadObject["Attribute" + QString::number(question+1)+"Question"].toString();
                     }
 
                     multiChoiceQuestionResponses << QStringList({""});
@@ -169,7 +169,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                         multiChoiceQuestionMultis.last() = loadObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"].toBool();
                     }
                 }
-                setField("multiChoiceQuestionTexts", multiChoiceQuestionTexts);
+                setField("attributeQuestionTexts", attributeQuestionTexts);
                 setField("multiChoiceQuestionResponses", QVariant::fromValue<QList<QList<QString>>>(multiChoiceQuestionResponses));
                 setField("multiChoiceQuestionMultis", QVariant::fromValue<QList<bool>>(multiChoiceQuestionMultis));
             }
@@ -364,7 +364,7 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
         layout->setColumnStretch(0,1);
         layout->setColumnStretch(1,1);
 
-        if(page != SurveyMakerWizard::Page::multichoice && page != SurveyMakerWizard::Page::freeresponse) {
+        if(page != SurveyMakerWizard::Page::attribute && page != SurveyMakerWizard::Page::freeresponse) {
             for(int i = 0; i < numQuestions; i++) {
                 questions << new SurveyMakerQuestionWithSwitch;
                 questionPreviews << new QWidget;
@@ -707,8 +707,8 @@ void DemographicsPage::update()
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-MultipleChoicePage::MultipleChoicePage(QWidget *parent)
-    : SurveyMakerPage(SurveyMakerWizard::Page::multichoice, parent)
+AttributePage::AttributePage(QWidget *parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::attribute, parent)
 {
     auto *stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
     sampleQuestionsFrame = new QFrame(this);
@@ -732,8 +732,8 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     questionTexts.reserve(MAX_ATTRIBUTES);
     questionResponses.reserve(MAX_ATTRIBUTES);
     questionMultis.reserve(MAX_ATTRIBUTES);
-    registerField("multiChoiceNumQuestions", this, "numQuestions", "numQuestionsChanged");
-    registerField("multiChoiceQuestionTexts", this, "questionTexts", "questionTextsChanged");
+    registerField("attributeNumQuestions", this, "numQuestions", "numQuestionsChanged");
+    registerField("attributeQuestionTexts", this, "questionTexts", "questionTextsChanged");
     registerField("multiChoiceQuestionResponses", this, "questionResponses", "questionResponsesChanged");
     registerField("multiChoiceQuestionMultis", this, "questionMultis", "questionMultisChanged");
 
@@ -741,9 +741,9 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         //add the question
         spacers << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         questionLayout->addSpacerItem(spacers.last());
-        multichoiceQuestions << new SurveyMakerMultichoiceQuestion(i + 1);
-        questionLayout->addWidget(multichoiceQuestions.last());
-        multichoiceQuestions.last()->hide();
+        attributeQuestions << new SurveyMakerAttributeQuestion(i + 1);
+        questionLayout->addWidget(attributeQuestions.last());
+        attributeQuestions.last()->hide();
 
         //add the preview
         questionPreviews << new QWidget;
@@ -756,7 +756,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         questionPreviewTopLabels.last()->setStyleSheet(LABEL12PTSTYLE);
         questionPreviewTopLabels.last()->setWordWrap(true);
         questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
-        questionPreviewLayouts.last()->addWidget(multichoiceQuestions.last()->previewWidget);
+        questionPreviewLayouts.last()->addWidget(attributeQuestions.last()->previewWidget);
         previewSeparators << new QFrame;
         previewSeparators.last()->setStyleSheet("border-color: " DEEPWATERHEX);
         previewSeparators.last()->setLineWidth(1);
@@ -768,20 +768,20 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         questionPreviews.last()->hide();
 
         //connect question to delete action and to updating the wizard fields and the preview
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
+        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
         questionTexts << "";
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
+        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
             QString textWOQuotes = newText;
             textWOQuotes.replace('"', '\'');
             questionTexts[i] = textWOQuotes;
             questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
         });
         questionResponses << QStringList({""});
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){
+        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){
             questionResponses[i] = newResponses;
         });
         questionMultis << false;
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::multiChanged, this, [this, i](const bool newMulti){
+        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::multiChanged, this, [this, i](const bool newMulti){
             questionMultis[i] = newMulti;
         });
     }
@@ -793,7 +793,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     addQuestionButton->setStyleSheet(ADDBUTTONSTYLE);
     addQuestionButton->setText(tr("Create another question"));
     addQuestionButton->setIcon(QIcon(":/icons_new/addButton.png"));
-    connect(addQuestionButton, &QPushButton::clicked, this, &MultipleChoicePage::addQuestion);
+    connect(addQuestionButton, &QPushButton::clicked, this, &AttributePage::addQuestion);
     addQuestionButtonLayout->addWidget(addQuestionButton, 0, Qt::AlignVCenter);
     questionLayout->addSpacing(10);
     questionLayout->addWidget(addQuestionButtonFrame);
@@ -802,35 +802,35 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     addQuestion();
 }
 
-void MultipleChoicePage::initializePage()
+void AttributePage::initializePage()
 {
 }
 
-void MultipleChoicePage::cleanupPage()
+void AttributePage::cleanupPage()
 {
 }
 
-bool MultipleChoicePage::validatePage()
+bool AttributePage::validatePage()
 {
-    int multiQuestionsWOQuestionText = 0, multiQuestionsWOResponses = 0;
+    int attributeQuestionsWOQuestionText = 0, attributeQuestionsWOResponses = 0;
     for(int questionNum = 0; questionNum < numQuestions; questionNum++) {
-        if(multichoiceQuestions[questionNum]->getQuestion().isEmpty()) {
-            multiQuestionsWOQuestionText++;
+        if(attributeQuestions[questionNum]->getQuestion().isEmpty()) {
+            attributeQuestionsWOQuestionText++;
         }
-        if(multichoiceQuestions[questionNum]->getResponses() == QStringList({""})) {
-            multiQuestionsWOResponses++;
+        if(attributeQuestions[questionNum]->getResponses() == QStringList({""})) {
+            attributeQuestionsWOResponses++;
         }
     }
 
-    if(numQuestions == 1 && multiQuestionsWOQuestionText == 1 && multiQuestionsWOResponses == 1) {
+    if(numQuestions == 1 && attributeQuestionsWOQuestionText == 1 && attributeQuestionsWOResponses == 1) {
         // just one empty question; default starting of this page, so assume they just clicked next and no problem
         return true;
     }
 
-    if(multiQuestionsWOQuestionText > 0 || multiQuestionsWOResponses > 0) {
-        const QString missingInfo = ((multiQuestionsWOQuestionText > 0)? tr("text") : "") +
-                                    ((multiQuestionsWOQuestionText > 0 && multiQuestionsWOResponses > 0)? tr(" or ") : "") +
-                                    ((multiQuestionsWOResponses > 0)? tr("response options") : "");
+    if(attributeQuestionsWOQuestionText > 0 || attributeQuestionsWOResponses > 0) {
+        const QString missingInfo = ((attributeQuestionsWOQuestionText > 0)? tr("text") : "") +
+                                    ((attributeQuestionsWOQuestionText > 0 && attributeQuestionsWOResponses > 0)? tr(" or ") : "") +
+                                    ((attributeQuestionsWOResponses > 0)? tr("response options") : "");
         const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
                                                         tr("You have one or more questions missing\nthe question ") + missingInfo + ".\n",
                                                         tr("Continue"), tr("Go back"));
@@ -842,7 +842,7 @@ bool MultipleChoicePage::validatePage()
     return true;
 }
 
-void MultipleChoicePage::setNumQuestions(const int newNumQuestions)
+void AttributePage::setNumQuestions(const int newNumQuestions)
 {
     while(numQuestions > 0) {
         deleteAQuestion(0);
@@ -853,12 +853,12 @@ void MultipleChoicePage::setNumQuestions(const int newNumQuestions)
     emit numQuestionsChanged(numQuestions);
 }
 
-int MultipleChoicePage::getNumQuestions() const
+int AttributePage::getNumQuestions() const
 {
     return numQuestions;
 }
 
-void MultipleChoicePage::setQuestionTexts(const QList<QString> &newQuestionTexts)
+void AttributePage::setQuestionTexts(const QList<QString> &newQuestionTexts)
 {
     int i = 0;
     for(const auto &newQuestionText : newQuestionTexts) {
@@ -867,66 +867,66 @@ void MultipleChoicePage::setQuestionTexts(const QList<QString> &newQuestionTexts
         }
         QString textWOQuotes = newQuestionText;
         textWOQuotes.replace('"', '\'');
-        multichoiceQuestions[i]->setQuestion(textWOQuotes);
+        attributeQuestions[i]->setQuestion(textWOQuotes);
         i++;
     }
     while(i < (MAX_ATTRIBUTES - 1)) {
-        multichoiceQuestions[i++]->setQuestion("");
+        attributeQuestions[i++]->setQuestion("");
     }
     emit questionTextsChanged(questionTexts);
 }
 
-QList<QString> MultipleChoicePage::getQuestionTexts() const
+QList<QString> AttributePage::getQuestionTexts() const
 {
     return questionTexts;
 }
 
-void MultipleChoicePage::setQuestionResponses(const QList<QList<QString>> &newQuestionResponses)
+void AttributePage::setQuestionResponses(const QList<QList<QString>> &newQuestionResponses)
 {
     int i = 0;
     for(const auto &newQuestionResponse : newQuestionResponses) {
         if(i >= numQuestions) {
             addQuestion();
         }
-        multichoiceQuestions[i]->setResponses(newQuestionResponse);
+        attributeQuestions[i]->setResponses(newQuestionResponse);
         i++;
     }
     while(i < MAX_ATTRIBUTES-1) {
-        multichoiceQuestions[i++]->setResponses(QStringList({""}));
+        attributeQuestions[i++]->setResponses(QStringList({""}));
     }
     emit questionResponsesChanged(questionResponses);
 }
 
-QList<QList<QString>> MultipleChoicePage::getQuestionResponses() const
+QList<QList<QString>> AttributePage::getQuestionResponses() const
 {
     return questionResponses;
 }
 
-void MultipleChoicePage::setQuestionMultis(const QList<bool> &newQuestionMultis)
+void AttributePage::setQuestionMultis(const QList<bool> &newQuestionMultis)
 {
     int i = 0;
     for(const auto &newQuestionMulti : newQuestionMultis) {
         if(i >= numQuestions) {
             addQuestion();
         }
-        multichoiceQuestions[i]->setMulti(newQuestionMulti);
+        attributeQuestions[i]->setMulti(newQuestionMulti);
         i++;
     }
     while(i < MAX_ATTRIBUTES-1) {
-        multichoiceQuestions[i++]->setMulti(false);
+        attributeQuestions[i++]->setMulti(false);
     }
     emit questionMultisChanged(questionMultis);
 }
 
-QList<bool> MultipleChoicePage::getQuestionMultis() const
+QList<bool> AttributePage::getQuestionMultis() const
 {
     return questionMultis;
 }
 
-void MultipleChoicePage::addQuestion()
+void AttributePage::addQuestion()
 {
     spacers[numQuestions]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    multichoiceQuestions[numQuestions]->show();
+    attributeQuestions[numQuestions]->show();
     questionPreviews[numQuestions]->show();
 
     numQuestions++;
@@ -937,22 +937,22 @@ void MultipleChoicePage::addQuestion()
     }
 }
 
-void MultipleChoicePage::deleteAQuestion(int questionNum)
+void AttributePage::deleteAQuestion(int questionNum)
 {
     //bump the data from every subsequent question up one
     for(int i = questionNum; i < (numQuestions - 1); i++) {
-        multichoiceQuestions[i]->setQuestion(multichoiceQuestions[i+1]->getQuestion());
-        multichoiceQuestions[i]->setResponses(multichoiceQuestions[i+1]->getResponses());
-        multichoiceQuestions[i]->setMulti(multichoiceQuestions[i+1]->getMulti());
+        attributeQuestions[i]->setQuestion(attributeQuestions[i+1]->getQuestion());
+        attributeQuestions[i]->setResponses(attributeQuestions[i+1]->getResponses());
+        attributeQuestions[i]->setMulti(attributeQuestions[i+1]->getMulti());
     }
 
     //clear the last question currently displayed, then hide it
-    multichoiceQuestions[numQuestions - 1]->setQuestion("");
-    multichoiceQuestions[numQuestions - 1]->setResponses(QStringList({""}));
-    multichoiceQuestions[numQuestions - 1]->setMulti(false);
+    attributeQuestions[numQuestions - 1]->setQuestion("");
+    attributeQuestions[numQuestions - 1]->setResponses(QStringList({""}));
+    attributeQuestions[numQuestions - 1]->setMulti(false);
 
     spacers[numQuestions - 1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    multichoiceQuestions[numQuestions - 1]->hide();
+    attributeQuestions[numQuestions - 1]->hide();
     questionPreviews[numQuestions - 1]->hide();
 
     numQuestions--;
@@ -2387,84 +2387,92 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::demographics]->hide();
     }
 
-    //Multiple Choice
-    const int multiChoiceNumQuestions = field("multiChoiceNumQuestions").toInt();
-    const QStringList multiQuestionTexts = field("multiChoiceQuestionTexts").toStringList();
+    //Attribute
+    const int attributeNumQuestions = field("attributeNumQuestions").toInt();
+    const QStringList attributeQuestionTexts = field("attributeQuestionTexts").toStringList();
     const auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
     const auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
 
-    int actualNumMultiQuestions = 0;
-    for(int questionNum = 0; questionNum < multiChoiceNumQuestions; questionNum++) {
-        if(!multiQuestionTexts[questionNum].isEmpty()) {
-            actualNumMultiQuestions++;
-            section[SurveyMakerWizard::multichoice]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-            section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->show();
+    int actualNumAttributeQuestions = 0;
+    for(int questionNum = 0; questionNum < attributeNumQuestions; questionNum++) {
+        if(!attributeQuestionTexts[questionNum].isEmpty()) {
+            actualNumAttributeQuestions++;
+            section[SurveyMakerWizard::attribute]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+            section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->show();
             auto responses = multiQuestionResponses[questionNum].toStringList();
-            if((multiQuestionMultis[questionNum]).toBool()) {
-                section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum] + "\n" + SELECTMULT);
+            if(responses == QStringList({SurveyMakerAttributeQuestion::FREERESPONSENUMBER})) {
+                section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->setText(attributeQuestionTexts[questionNum]);
+                section[SurveyMakerWizard::attribute]->questionGroupBox[questionNum]->hide();
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->hide();
+                section[SurveyMakerWizard::attribute]->questionLineEdit[questionNum]->show();
+                section[SurveyMakerWizard::attribute]->questionLineEdit[questionNum]->setPlaceholderText(tr("Enter a number..."));
+                survey->questions << Question(attributeQuestionTexts[questionNum], Question::QuestionType::freeresponsenumber);
+            }
+            else if((multiQuestionMultis[questionNum]).toBool()) {
+                section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->setText(attributeQuestionTexts[questionNum] + "\n" + SELECTMULT);
                 QLayoutItem *child;
-                while((child = section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
+                while((child = section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
                 for(const auto &response : std::as_const(responses)) {
                     auto *option = new QCheckBox(response);
-                    section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
+                    section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->addWidget(option);
                 }
-                section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->show();
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->hide();
-                survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::checkbox, responses);
+                section[SurveyMakerWizard::attribute]->questionGroupBox[questionNum]->show();
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->hide();
+                survey->questions << Question(attributeQuestionTexts[questionNum], Question::QuestionType::checkbox, responses);
             }
             else if(responses.size() < 10) {
-                section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum] + "\n" + SELECTONE);
+                section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->setText(attributeQuestionTexts[questionNum] + "\n" + SELECTONE);
                 QLayoutItem *child;
-                while((child = section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
+                while((child = section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
                 for(const auto &response : std::as_const(responses)) {
                     auto *option = new QRadioButton(response);
-                    section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
+                    section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->addWidget(option);
                 }
-                section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->show();
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->hide();
-                survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::radiobutton, responses);
+                section[SurveyMakerWizard::attribute]->questionGroupBox[questionNum]->show();
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->hide();
+                survey->questions << Question(attributeQuestionTexts[questionNum], Question::QuestionType::radiobutton, responses);
             }
             else {
-                section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum]);
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->clear();
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->addItems(responses);
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setPlaceholderText(QString(SELECTONE).remove(':'));
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setCurrentIndex(-1);
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->show();
-                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setMinimumWidth(
-                                                            section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->width() * 1.1);
-                section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->hide();
-                survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::dropdown, responses);
+                section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->setText(attributeQuestionTexts[questionNum]);
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->clear();
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->addItems(responses);
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->setPlaceholderText(QString(SELECTONE).remove(':'));
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->setCurrentIndex(-1);
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->show();
+                section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->setMinimumWidth(
+                                                            section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->width() * 1.1);
+                section[SurveyMakerWizard::attribute]->questionGroupBox[questionNum]->hide();
+                survey->questions << Question(attributeQuestionTexts[questionNum], Question::QuestionType::dropdown, responses);
             }
         }
         else {
-            section[SurveyMakerWizard::multichoice]->preQuestionSpacer[questionNum]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-            section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->hide();
-            section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->hide();
-            section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->hide();
+            section[SurveyMakerWizard::attribute]->preQuestionSpacer[questionNum]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+            section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->hide();
+            section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->hide();
+            section[SurveyMakerWizard::attribute]->questionGroupBox[questionNum]->hide();
         }
     }
-    for(int i = actualNumMultiQuestions; i < MAX_ATTRIBUTES; i++) {
-        section[SurveyMakerWizard::multichoice]->preQuestionSpacer[i]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[SurveyMakerWizard::multichoice]->questionLabel[i]->hide();
-        section[SurveyMakerWizard::multichoice]->questionComboBox[i]->hide();
-        section[SurveyMakerWizard::multichoice]->questionGroupBox[i]->hide();
+    for(int i = actualNumAttributeQuestions; i < MAX_ATTRIBUTES; i++) {
+        section[SurveyMakerWizard::attribute]->preQuestionSpacer[i]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::attribute]->questionLabel[i]->hide();
+        section[SurveyMakerWizard::attribute]->questionComboBox[i]->hide();
+        section[SurveyMakerWizard::attribute]->questionGroupBox[i]->hide();
     }
 
-    if(actualNumMultiQuestions > 0) {
+    if(actualNumAttributeQuestions > 0) {
         preSectionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[SurveyMakerWizard::multichoice]->show();
+        section[SurveyMakerWizard::attribute]->show();
     }
     else {
         preSectionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[SurveyMakerWizard::multichoice]->hide();
+        section[SurveyMakerWizard::attribute]->hide();
     }
 
     //Schedule
@@ -2782,14 +2790,14 @@ void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
             saveObject["GenderAllowMulti"] = field("GenderAllowMulti").toBool();
             saveObject["URM"] = field("RaceEthnicity").toBool();
 
-            const int numMultiChoiceQuestions = field("multiChoiceNumQuestions").toInt();
-            saveObject["numAttributes"] = numMultiChoiceQuestions;
-            QList<QString> multiQuestionTexts = field("multiChoiceQuestionTexts").toStringList();
+            const int numAttributeQuestions = field("attributeNumQuestions").toInt();
+            saveObject["numAttributes"] = numAttributeQuestions;
+            QList<QString> attributeQuestionTexts = field("attributeQuestionTexts").toStringList();
             auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
             auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
             auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
-            for(int question = 0; question < numMultiChoiceQuestions; question++) {
-                saveObject["Attribute" + QString::number(question+1)+"Question"] = multiQuestionTexts[question];
+            for(int question = 0; question < numAttributeQuestions; question++) {
+                saveObject["Attribute" + QString::number(question+1)+"Question"] = attributeQuestionTexts[question];
                 const int responseOptionNum = responseOptions.indexOf(multiQuestionResponses[question].toStringList().join(" / "));
                 saveObject["Attribute" + QString::number(question+1)+"Response"] = responseOptionNum + 1;
                 saveObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"] = multiQuestionMultis[question].toBool();

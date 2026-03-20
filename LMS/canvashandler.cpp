@@ -350,6 +350,10 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
             query.addQueryItem("question[question_type]", "essay_question");
             query.addQueryItem("question[question_text]", question.text);
             break;
+        case Question::QuestionType::freeresponsenumber:
+            query.addQueryItem("question[question_type]", "numerical_question");
+            query.addQueryItem("question[question_text]", question.text);
+            break;
         case Question::QuestionType::dropdown: {
             query.addQueryItem("question[question_type]", "multiple_dropdowns_question");
             query.addQueryItem("question[question_text]", question.text + "  [options]");

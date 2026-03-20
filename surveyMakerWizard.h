@@ -39,9 +39,9 @@ public:
     SurveyMakerWizard& operator= (SurveyMakerWizard&&) = delete;
 
     static inline const int numPages = 7;
-    enum Page{introtitle, demographics, multichoice, schedule, courseinfo, freeresponse, previewexport};
+    enum Page{introtitle, demographics, attribute, schedule, courseinfo, freeresponse, previewexport};
     static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 2, 3, MAX_NOTES, 0};
-    static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Multiple Choice"),
+    static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Attributes"),
                                                  QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Free Response"),
                                                  QObject::tr("Preview & Export")};
 
@@ -172,9 +172,9 @@ private:
 };
 
 /**
- * @brief The MultipleChoicePage class responsible for
+ * @brief The AttributePage class responsible for
  */
-class MultipleChoicePage : public SurveyMakerPage
+class AttributePage : public SurveyMakerPage
 {
     Q_OBJECT
     Q_PROPERTY(int numQuestions READ getNumQuestions WRITE setNumQuestions NOTIFY numQuestionsChanged)
@@ -183,7 +183,7 @@ class MultipleChoicePage : public SurveyMakerPage
     Q_PROPERTY(QList<bool> questionMultis READ getQuestionMultis WRITE setQuestionMultis NOTIFY questionMultisChanged)
 
 public:
-    MultipleChoicePage(QWidget *parent = nullptr);
+    AttributePage(QWidget *parent = nullptr);
 
     /**
      * @brief initializePage CURRENTLY AN EMPTY METHOD.
@@ -262,7 +262,7 @@ private:
     QLabel *sampleQuestionsLabel = nullptr;
     QPushButton *sampleQuestionsButton = nullptr;
     SampleQuestionsDialog *sampleQuestionsDialog = nullptr;
-    QList<SurveyMakerMultichoiceQuestion *> multichoiceQuestions;
+    QList<SurveyMakerAttributeQuestion *> attributeQuestions;
     QList<QSpacerItem *> spacers;
     QList<QFrame *> previewSeparators;
     QFrame *addQuestionButtonFrame = nullptr;
@@ -566,20 +566,20 @@ public:
     void setNumQuestions(const int newNumQuestions);
 
     /**
-     * @brief getNumQuestions is a getter that returns the number of questions for the current multiple choice page.
-     * @return The number of questions on this multiple choice page.
+     * @brief getNumQuestions is a getter that returns the number of questions for the free response question page.
+     * @return The number of questions on the free response questions page.
      */
     int getNumQuestions() const;
 
     /**
-     * @brief setQuestionTexts Adds question text boxes based on the nubmer of questions the user wants on this multiple choice page.
-     * @param newQuestionTexts A list of questions that the user wants on this multiple choice page.
+     * @brief setQuestionTexts Adds question text boxes based on the nubmer of questions the user wants on the free response question page.
+     * @param newQuestionTexts A list of questions that the user wants on the free response question page.
      */
     void setQuestionTexts(const QList<QString> &newQuestionTexts);
 
     /**
-     * @brief getQuestionTexts Returns the list of questions the user wants for this multiple choice page (getter for field of this class).
-     * @return The list of strings corresponding to questions the user wants on this multiple choice page.
+     * @brief getQuestionTexts Returns the list of questions the user wants for the free response question page (getter for field of this class).
+     * @return The list of strings corresponding to questions the user wants on the free response question page.
      */
     QList<QString> getQuestionTexts() const;
 

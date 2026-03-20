@@ -140,12 +140,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     const auto &teamSizeCriterion = qobject_cast<TeamsizeCriterion*>(teamsizeCriteriaCard->criterion);
     idealTeamSizeBox = teamSizeCriterion->idealTeamSizeBox;
     teamSizeBox = teamSizeCriterion->teamSizeBox;
-    if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
-        idealTeamSizeBox->setValue(teamingOptions->idealTeamSize);
-    } else {
-        const QSettings savedSettings;
-        idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
-    }
+    idealTeamSizeBox->setValue(teamingOptions->idealTeamSize);
     connect(teamSizeCriterion->idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
     connect(teamSizeCriterion->teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
     criteriaCardsList.append(teamsizeCriteriaCard);
@@ -239,8 +234,18 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
             addCriteriaCard(type);
         }
 
-        if (cardJson.contains("criteriaSettings")) {
-            criteriaCardsList.last()->criterion->settingsFromJson(cardJson["criteriaSettings"].toObject());
+        // Apply saved settings to the just-added card's criterion
+        GroupingCriteriaCard *addedCard = criteriaCardsList.last();
+        if (cardJson.contains("settings")) {
+            addedCard->criterion->settingsFromJson(cardJson["settings"].toObject());
+        }
+
+        // Refresh the attribute widget UI to reflect restored settings
+        if (type == Criterion::CriteriaType::attributeQuestion) {
+            auto *attrCriterion = qobject_cast<AttributeCriterion*>(addedCard->criterion);
+            if (attrCriterion != nullptr && attrCriterion->attributeWidget != nullptr) {
+                attrCriterion->attributeWidget->setValues();
+            }
         }
     }
 
@@ -1841,11 +1846,11 @@ void gruepr::saveState()
             QJsonObject cardjson;
             auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
             cardjson["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(card->criterion->criteriaType));
+            cardjson["settings"] = card->criterion->settingsToJson();
             if (card->criterion->criteriaType == Criterion::CriteriaType::attributeQuestion) {
                 const auto *attrCriterion = qobject_cast<AttributeCriterion*>(card->criterion);
                 cardjson["attributeIndex"] = attrCriterion->attributeIndex;
             }
-            cardjson["criteriaSettings"] = card->criterion->settingsToJson();
             criteriacardsjsons.append(cardjson);
         }
         content["criteriaCards"] = criteriacardsjsons;
@@ -2407,10 +2412,6 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     return(mean - (std::abs(mean)/2));   //"punished" arithmetic mean
 }
 
-
-//////////////////
-// Before closing the main application window, see if we want to save the current settings as defaults
-//////////////////
 void gruepr::closeEvent(QCloseEvent *event)
 {
     QSettings savedSettings;

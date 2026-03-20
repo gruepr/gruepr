@@ -237,7 +237,8 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         item["title"] = question.text.simplified();
         switch(question.type) {
         case Question::QuestionType::shorttext:
-        case Question::QuestionType::longtext: {
+        case Question::QuestionType::longtext:
+        case Question::QuestionType::freeresponsenumber: {  // Google Forms API doesn't have a native number input - this will be free text!
             QJsonObject questionItem;
             QJsonObject questionBody;
             questionBody["required"] = false;

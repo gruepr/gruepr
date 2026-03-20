@@ -72,5 +72,6 @@
         <file>icons_new/left.png</file>
         <file>icons_new/left-collapse.png</file>
         <file>icons_new/right-collapse.png</file>
+        <file>icons_new/average.png</file>
     </qresource>
 </RCC>

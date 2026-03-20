@@ -47,6 +47,7 @@ private:
     inline static const int BARGRAPHWIDTH = 40;
     inline static const QString DIVERSETOOLTIP = QObject::tr("Teammates will have a range of responses to this question.");
     inline static const QString SIMILARTOOLTIP = QObject::tr("Teammates will have similar responses to this question.");
+    inline static const QString AVERAGETOOLTIP = QObject::tr("The team's average response will be close to the class average.");
     inline static const QString REQUIREDTOOLTIP = QObject::tr("<html>Enforce that each team have at least one student with a particular response.<br><br>"
                                                               "Examples:<ui><li>Every team should have (at least) one student who is trained to use the library database.</li>"
                                                               "<li>Every team should have (at least) one student who said they want to be a team leader.</li></ul></html>");

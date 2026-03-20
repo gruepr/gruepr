@@ -14,14 +14,14 @@ class Criterion : public QObject {
     Q_OBJECT
 
 public:
-    enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion, scheduleMeetingTimes,
-                             groupTogether, splitApart};
+    enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion,
+                             scheduleMeetingTimes, groupTogether, splitApart};
     Q_ENUM(CriteriaType)
     static int resolveCriteriaTypeKey(const QMetaEnum &e, const QString &name);  // needed to migrate old enum names to new
 
     enum class AttributeDiversity {diverse, ignored, similar, average};  // diverse = heterogeneous (i.e., teammates have a range of values)
                                                                       // similar = homogeneous (i.e., all teammates have the same value)
-                                                                      // mean = each team aims to have an average value near the population average
+                                                                      // average = each team aims to have an average value near the population average
     Q_ENUM(AttributeDiversity)
 
     using IdentityRule = QMap<QString, QList<int>>;             // A map from a logic operation (e.g., "!=") to a set of values (e.g., 1, 2)
@@ -32,8 +32,8 @@ public:
 
     // function to create criterion copies owned by each teamsTabWidget
     virtual Criterion* clone() const = 0;
-    virtual QJsonObject settingsToJson() const { return {}; }
-    virtual void settingsFromJson(const QJsonObject &/*json*/) {}
+    virtual QJsonObject settingsToJson() const;
+    virtual void settingsFromJson(const QJsonObject &json);
 
     // generate the UI for the criterion display in gruepr
     virtual void generateCriteriaCard(TeamingOptions *const teamingOptions) = 0;

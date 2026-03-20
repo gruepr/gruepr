@@ -47,7 +47,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class SurveyMakerMultichoiceQuestion : public QFrame
+class SurveyMakerAttributeQuestion : public QFrame
 {
     Q_OBJECT
     Q_PROPERTY(QString question READ getQuestion WRITE setQuestion NOTIFY questionChanged)
@@ -55,7 +55,7 @@ class SurveyMakerMultichoiceQuestion : public QFrame
     Q_PROPERTY(bool multi READ getMulti WRITE setMulti NOTIFY multiChanged)
 
 public:
-    explicit SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent = nullptr);
+    explicit SurveyMakerAttributeQuestion(int questionNum, QWidget *parent = nullptr);
 
     void resizeEvent(QResizeEvent *event) override;
 
@@ -68,6 +68,7 @@ public:
     QStringList getResponses() const;
     void setMulti(const bool newMulti);
     bool getMulti() const;
+    inline static const QString FREERESPONSENUMBER = "*****";
 
 signals:
     void deleteRequested();

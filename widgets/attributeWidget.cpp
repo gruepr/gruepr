@@ -37,7 +37,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
 
     // Create the "Diverse" card
     diverseCard = new FrameThatForwardsMouseClicks(this);
-    diverseCard->setFixedSize(100, 100);
+    diverseCard->setFixedSize(100, 120);
     diverseCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     diverseCard->setToolTip(DIVERSETOOLTIP);
     diverseButton = new QRadioButton(this);
@@ -55,7 +55,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
 
     // Create the "Similar" card
     similarCard = new FrameThatForwardsMouseClicks(this);
-    similarCard->setFixedSize(100, 100);
+    similarCard->setFixedSize(100, 120);
     similarCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     similarCard->setToolTip(SIMILARTOOLTIP);
     similarButton = new QRadioButton(this);
@@ -74,15 +74,15 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     // Create the "Average" card for numerical types
     if(attributeType == DataOptions::AttributeType::numerical) {
         averageCard = new FrameThatForwardsMouseClicks(this);
-        averageCard->setFixedSize(100, 100);
+        averageCard->setFixedSize(100, 120);
         averageCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        averageCard->setToolTip(SIMILARTOOLTIP);
+        averageCard->setToolTip(AVERAGETOOLTIP);
         averageButton = new QRadioButton(this);
-        averageButton->setIcon(QIcon(":/icons_new/similar.png"));
+        averageButton->setIcon(QIcon(":/icons_new/average.png"));
         averageButton->setIconSize(QSize(50, 50));
         averageButton->setStyleSheet("font-size: 15px;");
         auto *averageLayout = new QVBoxLayout(averageCard);
-        auto *averageLabel = new QLabel("Maintain\nAverage", this);
+        auto *averageLabel = new QLabel("Class\nAverage", this);
         averageButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
         averageLayout->addWidget(averageButton, 0, Qt::AlignTop);
         averageLayout->addWidget(averageLabel,0,Qt::AlignBottom);

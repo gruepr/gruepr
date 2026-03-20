@@ -13,7 +13,7 @@ Criterion* AttributeCriterion::clone() const {
 }
 
 QJsonObject AttributeCriterion::settingsToJson() const {
-    QJsonObject json;
+    QJsonObject json = Criterion::settingsToJson();
     auto diversityEnum = QMetaEnum::fromType<AttributeDiversity>();
     json["diversity"] = diversityEnum.valueToKey(static_cast<int>(diversity));
     json["targetMin"] = static_cast<double>(targetMin);
@@ -22,6 +22,7 @@ QJsonObject AttributeCriterion::settingsToJson() const {
 }
 
 void AttributeCriterion::settingsFromJson(const QJsonObject &json) {
+    Criterion::settingsFromJson(json);
     if(json.contains("diversity")) {
         auto diversityEnum = QMetaEnum::fromType<AttributeDiversity>();
         const int val = diversityEnum.keyToValue(qPrintable(json["diversity"].toString()));
