@@ -38,13 +38,10 @@ SurveyMakerWizard::SurveyMakerWizard()
     palette.setColor(QPalette::Mid, palette.color(QPalette::Base));
     setPalette(palette);
 
+    // construct the intro page so it shows quickly, then schedule the other pages to be constructed after
+    // also disable the load survey button until the other pages are constructed in addSecondaryPages()
     setPage(Page::introtitle, new IntroPage);
-    setPage(Page::demographics, new DemographicsPage);
-    setPage(Page::attribute, new AttributePage);
-    setPage(Page::schedule, new SchedulePage);
-    setPage(Page::courseinfo, new CourseInfoPage);
-    setPage(Page::freeresponse, new FreeResponsePage);
-    setPage(Page::previewexport, new PreviewAndExportPage);
+    button(QWizard::CustomButton1)->setEnabled(false);
 
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
@@ -67,10 +64,22 @@ SurveyMakerWizard::SurveyMakerWizard()
     setButtonText(QWizard::CustomButton2, tr("Return to Preview") + "  " + RIGHTARROWTOEND);
 }
 
-SurveyMakerWizard::~SurveyMakerWizard() {
+SurveyMakerWizard::~SurveyMakerWizard()
+{
     QSettings savedSettings;
     savedSettings.setValue("surveyMakerWindowGeometry", saveGeometry());
     savedSettings.setValue("saveFileLocation", saveFileLocation.canonicalFilePath());
+}
+
+void SurveyMakerWizard::addSecondaryPages()
+{
+    setPage(Page::demographics, new DemographicsPage);
+    setPage(Page::attribute, new AttributePage);
+    setPage(Page::schedule, new SchedulePage);
+    setPage(Page::courseinfo, new CourseInfoPage);
+    setPage(Page::freeresponse, new FreeResponsePage);
+    setPage(Page::previewexport, new PreviewAndExportPage);
+    button(QWizard::CustomButton1)->setEnabled(true);
 }
 
 void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent)
@@ -2915,6 +2924,9 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
                 if(question.type == Question::QuestionType::checkbox) {
                     textFileContents += "\n     (" + QString(SELECTMULT) + ")";
                 }
+            }
+            else if(question.type == Question::QuestionType::freeresponsenumber) {
+                textFileContents += "\n     (" + QString(WRITEANUMBER) + ")";
             }
         }
     }

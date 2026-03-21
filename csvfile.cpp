@@ -81,6 +81,15 @@ bool CsvFile::isOpen()
 }
 
 
+bool CsvFile::atEnd()
+{
+    if(stream == nullptr) {
+        return true;
+    }
+    return stream->atEnd();
+}
+
+
 //////////////////
 // Retrieve the fileInfo
 //////////////////
@@ -127,6 +136,10 @@ bool CsvFile::readHeader()
 {
     stream->seek(0);
     headerValues = getLine();
+    if (!headerValues.isEmpty() && headerValues[0].startsWith(QChar(0xFEFF))) {
+        // Strip BOM
+        headerValues[0] = headerValues[0].mid(1);
+    }
     numFields = int(headerValues.size());
     fieldMeanings.clear();
     fieldMeanings.reserve(numFields);
@@ -145,7 +158,9 @@ bool CsvFile::readDataRow(ReadLocation readLocation)
     if(readLocation == ReadLocation::beginningOfFile) {
         stream->seek(0);
     }
-    fieldValues = getLine(numFields);
+    do {
+        fieldValues = getLine(numFields);
+    } while(fieldValues.isEmpty() && !stream->atEnd());
     return !fieldValues.isEmpty();
 }
 
@@ -441,9 +456,15 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 {
     // read up to a newline
     QString line = externalStream.readLine();
-    // if there's a newline within a field, the number of " characters will be odd, so append to next newline and check again
-    while(line.count('"')%2 == 1 && !externalStream.atEnd()) {
-        line.append(externalStream.readLine());
+    static const int MAX_LINES_TO_APPEND = 100;
+    int linesAppended = 0;
+    while(line.count('"')%2 == 1 && !externalStream.atEnd() && linesAppended < MAX_LINES_TO_APPEND) {
+        line.append('\n' + externalStream.readLine());
+        linesAppended++;
+    }
+    // if we hit the limit, the quote is unmatched — strip it so the parser doesn't stay in Quote state
+    if(line.count('"')%2 == 1) {
+        line.remove(line.lastIndexOf('"'), 1);
     }
 
     enum {Normal, Quote} state = Normal;

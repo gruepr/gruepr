@@ -35,7 +35,7 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - Pulling in ***incredible*** dissertation work by Nikhen to modernize and simplify the UI
+//  - Pulling in ***incredible*** dissertation work by Nikhen to modernize and simplify the UI, especially the handling of teaming criteria
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //  - removed dark mode in windows
 //  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
@@ -45,37 +45,26 @@
 //  - now shows bar graphs indicating how many students selected each multiple choice response
 //  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
-//  - added free response questions to surveymaker
+//  - added numerical attribute and free text response questions to surveymaker
 //  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
-//  - expanded "attribute" questions to allow for multiple choice or free-response-number questions
 //  - unified "required" and "requested" teammates
-//
-// TO DO FOR V13:
-/*
-
-editOrAddStudentDialog numerical widget. The code stub uses a QDoubleSpinBox — you'll need to decide on the actual widget (spinbox vs. line
-edit with validator) and hook it up in the dialog's construction path the same way comboboxes are built for ordered/categorical types.
-
-Add numerical type to surveymaker attribute page
-
-*/
 //
 // TO DO:
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
-//  - scale the penalty points with weight
+//  - scale the penalty points with weight?
 //  - dialogs/identityrulesdialog: accept wider variety of rules (>, >=, <, <=)
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
-//  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
 //  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
 //
 //    INTERNAL:
-//  - continue refactoring items into each crierion from teamingOptions and teamRecord
+//  - refactor gender counts from teamRecord into genderCrierion
+//  - refactor schedule things from teamingOptions into scheduleCriterion
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
 //      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
 //      - much harder: replace arrays for all of the attribute-related stuff

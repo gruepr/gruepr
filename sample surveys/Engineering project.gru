@@ -32,7 +32,7 @@
     "Attribute4Question": "What is your class year?",
     "Attribute4Response": 0,
     "Attribute5AllowMultiResponse": false,
-    "Attribute5Options": "1. younger than 17 / 2. 17 / 3. 18 / 4. 19 / 5. 20 / 6. 21 / 7. 22 / 8. 23 / 9. 24 / 10. 25 / 11. older than 25",
+    "Attribute5Options": "*****",
     "Attribute5Question": "What is your age, in years?",
     "Attribute5Response": 0,
     "Attribute6AllowMultiResponse": false,

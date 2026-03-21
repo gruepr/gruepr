@@ -233,8 +233,9 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         QJsonObject location;
         location["index"] = questionNum;
         newQuestion["location"] = location;
+        QString questionAddendum = question.type == Question::QuestionType::freeresponsenumber? (QString("  (") + WRITEANUMBER) + ".)" : "";
         QJsonObject item;
-        item["title"] = question.text.simplified();
+        item["title"] = question.text.simplified() + questionAddendum;
         switch(question.type) {
         case Question::QuestionType::shorttext:
         case Question::QuestionType::longtext:
@@ -509,7 +510,8 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
             allValuesInField.reserve(nestedAnswers.size());
             for(const auto &nestedAnswer : std::as_const(nestedAnswers)) {
                 const auto answerObject = nestedAnswer.toObject();
-                allValuesInField << answerObject["value"].toString().replace('"', '\'');  // stray quotation marks in field can confuse the csv parser --> replace with apostrophe
+                allValuesInField << answerObject["value"].toString()
+                                        .replace('"', '\'').replace('\n', ' ').replace('\r', ' ');  // strip stray quotation marks, newlines
             }
             out << ",\"" << allValuesInField.join(question.type == GoogleFormQuestion::Type::schedule? ';' : ',') << "\"";
         }

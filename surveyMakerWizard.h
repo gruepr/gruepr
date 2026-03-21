@@ -45,6 +45,8 @@ public:
                                                  QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Free Response"),
                                                  QObject::tr("Preview & Export")};
 
+    void addSecondaryPages();       // speeds the loading of the title window by postponing the construction of the later pages
+
     static inline const auto sundayMidnight = QDateTime(QDate(2017, 1, 1), QTime(0, 0));    // 2017/1/1 just happens to be a Sunday
     static inline const auto locale = QLocale::system();
     static inline const QStringList defaultDayNames = {locale.toString(SurveyMakerWizard::sundayMidnight.addDays(0), "dddd"),

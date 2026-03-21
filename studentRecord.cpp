@@ -191,7 +191,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // Timestamp
     int fieldnum = dataOptions.timestampField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        const QString &timestampText = fields.at(fieldnum);
+        const QString &timestampText = fields.at(fieldnum).simplified().remove(QChar(0x00A0));
         surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Google Form
         if(surveyTimestamp.isNull()) {
             surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Google Form
@@ -227,13 +227,13 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // LMSID
     fieldnum = dataOptions.LMSIDField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        LMSID = fields.at(fieldnum).trimmed().toInt();
+        LMSID = fields.at(fieldnum).trimmed().remove(QChar(0x00A0)).toInt();
     }
 
     // First name
     fieldnum = dataOptions.firstNameField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        firstname = fields.at(fieldnum).trimmed();
+        firstname = fields.at(fieldnum).simplified();
         if(!firstname.isEmpty()) {
             firstname[0] = firstname[0].toUpper();
         }
@@ -242,7 +242,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // Last name
     fieldnum = dataOptions.lastNameField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        lastname = fields.at(fieldnum).trimmed();
+        lastname = fields.at(fieldnum).simplified();
         if(!lastname.isEmpty()) {
             lastname[0] = lastname[0].toUpper();
         }
@@ -251,7 +251,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // Email
     fieldnum = dataOptions.emailField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        email = fields.at(fieldnum).trimmed();
+        email = fields.at(fieldnum).simplified();
     }
 
     // gender
@@ -292,7 +292,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions.URMIncluded) {
         fieldnum = dataOptions.URMField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).toLower().trimmed();
+            QString field = fields.at(fieldnum).toLower().simplified();
             if(field == "") {
                 field = "--";
             }
@@ -304,8 +304,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
         fieldnum = dataOptions.attributeField[attribute];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).trimmed();
-            field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
+            QString field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0)).simplified().replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
             attributeResponse[attribute] = field;
         }
     }
@@ -315,7 +314,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     fieldnum = dataOptions.timezoneField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         QString timezoneName;
-        if(DataOptions::parseTimezoneInfoFromText(fields.at(fieldnum), timezoneName, timezone)) {
+        if(DataOptions::parseTimezoneInfoFromText(fields.at(fieldnum).trimmed().remove(QChar(0x00A0)), timezoneName, timezone)) {
             if(dataOptions.homeTimezoneUsed) {
                 timezoneOffset = dataOptions.baseTimezone - timezone;
             }
@@ -331,7 +330,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     int day = 0;
     for(const int fieldnum : dataOptions.scheduleField) {
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString &field = fields.at(fieldnum);
+            const QString &field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0));
             static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
             for(const auto &timeName : dataOptions.timeNames) {
                 const float time = grueprGlobal::timeStringToHours(timeName);
@@ -413,7 +412,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         const QString sectionText = QObject::tr("section");
         fieldnum = dataOptions.sectionField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            section = fields.at(fieldnum).trimmed();
+            section = fields.at(fieldnum).trimmed().remove(QChar(0x00A0));
             if(section.startsWith(sectionText, Qt::CaseInsensitive)) {
                 section = section.right(section.size() - sectionText.size()).trimmed();    //removing redundant "section" if at the start of the section name
             }
@@ -426,7 +425,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
             QString nextTeammate = fields.at(fieldnum);
             static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
             nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
-            nextTeammate = nextTeammate.trimmed();
+            nextTeammate = nextTeammate.trimmed().remove(QChar(0x00A0));
             if(!prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
                 prefTeammates += "\n" + nextTeammate;
             }
@@ -442,7 +441,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
             QString nextTeammate = fields.at(fieldnum);
             static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
             nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
-            nextTeammate = nextTeammate.trimmed();
+            nextTeammate = nextTeammate.trimmed().remove(QChar(0x00A0));
             if(!prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
                 prefNonTeammates += "\n" + nextTeammate;
             }
@@ -456,7 +455,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(const auto notesField : dataOptions.notesFields) {
         // join each one with a newline after
         if((notesField >= 0) && (notesField < numFields)) {
-            const QString nextNote = fields.at(notesField).trimmed();
+            const QString nextNote = fields.at(notesField).trimmed().remove(QChar(0x00A0));
             if(!notes.isEmpty() && !nextNote.isEmpty()) {
                 notes += "\n" + nextNote;
             }

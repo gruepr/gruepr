@@ -238,7 +238,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
             // create a responsses label and load up the prefixes to use in the combobox or checkboxes (unless it's timezone question)
             QStringList prefixes;
-            if(!(type == DataOptions::AttributeType::timezone)) {
+            if(!(type == DataOptions::AttributeType::timezone || type == DataOptions::AttributeType::numerical)) {
                 auto *responsesLabel = new QLabel(this);
                 responsesLabel->setStyleSheet(LABEL10PTSTYLE);
                 responsesLabel->setTextFormat(Qt::RichText);
@@ -309,13 +309,31 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 layout->addWidget(attributeCombobox.last());
             }
             else if((type == DataOptions::AttributeType::numerical)) {
+                auto *hbox = new QHBoxLayout();
                 attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
                 attributeSpinBox << new QDoubleSpinBox(this);
                 attributeSpinBox.last()->installEventFilter(new MouseWheelBlocker(attributeSpinBox.last()));
                 attributeSpinBox.last()->setFocusPolicy(Qt::StrongFocus);
                 attributeSpinBox.last()->setStyleSheet(DOUBLESPINBOXSTYLE);
-                attributeSpinBox.last()->setValue(student.attributeVals_continuous[attribute].constFirst());
-                layout->addWidget(attributeSpinBox.last());
+                attributeSpinBox.last()->setRange(-std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+                attributeSpinBox.last()->setSpecialValueText(UNKNOWNVALUE);
+                if(!student.attributeVals_continuous[attribute].isEmpty()) {
+                    attributeSpinBox.last()->setValue(student.attributeVals_continuous[attribute].constFirst());
+                }
+                else {
+                    attributeSpinBox.last()->setValue(attributeSpinBox.last()->minimum());
+                }
+                auto *eraseValue = new QPushButton(QIcon(":/icons_new/close_square.png"), "", this);
+                eraseValue->setToolTip(tr("Erase the value"));
+                eraseValue->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+                auto *const thisSpinBox = attributeSpinBox.last();
+                connect(eraseValue, &QPushButton::clicked, attributeSpinBox.last(), [thisSpinBox] {
+                    thisSpinBox->setValue(thisSpinBox->minimum());
+                });
+                hbox->addWidget(attributeSpinBox.last(), 0, Qt::AlignLeft);
+                hbox->addWidget(eraseValue, 0, Qt::AlignLeft);
+                hbox->addStretch();
+                layout->addLayout(hbox);
             }
             else if(type == DataOptions::AttributeType::timezone) {
                 attributeQuestionText->setText(tr("Timezone"));
@@ -498,7 +516,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         student.section = sectbox->currentText();
     }
 
-    int multiboxNum = 0, comboboxNum = 0;
+    int multiboxNum = 0, comboboxNum = 0, spinboxNum = 0;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const DataOptions::AttributeType type = dataOptions->attributeType[attribute];
         student.attributeVals_discrete[attribute].clear();
@@ -506,12 +524,14 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         student.attributeResponse[attribute].clear();
 
         if(type == DataOptions::AttributeType::numerical) {
-            auto *spinBox = attributeSpinBox.at(comboboxNum);
+            auto *spinBox = attributeSpinBox.at(spinboxNum);
             if(spinBox != nullptr) {
-                student.attributeVals_continuous[attribute] << static_cast<float>(spinBox->value());
-                student.attributeResponse[attribute] = QString::number(spinBox->value(), 'f', 2);
+                if(spinBox->value() != -std::numeric_limits<double>::infinity()) {
+                    student.attributeVals_continuous[attribute] << static_cast<float>(spinBox->value());
+                    student.attributeResponse[attribute] = QString::number(spinBox->value(), 'f', 2);
+                }
             }
-            comboboxNum++;
+            spinboxNum++;
         }
         else if((type == DataOptions::AttributeType::multicategorical) ||
                  (type == DataOptions::AttributeType::multiordered)) {
@@ -534,11 +554,17 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         else if(type != DataOptions::AttributeType::timezone) {
             // ordered, categorical
             auto *combo = attributeCombobox.at(comboboxNum);
-            student.attributeVals_discrete[attribute] << combo->currentData().toInt();
-            if(combo->currentData().toInt() != -1) {
-                student.attributeResponse[attribute] = combo->currentText();
+            if(combo != nullptr) {
+            const QStringList itemData = combo->currentData().toStringList();
+            if(itemData.isEmpty() || itemData.at(0).toInt() != -1) {
+                student.attributeVals_discrete[attribute] << -1;
+            }
+            else {
+                student.attributeVals_discrete[attribute] << itemData.at(0).toInt();
+                student.attributeResponse[attribute] = itemData.at(1);
             }
             comboboxNum++;
+            }
         }
     }
 

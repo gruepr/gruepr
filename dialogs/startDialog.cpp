@@ -164,6 +164,8 @@ void StartDialog::openSurveyMaker() {
     const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard());
     surveyMakerWizard->show();
     this->hide();
+    QApplication::processEvents();          // force the intro page to paint
+    surveyMakerWizard->addSecondaryPages(); // then construct the other 6 pages
     QApplication::restoreOverrideCursor();
     QEventLoop loop;
     connect(surveyMakerWizard.data(), &QWizard::finished, &loop, &QEventLoop::quit);

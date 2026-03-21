@@ -55,7 +55,7 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
     const int totNumAttributeLevels = thisIsNumerical || thisIsTimezone ? 0 :
                                           static_cast<int>(dataOptions->attributeVals_discrete[attributeIndex].size());
 
-    int totRangeAttributeLevels;
+    float totRangeAttributeLevels;
     if(thisIsNumerical) {
         totRangeAttributeLevels = *dataOptions->attributeVals_continuous[attributeIndex].crbegin()
                                   - *dataOptions->attributeVals_continuous[attributeIndex].cbegin();
@@ -68,23 +68,13 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                                     - *dataOptions->attributeVals_discrete[attributeIndex].cbegin();
     }
 
-    // For numerical: compute overall mean across the entire student array
-    // (students[] here is the full cohort array; numTeams * teamSizes gives total number of students)
+    // For numerical: compute overall mean
     float overallMean = 0.0f;
     if(thisIsNumerical) {
-        int totalStudents = 0;
-        for(int t = 0; t < numTeams; t++) {
-            totalStudents += teamSizes[t];
-        }
-        int count = 0;
-        for(int s = 0; s < totalStudents; s++) {
-            if(!students[s].attributeVals_continuous[attributeIndex].isEmpty()) {
-                overallMean += students[s].attributeVals_continuous[attributeIndex].first();
-                count++;
-            }
-        }
-        if(count > 0) {
-            overallMean /= count;
+        const auto &allVals = dataOptions->attributeVals_continuous[attributeIndex];
+        if(!allVals.empty()) {
+            overallMean = std::accumulate(allVals.cbegin(), allVals.cend(), 0.0f)
+            / static_cast<float>(allVals.size());
         }
     }
 
@@ -179,57 +169,55 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                     const float deviation = std::abs(teamMean - overallMean);
                     criteriaScores[team] = std::max(0.0f, 1.0f - (deviation / (rangeSpan * 0.5f)));
                 }
-                else if(diversity == Criterion::AttributeDiversity::similar ||
-                           diversity == Criterion::AttributeDiversity::diverse) {
-
-                    // spread: fraction of population range covered by the sample
+                else if(diversity == Criterion::AttributeDiversity::similar || diversity == Criterion::AttributeDiversity::diverse) {
                     if(totRangeAttributeLevels <= 0.0f || continuousLevels.size() < 2) {
                         criteriaScores[team] = 0.0f;
-                        continue;
                     }
-                    const float spread = (*continuousLevels.crbegin() - *continuousLevels.cbegin()) / totRangeAttributeLevels;
-                    if(continuousLevels.size() == 2) {
-                        criteriaScores[team] = spread * weight;
-                        continue;
-                    }
-
-                    // uniformity: 1 - Gini coefficient of gaps between consecutive sorted values
-                    // compute the gaps (sample is already sorted via multiset)
-                    std::vector<float> gaps;
-                    gaps.reserve(continuousLevels.size() - 1);
-                    auto prev = continuousLevels.cbegin();
-                    for(auto it = std::next(prev); it != continuousLevels.cend(); ++it) {
-                        gaps.push_back(*it - *prev);
-                        prev = it;
-                    }
-
-                    // Gini = sum of |g_i - g_j| / (2 * numGaps * sumOfGaps)
-                    float sumOfGaps = 0.0f;
-                    for(const float g : gaps) {
-                        sumOfGaps += g;
-                    }
-                    if(sumOfGaps <= 0.0f) {
-                        // all values identical
-                        criteriaScores[team] = 0.0f;
-                        continue;
-                    }
-
-                    float sumAbsDiffs = 0.0f;
-                    const int numGaps = static_cast<int>(gaps.size());
-                    for(int i = 0; i < numGaps; i++) {
-                        for(int j = i + 1; j < numGaps; j++) {
-                            sumAbsDiffs += std::abs(gaps[i] - gaps[j]);
+                    else {
+                        // spread: fraction of population range covered by the sample
+                        const float spread = (*continuousLevels.crbegin() - *continuousLevels.cbegin()) / totRangeAttributeLevels;
+                        if(continuousLevels.size() == 2) {
+                            criteriaScores[team] = spread;
                         }
-                    }
-                    sumAbsDiffs *= 2.0f;  // account for both (i,j) and (j,i)
+                        else {
+                            // uniformity: 1 - Gini coefficient of gaps between consecutive sorted values
+                            // compute the gaps (sample is already sorted via multiset)
+                            std::vector<float> gaps;
+                            gaps.reserve(continuousLevels.size() - 1);
+                            auto prev = continuousLevels.cbegin();
+                            for(auto it = std::next(prev); it != continuousLevels.cend(); ++it) {
+                                gaps.push_back(*it - *prev);
+                                prev = it;
+                            }
 
-                    const float gini = sumAbsDiffs / (2.0f * numGaps * sumOfGaps);
-                    const float uniformity = 1.0f - gini;
+                            // Gini = sum of |g_i - g_j| / (2 * numGaps * sumOfGaps)
+                            float sumOfGaps = 0.0f;
+                            for(const float g : gaps) {
+                                sumOfGaps += g;
+                            }
+                            if(sumOfGaps <= 0.0f) {
+                                // all values identical
+                                criteriaScores[team] = 0.0f;
+                                continue;
+                            }
 
-                    criteriaScores[team] = spread * uniformity;
+                            float sumAbsDiffs = 0.0f;
+                            const int numGaps = static_cast<int>(gaps.size());
+                            for(int i = 0; i < numGaps; i++) {
+                                for(int j = i + 1; j < numGaps; j++) {
+                                    sumAbsDiffs += std::abs(gaps[i] - gaps[j]);
+                                }
+                            }
+                            sumAbsDiffs *= 2.0f;  // account for both (i,j) and (j,i)
 
-                    if(diversity == Criterion::AttributeDiversity::similar) {
-                        criteriaScores[team] = 1.0f - criteriaScores[team];
+                            const float gini = sumAbsDiffs / (2.0f * numGaps * sumOfGaps);
+
+                            criteriaScores[team] = spread * (1.0f - gini);
+                        }
+
+                        if(diversity == Criterion::AttributeDiversity::similar) {
+                            criteriaScores[team] = 1.0f - criteriaScores[team];
+                        }
                     }
                 }
             }

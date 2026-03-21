@@ -19,8 +19,6 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     minTimeBlocksOverlap = jsonTeamingOptions["minTimeBlocksOverlap"].toInt();
     meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
-    targetMinimumGroupGradeAverage = jsonTeamingOptions["targetMinimumGroupGradeAverage"].toDouble();
-    targetMaximumGroupGradeAverage = jsonTeamingOptions["targetMaximumGroupGradeAverage"].toDouble();
     const QJsonArray haveAnyRequiredAttributesArray = jsonTeamingOptions["haveAnyRequiredAttributes"].toArray();
     int i = 0;
     for(const auto &item : haveAnyRequiredAttributesArray) {

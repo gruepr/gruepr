@@ -265,6 +265,15 @@ void AttributeWidget::setValues()
 
 void AttributeWidget::updateResponses(const std::map<QString, int> &responseCounts)
 {
+    setUpdatesEnabled(false);
+
+    // clear the responsesLayout
+    for(auto &responseRow : responseRows) {
+        responsesLayout->removeWidget(responseRow);
+        responseRow->deleteLater();
+    }
+    responseRows.clear();
+
     if(attributeType == DataOptions::AttributeType::numerical) {
         const auto minVal = *dataOptions->attributeVals_continuous[attribute].cbegin();
         const auto maxVal = *dataOptions->attributeVals_continuous[attribute].crbegin();
@@ -275,77 +284,68 @@ void AttributeWidget::updateResponses(const std::map<QString, int> &responseCoun
         responseLabel->setStyleSheet(LABEL10PTSTYLE);
         responseLabel->setWordWrap(true);
         responsesLayout->addWidget(responseLabel);
-        return;
+        responseRows << responseLabel;
     }
 
-    setUpdatesEnabled(false);
+    else {
+        static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+        QRegularExpressionMatch match;
 
-    // clear the responsesLayout
-    for(auto &responseRow : responseRows) {
-        responsesLayout->removeWidget(responseRow);
-        responseRow->deleteLater();
-    }
-    responseRows.clear();
-
-    const auto type = dataOptions->attributeType[attribute];
-
-    static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-    QRegularExpressionMatch match;
-
-    auto &responseCountRef = responseCounts.empty() ? dataOptions->attributeQuestionResponseCounts[attribute] : responseCounts;
-    int totNumResponses = 0;
-    for (const auto& pair : responseCountRef) {
-        totNumResponses += pair.second;
-    }
-
-    int responseNum = 0;
-    for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
-        auto *row = new QWidget(this);
-        auto *rowLayout = new QHBoxLayout(row);
-        rowLayout->setContentsMargins(0, 0, 2, 2);
-        rowLayout->setSpacing(4);
-
-        // Response count bar graph
-        auto *responseBarGraph = new ResponseLabelBarGraph(responseCountRef.at(response), totNumResponses, BARGRAPHWIDTH, row);
-
-        // Response value
-        QString label, text;
-        if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {
-            // show response with starting number
-            match = startsWithInteger.match(response);
-            label = match.captured(1);
-            text = " " + response.mid(match.capturedLength(1));
+        auto &responseCountRef = responseCounts.empty() ? dataOptions->attributeQuestionResponseCounts[attribute] : responseCounts;
+        int totNumResponses = 0;
+        for (const auto& pair : responseCountRef) {
+            totNumResponses += pair.second;
         }
-        else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical)) {
-            // show response with a preceding letter (letter repeated for responses after 26)
-            label = (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
-            text = ". " + response;
-        }
-        else {
-            // timezone, show response with GMT
-            QString timezoneName;
-            float hours=0, minutes=0, offsetFromGMT=0;
-            if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT)) {
-                const QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
-                label = GMTtext;
-                text = " " + timezoneName;
+
+        int responseNum = 0;
+        for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
+            auto *row = new QWidget(this);
+            auto *rowLayout = new QHBoxLayout(row);
+            rowLayout->setContentsMargins(0, 0, 2, 2);
+            rowLayout->setSpacing(4);
+
+            // Response count bar graph
+            auto *responseBarGraph = new ResponseLabelBarGraph(responseCountRef.at(response), totNumResponses, BARGRAPHWIDTH, row);
+
+            // Response value
+            QString label, text;
+            if((attributeType == DataOptions::AttributeType::ordered) || (attributeType == DataOptions::AttributeType::multiordered)) {
+                // show response with starting number
+                match = startsWithInteger.match(response);
+                label = match.captured(1);
+                text = " " + response.mid(match.capturedLength(1));
             }
-            else {
+            else if((attributeType == DataOptions::AttributeType::categorical) || (attributeType == DataOptions::AttributeType::multicategorical)) {
+                // show response with a preceding letter (letter repeated for responses after 26)
                 label = (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
                 text = ". " + response;
             }
+            else {
+                // timezone, show response with GMT
+                QString timezoneName;
+                float hours=0, minutes=0, offsetFromGMT=0;
+                if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT)) {
+                    const QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
+                    label = GMTtext;
+                    text = " " + timezoneName;
+                }
+                else {
+                    label = (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+                    text = ". " + response;
+                }
+            }
+            auto *responseLabel = new QLabel(QString("<b>%1</b>%2").arg(label, text), row);
+            responseLabel->setStyleSheet(LABEL10PTSTYLE);
+            responseLabel->setWordWrap(true);
+
+            rowLayout->addWidget(responseBarGraph);
+            rowLayout->addWidget(responseLabel);
+            row->setToolTip(QString::number(responseCountRef.at(response)) + tr(" students gave response ") + label + ".");
+
+            responseRows << row;
+            responsesLayout->addWidget(row);
+            responseNum++;
         }
-        auto *responseLabel = new QLabel(QString("<b>%1</b>%2").arg(label, text), row);
-        responseLabel->setStyleSheet(LABEL10PTSTYLE);
-        responseLabel->setWordWrap(true);
-
-        rowLayout->addWidget(responseBarGraph);
-        rowLayout->addWidget(responseLabel);
-        row->setToolTip(QString::number(responseCountRef.at(response)) + tr(" students gave response ") + label + ".");
-
-        responseRows << row;
-        responsesLayout->addWidget(row);
-        responseNum++;
     }
     setUpdatesEnabled(true);
 }

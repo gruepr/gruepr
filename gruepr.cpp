@@ -794,10 +794,6 @@ void gruepr::editAStudent()
 
     // remove this student's current attribute responses from the counts in dataOptions
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
-            // No response count to decrement for numerical types
-            continue;
-        }
         const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
@@ -827,22 +823,28 @@ void gruepr::editAStudent()
     // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
-            // No response count to decrement for numerical types
-            continue;
-        }
-        const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
-        if(!currentStudentResponse.isEmpty()) {
-            if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
-                (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-                //need to process each one
-                const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
-                    dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+            dataOptions->attributeVals_continuous[attribute].clear();
+            for(const auto &student : std::as_const(students)) {
+                if(!student.deleted && !student.attributeVals_continuous[attribute].isEmpty()) {
+                    dataOptions->attributeVals_continuous[attribute].insert(student.attributeVals_continuous[attribute].first());
                 }
             }
-            else {
-                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-            }            
+        }
+        else {
+            const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
+            if(!currentStudentResponse.isEmpty()) {
+                if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+                    (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
+                    //need to process each one
+                    const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                    for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
+                        dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                    }
+                }
+                else {
+                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                }
+            }
         }
         attributeWidgets[attribute]->setValues();
     }
@@ -879,6 +881,9 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
         return;
     }
 
+    //Remove the student
+    studentBeingRemoved->deleted = true;
+
     if(teamingOptions->haveAnyGroupTogethers || teamingOptions->haveAnySplitAparts) {
         // remove this student from all other students who might have them as groupTogether / SplitApart
         for(auto &student : students) {
@@ -889,25 +894,33 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
 
     // update in dataOptions and then the attribute tab the count of each attribute response
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-        const QString &currentStudentResponse = studentBeingRemoved->attributeResponse[attribute];
-        if(!currentStudentResponse.isEmpty()) {
-            if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
-                (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-                //need to process each one
-                const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
-                    dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]--;
+        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
+            dataOptions->attributeVals_continuous[attribute].clear();
+            for(const auto &student : std::as_const(students)) {
+                if(!student.deleted && !student.attributeVals_continuous[attribute].isEmpty()) {
+                    dataOptions->attributeVals_continuous[attribute].insert(
+                        student.attributeVals_continuous[attribute].first());
                 }
             }
-            else {
-                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
+        }
+        else {
+            const QString &currentStudentResponse = studentBeingRemoved->attributeResponse[attribute];
+            if(!currentStudentResponse.isEmpty()) {
+                if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+                    (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
+                    //need to process each one
+                    const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                    for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
+                        dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]--;
+                    }
+                }
+                else {
+                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
+                }
             }
         }
         attributeWidgets[attribute]->setValues();
     }
-
-    //Remove the student
-    studentBeingRemoved->deleted = true;
 
     if(delayVisualUpdate) {
         return;
@@ -936,18 +949,28 @@ void gruepr::addAStudent()
 
             // update in dataOptions and then the attribute tab the count of each attribute response
             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-                const QString &currentStudentResponse = newStudent.attributeResponse[attribute];
-                if(!currentStudentResponse.isEmpty()) {
-                    if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
-                        (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-                        //need to process each one
-                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                        for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
-                            dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
+                    dataOptions->attributeVals_continuous[attribute].clear();
+                    for(const auto &student : std::as_const(students)) {
+                        if(!student.deleted && !student.attributeVals_continuous[attribute].isEmpty()) {
+                            dataOptions->attributeVals_continuous[attribute].insert(student.attributeVals_continuous[attribute].first());
                         }
                     }
-                    else {
-                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                }
+                else {
+                    const QString &currentStudentResponse = newStudent.attributeResponse[attribute];
+                    if(!currentStudentResponse.isEmpty()) {
+                        if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+                            (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
+                            //need to process each one
+                            const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                            for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
+                                dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                            }
+                        }
+                        else {
+                            dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                        }
                     }
                 }
                 attributeWidgets[attribute]->setValues();

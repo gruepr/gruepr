@@ -733,9 +733,11 @@ bool loadDataDialog::readData()
         QStringList allTimeNames;
         do {
             for(const int fieldNum : std::as_const(dataOptions->scheduleField)) {
-                QString scheduleFieldText = (surveyFile->fieldValues.at(fieldNum)).toLower().split(';').join(',');
-                QTextStream scheduleFieldStream(&scheduleFieldText);
-                allTimeNames << CsvFile::getLine(scheduleFieldStream);
+                if (fieldNum >= 0 && fieldNum < surveyFile->fieldValues.size()) {
+                    QString scheduleFieldText = (surveyFile->fieldValues.at(fieldNum)).toLower().split(';').join(',');
+                    QTextStream scheduleFieldStream(&scheduleFieldText);
+                    allTimeNames << CsvFile::getLine(scheduleFieldStream);
+                }
             }
         } while(surveyFile->readDataRow());
         allTimeNames.removeDuplicates();
@@ -823,6 +825,18 @@ bool loadDataDialog::readData()
             return false;
         }
 
+        // skip rows where every field is empty
+        bool allEmpty = true;
+        for(const auto &field : std::as_const(surveyFile->fieldValues)) {
+            if(!field.trimmed().isEmpty()) {
+                allEmpty = false;
+                break;
+            }
+        }
+        if(allEmpty) {
+            continue;
+        }
+
         currStudent.clear();
         currStudent.parseRecordFromStringList(surveyFile->fieldValues, *dataOptions); //copy survey file fieldValue onto studentRecord
         currStudent.ID = students.size();
@@ -842,18 +856,20 @@ bool loadDataDialog::readData()
         // Figure out what type of gender data was given (if any) -- initialized value is GenderType::adult, and we're checking each student
         // because some values are ambiguous to GenderType (e.g. "nonbinary")
         if(dataOptions->genderIncluded) {
-            const QString genderText = surveyFile->fieldValues.at(dataOptions->genderField);
-            if(genderText.contains(tr("male"), Qt::CaseInsensitive)) {  // contains "male" also picks up "female"
-                dataOptions->genderType = GenderType::biol;
-            }
-            else if(genderText.contains(tr("man"), Qt::CaseInsensitive)) {  // contains "man" also picks up "woman"
-                dataOptions->genderType = GenderType::adult;
-            }
-            else if((genderText.contains(tr("girl"), Qt::CaseInsensitive)) || (genderText.contains("boy", Qt::CaseInsensitive))) {
-                dataOptions->genderType = GenderType::child;
-            }
-            else if(genderText.contains(tr("he"), Qt::CaseInsensitive)) {  // contains "he" also picks up "she" and "they"
-                dataOptions->genderType = GenderType::pronoun;
+            if (dataOptions->genderField >= 0 && dataOptions->genderField < surveyFile->fieldValues.size()) {
+                const QString genderText = surveyFile->fieldValues.at(dataOptions->genderField);
+                if(genderText.contains(tr("male"), Qt::CaseInsensitive)) {  // contains "male" also picks up "female"
+                    dataOptions->genderType = GenderType::biol;
+                }
+                else if(genderText.contains(tr("man"), Qt::CaseInsensitive)) {  // contains "man" also picks up "woman"
+                    dataOptions->genderType = GenderType::adult;
+                }
+                else if((genderText.contains(tr("girl"), Qt::CaseInsensitive)) || (genderText.contains("boy", Qt::CaseInsensitive))) {
+                    dataOptions->genderType = GenderType::child;
+                }
+                else if(genderText.contains(tr("he"), Qt::CaseInsensitive)) {  // contains "he" also picks up "she" and "they"
+                    dataOptions->genderType = GenderType::pronoun;
+                }
             }
         }
 
@@ -1076,9 +1092,12 @@ bool loadDataDialog::readData()
 
                 if(!currentStudentResponse.isEmpty()) {
                     if(attributeType == DataOptions::AttributeType::numerical) {
-                        const float val = currentStudentResponse.trimmed().toFloat();
-                        continuousVals << val;
-                        dataOptions->attributeVals_continuous[attribute].insert(val);
+                        bool scannedAValue = false;
+                        const float val = currentStudentResponse.trimmed().toFloat(&scannedAValue);
+                        if(scannedAValue) {
+                            continuousVals << val;
+                            dataOptions->attributeVals_continuous[attribute].insert(val);
+                        }
                         // No response count tracking for free-range numbers.
                     }
                     else if(attributeType == DataOptions::AttributeType::ordered) {

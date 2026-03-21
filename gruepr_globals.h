@@ -461,6 +461,7 @@ inline static const char PREFTEAMMATEQUESTION4TYPEONE[] = " Please write their f
 inline static const char PREFTEAMMATEQUESTION4TYPEMULTI[] = " Please write their first and last name, and put a comma between each classmate.";
 inline static const char SELECTONE[] = "Select one:";
 inline static const char SELECTMULT[] = "Select all that apply:";
+inline static const char WRITEANUMBER[] = "Enter a number only:";
 
 //possible formats of strings used in the survey to refer to times of the day
 inline static const char TIMEFORMATS[] {"H:mm;"

@@ -155,12 +155,13 @@ void CategorizingDialog::populateTable(){
     while(surveyFile->readDataRow()){
         QStringList fieldValues = surveyFile->fieldValues;
         for (int fieldValueIndex = 0; fieldValueIndex < fieldValues.count(); fieldValueIndex++){
-
-            auto *fieldValue = new QLabel(fieldValues[fieldValueIndex], this);
-            fieldValue->setWordWrap(true);
-            //fieldValue->setFixedWidth(200);
-            fieldValue->setStyleSheet((row % 2 == 0)? LABEL10PTSTYLE : LABEL10PTBUBBLYBGSTYLE);
-            datasetTableWidget->setCellWidget(row, fieldValueIndex, fieldValue);
+            if (fieldValueIndex >= 0 && fieldValueIndex < surveyFile->fieldValues.size()) {
+                auto *fieldValue = new QLabel(fieldValues.at(fieldValueIndex), this);
+                fieldValue->setWordWrap(true);
+                //fieldValue->setFixedWidth(200);
+                fieldValue->setStyleSheet((row % 2 == 0)? LABEL10PTSTYLE : LABEL10PTBUBBLYBGSTYLE);
+                datasetTableWidget->setCellWidget(row, fieldValueIndex, fieldValue);
+            }
         }
         row++;
     }

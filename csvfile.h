@@ -54,6 +54,7 @@ public:
     bool openExistingFile(const QString &filepath);
     QFileInfo fileInfo();
     bool isOpen();
+    bool atEnd();
     void close(bool deleteFile = false);
     bool readHeader();
     //void setFieldMeanings();
