@@ -110,9 +110,7 @@ DISCLAIMER:
      This software incorporates code from the open source Qt libraries, using version 6.9. These can be
      freely downloaded from < http://qt.io/download >.
 
-     Some icons were originally created by Icons8 < https://icons8.com >. These icons have been made
-     available under the creative commons license: Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0). Other
-     icons and graphics are original creations for the gruepr project by
+     Icons and graphics are original creations for the gruepr project by
      Scout < https://scout.camd.northeastern.edu/ >.
 
      Several embedded fonts are used:

@@ -222,7 +222,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     mainLayout->addLayout(attributeSettingsLayout, 3);
 }
 
-void AttributeWidget::setValues()
+void AttributeWidget::setValues(bool updateResponsesToo)
 {
     if(attribute >= dataOptions->numAttributes) {
         diverseCard->setEnabled(false);
@@ -235,7 +235,9 @@ void AttributeWidget::setValues()
         return;
     }
 
-    updateResponses();
+    if(updateResponsesToo) {
+        updateResponses();
+    }
 
     if(attributeType != DataOptions::AttributeType::numerical && dataOptions->attributeVals_discrete[attribute].size() == 1) {
         diverseCard->setEnabled(false);
@@ -264,11 +266,9 @@ void AttributeWidget::setValues()
 
 void AttributeWidget::updateResponses(const std::map<QString, int> &responseCounts)
 {
-    qDebug() << "updateResponses for attribute " << attribute;
-
     setUpdatesEnabled(false);
 
-    // clear the responsesLayout
+    // clear the responses displayed
     for(auto &responseRow : responseRows) {
         responsesLayout->removeWidget(responseRow);
         responseRow->deleteLater();

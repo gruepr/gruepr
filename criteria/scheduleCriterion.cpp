@@ -11,12 +11,12 @@ Criterion* ScheduleCriterion::clone() const {
 
 void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
-    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-
     auto *meetingScheduleContentLayout = new QVBoxLayout();
     auto *minimumAndDesiredButtonLayout = new QHBoxLayout();
     minMeetingTimes = new QSpinBox(parentCard);
     desiredMeetingTimes = new QSpinBox(parentCard);
+    minMeetingTimes->setStyleSheet(SPINBOXSTYLE);
+    desiredMeetingTimes->setStyleSheet(SPINBOXSTYLE);
     minMeetingTimes->setMinimumHeight(40);
     desiredMeetingTimes->setMinimumHeight(40);
     minMeetingTimes->setPrefix(QString("Minimum: "));
@@ -33,6 +33,7 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
     minimumAndDesiredButtonLayout->addWidget(desiredMeetingTimes);
 
     meetingLengthSpinBox = new QDoubleSpinBox(parentCard);
+    meetingLengthSpinBox->setStyleSheet(DOUBLESPINBOXSTYLE);
     meetingLengthSpinBox->setMinimumHeight(40);
     meetingLengthSpinBox->setPrefix(QString("Duration: "));
     meetingLengthSpinBox->setSuffix(QString(" hour"));

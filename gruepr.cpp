@@ -104,7 +104,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     // Create the drop indicator for drag-and-drop visual feedback
     dropIndicator = new QFrame(this);
     dropIndicator->setFixedHeight(4);
-    dropIndicator->setStyleSheet("background-color: " DEEPWATERHEX "; border-radius: 2px; margin: 0px 10px;");
+    dropIndicator->setStyleSheet("QFrame{ background-color: " DEEPWATERHEX "; border-radius: 2px; margin: 0px 10px; }");
     dropIndicator->setAttribute(Qt::WA_TransparentForMouseEvents, true);
     dropIndicator->hide();
     bottomDropZone = new QWidget(this);
@@ -237,7 +237,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
         if (type == Criterion::CriteriaType::attributeQuestion) {
             auto *attributeCriterion = qobject_cast<AttributeCriterion*>(addedCard->criterion);
             if (attributeCriterion != nullptr && attributeCriterion->attributeWidget != nullptr) {
-                attributeCriterion->attributeWidget->setValues();
+                attributeCriterion->attributeWidget->setValues(false);
             }
         }
     }
@@ -750,7 +750,7 @@ void gruepr::changeSection(int index)
             }
 
             // put this new tally in the responses textbox of the attribute tab
-            attributeWidgets[attribute]->updateResponses();
+            attributeWidgets[attribute]->setValues();
         }
     }
 
@@ -1288,11 +1288,6 @@ void gruepr::changeIdealTeamSize()
     const int idealSize = idealTeamSizeBox->value();
     teamingOptions->idealTeamSize = idealSize;
 
-    // First, make sure we don't end up penalizing teams for having fewer requested teammates than the team size allows
-    if(teamingOptions->numberGroupTogethersGiven > idealSize) {
-        teamingOptions->numberGroupTogethersGiven = idealSize;
-    }
-
     // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
     teamSizeBox->setUpdatesEnabled(false);
 
@@ -1699,13 +1694,13 @@ void gruepr::optimizationComplete()
         teams[team].createTooltip(students);
     }
 
-    // Sort teams by 1st student's name, then set default teamnames and create tooltips
-    // std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
-    //           { const StudentRecord *const firstStudentOnTeamA = findStudentFromID(a.studentIDs.at(0));
-    //             const StudentRecord *const firstStudentOnTeamB = findStudentFromID(b.studentIDs.at(0));
-    //             return ((firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) <
-    //                     (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname));
-    //           });
+    // Sort teams by 1st student's name
+    std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
+              { const StudentRecord *const firstStudentOnTeamA = findStudentFromID(a.studentIDs.at(0));
+                const StudentRecord *const firstStudentOnTeamB = findStudentFromID(b.studentIDs.at(0));
+                return ((firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) <
+                        (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname));
+              });
 
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
@@ -1839,8 +1834,8 @@ void gruepr::loadUI()
         auto *currentAttributeCard = initializedAttributeCriteriaCards.last();
         const auto &currentAttributeCriterion = qobject_cast<AttributeCriterion*>(currentAttributeCard->criterion);
         attributeWidgets << currentAttributeCriterion->attributeWidget;
-        currentAttributeCriterion->attributeWidget->setValues(); //update issue
-        currentAttributeCard->setVisible(false); //just initialize, but initially false visibility
+        currentAttributeCriterion->attributeWidget->setValues();
+        currentAttributeCard->setVisible(false); //just initialize, don't show yet
     }
 
     //Remove duplicates

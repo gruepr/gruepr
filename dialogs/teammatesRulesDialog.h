@@ -30,7 +30,7 @@ public:
 
     QList<StudentRecord> students;
     bool teammatesSpecified = false;
-    int numberGroupTogethersGiven = 1;
+    int numberGroupTogethersGiven = REQUESTED_TEAMMATES_ALL;
 
     // Header widgets (public so layout can be managed)
     QHBoxLayout *headerLayout = nullptr;

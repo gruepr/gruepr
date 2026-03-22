@@ -64,15 +64,18 @@ void GenderCriterion::settingsFromJson(const QJsonObject &json) {
 
 void GenderCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {
-    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *genderContentLayout = new QVBoxLayout();
     isolatedWomen = new QCheckBox(tr("Prevent isolated women"), parentCard);
+    isolatedWomen->setStyleSheet(CHECKBOXSTYLE);
     isolatedWomen->setChecked(identityRules[womanKey]["!="].contains(1));
     isolatedMen = new QCheckBox(tr("Prevent isolated men"));
+    isolatedMen->setStyleSheet(CHECKBOXSTYLE);
     isolatedMen->setChecked(identityRules[manKey]["!="].contains(1));
     isolatedNonbinary = new QCheckBox(tr("Prevent isolated nonbinary students"), parentCard);
+    isolatedNonbinary->setStyleSheet(CHECKBOXSTYLE);
     isolatedNonbinary->setChecked(identityRules[nonbinaryKey]["!="].contains(1));
     mixedGender = new QCheckBox(tr("Require mixed gender teams"), parentCard);
+    mixedGender->setStyleSheet(CHECKBOXSTYLE);
     mixedGender->setChecked(identityRules[womanKey]["!="].contains(0) && identityRules[manKey]["!="].contains(0));
     complicatedGenderRule = new QPushButton(tr("Something more complicated..."), parentCard);
     complicatedGenderRule->setStyleSheet(SMALLBUTTONSTYLEINVERTED);

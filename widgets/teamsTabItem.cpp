@@ -1542,8 +1542,8 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                     break;
                 case Criterion::CriteriaType::attributeQuestion: {
                     const auto *attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
-                    if (attrCrit != nullptr && attrCrit->attributeIndex < customFileOptions.includeMultiChoice.size()) {
-                        include = customFileOptions.includeMultiChoice.at(attrCrit->attributeIndex);
+                    if (attrCrit != nullptr && attrCrit->attributeIndex < customFileOptions.includeAttribute.size()) {
+                        include = customFileOptions.includeAttribute.at(attrCrit->attributeIndex);
                     }
                     break;
                 }

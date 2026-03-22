@@ -35,8 +35,6 @@ void AttributeCriterion::settingsFromJson(const QJsonObject &json) {
 }
 
 void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions) {
-    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
-                              DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *contentLayout = new QHBoxLayout();
     attributeWidget = new AttributeWidget(attributeIndex, dataOptions, teamingOptions, this, dataOptions->attributeType[attributeIndex], parentCard);
     contentLayout->addWidget(attributeWidget);

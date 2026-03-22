@@ -63,8 +63,8 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
                             jsonTeamingOptions["haveAnySplitAparts"].toBool()
                             : jsonTeamingOptions["haveAnyPreventedTeammates"].toBool();             // old Terminology
     numberGroupTogethersGiven = jsonTeamingOptions.contains("numberGroupTogethersGiven") ?
-                                    jsonTeamingOptions["numberGroupTogethersGiven"].toInt()
-                                    : jsonTeamingOptions["numberRequestedTeammatesGiven"].toInt();  // old Terminology
+                                    jsonTeamingOptions["numberGroupTogethersGiven"].toInt(REQUESTED_TEAMMATES_ALL)
+                                    : jsonTeamingOptions["numberRequestedTeammatesGiven"].toInt(REQUESTED_TEAMMATES_ALL);  // old Terminology
     const QJsonArray smallerTeamsSizesArray = jsonTeamingOptions["smallerTeamsSizes"].toArray();
     for (const auto &val : smallerTeamsSizesArray) {
         const int size = val.toInt();

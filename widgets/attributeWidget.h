@@ -21,8 +21,7 @@ public:
 explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,
                              AttributeCriterion *incomingCriterion, DataOptions::AttributeType attributeType, QWidget *parent = nullptr);
 
-    void setValues();
-    void updateResponses(const std::map<QString, int> &responseCounts={});
+    void setValues(bool updateResponsesToo = true);
 
     QPushButton *setRequiredValuesButton = nullptr;
     QPushButton *setIncompatibleValuesButton = nullptr;
@@ -36,13 +35,15 @@ explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOpt
     QDoubleSpinBox *maximumSpinBox = nullptr;
 
 private:
-    QVBoxLayout *responsesLayout = nullptr;
-    QList<QWidget*> responseRows;
     const int attribute;
     const DataOptions::AttributeType attributeType;
     const DataOptions *const dataOptions;
     TeamingOptions *const teamingOptions;
     AttributeCriterion *criterion = nullptr;
+
+    QVBoxLayout *responsesLayout = nullptr;
+    QList<QWidget*> responseRows;
+    void updateResponses(const std::map<QString, int> &responseCounts={});
 
     inline static const int BARGRAPHWIDTH = 40;
     inline static const QString DIVERSETOOLTIP = QObject::tr("Teammates will have a range of responses to this question.");

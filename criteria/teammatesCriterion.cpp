@@ -11,8 +11,6 @@ Criterion* TeammatesCriterion::clone() const {
 
 void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
-    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-
     QString typeString;
     TeammatesRulesDialog::TypeOfTeammates type;
     if(criteriaType == Criterion::CriteriaType::groupTogether) {
@@ -243,7 +241,7 @@ QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions *teamin
 {
     if (criteriaType == CriteriaType::groupTogether && teamingOptions->haveAnyGroupTogethers) {
         QString text = "\n" + tr("Required teammates active");
-        if (teamingOptions->numberGroupTogethersGiven >= MAX_STUDENTS) {
+        if (teamingOptions->numberGroupTogethersGiven == REQUESTED_TEAMMATES_ALL) {
             text += tr(", all requests granted");
         }
         else {

@@ -518,7 +518,7 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
         if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
             continue;
         }
-        toolTip += "<br>" + QObject::tr("Q") + QString::number(attribute + 1) + ":  ";
+        toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::numerical) {
             // continuous float value
             if(!attributeVals_continuous[attribute].isEmpty()) {

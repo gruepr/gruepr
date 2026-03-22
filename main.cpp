@@ -22,10 +22,7 @@
 //    using version 6.9. These can be freely downloaded from
 //    < http://qt.io/download >.
 //
-//    Some icons were originally created by Icons8 < https://icons8.com >.
-//    These icons have been made available under the creative commons license:
-//    Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0).
-//    Other icons and graphics are original creations for the gruepr project by Scout
+//    Icons and graphics are original creations for the gruepr project by Scout
 //    < https://scout.camd.northeastern.edu/ >.
 //
 //    Several embedded fonts are used:
@@ -35,23 +32,25 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - Pulling in ***incredible*** dissertation work by Nikhen to modernize and simplify the UI, especially the handling of teaming criteria
-//  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
-//  - removed dark mode in windows
+//  - Pulling in ***incredible*** dissertation work by Nikhen:
+//     - Turned teaming criteria into individual 'cards' that are added, removed, and rearranged to make team formation goals
+//     - Added visualization to show how well each team meets each team formation goal
+//     - UI modernizations and simplifications in start dialog and data loading process
+//     - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
+//  - unified "required" and "requested" teammates
 //  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
-//  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
 //  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
 //  - now shows bar graphs indicating how many students selected each multiple choice response
 //  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
 //  - added numerical attribute and free text response questions to surveymaker
-//  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
-//  - unified "required" and "requested" teammates
+//  - removed dark mode in windows
+//  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
+//  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //
 // TO DO:
-//  - fix responses bug when loading previous work
-//  - verify drag/drop functionality to adjust teams
+//  - fix background of hovered item in some comboboxes
 //
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)

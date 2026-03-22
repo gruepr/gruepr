@@ -61,7 +61,6 @@ QStringList URMIdentityCriterion::identityOptions() const {
 
 void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {
-    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *urmContentLayout = new QVBoxLayout();
 
     editRulesButton = new QPushButton(tr("Edit the racial/ethnic identity rules..."), parentCard);

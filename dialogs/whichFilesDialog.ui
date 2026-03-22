@@ -161,9 +161,9 @@ Preview a standard file by hovering over the title.</string>
              </widget>
             </item>
             <item row="2" column="0" colspan="3">
-             <widget class="QLabel" name="multipleChoiceLabel">
+             <widget class="QLabel" name="attributeLabel">
               <property name="text">
-               <string>Multiple Choice Questions:</string>
+               <string>Response to Attribute Question:</string>
               </property>
              </widget>
             </item>

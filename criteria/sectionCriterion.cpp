@@ -7,8 +7,6 @@
 
 void SectionCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {
-    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-
     auto *sectionContentLayout = new QHBoxLayout();
     sectionContentLayout->setSpacing(1);
 
@@ -20,6 +18,7 @@ void SectionCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptio
     editSectionNameButton->setMinimumWidth(34);
     editSectionNameButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sectionSelectionBox = new QComboBox(parentCard);
+    sectionSelectionBox->setStyleSheet(COMBOBOXSTYLE);
     sectionSelectionBox->installEventFilter(new MouseWheelBlocker(sectionSelectionBox));
     sectionSelectionBox->setFocusPolicy(Qt::StrongFocus);
     sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);

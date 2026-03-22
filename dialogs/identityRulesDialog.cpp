@@ -171,17 +171,7 @@ void IdentityRulesDialog::addRow(const QString &identityKey, int value)
     auto *identityCombo = new CheckableComboBox(this);
     identityCombo->addItems(options);
     const QStringList checkedIdentities = identityKey.split('|');
-    identityCombo->setStyleSheet(
-        "QComboBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
-                    "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
-        "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
-                            "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
-        "QComboBox::drop-down {border-width: 0px;}"
-        "QComboBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 9px; border-width: 0px;}"
-        "QComboBox QAbstractItemView {background-color: white; color: " DEEPWATERHEX "; "
-                                     "font-family: 'DM Sans'; font-size: 12pt;}"
-        "QComboBox QAbstractItemView::item {padding: 4px;}"
-        "QComboBox QAbstractItemView::item:hover {background-color: " DEEPWATERHEX "; color: white;}");
+    identityCombo->setStyleSheet(COMBOBOXSTYLE);
     identityCombo->setCheckedItems(checkedIdentities);
     rulesTable->setCellWidget(row, 0, identityCombo);
 
