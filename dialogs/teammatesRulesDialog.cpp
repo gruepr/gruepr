@@ -151,7 +151,9 @@ TeammatesRulesDialog::~TeammatesRulesDialog()
 
 void clearLayout(QHBoxLayout *layout)
 {
-    if (!layout) return; // Safety check
+    if (!layout) {
+        return; // Safety check
+    }
 
     QLayoutItem *item;
     while ((item = layout->takeAt(0)) != nullptr) {
@@ -211,8 +213,9 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
     for (auto &student : students) {
         if (((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             allIDs << student.ID;
-            if ((student.firstname + " " + student.lastname).contains(searchBarText, Qt::CaseInsensitive))
+            if ((student.firstname + " " + student.lastname).contains(searchBarText, Qt::CaseInsensitive)) {
                 filteredStudents << &student;
+            }
             baseStudents << &student;
         }
     }
@@ -251,10 +254,12 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                 teammatesSpecified = true;
 
                 StudentRecord *studentB = nullptr;
-                for (auto &stu : students) {
-                    if (stu.ID == studentBID && !stu.deleted) { studentB = &stu; break; }
+                for (auto &student : students) {
+                    if (student.ID == studentBID && !student.deleted) { studentB = &student; break; }
                 }
-                if (studentB == nullptr) continue;
+                if (studentB == nullptr) {
+                    continue;
+                }
 
                 if (tableWidget->columnCount() < column + 1) {
                     tableWidget->setColumnCount(column + 1);
@@ -297,8 +302,9 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
             }
         }
 
-        if (atLeastOneTeammate)
+        if (atLeastOneTeammate) {
             ui->clearButton->setEnabled(true);
+        }
 
         // Final column: line edit for adding a new teammate
         if (tableWidget->columnCount() < column + 1) {
@@ -378,8 +384,9 @@ void TeammatesRulesDialog::initializeTableHeaders(QString searchBarText, bool in
     clearLayout(headerLayout);
 
     const int vheaderWidth = tableWidget->verticalHeader()->sizeHint().width();
-    if (initializeStatus)
+    if (initializeStatus) {
         initialWidthStudentHeader = vheaderWidth;
+    }
 
     auto *topLeftWidget = new QWidget(this);
     topLeftWidget->setStyleSheet(
@@ -431,7 +438,9 @@ void TeammatesRulesDialog::clearValues(bool verify)
         const bool ok = grueprGlobal::warningMessage(this, "gruepr",
                                                      tr("This will remove all values in the table.\nAre you sure you want to continue?"),
                                                      tr("Yes"), tr("No"));
-        if (!ok) return;
+        if (!ok) {
+            return;
+        }
     }
     for (auto &student : students) {
         if ((sectionName == "") || (sectionName == student.section)) {

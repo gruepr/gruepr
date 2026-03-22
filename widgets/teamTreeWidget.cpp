@@ -210,7 +210,8 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
     }
 }
 
-void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
+void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &student,
+                                    const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     if(studentItem->treeItemType != TeamTreeWidgetItem::TreeItemType::student) {
         return;
@@ -219,16 +220,16 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     int column = 0;
 
     // Name column
-    studentItem->setText(column, stu.firstname + " " + stu.lastname);
-    studentItem->setData(column, Qt::UserRole, stu.ID);
-    studentItem->setToolTip(column, stu.tooltip);
+    studentItem->setText(column, student.firstname + " " + student.lastname);
+    studentItem->setData(column, Qt::UserRole, student.ID);
+    studentItem->setToolTip(column, student.tooltip);
     studentItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
     column++;
 
     // Section column
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
-        studentItem->setText(column, stu.section);
-        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setText(column, student.section);
+        studentItem->setToolTip(column, student.tooltip);
         column++;
     }
 
@@ -239,8 +240,8 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
             continue;
         }
 
-        studentItem->setText(column, criterion->studentDisplayText(stu, dataOptions));
-        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setText(column, criterion->studentDisplayText(student, dataOptions));
+        studentItem->setToolTip(column, student.tooltip);
         studentItem->setTextAlignment(column, criterion->studentTextAlignment());
         column++;
     }

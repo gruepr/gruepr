@@ -185,6 +185,8 @@ void StartDialog::openGruepr() {
         const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
         grueprWindow->show();
         emit closeDataDialogProgressBar();
+        QApplication::processEvents();      // force the main window to paint
+        grueprWindow->addSavedTeamsTabs();  //then do the time-consuming constructors of any saved teams tabs
         QApplication::restoreOverrideCursor();
         QEventLoop loop;
         connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);

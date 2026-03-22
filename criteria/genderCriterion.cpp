@@ -177,14 +177,14 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
         // Count how many of each gender on the team
         QMap<QString, int> genderCounts;
         for (int teammate = 0; teammate < teamSizes[team]; teammate++) {
-            const auto &stu = students[teammates[studentNum]];
-            if (stu.gender.contains(Gender::woman)) {
+            const auto &student = students[teammates[studentNum]];
+            if (student.gender.contains(Gender::woman)) {
                 genderCounts[womanKey]++;
             }
-            if (stu.gender.contains(Gender::man)) {
+            if (student.gender.contains(Gender::man)) {
                 genderCounts[manKey]++;
             }
-            if (stu.gender.contains(Gender::nonbinary)) {
+            if (student.gender.contains(Gender::nonbinary)) {
                 genderCounts[nonbinaryKey]++;
             }
             studentNum++;

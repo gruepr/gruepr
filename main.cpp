@@ -50,6 +50,9 @@
 //  - unified "required" and "requested" teammates
 //
 // TO DO:
+//  - fix responses bug when loading previous work
+//  - verify drag/drop functionality to adjust teams
+//
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - scale the penalty points with weight?

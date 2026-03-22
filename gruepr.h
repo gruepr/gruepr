@@ -7,8 +7,8 @@
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
-#include "criteria/attributeCriterion.h"
 #include "dialogs/progressDialog.h"
+#include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QComboBox>
@@ -38,14 +38,12 @@ public:
 
     static void calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
                                TeamSet &_teams, const TeamingOptions *const _teamingOptions);
-    QStringList getTeamTabNames() const;
 
     QList<StudentRecord> students;
     DataOptions *dataOptions = nullptr;
 
-    inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
-    inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
-    inline static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
+    void addSavedTeamsTabs();
+    QStringList getTeamTabNames() const;
 
 signals:
     void closed();

@@ -34,7 +34,7 @@ public:
     void refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum,
                      const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions,
                      const QList<StudentRecord> &students, const QSet<long long> &IDsBeingTeamed);
-    void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu,
+    void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &student,
                         const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void setColumnHeaderIcon(int column, const QIcon &icon);
 

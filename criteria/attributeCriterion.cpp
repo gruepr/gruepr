@@ -94,20 +94,20 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
         std::multiset<float> continuousLevels;
 
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
-            const auto &stu = students[teammates[studentNum]];
+            const auto &student = students[teammates[studentNum]];
             if(thisIsTimezone) {
                 // discrete sentinel still used for unknown-detection
-                discreteLevels.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
-                                      stu.attributeVals_discrete[attributeIndex].constEnd());
-                continuousLevels.insert(stu.timezone);
+                discreteLevels.insert(student.attributeVals_discrete[attributeIndex].constBegin(),
+                                      student.attributeVals_discrete[attributeIndex].constEnd());
+                continuousLevels.insert(student.timezone);
             }
             else if(thisIsNumerical) {
-                continuousLevels.insert(stu.attributeVals_continuous[attributeIndex].constBegin(),
-                                        stu.attributeVals_continuous[attributeIndex].constEnd());
+                continuousLevels.insert(student.attributeVals_continuous[attributeIndex].constBegin(),
+                                        student.attributeVals_continuous[attributeIndex].constEnd());
             }
             else {
-                discreteLevels.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
-                                      stu.attributeVals_discrete[attributeIndex].constEnd());
+                discreteLevels.insert(student.attributeVals_discrete[attributeIndex].constBegin(),
+                                      student.attributeVals_discrete[attributeIndex].constEnd());
             }
             studentNum++;
         }
@@ -309,9 +309,9 @@ QString AttributeCriterion::teamDisplayText(const TeamRecord &team, const DataOp
     if(type == DataOptions::AttributeType::timezone) {
         std::set<float> tzVals;
         for(const auto id : team.studentIDs) {
-            for(const auto &stu : students) {
-                if(stu.ID == id) {
-                    tzVals.insert(stu.timezone);
+            for(const auto &student : students) {
+                if(student.ID == id) {
+                    tzVals.insert(student.timezone);
                     break;
                 }
             }
@@ -335,10 +335,10 @@ QString AttributeCriterion::teamDisplayText(const TeamRecord &team, const DataOp
     if(type == DataOptions::AttributeType::numerical) {
         float sum = 0.0f; int count = 0;
         for(const auto id : team.studentIDs) {
-            for(const auto &stu : students) {
-                if(stu.ID == id) {
-                    if(!stu.attributeVals_continuous[attributeIndex].isEmpty()) {
-                        sum += stu.attributeVals_continuous[attributeIndex].first();
+            for(const auto &student : students) {
+                if(student.ID == id) {
+                    if(!student.attributeVals_continuous[attributeIndex].isEmpty()) {
+                        sum += student.attributeVals_continuous[attributeIndex].first();
                         count++;
                     }
                     break;
@@ -351,10 +351,10 @@ QString AttributeCriterion::teamDisplayText(const TeamRecord &team, const DataOp
     // ── Discrete (ordered, categorical, multi-*) ───────────────────────────
     std::set<int> teamVals;
     for(const auto id : team.studentIDs) {
-        for(const auto &stu : students) {
-            if(stu.ID == id) {
-                teamVals.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
-                                stu.attributeVals_discrete[attributeIndex].constEnd());
+        for(const auto &student : students) {
+            if(student.ID == id) {
+                teamVals.insert(student.attributeVals_discrete[attributeIndex].constBegin(),
+                                student.attributeVals_discrete[attributeIndex].constEnd());
                 break;
             }
         }
@@ -393,10 +393,10 @@ QVariant AttributeCriterion::teamSortValue(const TeamRecord &team,
     // ── Timezone ───────────────────────────────────────────────────────────
     if(type == DataOptions::AttributeType::timezone) {
         std::set<float> tzVals;
-        for(const auto sid : team.studentIDs) {
-            for(const auto &stu : students) {
-                if(stu.ID == sid) {
-                    tzVals.insert(stu.timezone); break;
+        for(const auto studentID : team.studentIDs) {
+            for(const auto &student : students) {
+                if(student.ID == studentID) {
+                    tzVals.insert(student.timezone); break;
                 }
             }
         }
@@ -410,11 +410,11 @@ QVariant AttributeCriterion::teamSortValue(const TeamRecord &team,
     // ── Numerical ──────────────────────────────────────────────────────────
     if(type == DataOptions::AttributeType::numerical) {
         float sum = 0.0f; int count = 0;
-        for(const auto sid : team.studentIDs) {
-            for(const auto &stu : students) {
-                if(stu.ID == sid) {
-                    if(!stu.attributeVals_continuous[attributeIndex].isEmpty()) {
-                        sum += stu.attributeVals_continuous[attributeIndex].first();
+        for(const auto studentID : team.studentIDs) {
+            for(const auto &student : students) {
+                if(student.ID == studentID) {
+                    if(!student.attributeVals_continuous[attributeIndex].isEmpty()) {
+                        sum += student.attributeVals_continuous[attributeIndex].first();
                         count++;
                     }
                     break;
@@ -426,11 +426,11 @@ QVariant AttributeCriterion::teamSortValue(const TeamRecord &team,
 
     // ── Discrete ───────────────────────────────────────────────────────────
     std::set<int> teamVals;
-    for(const auto sid : team.studentIDs) {
-        for(const auto &stu : students) {
-            if(stu.ID == sid) {
-                teamVals.insert(stu.attributeVals_discrete[attributeIndex].constBegin(),
-                                stu.attributeVals_discrete[attributeIndex].constEnd());
+    for(const auto studentID : team.studentIDs) {
+        for(const auto &student : students) {
+            if(student.ID == studentID) {
+                teamVals.insert(student.attributeVals_discrete[attributeIndex].constBegin(),
+                                student.attributeVals_discrete[attributeIndex].constEnd());
                 break;
             }
         }

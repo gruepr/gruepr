@@ -699,12 +699,12 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             studentATeam.createTooltip(students);
             studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
             studentBTeam.createTooltip(students);
-            for(const auto &stu : std::as_const(students)) {
-                if(studentATeam.studentIDs.first() == stu.ID) {
+            for(const auto &student : std::as_const(students)) {
+                if(studentATeam.studentIDs.first() == student.ID) {
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentATeamItem, studentATeam,
                                               studentATeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
                 }
-                else if(studentBTeam.studentIDs.first() == stu.ID) {
+                else if(studentBTeam.studentIDs.first() == student.ID) {
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentBTeamItem, studentBTeam,
                                               studentBTeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
                 }
@@ -824,12 +824,12 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         oldTeam.createTooltip(students);
         newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
         newTeam.createTooltip(students);
-        for(const auto &stu : std::as_const(students)) {
-            if(oldTeam.studentIDs.first() == stu.ID) {
+        for(const auto &student : std::as_const(students)) {
+            if(oldTeam.studentIDs.first() == student.ID) {
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, oldTeamItem, oldTeam,
                                           oldTeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
             }
-            else if(newTeam.studentIDs.first() == stu.ID) {
+            else if(newTeam.studentIDs.first() == student.ID) {
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, newTeamItem, newTeam,
                                           newTeamNum, &teams.dataOptions, teamingOptions, students, IDsBeingTeamed);
             }
@@ -1047,16 +1047,16 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
         for(const auto ID1 : std::as_const(team.studentIDs)) {
             for(const auto ID2 : std::as_const(team.studentIDs)) {
                 if(ID1 != ID2) {
-                    StudentRecord* stu = nullptr;
+                    StudentRecord* student = nullptr;
                     for(auto &student1 : *externalStudents) {
                         if(student1.ID == ID1) {
-                            stu = &student1;
+                            student = &student1;
                         }
                     }
-                    if(stu == nullptr) {
+                    if(student == nullptr) {
                         continue;
                     }
-                    stu->splitApart << ID2;
+                    student->splitApart << ID2;
                 }
             }
         }

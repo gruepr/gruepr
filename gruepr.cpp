@@ -1,5 +1,6 @@
 #include "gruepr.h"
 #include "ui_gruepr.h"
+#include "criteria/attributeCriterion.h"
 #include "criteria/sectionCriterion.h"
 #include "criteria/teamsizeCriterion.h"
 #include "dialogs/customTeamsizesDialog.h"
@@ -90,14 +91,6 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
             savedFile.close();
             QJsonObject content = doc.object();
             teamingOptions = new TeamingOptions(content["teamingoptions"].toObject());
-            const QJsonArray teamsetjsons = content["teamsets"].toArray();
-            TeamsTabItem *teamTab = nullptr;
-            for(const auto &teamsetjson : teamsetjsons) {
-                teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, students, dataOptions->sectionNames, letsDoItButton, this);
-                ui->dataDisplayTabWidget->addTab(teamTab, teamTab->tabName);
-                numTeams = int(teams.size());
-                connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
-            }
             savedCriteriaCards = content["criteriaCards"].toArray();
         }
         else {
@@ -169,10 +162,10 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     }
     if (dataOptions->numAttributes > 0){
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-            QAction *currentMCQAction = addNewCriteriaMenu->addAction(dataOptions->attributeQuestionText[attribute]);
-            connect(currentMCQAction, &QAction::triggered, addNewCriteriaCardButton, [this, attribute](){
+            QAction *currentAttributeAction = addNewCriteriaMenu->addAction(dataOptions->attributeQuestionText[attribute]);
+            connect(currentAttributeAction, &QAction::triggered, addNewCriteriaCardButton, [this, attribute](){
                 gruepr::addCriteriaCard(Criterion::CriteriaType::attributeQuestion, attribute);});
-            attributeMenuActions.append(currentMCQAction);
+            attributeMenuActions.append(currentAttributeAction);
         }
     }
     if (!dataOptions->scheduleField.empty()){
@@ -242,9 +235,9 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
 
         // Refresh the attribute widget UI to reflect restored settings
         if (type == Criterion::CriteriaType::attributeQuestion) {
-            auto *attrCriterion = qobject_cast<AttributeCriterion*>(addedCard->criterion);
-            if (attrCriterion != nullptr && attrCriterion->attributeWidget != nullptr) {
-                attrCriterion->attributeWidget->setValues();
+            auto *attributeCriterion = qobject_cast<AttributeCriterion*>(addedCard->criterion);
+            if (attributeCriterion != nullptr && attributeCriterion->attributeWidget != nullptr) {
+                attributeCriterion->attributeWidget->setValues();
             }
         }
     }
@@ -269,6 +262,26 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
     refreshCriteriaLayout();
+}
+
+void gruepr::addSavedTeamsTabs()
+{
+    if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
+        QFile savedFile(dataOptions->saveStateFileName, this);
+        if(savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
+            const QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
+            savedFile.close();
+            QJsonObject content = doc.object();
+            const QJsonArray teamsetjsons = content["teamsets"].toArray();
+            TeamsTabItem *teamTab = nullptr;
+            for(const auto &teamsetjson : teamsetjsons) {
+                teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, students, dataOptions->sectionNames, letsDoItButton, this);
+                ui->dataDisplayTabWidget->addTab(teamTab, teamTab->tabName);
+                numTeams = int(teams.size());
+                connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
+            }
+        }
+    }
     saveState();
 }
 
@@ -471,9 +484,9 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute
 {
     if (criteriaType == Criterion::CriteriaType::attributeQuestion && (attribute < dataOptions->numAttributes)) {
         if (!addedAttributeNumbersList.contains(attribute)) {
-            GroupingCriteriaCard *currentMultipleChoiceCard = initializedAttributeCriteriaCards[attribute];
+            GroupingCriteriaCard *currentAttributeCard = initializedAttributeCriteriaCards[attribute];
             addedAttributeNumbersList.append(attribute);
-            criteriaCardsList.append(currentMultipleChoiceCard);
+            criteriaCardsList.append(currentAttributeCard);
             if(attribute < attributeMenuActions.size() && attributeMenuActions[attribute] != nullptr) {
                 attributeMenuActions[attribute]->setVisible(false);
             }
@@ -1015,10 +1028,10 @@ void gruepr::compareStudentsToRoster()
         for(auto &name : names) {
             // first try to find student in the existing students data
             // start at first student in database and look until we find a matching firstname + " " +last name
-            StudentRecord *stu = nullptr;
-            for(auto &student : students) {
-                if(name.compare(student.firstname + " " + student.lastname, Qt::CaseInsensitive) == 0) {
-                    stu = &student;
+            StudentRecord *student = nullptr;
+            for(auto &thisStudent : students) {
+                if(name.compare(thisStudent.firstname + " " + thisStudent.lastname, Qt::CaseInsensitive) == 0) {
+                    student = &thisStudent;
                     break;
                 }
             }
@@ -1027,13 +1040,13 @@ void gruepr::compareStudentsToRoster()
             const auto index = names.indexOf(name);
             const QString &rosterEmail = ((index >= 0 && index < emails.size())? emails.at(index) : "");
 
-            if(stu != nullptr) {
+            if(student != nullptr) {
                 // Exact match for name was found in existing students
-                namesNotFound.removeAll(stu->firstname + " " + stu->lastname);
+                namesNotFound.removeAll(student->firstname + " " + student->lastname);
                 if(!emails.isEmpty()) {
-                    if(stu->email.compare(rosterEmail, Qt::CaseInsensitive) != 0) {
+                    if(student->email.compare(rosterEmail, Qt::CaseInsensitive) != 0) {
                         // Email in survey doesn't match roster
-                        studentsWithDiffEmail << stu;
+                        studentsWithDiffEmail << student;
                     }
                 }
             }
@@ -1066,23 +1079,23 @@ void gruepr::compareStudentsToRoster()
                     else {  // selected an inexact match
                         const QString surveyName = choiceWindow->currSurveyName;
                         namesNotFound.removeAll(surveyName);
-                        for(auto &student : students) {
-                            if(surveyName != (student.firstname + " " + student.lastname)) {
-                                stu = &student;
+                        for(auto &thisStudent : students) {
+                            if(surveyName != (thisStudent.firstname + " " + thisStudent.lastname)) {
+                                student = &thisStudent;
                                 break;
                             }
                         }
-                        if(stu != nullptr) {
+                        if(student != nullptr) {
                             if(choiceWindow->useRosterEmail) {
                                 dataHasChanged = true;
-                                stu->email = emails.isEmpty()? "" : rosterEmail;
-                                stu->createTooltip(*dataOptions);
+                                student->email = emails.isEmpty()? "" : rosterEmail;
+                                student->createTooltip(*dataOptions);
                             }
                             if(choiceWindow->useRosterName) {
                                 dataHasChanged = true;
-                                stu->firstname = name.split(" ").first();
-                                stu->lastname = name.split(" ").mid(1).join(" ");
-                                stu->createTooltip(*dataOptions);
+                                student->firstname = name.split(" ").first();
+                                student->lastname = name.split(" ").mid(1).join(" ");
+                                student->createTooltip(*dataOptions);
                             }
                         }
                     }

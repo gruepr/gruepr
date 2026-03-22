@@ -98,10 +98,10 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
         if(type == DataOptions::AttributeType::numerical) {
             // Show team mean
             float sum = 0; int count = 0;
-            for(const auto &sid : std::as_const(studentIDs)) {
-                for(const auto &stu : students) {
-                    if(stu.ID == sid && !stu.attributeVals_continuous[attribute].isEmpty()) {
-                        sum += stu.attributeVals_continuous[attribute].front();
+            for(const auto &studentID : std::as_const(studentIDs)) {
+                for(const auto &student : students) {
+                    if(student.ID == studentID && !student.attributeVals_continuous[attribute].isEmpty()) {
+                        sum += student.attributeVals_continuous[attribute].front();
                         count++;
                         break;
                     }
@@ -114,10 +114,10 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
         // Collect discrete values from team members into a set
         std::set<int> teamDiscreteVals;
         for(const auto &id : std::as_const(studentIDs)) {
-            for(const auto &stu : students) {
-                if(stu.ID == id) {
-                    teamDiscreteVals.insert(stu.attributeVals_discrete[attribute].constBegin(),
-                                            stu.attributeVals_discrete[attribute].constEnd());
+            for(const auto &student : students) {
+                if(student.ID == id) {
+                    teamDiscreteVals.insert(student.attributeVals_discrete[attribute].constBegin(),
+                                            student.attributeVals_discrete[attribute].constEnd());
                     break;
                 }
             }
@@ -161,9 +161,9 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
     // Timezone row
     if(teamSetDataOptions->timezoneIncluded) {
         std::set<float> tzVals;
-        for(const auto &sid : std::as_const(studentIDs)) {
-            for(const auto &stu : students) {
-                if(stu.ID == sid) { tzVals.insert(stu.timezone); break; }
+        for(const auto &studentID : std::as_const(studentIDs)) {
+            for(const auto &student : students) {
+                if(student.ID == studentID) { tzVals.insert(student.timezone); break; }
             }
         }
         if(!tzVals.empty()) {
@@ -236,40 +236,40 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
 
     //set values
     for(int teammate = 0; teammate < size; teammate++) {
-        const StudentRecord* stu = nullptr;
-        for(auto &student : std::as_const(students)) {
-            if(student.ID == studentIDs.at(teammate)) {
-                stu = &student;
+        const StudentRecord* student = nullptr;
+        for(const auto &thisStudent : std::as_const(students)) {
+            if(thisStudent.ID == studentIDs.at(teammate)) {
+                student = &thisStudent;
                 break;
             }
         }
-        if(stu == nullptr) {
+        if(student == nullptr) {
             continue;
         }
 
-        if(!sections.contains(stu->section)) {
-            sections << stu->section;
+        if(!sections.contains(student->section)) {
+            sections << student->section;
             numSections++;
         }
         if(teamSetDataOptions->genderIncluded) {
-            if(stu->gender.contains(Gender::woman)) {
+            if(student->gender.contains(Gender::woman)) {
                 numWomen++;
             }
-            if(stu->gender.contains(Gender::man)) {
+            if(student->gender.contains(Gender::man)) {
                 numMen++;
             }
-            if(stu->gender.contains(Gender::nonbinary)) {
+            if(student->gender.contains(Gender::nonbinary)) {
                 numNonbinary++;
             }
-            if (stu->gender.contains(Gender::unknown)) {
+            if (student->gender.contains(Gender::unknown)) {
                 numUnknown++;
             }
         }
 
-        if(!stu->ambiguousSchedule) {
+        if(!student->ambiguousSchedule) {
             for(int day = 0; day < numDays; day++) {
                 for(int time = 0; time < numTimes; time++) {
-                    if(!stu->unavailable[day][time]) {
+                    if(!student->unavailable[day][time]) {
                         numStudentsAvailable[day][time]++;
                     }
                 }

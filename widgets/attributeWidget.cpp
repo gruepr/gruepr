@@ -18,7 +18,6 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     attributeSettingsLayout->setSpacing(2);
     auto *attributeResponsesLayout = new QVBoxLayout();
     attributeResponsesLayout->setSpacing(2);
-    setLayout(mainLayout);
 
     auto *responsesFrame = new QFrame(this);
     responsesFrame->setStyleSheet(BLUEFRAME);
@@ -265,6 +264,8 @@ void AttributeWidget::setValues()
 
 void AttributeWidget::updateResponses(const std::map<QString, int> &responseCounts)
 {
+    qDebug() << "updateResponses for attribute " << attribute;
+
     setUpdatesEnabled(false);
 
     // clear the responsesLayout
