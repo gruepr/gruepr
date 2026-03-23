@@ -153,7 +153,7 @@ void CategorizingDialog::populateTable(){
     int row = 0;
     datasetTableWidget->setRowCount(surveyFile->estimatedNumberRows-1);
     while(surveyFile->readDataRow()){
-        QStringList fieldValues = surveyFile->fieldValues;
+        const QStringList fieldValues = surveyFile->fieldValues;
         for (int fieldValueIndex = 0; fieldValueIndex < fieldValues.count(); fieldValueIndex++){
             if (fieldValueIndex >= 0 && fieldValueIndex < surveyFile->fieldValues.size()) {
                 auto *fieldValue = new QLabel(fieldValues.at(fieldValueIndex), this);

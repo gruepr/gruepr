@@ -233,7 +233,7 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         QJsonObject location;
         location["index"] = questionNum;
         newQuestion["location"] = location;
-        QString questionAddendum = question.type == Question::QuestionType::freeresponsenumber? (QString("  (") + WRITEANUMBER) + ".)" : "";
+        const QString questionAddendum = question.type == Question::QuestionType::freeresponsenumber? (QString("  (") + WRITEANUMBER) + ".)" : "";
         QJsonObject item;
         item["title"] = question.text.simplified() + questionAddendum;
         switch(question.type) {

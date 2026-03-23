@@ -304,7 +304,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
         fieldnum = dataOptions.attributeField[attribute];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0)).simplified().replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
+            const QString field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0)).simplified().replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
             attributeResponse[attribute] = field;
         }
     }

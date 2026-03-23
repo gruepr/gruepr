@@ -222,6 +222,7 @@ inline static const char LINEEDITERRORSTYLE[] = "QLineEdit {background-color: wh
                                                                       "font-family: 'DM Sans'; font-size: 12pt;}";
 
 inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
+                                                       "selection-background-color: " OPENWATERHEX "; selection-color: white; "
                                                        "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                              "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
                                                                   "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"

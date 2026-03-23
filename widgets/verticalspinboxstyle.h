@@ -14,21 +14,27 @@ public:
     {
         if (cc == CC_SpinBox) {
             const auto *so = qstyleoption_cast<const QStyleOptionSpinBox *>(opt);
-            if (!so) return QProxyStyle::subControlRect(cc, opt, sc, w);
+            if (!so) {
+                return QProxyStyle::subControlRect(cc, opt, sc, w);
+            }
 
             QRect frame = QProxyStyle::subControlRect(cc, opt, SC_SpinBoxFrame, w);
-            int btnW = 20;
-            int btnH = frame.height() / 2;
-            QRect btnArea(frame.right() - btnW, frame.top(), btnW, frame.height());
+            const int btnW = 20;
+            const int btnH = frame.height() / 2;
+            const QRect btnArea(frame.right() - btnW, frame.top(), btnW, frame.height());
 
-            if (sc == SC_SpinBoxUp)
-                return QRect(btnArea.left(), btnArea.top(), btnW, btnH);
-            if (sc == SC_SpinBoxDown)
-                return QRect(btnArea.left(), btnArea.top() + btnH, btnW, btnH);
-            if (sc == SC_SpinBoxEditField)
-                return QRect(frame.left(), frame.top(), frame.width() - btnW, frame.height());
-            if (sc == SC_SpinBoxFrame)
+            if (sc == SC_SpinBoxUp) {
+                return {btnArea.left(), btnArea.top(), btnW, btnH};
+            }
+            if (sc == SC_SpinBoxDown) {
+                return {btnArea.left(), btnArea.top() + btnH, btnW, btnH};
+            }
+            if (sc == SC_SpinBoxEditField) {
+                return {frame.left(), frame.top(), frame.width() - btnW, frame.height()};
+            }
+            if (sc == SC_SpinBoxFrame) {
                 return frame;
+            }
         }
         return QProxyStyle::subControlRect(cc, opt, sc, w);
     }

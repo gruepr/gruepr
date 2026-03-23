@@ -184,12 +184,10 @@ void SwitchButton::setValue(bool flag)
     if (flag == value()) {
         return;
     }
-    else {
-        _value = flag;
-        _update();
-        setEnabled(_enabled);
-        emit valueChanged(_value);
-    }
+    _value = flag;
+    _update();
+    setEnabled(_enabled);
+    emit valueChanged(_value);
 }
 
 bool SwitchButton::value() const

@@ -549,7 +549,7 @@ QString GroupingCriteriaCard::group() const {
 }
 
 QIcon GroupingCriteriaCard::icon() const {
-    return QIcon();
+    return {};
 }
 
 QString GroupingCriteriaCard::toolTip() const {
