@@ -3,7 +3,7 @@
 
 #include "csvfile.h"
 #include "dataOptions.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 #include <QDialog>
 #include <QTableWidget>
 
@@ -16,7 +16,7 @@ public:
     QHBoxLayout* datasetTableHeaderLayout = nullptr;
     CsvFile* surveyFile = nullptr;
     DataOptions::DataSource source;
-    QList<QComboBox*> dataTypeComboBoxes;
+    QList<StyledComboBox*> dataTypeComboBoxes;
     QList<QWidget*> columnWidgets;
     QDialogButtonBox* confirmCancelButtonBox = nullptr;
     bool initializeComboBoxes();

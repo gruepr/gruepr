@@ -174,6 +174,7 @@ HEADERS += \
         widgets/pushButtonWithMouseEnter.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
+        widgets/styledComboBox.h \
         widgets/surveyMakerQuestion.h \
         widgets/switchButton.h \
         widgets/teamsTabItem.h \

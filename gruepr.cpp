@@ -12,7 +12,6 @@
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
 #include <random>
-#include <QComboBox>
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>

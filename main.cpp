@@ -50,8 +50,6 @@
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //
 // TO DO:
-//  - fix background of hovered item in some comboboxes
-//
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - scale the penalty points with weight?

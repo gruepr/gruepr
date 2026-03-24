@@ -234,8 +234,10 @@ inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; 
                                              "QComboBox QAbstractItemView::item {background-color: white; color: black; "
                                                                                  "font-family: 'DM Sans'; font-size: 12pt;"
                                                                                  "selection-background-color: " OPENWATERHEX "; selection-color: white;}"
-                                             "QComboBox QAbstractItemView::item:selected {background-color: " OPENWATERHEX "; color: white;}"
-                                             "QComboBox QAbstractItemView::item:hover {background-color: " OPENWATERHEX "; color: white;}";
+                                             "QComboBox QAbstractItemView::item:selected {background-color: " OPENWATERHEX "; color: white; "
+                                                                                         "selection-background-color: " OPENWATERHEX "; selection-color: white;}"
+                                             "QComboBox QAbstractItemView::item:hover {background-color: " OPENWATERHEX "; color: white; "
+                                                                                      "selection-background-color: " OPENWATERHEX "; selection-color: white;}";
 
 inline static const char MENUSTYLE[] = "QMenu { background-color: white; color: black; font-family: 'DM Sans'; font-size: 10pt;"
                                                " border: 1px solid black; padding: 5px; }"
@@ -341,11 +343,11 @@ inline static const char BASICFRAME[] = "QFrame { background-color: rgba(0, 0, 0
                                                 " border-radius: 10px; }";
 
 inline static const char FIXEDCRITERIAFRAME[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
-                                                    "border-top: 1px solid; border-right: 1px solid; "
-                                                    "border-bottom: 1px solid; border-left: 1px solid;}"
-                                            "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
-                                                    "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
-                                                    "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
+                                                        "border-top: 1px solid; border-right: 1px solid; "
+                                                        "border-bottom: 1px solid; border-left: 1px solid;}"
+                                                "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
+                                                        "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
+                                                        "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
 
 inline static const char BORDERLESSBLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
                                                    "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";

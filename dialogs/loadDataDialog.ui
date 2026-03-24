@@ -131,7 +131,7 @@
    <item>
     <widget class="QStackedWidget" name="sourceStack">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="csvPage">
       <layout class="QVBoxLayout" name="csvPageLayout">
@@ -331,7 +331,7 @@
        <item>
         <layout class="QHBoxLayout" name="prevWorkComboBoxLayout">
          <item>
-          <widget class="QComboBox" name="prevWorkComboBox">
+          <widget class="StyledComboBox" name="prevWorkComboBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
              <horstretch>3</horstretch>
@@ -457,6 +457,11 @@
    <extends>QFrame</extends>
    <header>widgets/dropcsvframe.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>StyledComboBox</class>
+   <extends>QComboBox</extends>
+   <header>widgets/styledcombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources>

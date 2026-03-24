@@ -135,11 +135,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Racial/ethnic/cultural identity"));
-        auto *urmbox = new QComboBox(this);
+        auto *urmbox = new StyledComboBox(this);
         databox << urmbox;
         urmbox->installEventFilter(new MouseWheelBlocker(urmbox));
         urmbox->setFocusPolicy(Qt::StrongFocus);
-        urmbox->setStyleSheet(COMBOBOXSTYLE);
         urmbox->addItems(dataOptions->URMResponses);
         urmbox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         urmbox->setEditable(true);
@@ -152,11 +151,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Section"));
-        auto *sectbox = new QComboBox(this);
+        auto *sectbox = new StyledComboBox(this);
         databox << sectbox;
         sectbox->installEventFilter(new MouseWheelBlocker(sectbox));
         sectbox->setFocusPolicy(Qt::StrongFocus);
-        sectbox->setStyleSheet(COMBOBOXSTYLE);
         sectbox->addItems(dataOptions->sectionNames);
         sectbox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         sectbox->setEditable(true);
@@ -285,10 +283,9 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             // create the spinbox, combobox, or group of checkboxes as relevant
             if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::categorical)) {
                 attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
-                attributeCombobox << new QComboBox(this);
+                attributeCombobox << new StyledComboBox(this);
                 attributeCombobox.last()->installEventFilter(new MouseWheelBlocker(attributeCombobox.last()));
                 attributeCombobox.last()->setFocusPolicy(Qt::StrongFocus);
-                attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
                 attributeCombobox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
                 attributeCombobox.last()->setEditable(false);
                 attributeCombobox.last()->insertItem(0, tr("no response/unknown"), -1);
@@ -337,10 +334,9 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             }
             else if(type == DataOptions::AttributeType::timezone) {
                 attributeQuestionText->setText(tr("Timezone"));
-                attributeCombobox << new QComboBox(this);
+                attributeCombobox << new StyledComboBox(this);
                 attributeCombobox.last()->installEventFilter(new MouseWheelBlocker(attributeCombobox.last()));
                 attributeCombobox.last()->setFocusPolicy(Qt::StrongFocus);
-                attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
                 attributeCombobox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
                 attributeCombobox.last()->setEditable(false);
                 attributeCombobox.last()->insertItem(0,tr("no response/unknown"));
@@ -508,11 +504,11 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         }
     }
     if(dataOptions->URMIncluded) {
-        auto *urmbox = qobject_cast<QComboBox *>(databox[boxfield++]);
+        auto *urmbox = qobject_cast<StyledComboBox *>(databox[boxfield++]);
         student.URMResponse = urmbox->currentText();
     }
     if(dataOptions->sectionIncluded) {
-        auto *sectbox = qobject_cast<QComboBox *>(databox[boxfield++]);
+        auto *sectbox = qobject_cast<StyledComboBox *>(databox[boxfield++]);
         student.section = sectbox->currentText();
     }
 

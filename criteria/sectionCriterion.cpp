@@ -2,7 +2,6 @@
 #include "gruepr_globals.h"
 #include "teamingOptions.h"
 #include "widgets/groupingCriteriaCardWidget.h"
-#include <QComboBox>
 #include <QPushButton>
 
 void SectionCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
@@ -17,8 +16,7 @@ void SectionCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptio
     editSectionNameButton->setMinimumHeight(30);
     editSectionNameButton->setMinimumWidth(34);
     editSectionNameButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    sectionSelectionBox = new QComboBox(parentCard);
-    sectionSelectionBox->setStyleSheet(COMBOBOXSTYLE);
+    sectionSelectionBox = new StyledComboBox(parentCard);
     sectionSelectionBox->installEventFilter(new MouseWheelBlocker(sectionSelectionBox));
     sectionSelectionBox->setFocusPolicy(Qt::StrongFocus);
     sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);

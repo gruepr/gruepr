@@ -2,7 +2,7 @@
 #define FINDMATCHINGNAMEDIALOG_H
 
 #include "studentRecord.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 #include <QDialog>
 #include <QRadioButton>
 
@@ -27,7 +27,7 @@ public:
     long long currSurveyID = 0;
 
 private:
-    QComboBox *namesList = nullptr;
+    StyledComboBox *namesList = nullptr;
     QRadioButton *useSurveyNameCheckbox = nullptr;
     QRadioButton *useRosterNameCheckbox = nullptr;
     QRadioButton *useSurveyEmailCheckbox = nullptr;

@@ -3,6 +3,7 @@
 
 #include "switchButton.h"
 #include "widgets/comboBoxWithElidedContents.h"
+#include "widgets/styledComboBox.h"
 #include <QCheckBox>
 #include <QFrame>
 #include <QGridLayout>
@@ -145,7 +146,7 @@ public:
     QList<QSpacerItem *> preQuestionSpacer;
     QList<QLabel *> questionLabel;
     QList<QLineEdit *> questionLineEdit;
-    QList<QComboBox *> questionComboBox;
+    QList<StyledComboBox *> questionComboBox;
     QList<QGroupBox *> questionGroupBox;
     QList<QVBoxLayout *> questionGroupLayout;
 

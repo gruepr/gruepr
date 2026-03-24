@@ -562,7 +562,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     genderResponsesLabel->setStyleSheet(LABEL10PTSTYLE);
     genderResponsesLabel->setEnabled(false);
     genderResponsesLayout->addWidget(genderResponsesLabel, 0, 0, Qt::AlignLeft);
-    genderResponsesComboBox = new QComboBox;
+    genderResponsesComboBox = new StyledComboBox;
     genderResponsesComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     genderResponsesComboBox->installEventFilter(new MouseWheelBlocker(genderResponsesComboBox));
     genderResponsesComboBox->addItems({tr("Biological Sex"), tr("Adult Identity"), tr("Child Identity"), tr("Pronouns")});
@@ -983,8 +983,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     connect(questions[timezone], &SurveyMakerQuestionWithSwitch::valueChanged, this, &SchedulePage::update);
     questionPreviewTopLabels[timezone]->setText(TIMEZONEQUESTION);
     questionPreviewLayouts[timezone]->addWidget(questionPreviewTopLabels[timezone]);
-    tz = new QComboBox;
-    tz->setStyleSheet(COMBOBOXSTYLE);
+    tz = new StyledComboBox;
     //tz->addItem(tr("Select timezone"));
     tz->setPlaceholderText(tr("Select timezone"));
     questionPreviewLayouts[timezone]->addWidget(tz);
@@ -1035,7 +1034,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     busyOrFreeLabel->setStyleSheet(LABEL10PTSTYLE);
     busyOrFreeLabel->setEnabled(false);
     busyOrFreeLayout->addWidget(busyOrFreeLabel);
-    busyOrFreeComboBox = new QComboBox;
+    busyOrFreeComboBox = new StyledComboBox;
     busyOrFreeComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     busyOrFreeComboBox->installEventFilter(new MouseWheelBlocker(busyOrFreeComboBox));
     busyOrFreeComboBox->insertItem(busy, tr("Busy"));
@@ -1089,7 +1088,7 @@ SchedulePage::SchedulePage(QWidget *parent)
 
     auto *daysW = new QWidget;
     auto *daysLayout = new QHBoxLayout(daysW);
-    daysComboBox = new QComboBox;
+    daysComboBox = new StyledComboBox;
     daysComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     daysComboBox->installEventFilter(new MouseWheelBlocker(daysComboBox));
     daysComboBox->addItems({tr("All days"), tr("Weekdays"), tr("Weekends"), tr("Custom days/daynames")});
@@ -1129,7 +1128,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     fromLabel->setStyleSheet(LABEL10PTSTYLE);
     fromLabel->setEnabled(false);
     fromToLayout->addWidget(fromLabel);
-    fromComboBox = new QComboBox;
+    fromComboBox = new StyledComboBox;
     fromComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     fromComboBox->installEventFilter(new MouseWheelBlocker(fromComboBox));
     fromComboBox->setMinimumContentsLength(5);
@@ -1141,7 +1140,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     toLabel->setStyleSheet(LABEL10PTSTYLE);
     toLabel->setEnabled(false);
     fromToLayout->addWidget(toLabel);
-    toComboBox = new QComboBox;
+    toComboBox = new StyledComboBox;
     toComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     toComboBox->installEventFilter(new MouseWheelBlocker(toComboBox));
     toComboBox->setMinimumContentsLength(5);
@@ -1176,7 +1175,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     resolutionLabel->setStyleSheet(LABEL10PTSTYLE);
     resolutionLabel->setEnabled(false);
     resolutionLayout->addWidget(resolutionLabel);
-    resolutionComboBox = new QComboBox;
+    resolutionComboBox = new StyledComboBox;
     resolutionComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     resolutionComboBox->installEventFilter(new MouseWheelBlocker(toComboBox));
     resolutionComboBox->setMinimumContentsLength(11);
@@ -1198,7 +1197,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     formatLabel->setStyleSheet(LABEL10PTSTYLE);
     formatLabel->setEnabled(false);
     formatLayout->addWidget(formatLabel);
-    formatComboBox = new QComboBox;
+    formatComboBox = new StyledComboBox;
     formatComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     formatComboBox->installEventFilter(new MouseWheelBlocker(toComboBox));
     formatComboBox->setMinimumContentsLength(5);
@@ -1541,8 +1540,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     ww->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ww->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     wwc.reserve(MAX_PREFTEAMMATES);
-    wwc << new QComboBox;
-    wwc.last()->setStyleSheet(COMBOBOXSTYLE);
+    wwc << new StyledComboBox;
     questionPreviewLayouts[wantToWorkWith]->addWidget(ww);
     questionPreviewLayouts[wantToWorkWith]->addWidget(wwc.last());
     questionPreviewBottomLabels[wantToWorkWith]->clear();
@@ -1566,8 +1564,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     wa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     wa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     wac.reserve(MAX_PREFTEAMMATES);
-    wac << new QComboBox;
-    wac.last()->setStyleSheet(COMBOBOXSTYLE);
+    wac << new StyledComboBox;
     questionPreviewLayouts[wantToAvoid]->addWidget(wa);
     questionPreviewLayouts[wantToAvoid]->addWidget(wac.last());
     questionPreviewBottomLabels[wantToAvoid]->clear();
@@ -1757,8 +1754,7 @@ void CourseInfoPage::update()
         ww->hide();
         wa->hide();
         while(wwc.size() < numPrefTeammates) {
-            wwc << new QComboBox;
-            wwc.last()->setStyleSheet(COMBOBOXSTYLE);
+            wwc << new StyledComboBox;
             questionPreviewLayouts[wantToWorkWith]->insertWidget(questionPreviewLayouts[wantToWorkWith]->count()-1, wwc.last());
         }
         while(wwc.size() > numPrefTeammates) {
@@ -1772,8 +1768,7 @@ void CourseInfoPage::update()
         }
 
         while(wac.size() < numPrefTeammates) {
-            wac << new QComboBox;
-            wac.last()->setStyleSheet(COMBOBOXSTYLE);
+            wac << new StyledComboBox;
             questionPreviewLayouts[wantToAvoid]->insertWidget(questionPreviewLayouts[wantToAvoid]->count()-1, wac.last());
         }
         while(wac.size() > numPrefTeammates) {
@@ -2611,8 +2606,7 @@ void PreviewAndExportPage::initializePage()
                 delete child;   // delete the layout item
             }
             for(int i = 0; i < numPrefTeammates; i++) {
-                auto *selector = new QComboBox;
-                selector->setStyleSheet(COMBOBOXSTYLE);
+                auto *selector = new StyledComboBox;
                 selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 selector->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
                 selector->installEventFilter(new MouseWheelBlocker(selector));
@@ -2652,8 +2646,7 @@ void PreviewAndExportPage::initializePage()
                 delete child;   // delete the layout item
             }
             for(int i = 0; i < numPrefTeammates; i++) {
-                auto *selector = new QComboBox;
-                selector->setStyleSheet(COMBOBOXSTYLE);
+                auto *selector = new StyledComboBox;
                 selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 selector->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
                 selector->installEventFilter(new MouseWheelBlocker(selector));
@@ -3047,7 +3040,7 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     int i = 1;
     auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
-    auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
+    auto *coursesComboBox = new StyledComboBox(canvasCoursesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
         coursesComboBox->addItem(canvasCourse.name);
         coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole); // Not working??

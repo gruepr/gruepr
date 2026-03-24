@@ -171,7 +171,6 @@ void IdentityRulesDialog::addRow(const QString &identityKey, int value)
     auto *identityCombo = new CheckableComboBox(this);
     identityCombo->addItems(options);
     const QStringList checkedIdentities = identityKey.split('|');
-    identityCombo->setStyleSheet(COMBOBOXSTYLE);
     identityCombo->setCheckedItems(checkedIdentities);
     rulesTable->setCellWidget(row, 0, identityCombo);
 

@@ -352,8 +352,7 @@ void SurveyMakerAttributeQuestion::updatePreviewWidget()
         else {
             //select one and >=10 options, so dropdown with explainer label
             auto list = responsesComboBox->currentData().toStringList();
-            auto *re = new QComboBox;
-            re->setStyleSheet(COMBOBOXSTYLE);
+            auto *re = new StyledComboBox;
             re->addItems(list);
             previewLayout->addWidget(re);
             auto *bottomLabel = new QLabel(tr("Options") + ": " + list.join(" / "));
@@ -517,7 +516,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         layout->addWidget(questionLineEdit.last(), row++, 0, 1, -1);
         questionLineEdit.last()->hide();
 
-        questionComboBox << new QComboBox(this);
+        questionComboBox << new StyledComboBox(this);
         questionComboBox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         questionComboBox.last()->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
         questionComboBox.last()->installEventFilter(new MouseWheelBlocker(questionComboBox.last()));

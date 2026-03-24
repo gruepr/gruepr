@@ -2,7 +2,7 @@
 #define TEAMSIZECRITERION_H
 
 #include "criterion.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 #include <QSpinBox>
 
 class TeamsizeCriterion : public Criterion {
@@ -24,7 +24,7 @@ public:
     QVariant teamSortValue(const TeamRecord &, const DataOptions *, float, const QList<StudentRecord> &) const override { return 0; }
     QString studentDisplayText(const StudentRecord &, const DataOptions *) const override { return {}; }
 
-    QComboBox *teamSizeBox = nullptr;
+    StyledComboBox *teamSizeBox = nullptr;
     QSpinBox *idealTeamSizeBox = nullptr;
 };
 

@@ -4,9 +4,9 @@
 #include "dataOptions.h"
 #include "studentRecord.h"
 #include "teamingOptions.h"
+#include "widgets/styledComboBox.h"
 #include <QAbstractButton>
 #include <QBoxLayout>
-#include <QComboBox>
 #include <QDialog>
 #include <QTableWidget>
 
@@ -49,7 +49,7 @@ private:
     QString sectionName;
     QStringList teamSets;
 
-    QList <QComboBox *> possibleTeammates;
+    QList <StyledComboBox *> possibleTeammates;
 
     void showToast(QWidget *parent, const QString &message, int duration = 3000);
     void initializeTableHeaders(QString searchBarText = "", bool initializeStatus = false);

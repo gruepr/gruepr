@@ -5,9 +5,9 @@
 #include "teamRecord.h"
 #include "teamingOptions.h"
 #include "dialogs/whichFilesDialog.h"
+#include "widgets/styledComboBox.h"
 #include "widgets/teamTreeWidget.h"
 #include <QCheckBox>
-#include <QComboBox>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QLabel>
@@ -84,7 +84,7 @@ private:
 
     static const QStringList teamnameCategories;
     static const QStringList teamnameLists;
-    QComboBox *teamnamesComboBox = nullptr;
+    StyledComboBox *teamnamesComboBox = nullptr;
     QCheckBox *randTeamnamesCheckBox = nullptr;
     QCheckBox *addSectionToTeamnamesCheckBox = nullptr;
     bool randomizedTeamNames = false;

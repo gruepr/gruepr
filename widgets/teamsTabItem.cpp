@@ -20,6 +20,7 @@
 #include <QMetaEnum>
 #include <QPainter>
 #include <QPrintDialog>
+#include <QStyleFactory>
 #include <QTextDocument>
 #include <QTextStream>
 #include <QTimer>
@@ -177,8 +178,8 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     teamOptionsLayout->setSpacing(6);
     teamDataLayout->addLayout(teamOptionsLayout);
 
-    teamnamesComboBox = new QComboBox(this);
-    teamnamesComboBox->setStyleSheet(COMBOBOXSTYLE);
+    teamnamesComboBox = new StyledComboBox(this);
+    teamnamesComboBox->view()->setStyle(QStyleFactory::create("Fusion"));   // Needed to
     teamnamesComboBox->setPlaceholderText(tr("Set team names"));
     teamnamesComboBox->addItems(teamnameCategories);
     teamnamesComboBox->addItem(tr("Custom names..."));
@@ -1170,8 +1171,7 @@ void TeamsTabItem::postTeamsToCanvas()
     int i = 1;
     auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
-    auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
-    coursesComboBox->setStyleSheet(COMBOBOXSTYLE);
+    auto *coursesComboBox = new StyledComboBox(canvasCoursesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
         coursesComboBox->addItem(canvasCourse.name);
         coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);

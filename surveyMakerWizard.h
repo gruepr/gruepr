@@ -8,9 +8,9 @@
 #include "widgets/comboBoxWithElidedContents.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
 #include "widgets/labelWithInstantTooltip.h"
+#include "widgets/styledComboBox.h"
 #include "widgets/surveyMakerQuestion.h"
 #include <QCheckBox>
-#include <QComboBox>
 #include <QDate>
 #include <QFileInfo>
 #include <QLabel>
@@ -159,7 +159,7 @@ private:
     QLineEdit *ln = nullptr;
     QLineEdit *em = nullptr;
     QLabel *genderResponsesLabel = nullptr;
-    QComboBox *genderResponsesComboBox = nullptr;
+    StyledComboBox *genderResponsesComboBox = nullptr;
     QCheckBox *genderResponsesAllowMulti = nullptr;
     QLabel *toplabelrb = nullptr;
     QLabel *toplabelcb = nullptr;
@@ -391,12 +391,12 @@ private slots:
 private:
     enum {timezone, schedule}; // questions in order
 
-    QComboBox *tz = nullptr;
+    StyledComboBox *tz = nullptr;
     QWidget *sc = nullptr;
     QGridLayout *scLayout = nullptr;
     QString scheduleQuestion;
     QLabel *busyOrFreeLabel = nullptr;
-    QComboBox *busyOrFreeComboBox = nullptr;
+    StyledComboBox *busyOrFreeComboBox = nullptr;
     QString baseTimezone = "";
     QLabel *baseTimezoneLabel = nullptr;
     QLineEdit *customBaseTimezone = nullptr;
@@ -407,15 +407,15 @@ private:
     QList<QCheckBox *> dayCheckBoxes;
     void checkDays();
     QLabel *timespanLabel = nullptr;
-    QComboBox *daysComboBox = nullptr;
+    StyledComboBox *daysComboBox = nullptr;
     QLabel *fromLabel = nullptr;
-    QComboBox *fromComboBox = nullptr;
+    StyledComboBox *fromComboBox = nullptr;
     QLabel *toLabel = nullptr;
-    QComboBox *toComboBox = nullptr;
+    StyledComboBox *toComboBox = nullptr;
     QLabel *resolutionLabel = nullptr;
-    QComboBox *resolutionComboBox = nullptr;
+    StyledComboBox *resolutionComboBox = nullptr;
     QLabel *formatLabel = nullptr;
-    QComboBox *formatComboBox = nullptr;
+    StyledComboBox *formatComboBox = nullptr;
     const int DEFAULTTIMEFORMAT = 7;
     const int DEFAULTSCHEDSTARTTIME = 10;  //10 am
     const int DEFAULTSCHEDENDTIME = 17;  //5 pm
@@ -514,9 +514,9 @@ private:
     QStringList sectionNames;
     int numSectionsEntered = 0;
     QPlainTextEdit *ww = nullptr;
-    QList<QComboBox *> wwc;
+    QList<StyledComboBox *> wwc;
     QPlainTextEdit *wa = nullptr;
-    QList<QComboBox *> wac;
+    QList<StyledComboBox *> wac;
     QLabel *numPrefTeammatesExplainer = nullptr;
     QSpinBox *numPrefTeammatesSpinBox = nullptr;
     int numPrefTeammates = 1;

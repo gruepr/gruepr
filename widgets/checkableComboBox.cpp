@@ -8,7 +8,7 @@
 #include <QStylePainter>
 
 CheckableComboBox::CheckableComboBox(QWidget *parent)
-    : QComboBox(parent)
+    : StyledComboBox(parent)
 {
     itemModel = new QStandardItemModel(this);
     setModel(itemModel);

@@ -2,7 +2,7 @@
 #define SECTIONCRITERION_H
 
 #include "criterion.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 #include <QPushButton>
 
 class SectionCriterion : public Criterion {
@@ -26,7 +26,7 @@ public:
 
     DataOptions *dataOptions = nullptr;
     QPushButton *editSectionNameButton = nullptr;
-    QComboBox *sectionSelectionBox = nullptr;
+    StyledComboBox *sectionSelectionBox = nullptr;
 };
 
 #endif // SECTIONCRITERION_H

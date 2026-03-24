@@ -3,7 +3,7 @@
 
 #include "dataOptions.h"
 #include "studentRecord.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 #include <QDialog>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
@@ -31,7 +31,7 @@ private:
     QList<QWidget*> databox;                        // either a QGroupBox or QComboBox
     QStackedWidget *attributeStack = nullptr;
     QList<QPushButton*> attributeSelectorButtons;
-    QList<QComboBox*> attributeCombobox;
+    QList<StyledComboBox*> attributeCombobox;
     QList<QGroupBox*> attributeMultibox;
     QList<QDoubleSpinBox*> attributeSpinBox;
     bool tempUnavailability[MAX_DAYS][MAX_BLOCKS_PER_DAY];

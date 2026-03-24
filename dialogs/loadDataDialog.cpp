@@ -5,8 +5,8 @@
 #include "dialogs/baseTimeZoneDialog.h"
 #include "dialogs/categorizingDialog.h"
 #include "widgets/dropcsvframe.h"
+#include "widgets/styledComboBox.h"
 #include <QCollator>
-#include <QComboBox>
 #include <QDir>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -367,8 +367,7 @@ bool loadDataDialog::getFromGoogle()
     auto *vLayout = new QVBoxLayout;
     auto *label = new QLabel(tr("Which survey should be opened?"), googleFormsDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
-    auto *formsComboBox = new QComboBox(googleFormsDialog);
-    formsComboBox->setStyleSheet(COMBOBOXSTYLE);
+    auto *formsComboBox = new StyledComboBox(googleFormsDialog);
     for(const auto &form : std::as_const(formsList)) {
         formsComboBox->addItem(form);
     }
@@ -463,7 +462,7 @@ bool loadDataDialog::getFromCanvas()
     auto *vLayout = new QVBoxLayout;
     int i = 1;
     auto *label = new QLabel(tr("From which course should the survey be downloaded?"), canvasCoursesAndQuizzesDialog);
-    auto *coursesAndQuizzesComboBox = new QComboBox(canvasCoursesAndQuizzesDialog);
+    auto *coursesAndQuizzesComboBox = new StyledComboBox(canvasCoursesAndQuizzesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
         coursesAndQuizzesComboBox->addItem(canvasCourse.name);
         coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);

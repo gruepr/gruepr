@@ -1,7 +1,7 @@
 #include "csvfile.h"
 #include "gruepr_globals.h"
+#include "widgets/styledComboBox.h"
 #include <QCheckBox>
-#include <QComboBox>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QLabel>
@@ -293,8 +293,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
         label->setWordWrap(true);
         window->theTable->setCellWidget(row, 0, label);
 
-        auto *selector = new QComboBox(window);
-        selector->setStyleSheet(COMBOBOXSTYLE);
+        auto *selector = new StyledComboBox(window);
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(new MouseWheelBlocker(selector));  // as it's too easy to mistake scrolling through the rows with changing the value
         for(const auto &meaning : std::as_const(possibleFieldMeanings)) {
@@ -348,7 +347,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
     std::map<QString, int> fullyUsedValues; // mapping the same, but saving how many extra fields with this meaning
     for(auto row : rows) {
         // get the selected fieldMeaning
-        const auto *box = qobject_cast<QComboBox *>(window->theTable->cellWidget(row, 1));
+        const auto *box = qobject_cast<StyledComboBox *>(window->theTable->cellWidget(row, 1));
         const QString selection = box->currentText();
 
         // set it in the CsvFile's data
@@ -388,7 +387,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
     // Then:
     //  4) clearing formatting of all items unchosen in any box (except "Unused").
     for(auto row = rows.rbegin(); row != rows.rend(); ++row) {
-        auto *box = qobject_cast<QComboBox *>(window->theTable->cellWidget(*row, 1));
+        auto *box = qobject_cast<StyledComboBox *>(window->theTable->cellWidget(*row, 1));
         box->blockSignals(true);
         auto *model = qobject_cast<QStandardItemModel *>(box->model());
         for(auto &takenValue : takenValues) {

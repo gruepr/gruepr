@@ -1,9 +1,8 @@
 #include "categorizingDialog.h"
+#include "gruepr_globals.h"
 #include "csvfile.h"
 #include "dialogs/dataTypesTableDialog.h"
-#include "gruepr_globals.h"
 #include <QBoxLayout>
-#include <QComboBox>
 #include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>
@@ -129,8 +128,7 @@ void CategorizingDialog::populateTable(){
         const QString wrappedText = wrapAndElideText(columnName, availableWidth, MAX_HEADER_LINES, fm);
         columnLabel->setText(wrappedText);
         columnLabel->setToolTip(columnName);  // full text on hover
-        auto *columnComboBox = new QComboBox(this);
-        columnComboBox->setStyleSheet(COMBOBOXSTYLE);
+        auto *columnComboBox = new StyledComboBox(this);
         columnComboBox->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         columnComboBox->installEventFilter(new MouseWheelBlocker(columnComboBox));
         columnWidgetLayout->addWidget(columnLabel);

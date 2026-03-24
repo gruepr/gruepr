@@ -814,8 +814,7 @@ bool TeammatesRulesDialog::loadExistingTeamset()
         win->setWindowTitle(tr("Which teamset to load?"));
         win->setSizeGripEnabled(true);
         auto *layout = new QVBoxLayout(win);
-        auto *teamsetChooser = new QComboBox(win);
-        teamsetChooser->setStyleSheet(COMBOBOXSTYLE);
+        auto *teamsetChooser = new StyledComboBox(win);
         teamsetChooser->addItems(teamSets);
         layout->addWidget(teamsetChooser);
         auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);

@@ -11,7 +11,7 @@
 #include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
 #include "widgets/groupingCriteriaCardWidget.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QMainWindow>
@@ -130,10 +130,10 @@ private:
 
         //Criteria Cards
     GroupingCriteriaCard *teamsizeCriteriaCard = nullptr;
-        QComboBox *teamSizeBox = nullptr;
+        StyledComboBox *teamSizeBox = nullptr;
         QSpinBox *idealTeamSizeBox = nullptr;
     GroupingCriteriaCard *sectionCriteriaCard = nullptr;
-        QComboBox *sectionSelectionBox = nullptr;
+        StyledComboBox *sectionSelectionBox = nullptr;
     GroupingCriteriaCard *genderIdentityCriteriaCard = nullptr;
     GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
     GroupingCriteriaCard *urmIdentityCard = nullptr;

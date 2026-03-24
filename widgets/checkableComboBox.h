@@ -1,14 +1,14 @@
 #ifndef CHECKABLECOMBOBOX_H
 #define CHECKABLECOMBOBOX_H
 
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 
 // A QComboBox where each item has a checkbox.
 // Multiple items can be checked. The display text shows checked items joined with a separator.
 
-class CheckableComboBox : public QComboBox
+class CheckableComboBox : public StyledComboBox
 {
     Q_OBJECT
 

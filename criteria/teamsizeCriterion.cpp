@@ -8,8 +8,7 @@ void TeamsizeCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOpti
     auto *teamSizeContentAreaLayout = new QHBoxLayout();
     teamSizeContentAreaLayout->setSpacing(2);
 
-    teamSizeBox = new QComboBox(parentCard);
-    teamSizeBox->setStyleSheet(COMBOBOXSTYLE);
+    teamSizeBox = new StyledComboBox(parentCard);
     teamSizeBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     teamSizeBox->setMinimumHeight(30);
     teamSizeBox->installEventFilter(new MouseWheelBlocker(teamSizeBox));
