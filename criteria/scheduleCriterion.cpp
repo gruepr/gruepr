@@ -5,11 +5,33 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-Criterion* ScheduleCriterion::clone() const {
-    return new ScheduleCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+Criterion* ScheduleCriterion::clone() const
+{
+    auto *copy = new ScheduleCriterion(dataOptions, criteriaType, weight, penaltyStatus);
+    copy->desiredTimeBlocksOverlap = desiredTimeBlocksOverlap;
+    copy->minTimeBlocksOverlap = minTimeBlocksOverlap;
+    copy->meetingBlockSize = meetingBlockSize;
+    return copy;
 }
 
-void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
+QJsonObject ScheduleCriterion::settingsToJson() const
+{
+    QJsonObject json = Criterion::settingsToJson();
+    json["desiredTimeBlocksOverlap"] = desiredTimeBlocksOverlap;
+    json["minTimeBlocksOverlap"] = minTimeBlocksOverlap;
+    json["meetingBlockSize"] = static_cast<double>(meetingBlockSize);
+    return json;
+}
+
+void ScheduleCriterion::settingsFromJson(const QJsonObject &json)
+{
+    Criterion::settingsFromJson(json);
+    desiredTimeBlocksOverlap = json["desiredTimeBlocksOverlap"].toInt(8);
+    minTimeBlocksOverlap = json["minTimeBlocksOverlap"].toInt(4);
+    meetingBlockSize = static_cast<float>(json["meetingBlockSize"].toDouble(1));
+}
+
+void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {
     auto *meetingScheduleContentLayout = new QVBoxLayout();
     auto *minimumAndDesiredButtonLayout = new QHBoxLayout();
@@ -50,9 +72,9 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
 
     if(!dataOptions->dayNames.isEmpty()) {
         minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
-        minMeetingTimes->setValue(teamingOptions->minTimeBlocksOverlap);
+        minMeetingTimes->setValue(minTimeBlocksOverlap);
         desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
-        desiredMeetingTimes->setValue(teamingOptions->desiredTimeBlocksOverlap);
+        desiredMeetingTimes->setValue(desiredTimeBlocksOverlap);
         //display no decimals if whole number of hours, 1 decimal if on the half-hour, 2 decimals otherwise
         const int roundedVal = std::round(100*dataOptions->scheduleResolution);
         if((roundedVal == 100) || (roundedVal == 200) || (roundedVal == 300)) {
@@ -64,28 +86,28 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
         else {
             meetingLengthSpinBox->setDecimals(2);
         }
-        meetingLengthSpinBox->setValue(teamingOptions->meetingBlockSize);
+        meetingLengthSpinBox->setValue(meetingBlockSize);
         meetingLengthSpinBox->setSingleStep(dataOptions->scheduleResolution);
         meetingLengthSpinBox->setMinimum(dataOptions->scheduleResolution);
-        //ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
+        //ui->scheduleWeight->setValue(scheduleWeight);
     }
 
-    connect(minMeetingTimes, &QSpinBox::valueChanged, this, [this, teamingOptions]() {
-        teamingOptions->minTimeBlocksOverlap = (minMeetingTimes->value());
+    connect(minMeetingTimes, &QSpinBox::valueChanged, this, [this]() {
+        minTimeBlocksOverlap = (minMeetingTimes->value());
         if (desiredMeetingTimes->value() < (minMeetingTimes->value())) {
             desiredMeetingTimes->setValue(minMeetingTimes->value());
         }
     });
 
-    connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this, teamingOptions]() {
-        teamingOptions->desiredTimeBlocksOverlap = (desiredMeetingTimes->value());
+    connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this]() {
+        desiredTimeBlocksOverlap = (desiredMeetingTimes->value());
         if (minMeetingTimes->value() > (desiredMeetingTimes->value())) {
             minMeetingTimes->setValue(desiredMeetingTimes->value());
         }
     });
 
-    connect(meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this, teamingOptions]() {
-        teamingOptions->meetingBlockSize = (meetingLengthSpinBox->value());
+    connect(meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this]() {
+        meetingBlockSize = (meetingLengthSpinBox->value());
         meetingLengthSpinBox->setSuffix(meetingLengthSpinBox->value() > 1 ? tr(" hours") : tr(" hour"));
         if (dataOptions && !dataOptions->timeNames.empty() && !dataOptions->dayNames.empty()) {
             minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
@@ -94,13 +116,17 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
     });
 }
 
+void ScheduleCriterion::prepareForOptimization(const StudentRecord *, int, const DataOptions *dataOptions)
+{
+    numBlocksForOneMeeting = static_cast<int>(std::ceil(meetingBlockSize / dataOptions->scheduleResolution));
+}
+
 void ScheduleCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                       const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                       const TeamingOptions *const /*teamingOptions*/, const DataOptions *const dataOptions,
                                        std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
 {
     const int numDays = int(dataOptions->dayNames.size());
     const int numTimes = int(dataOptions->timeNames.size());
-    const int numBlocksNeeded = teamingOptions->realMeetingBlockSize;
 
     // Allocated once per thread; subsequent calls just reuse the memory.
     // Using vector<uint8_t> rather than vector<bool> to avoid bit-packing overhead.
@@ -170,14 +196,14 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
         for(int day = 0; day < numDays; day++) {
             for(int time = 0; time < numTimes; time++) {
                 int block = 0;
-                while(availabilityChart[day * numTimes + time] && (block < numBlocksNeeded) && (time < numTimes)) {
+                while(availabilityChart[day * numTimes + time] && (block < numBlocksForOneMeeting) && (time < numTimes)) {
                     block++;
-                    if(block < numBlocksNeeded) {
+                    if(block < numBlocksForOneMeeting) {
                         time++;
                     }
                 }
 
-                if((block == numBlocksNeeded) && (block > 0)){
+                if((block == numBlocksForOneMeeting) && (block > 0)){
                     criteriaScores[team]++;
                 }
             }
@@ -185,21 +211,32 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
 
         // convert counts to a schedule score
         // normal schedule score is number of overlaps / desired number of overlaps
-        if(criteriaScores[team] > teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, each added overlap counts less
-            const int numAdditionalOverlaps = int(criteriaScores[team]) - teamingOptions->desiredTimeBlocksOverlap;
-            criteriaScores[team] = teamingOptions->desiredTimeBlocksOverlap;
+        if(criteriaScores[team] > desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, each added overlap counts less
+            const int numAdditionalOverlaps = int(criteriaScores[team]) - desiredTimeBlocksOverlap;
+            criteriaScores[team] = desiredTimeBlocksOverlap;
             float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
             for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
                 criteriaScores[team] += factor;
                 factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
             }
         }
-        else if(criteriaScores[team] < teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, apply penalty
+        else if(criteriaScores[team] < minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, apply penalty
             penaltyPoints[team]++;
         }
-        criteriaScores[team] /= teamingOptions->desiredTimeBlocksOverlap;
+        criteriaScores[team] /= desiredTimeBlocksOverlap;
         criteriaScores[team] *= weight;
     }
+}
+
+int ScheduleCriterion::getNumBlocksForOneMeeting(const TeamingOptions *teamingOptions)
+{
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        if (teamingOptions->criteria[i] != nullptr &&
+            teamingOptions->criteria[i]->criteriaType == CriteriaType::scheduleMeetingTimes) {
+            return static_cast<const ScheduleCriterion*>(teamingOptions->criteria[i])->numBlocksForOneMeeting;
+        }
+    }
+    return 1;
 }
 
 QString ScheduleCriterion::headerLabel(const DataOptions *) const {
@@ -225,12 +262,12 @@ QString ScheduleCriterion::studentDisplayText(const StudentRecord &, const DataO
     return "";
 }
 
-QString ScheduleCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const {
+QString ScheduleCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions *) const {
     QString text;
-    text += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize) +
-            tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
-    text += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
-    text += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
+    text += "\n" + tr("Meeting block size is ") + QString::number(meetingBlockSize) +
+            tr(" hour") + ((meetingBlockSize == 1) ? "" : tr("s"));
+    text += "\n" + tr("Minimum number of meeting times = ") + QString::number(minTimeBlocksOverlap);
+    text += "\n" + tr("Desired number of meeting times = ") + QString::number(desiredTimeBlocksOverlap);
     text += "\n" + tr("Schedule weight = ") + QString::number(double(weight));
     return text;
 }

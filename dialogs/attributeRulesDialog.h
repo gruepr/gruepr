@@ -2,7 +2,7 @@
 #define ATTRIBUTERULESDIALOG_H
 
 #include "dataOptions.h"
-#include "teamingOptions.h"
+#include "criteria/attributeCriterion.h"
 #include <QCheckBox>
 #include <QDialog>
 
@@ -17,7 +17,7 @@ class AttributeRulesDialog : public QDialog
 
 public:
     enum class TypeOfRules{required = 0, incompatible = 1}; // int values correspond to the ui's tabwidget tab index
-    explicit AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
+    explicit AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const AttributeCriterion &criterion,
                                   TypeOfRules typeOfRules, QWidget *parent = nullptr);
     ~AttributeRulesDialog() override;
     AttributeRulesDialog(const AttributeRulesDialog&) = delete;

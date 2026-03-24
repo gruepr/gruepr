@@ -17,6 +17,7 @@ public:
     void settingsFromJson(const QJsonObject &json) override;
 
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
+    void prepareForOptimization(const StudentRecord *students, int numStudents, const DataOptions *dataOptions) override;
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
                         std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const override;
@@ -33,11 +34,20 @@ public:
     const int attributeIndex;
     AttributeWidget *attributeWidget = nullptr;
     AttributeDiversity diversity = AttributeDiversity::diverse;
+
+    bool haveAnyRequired = false;
+    QList<int> requiredValues;
+    bool haveAnyIncompatible = false;
+    QList<QPair<int,int>> incompatibleValues;
+
     float targetMin = 0.0;
     float targetMax = 100.0;
 
 private:
     static QString valToLetter(int val);
+    int cachedNumAttributeLevels = 0;
+    float cachedRangeAttributeLevels = 0.0f;
+    float cachedOverallMean = 0.0f;
 };
 
 #endif // ATTRIBUTECRITERION_H

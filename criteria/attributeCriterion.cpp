@@ -1,6 +1,7 @@
 #include "attributeCriterion.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QHBoxLayout>
+#include <QJsonArray>
 #include <QLabel>
 #include <QVBoxLayout>
 
@@ -9,6 +10,10 @@ Criterion* AttributeCriterion::clone() const {
     copy->diversity  = diversity;
     copy->targetMin  = targetMin;
     copy->targetMax  = targetMax;
+    copy->haveAnyRequired = haveAnyRequired;
+    copy->requiredValues = requiredValues;
+    copy->haveAnyIncompatible = haveAnyIncompatible;
+    copy->incompatibleValues = incompatibleValues;
     return copy;
 }
 
@@ -18,6 +23,22 @@ QJsonObject AttributeCriterion::settingsToJson() const {
     json["diversity"] = diversityEnum.valueToKey(static_cast<int>(diversity));
     json["targetMin"] = static_cast<double>(targetMin);
     json["targetMax"] = static_cast<double>(targetMax);
+
+    QJsonArray reqArray;
+    for (const auto val : requiredValues) {
+        reqArray.append(val);
+    }
+    json["requiredValues"] = reqArray;
+
+    QJsonArray incompArray;
+    for (const auto &pair : incompatibleValues) {
+        QJsonArray pairArray;
+        pairArray.append(pair.first);
+        pairArray.append(pair.second);
+        incompArray.append(pairArray);
+    }
+    json["incompatibleValues"] = incompArray;
+
     return json;
 }
 
@@ -32,6 +53,21 @@ void AttributeCriterion::settingsFromJson(const QJsonObject &json) {
     }
     targetMin = static_cast<float>(json["targetMin"].toDouble(0.0));
     targetMax = static_cast<float>(json["targetMax"].toDouble(100.0));
+
+    requiredValues.clear();
+    const QJsonArray reqArray = json["requiredValues"].toArray();
+    for (const auto &val : reqArray) {
+        requiredValues << val.toInt();
+    }
+    haveAnyRequired = !requiredValues.isEmpty();
+
+    incompatibleValues.clear();
+    const QJsonArray incompArray = json["incompatibleValues"].toArray();
+    for (const auto &pair : incompArray) {
+        const QJsonArray pairArray = pair.toArray();
+        incompatibleValues.append({pairArray[0].toInt(), pairArray[1].toInt()});
+    }
+    haveAnyIncompatible = !incompatibleValues.isEmpty();
 }
 
 void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions) {
@@ -41,44 +77,47 @@ void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
     parentCard->setContentAreaLayout(*contentLayout);
 }
 
+void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*/, int /*numStudents*/, const DataOptions *dataOptions)
+{
+    const auto type = dataOptions->attributeType[attributeIndex];
+    const bool isNumerical = (type == DataOptions::AttributeType::numerical);
+    const bool isTimezone  = (type == DataOptions::AttributeType::timezone);
+
+    cachedNumAttributeLevels = ((isNumerical || isTimezone) ? 0 : static_cast<int>(dataOptions->attributeVals_discrete[attributeIndex].size()));
+
+    if (isNumerical) {
+        cachedRangeAttributeLevels =
+            *dataOptions->attributeVals_continuous[attributeIndex].crbegin()
+            - *dataOptions->attributeVals_continuous[attributeIndex].cbegin();
+    }
+    else if (isTimezone || dataOptions->attributeVals_discrete[attributeIndex].empty()) {
+        cachedRangeAttributeLevels = 0;
+    }
+    else {
+        cachedRangeAttributeLevels =
+            *dataOptions->attributeVals_discrete[attributeIndex].crbegin()
+            - *dataOptions->attributeVals_discrete[attributeIndex].cbegin();
+    }
+
+    cachedOverallMean = 0.0f;
+    if (isNumerical) {
+        const auto &allVals = dataOptions->attributeVals_continuous[attributeIndex];
+        if (!allVals.empty()) {
+            cachedOverallMean = std::accumulate(allVals.cbegin(), allVals.cend(), 0.0f)
+                                / static_cast<float>(allVals.size());
+        }
+    }
+}
+
 void AttributeCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                        const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                        const TeamingOptions *const /*teamingOptions*/, const DataOptions *const dataOptions,
                                         std::vector<float> &criteriaScores, std::vector<int> &_penaltyPoints) const
 {
     const auto type = dataOptions->attributeType[attributeIndex];
     const bool thisIsNumerical = (type == DataOptions::AttributeType::numerical);
     const bool thisIsTimezone  = (type == DataOptions::AttributeType::timezone);
 
-    // For discrete types: derive total level count and range from DataOptions
-    const int totNumAttributeLevels = thisIsNumerical || thisIsTimezone ? 0 :
-                                          static_cast<int>(dataOptions->attributeVals_discrete[attributeIndex].size());
-
-    float totRangeAttributeLevels;
-    if(thisIsNumerical) {
-        totRangeAttributeLevels = *dataOptions->attributeVals_continuous[attributeIndex].crbegin()
-                                  - *dataOptions->attributeVals_continuous[attributeIndex].cbegin();
-    }
-    else if(thisIsTimezone || dataOptions->attributeVals_discrete[attributeIndex].empty()) {
-        totRangeAttributeLevels = 0;
-    }
-    else {
-        totRangeAttributeLevels = *dataOptions->attributeVals_discrete[attributeIndex].crbegin()
-                                    - *dataOptions->attributeVals_discrete[attributeIndex].cbegin();
-    }
-
-    // For numerical: compute overall mean
-    float overallMean = 0.0f;
-    if(thisIsNumerical) {
-        const auto &allVals = dataOptions->attributeVals_continuous[attributeIndex];
-        if(!allVals.empty()) {
-            overallMean = std::accumulate(allVals.cbegin(), allVals.cend(), 0.0f)
-            / static_cast<float>(allVals.size());
-        }
-    }
-
-    const bool doPenalty = this->penaltyStatus
-                           || teamingOptions->haveAnyRequiredAttributes[attributeIndex]
-                           || teamingOptions->haveAnyIncompatibleAttributes[attributeIndex];
+    const bool doPenalty = penaltyStatus || haveAnyRequired || haveAnyIncompatible;
 
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -112,8 +151,8 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
 
         // ── Penalties ──────────────────────────────────────────────────────
         if(doPenalty && !thisIsNumerical) {
-            if(teamingOptions->haveAnyIncompatibleAttributes[attributeIndex]) {
-                for(const auto &pair : std::as_const(teamingOptions->incompatibleAttributeValues[attributeIndex])) {
+            if(haveAnyIncompatible) {
+                for(const auto &pair : std::as_const(incompatibleValues)) {
                     const int n = static_cast<int>(discreteLevels.count(pair.first));
                     if(pair.first == pair.second) {
                         _penaltyPoints[team] += (n * (n - 1)) / 2;
@@ -124,8 +163,8 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                     }
                 }
             }
-            if(teamingOptions->haveAnyRequiredAttributes[attributeIndex]) {
-                for(const auto value : std::as_const(teamingOptions->requiredAttributeValues[attributeIndex])) {
+            if(haveAnyRequired) {
+                for(const auto value : std::as_const(requiredValues)) {
                     if(discreteLevels.count(value) == 0) {
                         _penaltyPoints[team]++;
                     }
@@ -164,16 +203,16 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                         rangeSpan = 1.0f;  // guard against zero-range data
                     }
 
-                    const float deviation = std::abs(teamMean - overallMean);
+                    const float deviation = std::abs(teamMean - cachedOverallMean);
                     criteriaScores[team] = std::max(0.0f, 1.0f - (deviation / (rangeSpan * 0.5f)));
                 }
                 else if(diversity == Criterion::AttributeDiversity::similar || diversity == Criterion::AttributeDiversity::diverse) {
-                    if(totRangeAttributeLevels <= 0.0f || continuousLevels.size() < 2) {
+                    if(cachedRangeAttributeLevels <= 0.0f || continuousLevels.size() < 2) {
                         criteriaScores[team] = 0.0f;
                     }
                     else {
                         // spread: fraction of population range covered by the sample
-                        const float spread = (*continuousLevels.crbegin() - *continuousLevels.cbegin()) / totRangeAttributeLevels;
+                        const float spread = (*continuousLevels.crbegin() - *continuousLevels.cbegin()) / cachedRangeAttributeLevels;
                         if(continuousLevels.size() == 2) {
                             criteriaScores[team] = spread;
                         }
@@ -253,10 +292,10 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                         }
                         prevVal = v;
                     }
-                    const float rangePart = totRangeAttributeLevels > 0 ?
-                                                static_cast<float>(rangeOfVals) / totRangeAttributeLevels : 0.0f;
-                    const float uniquePart = totNumAttributeLevels > 1 ?
-                                                static_cast<float>(numUniqueVals - 1) / (totNumAttributeLevels - 1) : 0.0f;
+                    const float rangePart = cachedRangeAttributeLevels > 0 ?
+                                                static_cast<float>(rangeOfVals) / cachedRangeAttributeLevels : 0.0f;
+                    const float uniquePart = cachedNumAttributeLevels > 1 ?
+                                                static_cast<float>(numUniqueVals - 1) / (cachedNumAttributeLevels - 1) : 0.0f;
                     criteriaScores[team] = 0.75f * rangePart + 0.25f * uniquePart;
                 }
                 else {
@@ -268,8 +307,8 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                         }
                         prevVal = v;
                     }
-                    criteriaScores[team] = totNumAttributeLevels > 1
-                                               ? static_cast<float>(numUniqueVals - 1) / (totNumAttributeLevels - 1)
+                    criteriaScores[team] = cachedNumAttributeLevels > 1
+                                               ? static_cast<float>(numUniqueVals - 1) / (cachedNumAttributeLevels - 1)
                                                : 0.0f;
                 }
 

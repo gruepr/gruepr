@@ -3,7 +3,7 @@
 #include <QPushButton>
 #include <QTabBar>
 
-AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
+AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const AttributeCriterion &criterion,
                                            TypeOfRules typeOfRules, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AttributeRulesDialog)
@@ -32,8 +32,8 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &AttributeRulesDialog::Ok);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    requiredValues = teamingOptions.requiredAttributeValues[attribute];
-    incompatibleValues = teamingOptions.incompatibleAttributeValues[attribute];
+    requiredValues = criterion.requiredValues;
+    incompatibleValues = criterion.incompatibleValues;
     const DataOptions::AttributeType attributeType = dataOptions.attributeType[attribute];
     attributeValues.clear();
     attributeValues.reserve(dataOptions.attributeVals_discrete[attribute].size());

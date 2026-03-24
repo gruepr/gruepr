@@ -181,16 +181,16 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
             const int currAttribute = this->attribute;
 
             //Open specialized dialog box to collect attribute values that are required on each team
-            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::required, this);
+            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *criterion, AttributeRulesDialog::TypeOfRules::required, this);
 
             //If user clicks OK, replace with new sets of values
             const int reply = win->exec();
             if(reply == QDialog::Accepted) {
-                teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
-                teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+                criterion->haveAnyRequired = !(win->requiredValues.isEmpty());
+                criterion->requiredValues = win->requiredValues;
 
-                teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
-                teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+                criterion->haveAnyIncompatible = !(win->incompatibleValues.isEmpty());
+                criterion->incompatibleValues = win->incompatibleValues;
             }
 
             delete win;
@@ -199,16 +199,16 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
             const int currAttribute = this->attribute;
 
             //Open specialized dialog box to collect attribute values that are required on each team
-            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::incompatible, this);
+            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *criterion, AttributeRulesDialog::TypeOfRules::incompatible, this);
 
             //If user clicks OK, replace with new sets of values
             const int reply = win->exec();
             if(reply == QDialog::Accepted) {
-                teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
-                teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+                criterion->haveAnyRequired = !(win->requiredValues.isEmpty());
+                criterion->requiredValues = win->requiredValues;
 
-                teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
-                teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+                criterion->haveAnyIncompatible = !(win->incompatibleValues.isEmpty());
+                criterion->incompatibleValues = win->incompatibleValues;
             }
 
             delete win;

@@ -13,8 +13,9 @@
 #include <QStringListModel>
 #include <QTimer>
 
-TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
-                                           const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, QWidget *parent) :
+TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions,
+                                           const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates,
+                                           int initialNumberGiven, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::TeammatesRulesDialog),
     m_type(typeOfTeammates),
@@ -66,7 +67,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->numRequestsGrantedSpinBox->setVisible(isGroupTogether);
     if (isGroupTogether) {
         ui->numRequestsGrantedSpinBox->setStyleSheet(SPINBOXSTYLE);
-        ui->numRequestsGrantedSpinBox->setValue(teamingOptions.numberGroupTogethersGiven == REQUESTED_TEAMMATES_ALL? 0 : teamingOptions.numberGroupTogethersGiven);
+        ui->numRequestsGrantedSpinBox->setValue(initialNumberGiven == REQUESTED_TEAMMATES_ALL? 0 : initialNumberGiven);
         connect(ui->numRequestsGrantedSpinBox, &QSpinBox::valueChanged, this, [this](int v) {
             if(v == 0) {
                 numberGroupTogethersGiven = REQUESTED_TEAMMATES_ALL;

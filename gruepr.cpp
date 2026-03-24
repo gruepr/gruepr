@@ -1,6 +1,7 @@
 #include "gruepr.h"
 #include "ui_gruepr.h"
 #include "criteria/attributeCriterion.h"
+#include "criteria/scheduleCriterion.h"
 #include "criteria/sectionCriterion.h"
 #include "criteria/teamsizeCriterion.h"
 #include "dialogs/customTeamsizesDialog.h"
@@ -278,6 +279,7 @@ void gruepr::addSavedTeamsTabs()
                 ui->dataDisplayTabWidget->addTab(teamTab, teamTab->tabName);
                 numTeams = int(teams.size());
                 connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
+                connect(teamTab, &TeamsTabItem::addCriterionRequested, this, static_cast<void (gruepr::*)(Criterion::CriteriaType)>(&gruepr::addCriteriaCard));
             }
         }
     }
@@ -896,12 +898,10 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
     //Remove the student
     studentBeingRemoved->deleted = true;
 
-    if(teamingOptions->haveAnyGroupTogethers || teamingOptions->haveAnySplitAparts) {
-        // remove this student from all other students who might have them as groupTogether / SplitApart
-        for(auto &student : students) {
-            student.splitApart.remove(ID);
-            student.groupTogether.remove(ID);
-        }
+    // remove this student from all other students who might have them as groupTogether / SplitApart
+    for(auto &student : students) {
+        student.splitApart.remove(ID);
+        student.groupTogether.remove(ID);
     }
 
     // update in dataOptions and then the attribute tab the count of each attribute response
@@ -1525,7 +1525,12 @@ void gruepr::startOptimization()
         teamingOptions->criteria[i]->weight *= normFactor;
     }
 
-    teamingOptions->realMeetingBlockSize = std::ceil(teamingOptions->meetingBlockSize / dataOptions->scheduleResolution); // divide by length of time block in hours, rounded up
+    // prepare the criteria for the optimization process (mostly cache pre-determined values)
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        if (teamingOptions->criteria[i] != nullptr) {
+            teamingOptions->criteria[i]->prepareForOptimization(students.constData(), numActiveStudents, dataOptions);
+        }
+    }
 
     bestTeamSet.clear();
     finalTeams.clear();
@@ -1685,7 +1690,7 @@ void gruepr::optimizationComplete()
     // Load scores and info into the teams
     calcTeamScores(students, numActiveStudents, teams, teamingOptions);
     for(auto &team : teams) {
-        team.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+        team.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
     }
 
     for(int team = 0; team < teams.size(); team++) {
@@ -1709,7 +1714,7 @@ void gruepr::optimizationComplete()
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
     connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
-
+    connect(teamTab, &TeamsTabItem::addCriterionRequested, this, static_cast<void (gruepr::*)(Criterion::CriteriaType)>(&gruepr::addCriteriaCard));
     ui->dataDisplayTabWidget->setCurrentWidget(teamTab);
     saveState();
 }

@@ -42,6 +42,7 @@ public:
 signals:
     void connectedToPrinter();
     void saveState();
+    void addCriterionRequested(Criterion::CriteriaType type);
 
 private slots:
     void changeTeamNames(const int index);

@@ -6,7 +6,23 @@
 #include <QVBoxLayout>
 
 Criterion* TeammatesCriterion::clone() const {
-    return new TeammatesCriterion(criteriaType, weight, penaltyStatus);
+    auto *copy = new TeammatesCriterion(criteriaType, weight, penaltyStatus);
+    copy->haveAnyTeammates = haveAnyTeammates;
+    copy->numberGiven = numberGiven;
+    return copy;
+}
+
+QJsonObject TeammatesCriterion::settingsToJson() const {
+    QJsonObject json = Criterion::settingsToJson();
+    json["haveAnyTeammates"] = haveAnyTeammates;
+    json["numberGiven"] = numberGiven;
+    return json;
+}
+
+void TeammatesCriterion::settingsFromJson(const QJsonObject &json) {
+    Criterion::settingsFromJson(json);
+    haveAnyTeammates = json["haveAnyTeammates"].toBool(false);
+    numberGiven = json["numberGiven"].toInt(REQUESTED_TEAMMATES_ALL);
 }
 
 void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
@@ -60,25 +76,22 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 
     updatePairingCount();
 
-    connect(setTeammateRulesButton, &QPushButton::clicked, parentCard, [grueprParent, teamingOptions, type, updatePairingCount]() {
+    connect(setTeammateRulesButton, &QPushButton::clicked, parentCard, [this, grueprParent, teamingOptions, type, updatePairingCount]() {
         const QStringList teamTabNames = grueprParent->getTeamTabNames();
         const QString sectionName = ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                      (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
                                      (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))
                                         ? "" : teamingOptions->sectionName;
 
-        auto *win = new TeammatesRulesDialog(grueprParent->students, *grueprParent->dataOptions, *teamingOptions,
-                                             sectionName, teamTabNames, type, grueprParent);
+        auto *win = new TeammatesRulesDialog(grueprParent->students, *grueprParent->dataOptions, sectionName,
+                                             teamTabNames, type, numberGiven, grueprParent);
         if (win->exec() == QDialog::Accepted) {
             for (int i = 0; i < grueprParent->students.size(); i++) {
                 grueprParent->students[i] = win->students[i];
             }
+            haveAnyTeammates = win->teammatesSpecified;
             if(type == TeammatesRulesDialog::TypeOfTeammates::groupTogether) {
-                teamingOptions->haveAnyGroupTogethers = win->teammatesSpecified;
-                teamingOptions->numberGroupTogethersGiven = win->numberGroupTogethersGiven;
-            }
-            else {
-                teamingOptions->haveAnySplitAparts = win->teammatesSpecified;
+                numberGiven = win->numberGroupTogethersGiven;
             }
             grueprParent->saveState();
             updatePairingCount();
@@ -159,12 +172,23 @@ float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &a
     return (penalties == 0) ? 1 : 0;
 }
 
+TeammatesCriterion* TeammatesCriterion::findInCriteria(const TeamingOptions *teamingOptions, CriteriaType type)
+{
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        if (teamingOptions->criteria[i] != nullptr &&
+            teamingOptions->criteria[i]->criteriaType == type) {
+            return static_cast<TeammatesCriterion*>(teamingOptions->criteria[i]);
+        }
+    }
+    return nullptr;
+}
+
 int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMembers, const QSet<long long> &idsOnTeam,
-                                     const QSet<long long> &idsBeingTeamed, const TeamingOptions *const teamingOptions) const
+                                     const QSet<long long> &idsBeingTeamed, const TeamingOptions *const /*teamingOptions*/) const
 {
     int penalties = 0;
 
-    if (criteriaType == CriteriaType::groupTogether && teamingOptions->haveAnyGroupTogethers) {
+    if (criteriaType == CriteriaType::groupTogether && haveAnyTeammates) {
         for (const auto *const student : teamMembers) {
             int found = 0;
             int needed = 0;
@@ -176,12 +200,12 @@ int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMem
                     }
                 }
             }
-            if (found < std::min(needed, teamingOptions->numberGroupTogethersGiven)) {
+            if (found < std::min(needed, numberGiven)) {
                 penalties++;
             }
         }
     }
-    else if (criteriaType == CriteriaType::splitApart && teamingOptions->haveAnySplitAparts) {
+    else if (criteriaType == CriteriaType::splitApart && haveAnyTeammates) {
         for (const auto *student : teamMembers) {
             for (const auto id : student->splitApart) {
                 if (idsBeingTeamed.contains(id) && idsOnTeam.contains(id)) {
@@ -237,21 +261,21 @@ QString TeammatesCriterion::studentDisplayText(const StudentRecord &student, con
     return student.splitApart.isEmpty() ? " " : QString(BULLET);
 }
 
-QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *) const
+QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions */*dataOptions*/) const
 {
-    if (criteriaType == CriteriaType::groupTogether && teamingOptions->haveAnyGroupTogethers) {
+    if (criteriaType == CriteriaType::groupTogether && haveAnyTeammates) {
         QString text = "\n" + tr("Required teammates active");
-        if (teamingOptions->numberGroupTogethersGiven == REQUESTED_TEAMMATES_ALL) {
+        if (numberGiven == REQUESTED_TEAMMATES_ALL) {
             text += tr(", all requests granted");
         }
         else {
-            text += tr(", up to ") + QString::number(teamingOptions->numberGroupTogethersGiven) +
+            text += tr(", up to ") + QString::number(numberGiven) +
                     tr(" per student granted");
         }
         return text;
     }
 
-    if (criteriaType == CriteriaType::splitApart && teamingOptions->haveAnySplitAparts) {
+    if (criteriaType == CriteriaType::splitApart && haveAnyTeammates) {
         return "\n" + tr("Prevented teammates active");
     }
 

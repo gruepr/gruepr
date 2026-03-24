@@ -643,7 +643,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
 
         // Re-score the teams and refresh all the info
         gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
-        teams[studentATeamNum].refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+        teams[studentATeamNum].refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
         teams[studentATeamNum].createTooltip(students);
 
         //get the team item in the tree
@@ -696,9 +696,9 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         if((studentATeamItem != nullptr) && (studentATeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) &&
             (studentBTeamItem != nullptr) && (studentBTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
             gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
-            studentATeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+            studentATeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
             studentATeam.createTooltip(students);
-            studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+            studentBTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
             studentBTeam.createTooltip(students);
             for(const auto &student : std::as_const(students)) {
                 if(studentATeam.studentIDs.first() == student.ID) {
@@ -821,9 +821,9 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     if((oldTeamItem != nullptr) && (oldTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) &&
         (newTeamItem != nullptr) && (newTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
         gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
-        oldTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+        oldTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
         oldTeam.createTooltip(students);
-        newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+        newTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
         newTeam.createTooltip(students);
         for(const auto &student : std::as_const(students)) {
             if(oldTeam.studentIDs.first() == student.ID) {
@@ -1031,7 +1031,8 @@ void TeamsTabItem::undoRedoDragDrop()
 
 void TeamsTabItem::makeNewSetWithAllNewTeammates()
 {
-    if(teamingOptions->haveAnyGroupTogethers) {
+    auto *groupTogetherCriterion = TeammatesCriterion::findInCriteria(externalTeamingOptions, Criterion::CriteriaType::groupTogether);
+    if (groupTogetherCriterion != nullptr && groupTogetherCriterion->haveAnyTeammates) {
         const bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current required teammate settings. Do you want to continue?"),
                                                             tr("Yes"), tr("No"));
         if(yesDoIt) {
@@ -1063,7 +1064,14 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
         }
     }
 
-    externalTeamingOptions->haveAnySplitAparts = true;
+    auto *splitApartCriterion = TeammatesCriterion::findInCriteria(externalTeamingOptions, Criterion::CriteriaType::splitApart);
+    if (splitApartCriterion == nullptr) {
+        emit addCriterionRequested(Criterion::CriteriaType::splitApart);
+        splitApartCriterion = TeammatesCriterion::findInCriteria(externalTeamingOptions, Criterion::CriteriaType::splitApart);
+    }
+    if (splitApartCriterion != nullptr) {
+        splitApartCriterion->haveAnyTeammates = true;
+    }
     externalDoItButton->animateClick();
 }
 

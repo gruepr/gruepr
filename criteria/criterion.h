@@ -38,6 +38,9 @@ public:
     // generate the UI for the criterion display in gruepr
     virtual void generateCriteriaCard(TeamingOptions *const teamingOptions) = 0;
 
+    // called once before optimization begins to cache any values derived from the student data
+    virtual void prepareForOptimization(const StudentRecord */*students*/, int /*numStudents*/, const DataOptions */*dataOptions*/) {}
+
     // calculate the score for the criterion for all the teams in a genome, used in the optimization algorithm
     virtual void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                 const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,

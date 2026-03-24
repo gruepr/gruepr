@@ -3,7 +3,6 @@
 
 #include "dataOptions.h"
 #include "studentRecord.h"
-#include "teamingOptions.h"
 #include "widgets/styledComboBox.h"
 #include <QAbstractButton>
 #include <QBoxLayout>
@@ -20,8 +19,9 @@ class TeammatesRulesDialog : public QDialog
 
 public:
     enum class TypeOfTeammates{groupTogether, splitApart};
-    explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
-                                  const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, QWidget *parent = nullptr);
+    explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const QString &sectionname,
+                                  const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, int initialNumberGiven = REQUESTED_TEAMMATES_ALL,
+                                  QWidget *parent = nullptr);
     ~TeammatesRulesDialog() override;
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog operator= (const TeammatesRulesDialog&) = delete;
