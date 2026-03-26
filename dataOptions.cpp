@@ -96,6 +96,15 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         }
     }
 
+    const QJsonArray assignmentPreferenceFieldArray = jsonDataOptions["assignmentPreferenceFields"].toArray();
+    assignmentPreferenceFields.reserve(assignmentPreferenceFieldArray.size());
+    for(const auto &item : assignmentPreferenceFieldArray) {
+        const int fieldNum = item.toInt();
+        if(fieldNum != FIELDNOTPRESENT) {
+            assignmentPreferenceFields << fieldNum;
+        }
+    }
+
     const QJsonArray sectionNamesArray = jsonDataOptions["sectionNames"].toArray();
     sectionNames.reserve(sectionNamesArray.size());
     for(const auto &item : sectionNamesArray) {
@@ -239,8 +248,8 @@ QJsonObject DataOptions::toJson() const
 {
     QJsonArray notesFieldArray, scheduleFieldArray, attributeFieldArray, attributeTypeArray,
                attributeQuestionResponsesArray, attributeQuestionResponseCountsArray,
-               discreteValsArray, continuousValsArray, prefTeammatesFieldArray,
-               prefNonTeammatesFieldArray, gendersArray;
+               discreteValsArray, continuousValsArray, assignmentPreferenceFieldArray,
+               prefTeammatesFieldArray, prefNonTeammatesFieldArray, gendersArray;
 
     for (const int field : notesFields) {
         notesFieldArray.append(field);
@@ -253,6 +262,9 @@ QJsonObject DataOptions::toJson() const
     }
     for (const int field : prefNonTeammatesField) {
         prefNonTeammatesFieldArray.append(field);
+    }
+    for (const int field : assignmentPreferenceFields) {
+        assignmentPreferenceFieldArray.append(field);
     }
     for (int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeFieldArray.append(attributeField[i]);
@@ -317,6 +329,7 @@ QJsonObject DataOptions::toJson() const
         {"attributeType", attributeTypeArray},
         {"prefTeammatesField", prefTeammatesFieldArray},
         {"prefNonTeammatesField", prefNonTeammatesFieldArray},
+        {"assignmentPreferenceFields", assignmentPreferenceFieldArray},
         {"sectionNames", QJsonArray::fromStringList(sectionNames)},
         {"attributeQuestionText", QJsonArray::fromStringList(attributeQuestionText)},
         {"attributeQuestionResponses", attributeQuestionResponsesArray},

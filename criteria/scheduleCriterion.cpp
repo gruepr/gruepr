@@ -11,6 +11,7 @@ Criterion* ScheduleCriterion::clone() const
     copy->desiredTimeBlocksOverlap = desiredTimeBlocksOverlap;
     copy->minTimeBlocksOverlap = minTimeBlocksOverlap;
     copy->meetingBlockSize = meetingBlockSize;
+    copy->numBlocksForOneMeeting = numBlocksForOneMeeting;
     return copy;
 }
 
@@ -20,6 +21,7 @@ QJsonObject ScheduleCriterion::settingsToJson() const
     json["desiredTimeBlocksOverlap"] = desiredTimeBlocksOverlap;
     json["minTimeBlocksOverlap"] = minTimeBlocksOverlap;
     json["meetingBlockSize"] = static_cast<double>(meetingBlockSize);
+    json["numBlocksForOneMeeting"] = numBlocksForOneMeeting;
     return json;
 }
 
@@ -29,6 +31,7 @@ void ScheduleCriterion::settingsFromJson(const QJsonObject &json)
     desiredTimeBlocksOverlap = json["desiredTimeBlocksOverlap"].toInt(8);
     minTimeBlocksOverlap = json["minTimeBlocksOverlap"].toInt(4);
     meetingBlockSize = static_cast<float>(json["meetingBlockSize"].toDouble(1));
+    numBlocksForOneMeeting = json["numBlocksForOneMeeting"].toInt(1);
 }
 
 void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
@@ -123,14 +126,14 @@ void ScheduleCriterion::prepareForOptimization(const StudentRecord *, int, const
 
 void ScheduleCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                        const TeamingOptions *const /*teamingOptions*/, const DataOptions *const dataOptions,
-                                       std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
+                                       QList<float> &criteriaScores, QList<int> &penaltyPoints) const
 {
     const int numDays = int(dataOptions->dayNames.size());
     const int numTimes = int(dataOptions->timeNames.size());
 
     // Allocated once per thread; subsequent calls just reuse the memory.
     // Using vector<uint8_t> rather than vector<bool> to avoid bit-packing overhead.
-    thread_local std::vector<uint8_t> availabilityChart;
+    thread_local QList<uint8_t> availabilityChart;
     const int chartSize = numDays * numTimes;
     if (int(availabilityChart.size()) < chartSize) {
         availabilityChart.resize(chartSize);

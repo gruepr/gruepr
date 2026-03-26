@@ -49,6 +49,10 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     URMResponse = jsonStudentRecord["URMResponse"].toString();
     availabilityChart = jsonStudentRecord["availabilityChart"].toString();
     tooltip = jsonStudentRecord["tooltip"].toString();
+    const QJsonArray assignmentPreferencesArray = jsonStudentRecord["assignmentPreferences"].toArray();
+    for(const auto &item : assignmentPreferencesArray) {
+        assignmentPreferences << item.toString();
+    }
     const QJsonArray unavailableArray = jsonStudentRecord["unavailable"].toArray();;
     for(int i = 0; i < MAX_DAYS; i++) {
         QJsonArray unavailableArraySubArray = unavailableArray[i].toArray();
@@ -172,6 +176,7 @@ void StudentRecord::clear() {
     lastname.clear();
     email.clear();
     section.clear();
+    assignmentPreferences.clear();
     prefTeammates.clear();
     prefNonTeammates.clear();
     notes.clear();
@@ -306,6 +311,14 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             const QString field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0)).simplified().replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
             attributeResponse[attribute] = field;
+        }
+    }
+
+    // assignment preferences (ranked choices, in order)
+    for(const int fieldnum : dataOptions.assignmentPreferenceFields) {
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            const QString field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0));
+            assignmentPreferences << field;
         }
     }
 
@@ -563,6 +576,20 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
             toolTip += "?";
         }
     }
+    if(!dataOptions.assignmentPreferenceFields.empty()) {
+        toolTip += "<br>--<br>" + QObject::tr("Assignment Preferences") + ":<br>";
+        if(assignmentPreferences.isEmpty()) {
+            toolTip += "<i>" + QObject::tr("none") + "</i>";
+        }
+        else {
+            for(int i = 0; i < assignmentPreferences.size(); i++) {
+                if(i > 0) {
+                    toolTip += "<br>";
+                }
+                toolTip += QString::number(i + 1) + ". " + assignmentPreferences[i];
+            }
+        }
+    }
     if(dataOptions.timezoneIncluded) {
         toolTip += "<br>" + QObject::tr("Timezone:  ");
         //find the timezone as attribute value so that -1 can show as unknown timezone
@@ -653,6 +680,7 @@ QJsonObject StudentRecord::toJson() const
         {"groupTogetherIDs", groupTogetherArray},
         {"attributeVals_discrete",   attributeVals_discreteArray},
         {"attributeVals_continuous", attributeVals_continuousArray},
+        {"assignmentPreferences", QJsonArray::fromStringList(assignmentPreferences)},
         {"surveyTimestamp", surveyTimestamp.toString(Qt::ISODate)},
         {"firstname", firstname},
         {"lastname", lastname},

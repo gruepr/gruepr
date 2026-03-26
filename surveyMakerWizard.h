@@ -15,6 +15,7 @@
 #include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -38,10 +39,11 @@ public:
     SurveyMakerWizard(SurveyMakerWizard&&) = delete;
     SurveyMakerWizard& operator= (SurveyMakerWizard&&) = delete;
 
-    static inline const int numPages = 7;
-    enum Page{introtitle, demographics, attribute, schedule, courseinfo, freeresponse, previewexport};
-    static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 2, 3, MAX_NOTES, 0};
+    static inline const int numPages = 8;
+    enum Page{introtitle, demographics, attribute, assignmentpreference, schedule, courseinfo, freeresponse, previewexport};
+    static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 1, 2, 3, MAX_NOTES, 0};
     static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Attributes"),
+                                                 QObject::tr("Project or Assignment"),
                                                  QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Free Response"),
                                                  QObject::tr("Preview & Export")};
 
@@ -120,6 +122,8 @@ public:
      */
     void initializePage() override;
 
+    QPushButton *getStartedButton = nullptr;
+
 private:
     QGridLayout *layout = nullptr;
     QLabel *pageTitle = nullptr;
@@ -129,7 +133,6 @@ private:
     QLabel *topLabel = nullptr;
     QLineEdit *surveyTitle = nullptr;
     QLabel *bottomLabel = nullptr;
-    QPushButton *getStartedButton = nullptr;
 };
 
 /**
@@ -264,6 +267,7 @@ private:
     QLabel *sampleQuestionsLabel = nullptr;
     QPushButton *sampleQuestionsButton = nullptr;
     SampleQuestionsDialog *sampleQuestionsDialog = nullptr;
+    QLayoutItem *stretch = nullptr;
     QList<SurveyMakerAttributeQuestion *> attributeQuestions;
     QList<QSpacerItem *> spacers;
     QList<QFrame *> previewSeparators;
@@ -277,6 +281,58 @@ private:
     int numQuestions = 0;
     void addQuestion();
     void deleteAQuestion(int questionNum);
+};
+
+/**
+ * @brief The AssignmentPreferencePage class handles the team assignment preference
+ *        ranking page of the survey maker. Students rank options (projects, topics,
+ *        clients, etc.) and each team is assigned exactly one option during optimization.
+ */
+class AssignmentPreferencePage : public SurveyMakerPage
+{
+    Q_OBJECT
+    Q_PROPERTY(QStringList assignmentOptions READ getAssignmentOptions WRITE setAssignmentOptions NOTIFY assignmentOptionsChanged)
+    Q_PROPERTY(int numRankedChoices READ getNumRankedChoices WRITE setNumRankedChoices NOTIFY numRankedChoicesChanged)
+    Q_PROPERTY(QString assignmentPreferenceQuestionText READ getAssignmentPreferenceQuestionText
+                   WRITE setAssignmentPreferenceQuestionText NOTIFY assignmentPreferenceQuestionTextChanged)
+
+public:
+    AssignmentPreferencePage(QWidget *parent = nullptr);
+
+    void initializePage() override;
+    void cleanupPage() override;
+    bool validatePage() override;
+
+    void setAssignmentOptions(const QStringList &newOptions);
+    QStringList getAssignmentOptions() const;
+
+    void setNumRankedChoices(const int newNumRankedChoices);
+    int getNumRankedChoices() const;
+
+    void setAssignmentPreferenceQuestionText(const QString &newText);
+    QString getAssignmentPreferenceQuestionText() const;
+
+signals:
+    void assignmentOptionsChanged(const QStringList &newOptions);
+    void numRankedChoicesChanged(int newNumRankedChoices);
+    void assignmentPreferenceQuestionTextChanged(const QString &newText);
+
+private:
+    QFrame *tipFrame = nullptr;
+    QHBoxLayout *tipLayout = nullptr;
+    LabelWithInstantTooltip *tipIcon = nullptr;
+    LabelWithInstantTooltip *tipLabel = nullptr;
+
+    QPlainTextEdit *optionsTextEdit = nullptr;
+    QSpinBox *numRankedChoicesSpinBox = nullptr;
+    QLineEdit *questionTextEdit = nullptr;
+    QLabel *numOptionsLabel = nullptr;
+
+    QList<StyledComboBox *> previewDropdowns;
+    QLabel *previewQuestionLabel = nullptr;
+
+    void update();
+    void updatePreview();
 };
 
 /**

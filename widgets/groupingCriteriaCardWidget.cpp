@@ -20,6 +20,7 @@
 
 #include "groupingCriteriaCardWidget.h"
 #include "gruepr.h"
+#include "criteria/assignmentPreferenceCriterion.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/genderCriterion.h"
 #include "criteria/scheduleCriterion.h"
@@ -61,6 +62,15 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     case Criterion::CriteriaType::attributeQuestion:
         if(dataOptions != nullptr && attribute != -1) {
             criterion = new AttributeCriterion(dataOptions, criterionType, 0, false, this, attribute);
+            break;
+        }
+        else {
+            return;
+            break;
+        }
+    case Criterion::CriteriaType::assignmentPreference:
+        if(dataOptions != nullptr) {
+            criterion = new AssignmentPreferenceCriterion(dataOptions, criterionType, 0, false, this);
             break;
         }
         else {

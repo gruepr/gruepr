@@ -71,6 +71,7 @@ macx {
 # macx: QMAKE_LFLAGS += -fsanitize=address
 
 SOURCES += \
+        criteria/assignmentPreferenceCriterion.cpp \
         criteria/attributeCriterion.cpp \
         criteria/criterion.cpp \
         criteria/genderCriterion.cpp \
@@ -131,6 +132,7 @@ SOURCES += \
         teamRecord.cpp
 
 HEADERS += \
+        criteria/assignmentPreferenceCriterion.h \
         criteria/attributeCriterion.h \
         criteria/criterion.h \
         criteria/genderCriterion.h \

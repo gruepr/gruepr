@@ -31,6 +31,7 @@ public:
         bool includeFileData = false;
         bool includeTeamingData = false;
         bool includeTeamScore = false;
+        bool includeTeamAssignment = false;
         bool includeFirstName = false;
         bool includeLastName = false;
         bool includeEmail = false;

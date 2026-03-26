@@ -19,6 +19,7 @@ inline static const int MAX_ATTRIBUTES = 15;                          // maximum
 inline static const int MAX_NOTES = 15;
 inline static const int MAX_PREFTEAMMATES = 10;
 inline static const int MAX_CRITERIA = 20;
+inline static const int MAX_ASSIGNMENT_OPTIONS = 50;
 
 inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a team has more than the desired amount of schedule overlap, each additional overlap time is scaled by
                                                                       // the inverse of this factor (e.g., 2 means next additional hour is worth 1/2; next is worth 1/4; then 1/8, etc.)
@@ -468,6 +469,9 @@ inline static const char PREFTEAMMATEQUESTION4TYPEMULTI[] = " Please write their
 inline static const char SELECTONE[] = "Select one:";
 inline static const char SELECTMULT[] = "Select all that apply:";
 inline static const char WRITEANUMBER[] = "Enter a number only:";
+inline static const char ASSIGNMENTPREFERENCEQUESTION[] = "Please rank your top choices from the options below:";
+inline static const char RANKYOURCHOICE[] = "Choice";
+inline static const char RANKYOURFIRSTCHOICE[] = "Top choice";
 
 //possible formats of strings used in the survey to refer to times of the day
 inline static const char TIMEFORMATS[] {"H:mm;"

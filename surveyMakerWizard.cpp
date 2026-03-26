@@ -39,9 +39,10 @@ SurveyMakerWizard::SurveyMakerWizard()
     setPalette(palette);
 
     // construct the intro page so it shows quickly, then schedule the other pages to be constructed after
-    // also disable the load survey button until the other pages are constructed in addSecondaryPages()
+    // also disable the load survey and get started buttons until the other pages are constructed in addSecondaryPages()
     setPage(Page::introtitle, new IntroPage);
     button(QWizard::CustomButton1)->setEnabled(false);
+    qobject_cast<IntroPage *>(page(Page::introtitle))->getStartedButton->setEnabled(false);
 
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
@@ -75,11 +76,13 @@ void SurveyMakerWizard::addSecondaryPages()
 {
     setPage(Page::demographics, new DemographicsPage);
     setPage(Page::attribute, new AttributePage);
+    setPage(Page::assignmentpreference, new AssignmentPreferencePage);
     setPage(Page::schedule, new SchedulePage);
     setPage(Page::courseinfo, new CourseInfoPage);
     setPage(Page::freeresponse, new FreeResponsePage);
     setPage(Page::previewexport, new PreviewAndExportPage);
     button(QWizard::CustomButton1)->setEnabled(true);
+    qobject_cast<IntroPage *>(page(Page::introtitle))->getStartedButton->setEnabled(true);
 }
 
 void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent)
@@ -182,7 +185,18 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                 setField("multiChoiceQuestionResponses", QVariant::fromValue<QList<QList<QString>>>(multiChoiceQuestionResponses));
                 setField("multiChoiceQuestionMultis", QVariant::fromValue<QList<bool>>(multiChoiceQuestionMultis));
             }
-
+            if(loadObject.contains("AssignmentPreferences") && loadObject["AssignmentPreferences"].isBool()) {
+                setField("AssignmentPreferences", loadObject["AssignmentPreferences"].toBool());
+            }
+            if(loadObject.contains("assignmentOptions") && loadObject["assignmentOptions"].isString()) {
+                setField("assignmentOptions", loadObject["assignmentOptions"].toString().split('|', Qt::SkipEmptyParts));
+            }
+            if(loadObject.contains("numRankedChoices") && loadObject["numRankedChoices"].isDouble()) {
+                setField("numRankedChoices", loadObject["numRankedChoices"].toInt());
+            }
+            if(loadObject.contains("assignmentPreferenceQuestionText") && loadObject["assignmentPreferenceQuestionText"].isString()) {
+                setField("assignmentPreferenceQuestionText", loadObject["assignmentPreferenceQuestionText"].toString());
+            }
             if(loadObject.contains("Timezone") && loadObject["Timezone"].isBool()) {
                 setField("Timezone", loadObject["Timezone"].toBool());
             }
@@ -969,6 +983,225 @@ void AttributePage::deleteAQuestion(int questionNum)
     if(numQuestions < (MAX_ATTRIBUTES - 1)) {
         addQuestionButton->setEnabled(true);
         addQuestionButton->setToolTip("");
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+AssignmentPreferencePage::AssignmentPreferencePage(QWidget *parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::assignmentpreference, parent)
+{
+    tipFrame = new QFrame(this);
+    tipFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
+    tipIcon = new LabelWithInstantTooltip("", this);
+    tipIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    tipIcon->setStyleSheet(BIGTOOLTIPSTYLE);
+    tipLabel = new LabelWithInstantTooltip(tr("What can I ask students here?"));
+    tipLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    tipLabel->setWordWrap(true);
+    const QString helpText = tr("<html><span style=\"color: black;\">"
+                                "Use this question to ask students to rank their preferred assignment(s). "
+                                "Each team will be assigned one option, with no two teams sharing the same one. "
+                                "gruepr optimizes so teams are matched to the assignment their members ranked highest.<br><br>"
+                                "Examples include:"
+                                "<ul>"
+                                "<li>Project or topic for a team presentation</li>"
+                                "<li>Client or community partner for service-learning</li>"
+                                "<li>Individual lab section or studio time slot</li>"
+                                "<li>Dataset or case study to analyze</li>"
+                                "<li>Role or specialization track</li>"
+                                "</ul>"
+                                "</span></html>");
+    tipIcon->setToolTipText(helpText);
+    tipLabel->setToolTipText(helpText);
+    tipLayout = new QHBoxLayout(tipFrame);
+    tipLayout->addWidget(tipIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    tipLayout->addWidget(tipLabel, 1, Qt::AlignVCenter);
+
+    // Insert tip frame at the top of questionLayout, before the base class's spacing + questions[0]
+    questionLayout->insertSpacing(0, 10);
+    questionLayout->insertWidget(1, tipFrame);
+
+    // Configure the toggle switch
+    questions[0]->setLabel(tr("Team Assignment Preferences"));
+    registerField("AssignmentPreferences", questions[0], "value", "valueChanged");
+
+    // Question text
+    auto *questionTextLabel = new QLabel(tr("Question"), this);
+    questionTextLabel->setStyleSheet(LABEL10PTSTYLE);
+    questionTextLabel->setEnabled(false);
+    questionTextEdit = new QLineEdit(this);
+    questionTextEdit->setStyleSheet(LINEEDITSTYLE);
+    questionTextEdit->setPlaceholderText(ASSIGNMENTPREFERENCEQUESTION);
+    questionTextEdit->setEnabled(false);
+    questions[0]->addWidget(questionTextLabel, 1, 0, true);
+    questions[0]->addWidget(questionTextEdit, 2, 0, true);
+    registerField("assignmentPreferenceQuestionText", this, "assignmentPreferenceQuestionText",
+                  "assignmentPreferenceQuestionTextChanged");
+
+    // Options multiline text edit
+    auto *optionsLabel = new QLabel(tr("Options (enter one per line)"), this);
+    optionsLabel->setStyleSheet(LABEL10PTSTYLE);
+    optionsLabel->setEnabled(false);
+    optionsTextEdit = new QPlainTextEdit(this);
+    optionsTextEdit->setStyleSheet(PLAINTEXTEDITSTYLE);
+    optionsTextEdit->setPlaceholderText(tr("Project Alpha\nProject Beta\nProject Gamma\n..."));
+    optionsTextEdit->setMinimumHeight(120);
+    optionsTextEdit->setEnabled(false);
+    numOptionsLabel = new QLabel(tr("0 options entered"), this);
+    numOptionsLabel->setStyleSheet(LABEL10PTSTYLE);
+    numOptionsLabel->setEnabled(false);
+    questions[0]->addWidget(optionsLabel, 3, 0, true);
+    questions[0]->addWidget(optionsTextEdit, 4, 0, true);
+    questions[0]->addWidget(numOptionsLabel, 5, 0, false);
+    registerField("assignmentOptions", this, "assignmentOptions", "assignmentOptionsChanged");
+
+    // Number of ranked choices
+    auto *numRankedLabel = new QLabel(tr("Number of ranked choices per student"), this);
+    numRankedLabel->setStyleSheet(LABEL10PTSTYLE);
+    numRankedLabel->setEnabled(false);
+    numRankedChoicesSpinBox = new QSpinBox(this);
+    numRankedChoicesSpinBox->setStyleSheet(SPINBOXSTYLE);
+    numRankedChoicesSpinBox->setRange(1, 1);
+    numRankedChoicesSpinBox->setValue(1);
+    numRankedChoicesSpinBox->setEnabled(false);
+    questions[0]->addWidget(numRankedLabel, 6, 0, false);
+    questions[0]->addWidget(numRankedChoicesSpinBox, 6, 1, false);
+    registerField("numRankedChoices", this, "numRankedChoices", "numRankedChoicesChanged");
+
+    // Preview
+    previewQuestionLabel = new QLabel(this);
+    previewQuestionLabel->setStyleSheet(LABEL10PTSTYLE);
+    previewQuestionLabel->setWordWrap(true);
+    questionPreviewLayouts[0]->addWidget(previewQuestionLabel);
+    questionPreviews[0]->hide();
+
+    // Enable/disable sub-widgets with the switch
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, questionTextLabel, &QLabel::setEnabled);
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, questionTextEdit, &QLineEdit::setEnabled);
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, optionsLabel, &QLabel::setEnabled);
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, optionsTextEdit, &QPlainTextEdit::setEnabled);
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, numOptionsLabel, &QLabel::setEnabled);
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, numRankedLabel, &QLabel::setEnabled);
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, numRankedChoicesSpinBox, &QSpinBox::setEnabled);
+    connect(questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, this, &AssignmentPreferencePage::update);
+    connect(optionsTextEdit, &QPlainTextEdit::textChanged, this, &AssignmentPreferencePage::update);
+    connect(numRankedChoicesSpinBox, &QSpinBox::valueChanged, this, &AssignmentPreferencePage::update);
+    connect(questionTextEdit, &QLineEdit::textChanged, this, &AssignmentPreferencePage::update);
+}
+
+void AssignmentPreferencePage::initializePage()
+{
+}
+
+void AssignmentPreferencePage::cleanupPage()
+{
+}
+
+bool AssignmentPreferencePage::validatePage()
+{
+    if(!questions[0]->getValue()) {
+        return true;
+    }
+
+    const QStringList options = getAssignmentOptions();
+    if(options.size() < 2) {
+        const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                                tr("You have enabled team assignment preferences\n"
+                                                                   "but entered fewer than two options.\n"),
+                                                                tr("Continue"), tr("Go back"));
+        return continueOrNah;
+    }
+
+    return true;
+}
+
+void AssignmentPreferencePage::setAssignmentOptions(const QStringList &newOptions)
+{
+    optionsTextEdit->setPlainText(newOptions.join('\n'));
+    emit assignmentOptionsChanged(newOptions);
+}
+
+QStringList AssignmentPreferencePage::getAssignmentOptions() const
+{
+    const QString text = optionsTextEdit->toPlainText();
+    QStringList options;
+    const auto lines = text.split('\n', Qt::SkipEmptyParts);
+    for(const auto &line : lines) {
+        const QString trimmed = line.trimmed();
+        if(!trimmed.isEmpty()) {
+            options << trimmed;
+        }
+    }
+    return options;
+}
+
+void AssignmentPreferencePage::setNumRankedChoices(const int newNumRankedChoices)
+{
+    numRankedChoicesSpinBox->setValue(newNumRankedChoices);
+    emit numRankedChoicesChanged(newNumRankedChoices);
+}
+
+int AssignmentPreferencePage::getNumRankedChoices() const
+{
+    return numRankedChoicesSpinBox->value();
+}
+
+void AssignmentPreferencePage::setAssignmentPreferenceQuestionText(const QString &newText)
+{
+    questionTextEdit->setText(newText);
+    emit assignmentPreferenceQuestionTextChanged(newText);
+}
+
+QString AssignmentPreferencePage::getAssignmentPreferenceQuestionText() const
+{
+    return questionTextEdit->text();
+}
+
+void AssignmentPreferencePage::update()
+{
+    const QStringList options = getAssignmentOptions();
+    const int numOptions = options.size();
+    numOptionsLabel->setText(QString::number(numOptions) + tr(" options entered"));
+
+    const int maxChoices = std::max(1, std::min(numOptions, MAX_ASSIGNMENT_OPTIONS));
+    numRankedChoicesSpinBox->setMaximum(maxChoices);
+
+    updatePreview();
+}
+
+void AssignmentPreferencePage::updatePreview()
+{
+    const bool on = questions[0]->getValue();
+    questionPreviews[0]->setVisible(on);
+
+    if(!on) {
+        return;
+    }
+
+    // Clean up old preview dropdowns
+    for(auto *dropdown : std::as_const(previewDropdowns)) {
+        questionPreviewLayouts[0]->removeWidget(dropdown);
+        delete dropdown;
+    }
+    previewDropdowns.clear();
+
+    const QStringList options = getAssignmentOptions();
+    const int k = getNumRankedChoices();
+    const QString questionText = questionTextEdit->text().trimmed();
+
+    previewQuestionLabel->setText(questionText.isEmpty() ? ASSIGNMENTPREFERENCEQUESTION : questionText);
+
+    for(int i = 0; i < k; i++) {
+        auto *dropdown = new StyledComboBox;
+        dropdown->setPlaceholderText(i == 0? QString(RANKYOURFIRSTCHOICE) : (QString(RANKYOURCHOICE) + " " + QString::number(i + 1)));
+        for(const auto &option : options) {
+            dropdown->addItem(option);
+        }
+        dropdown->setCurrentIndex(-1);
+        questionPreviewLayouts[0]->addWidget(dropdown);
+        previewDropdowns << dropdown;
     }
 }
 
@@ -2479,6 +2712,53 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::attribute]->hide();
     }
 
+    // Assignment Preferences
+    const bool assignmentPreferences = field("AssignmentPreferences").toBool();
+    if(assignmentPreferences) {
+        const QStringList assignmentOptions = field("assignmentOptions").toStringList();
+        const int numRankedChoices = field("numRankedChoices").toInt();
+        const QString questionText = field("assignmentPreferenceQuestionText").toString();
+        const QString displayText = questionText.isEmpty() ? ASSIGNMENTPREFERENCEQUESTION : questionText;
+
+        section[SurveyMakerWizard::assignmentpreference]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::assignmentpreference]->questionLabel[0]->setText(displayText);
+        section[SurveyMakerWizard::assignmentpreference]->questionLabel[0]->show();
+
+        QLayoutItem *child;
+        while((child = section[SurveyMakerWizard::assignmentpreference]->questionGroupLayout[0]->takeAt(0)) != nullptr) {
+            delete child->widget();
+            delete child;
+        }
+        for(int i = 0; i < numRankedChoices; i++) {
+            auto *label = new QLabel(i == 0? QString(RANKYOURFIRSTCHOICE) : (QString(RANKYOURCHOICE) + " " + QString::number(i + 1)));
+
+            label->setStyleSheet(LABEL10PTSTYLE);
+            section[SurveyMakerWizard::assignmentpreference]->questionGroupLayout[0]->addWidget(label);
+            auto *combo = new StyledComboBox;
+            for(const auto &option : assignmentOptions) {
+                combo->addItem(option);
+            }
+            combo->setCurrentIndex(-1);
+            combo->installEventFilter(new MouseWheelBlocker(combo));
+            combo->setFocusPolicy(Qt::StrongFocus);
+            section[SurveyMakerWizard::assignmentpreference]->questionGroupLayout[0]->addWidget(combo);
+        }
+        section[SurveyMakerWizard::assignmentpreference]->questionGroupBox[0]->show();
+
+        survey->questions << Question(displayText, Question::QuestionType::rankedchoice,
+                                      assignmentOptions, numRankedChoices);
+
+        preSectionSpacer[SurveyMakerWizard::assignmentpreference]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::assignmentpreference]->show();
+    }
+    else {
+        section[SurveyMakerWizard::assignmentpreference]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::assignmentpreference]->questionLabel[0]->hide();
+        section[SurveyMakerWizard::assignmentpreference]->questionGroupBox[0]->hide();
+        preSectionSpacer[SurveyMakerWizard::assignmentpreference]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::assignmentpreference]->hide();
+    }
+
     //Schedule
     const bool timezone = field("Timezone").toBool();
     const bool schedule = field("Schedule").toBool();
@@ -2807,6 +3087,10 @@ void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
                     saveObject["Attribute" + QString::number(question+1)+"Options"] = multiQuestionResponses[question].toStringList().join(" / ");
                 }
             }
+            saveObject["AssignmentPreferences"] = field("AssignmentPreferences").toBool();
+            saveObject["assignmentOptions"] = field("assignmentOptions").toStringList().join('|');
+            saveObject["numRankedChoices"] = field("numRankedChoices").toInt();
+            saveObject["assignmentPreferenceQuestionText"] = field("assignmentPreferenceQuestionText").toString();
             saveObject["Schedule"] = field("Schedule").toBool();
             saveObject["ScheduleAsBusy"] = (field("scheduleBusyOrFree").toInt() == SchedulePage::busy);
             saveObject["Timezone"] = field("Timezone").toBool();
@@ -2906,6 +3190,14 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
                     textFileContents += "\n      " + dayName + "\n";
                     csvFileContents +=  "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text) + "[" + dayName + "]";
                 }
+            }
+        }
+        else if(question.type == Question::QuestionType::rankedchoice) {
+            textFileContents += "\n     " + tr("options") + ": [" + question.options.join(" | ") + "]";
+            textFileContents += "\n     " + tr("Students rank their top %1 choices.").arg(question.numRankedChoices);
+            for(int i = 0; i < question.numRankedChoices; i++) {
+                const QString columnHeader = question.text + " [" + (i == 0? QString(RANKYOURFIRSTCHOICE) : ( QString(RANKYOURCHOICE) + " " + QString::number(i + 1))) + "]";
+                csvFileContents += "," + (columnHeader.contains(',') ? "\"" + columnHeader + "\"" : columnHeader);
             }
         }
         else {

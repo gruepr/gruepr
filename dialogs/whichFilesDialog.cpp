@@ -26,6 +26,8 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     connect(ui->fileDatacheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeFileData = checked;});
     connect(ui->teamingDatacheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamingData = checked;});
     connect(ui->teamScorecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamScore = checked;});
+    ui->assignmentcheckBox->setVisible(!dataOptions->assignmentPreferenceFields.empty());
+    connect(ui->assignmentcheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamAssignment = checked;});
     const bool first = dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT;
     ui->firstnamecheckBox->setVisible(first);
     connect(ui->firstnamecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeFirstName = checked;});

@@ -103,7 +103,7 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 
 void TeammatesCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                         const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
-                                        std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
+                                        QList<float> &criteriaScores, QList<int> &penaltyPoints) const
 {
     // Get all IDs being teamed (so that we can make sure we only check the groupTogethers/splitAparts that are actually within this teamset)
     QSet<long long> IDsBeingTeamed;

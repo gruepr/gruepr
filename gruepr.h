@@ -113,7 +113,7 @@ private:
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                                std::vector<std::vector<float>> &_criteriaScores, std::vector<int> &_penaltyPoints);
+                                QList<QList<float> > &_criteriaScores, QList<int> &_penaltyPoints);
 
     float teamSetScore = 0;
     int finalGeneration = 1;
@@ -135,8 +135,9 @@ private:
     GroupingCriteriaCard *sectionCriteriaCard = nullptr;
         StyledComboBox *sectionSelectionBox = nullptr;
     GroupingCriteriaCard *genderIdentityCriteriaCard = nullptr;
-    GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
     GroupingCriteriaCard *urmIdentityCard = nullptr;
+    GroupingCriteriaCard *assignmentPreferenceCriteriaCard = nullptr;
+    GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
     QList<Criterion::CriteriaType> teammateRulesExistence;
     QList<GroupingCriteriaCard*> initializedAttributeCriteriaCards;
     QList<AttributeWidget*> attributeWidgets;
@@ -146,6 +147,7 @@ private:
     QMenu *addNewCriteriaMenu = nullptr;
     QAction *genderMenuAction = nullptr;
     QAction *urmMenuAction = nullptr;
+    QAction *assignmentPreferenceMenuAction = nullptr;
     QAction *scheduleMenuAction = nullptr;
     QAction *groupTogetherMenuAction = nullptr;
     QAction *splitApartMenuAction = nullptr;

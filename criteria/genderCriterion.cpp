@@ -165,7 +165,7 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOption
 
 void GenderCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                      const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
-                                     std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const
+                                     QList<float> &criteriaScores, QList<int> &penaltyPoints) const
 {
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {

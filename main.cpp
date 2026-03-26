@@ -44,7 +44,7 @@
 //  - now shows bar graphs indicating how many students selected each multiple choice response
 //  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
-//  - added numerical attribute and free text response questions to surveymaker
+//  - added numerical attribute, ranked options, and free text response questions
 //  - removed dark mode in windows
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
@@ -56,7 +56,6 @@
 //  - dialogs/identityrulesdialog: accept wider variety of rules (>, >=, <, <=)
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
-//  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
@@ -64,7 +63,6 @@
 //
 //    INTERNAL:
 //  - refactor gender counts from teamRecord into genderCrierion
-//  - refactor schedule things from teamingOptions into scheduleCriterion
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
 //      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
 //      - much harder: replace arrays for all of the attribute-related stuff

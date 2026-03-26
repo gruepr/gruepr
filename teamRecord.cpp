@@ -49,6 +49,9 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
     toolTipText += QObject::tr("Team ") + name + "<br>" +
                    (score <= 0 ? "<span style=\"color: red; font-weight: bold;\">" : "") + QString::number(score, 'f', 1) + " % compatibility score" +
                    (score <= 0 ? "</span>" : "") + "<br>";
+    if(!assignedOption.isEmpty()) {
+        toolTipText += QObject::tr("Assignment: ") + "<b>" + assignedOption + "</b><br>";
+    }
     if(teamSetDataOptions->genderIncluded) {
         toolTipText += QObject::tr("Gender") + ":  ";
         QStringList genderSingularOptions, genderPluralOptions;

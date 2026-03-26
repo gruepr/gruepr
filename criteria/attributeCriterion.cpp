@@ -8,12 +8,15 @@
 Criterion* AttributeCriterion::clone() const {
     auto *copy = new AttributeCriterion(dataOptions, criteriaType, weight, penaltyStatus, nullptr, attributeIndex);
     copy->diversity  = diversity;
-    copy->targetMin  = targetMin;
-    copy->targetMax  = targetMax;
+    copy->cachedNumAttributeLevels = cachedNumAttributeLevels;
+    copy->cachedRangeAttributeLevels = cachedRangeAttributeLevels;
+    copy->cachedOverallMean = cachedOverallMean;
     copy->haveAnyRequired = haveAnyRequired;
     copy->requiredValues = requiredValues;
     copy->haveAnyIncompatible = haveAnyIncompatible;
     copy->incompatibleValues = incompatibleValues;
+    copy->targetMin  = targetMin;
+    copy->targetMax  = targetMax;
     return copy;
 }
 
@@ -21,6 +24,11 @@ QJsonObject AttributeCriterion::settingsToJson() const {
     QJsonObject json = Criterion::settingsToJson();
     auto diversityEnum = QMetaEnum::fromType<AttributeDiversity>();
     json["diversity"] = diversityEnum.valueToKey(static_cast<int>(diversity));
+
+    json["cachedNumAttributeLevels"] = cachedNumAttributeLevels;
+    json["cachedRangeAttributeLevels"] = static_cast<double>(cachedRangeAttributeLevels);
+    json["cachedOverallMean"] = static_cast<double>(cachedOverallMean);
+
     json["targetMin"] = static_cast<double>(targetMin);
     json["targetMax"] = static_cast<double>(targetMax);
 
@@ -51,6 +59,10 @@ void AttributeCriterion::settingsFromJson(const QJsonObject &json) {
             diversity = static_cast<AttributeDiversity>(val);
         }
     }
+    cachedNumAttributeLevels = json["cachedNumAttributeLevels"].toInt(0);
+    cachedRangeAttributeLevels = static_cast<float>(json["cachedRangeAttributeLevels"].toDouble(0.0));
+    cachedOverallMean = static_cast<float>(json["cachedOverallMean"].toDouble(0.0));
+
     targetMin = static_cast<float>(json["targetMin"].toDouble(0.0));
     targetMax = static_cast<float>(json["targetMax"].toDouble(100.0));
 
@@ -111,7 +123,7 @@ void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*
 
 void AttributeCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                         const TeamingOptions *const /*teamingOptions*/, const DataOptions *const dataOptions,
-                                        std::vector<float> &criteriaScores, std::vector<int> &_penaltyPoints) const
+                                        QList<float> &criteriaScores, QList<int> &_penaltyPoints) const
 {
     const auto type = dataOptions->attributeType[attributeIndex];
     const bool thisIsNumerical = (type == DataOptions::AttributeType::numerical);
@@ -219,7 +231,7 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                         else {
                             // uniformity: 1 - Gini coefficient of gaps between consecutive sorted values
                             // compute the gaps (sample is already sorted via multiset)
-                            std::vector<float> gaps;
+                            QList<float> gaps;
                             gaps.reserve(continuousLevels.size() - 1);
                             auto prev = continuousLevels.cbegin();
                             for(auto it = std::next(prev); it != continuousLevels.cend(); ++it) {

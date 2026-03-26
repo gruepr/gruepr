@@ -207,6 +207,7 @@ bool CategorizingDialog::initializeComboBoxes()
                                                   {"Timezone","(time zone)", 1},
                                                   {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
+                                                  {"Assignment Preference", QString("\\[(") + RANKYOURFIRSTCHOICE + "|" + RANKYOURCHOICE + " \\d+)\\]", MAX_ASSIGNMENT_OPTIONS},
                                                   {"Multiple Choice or Numerical", ".*", MAX_ATTRIBUTES},
                                                   {"Notes", "", MAX_NOTES}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns

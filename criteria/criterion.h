@@ -15,7 +15,7 @@ class Criterion : public QObject {
 
 public:
     enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion,
-                             scheduleMeetingTimes, groupTogether, splitApart};
+                             scheduleMeetingTimes, groupTogether, splitApart, assignmentPreference};
     Q_ENUM(CriteriaType)
     static int resolveCriteriaTypeKey(const QMetaEnum &e, const QString &name);  // needed to migrate old enum names to new
 
@@ -44,7 +44,7 @@ public:
     // calculate the score for the criterion for all the teams in a genome, used in the optimization algorithm
     virtual void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                 const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                                std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) const = 0;
+                                QList<float> &criteriaScores, QList<int> &penaltyPoints) const = 0;
 
     // a convenience wrapper around calculateScore to calculate for one team, used to color the TeamTree display
     virtual float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
@@ -67,6 +67,7 @@ public:
     // functions for displaying the criterion results in the TeamTree data display
     virtual QString headerLabel(const DataOptions *dataOptions) const = 0;
     virtual Qt::TextElideMode headerElideMode() const = 0;
+    virtual void prepareForDisplay(const QList<StudentRecord> &/*students*/, const TeamSet &/*teams*/) {}
     virtual QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const = 0;
     virtual QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const = 0;
     virtual Qt::AlignmentFlag teamTextAlignment() const { return Qt::AlignCenter; }

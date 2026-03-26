@@ -376,6 +376,34 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                 optionNum++;
             }
             break;}
+        case Question::QuestionType::rankedchoice: {
+            for(int rank = 0; rank < question.numRankedChoices; rank++) {
+                if(rank > 0) {
+                    // Post the previous rank's question, then start a new one
+                    postData = query.toString(QUrl::FullyEncoded).toUtf8();
+                    postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams,
+                                                {"id"}, intParams, {}, stringInSubobjectParams);
+                    allGood = allGood && (!newQuestionText.constFirst().isEmpty());
+                    questionNum++;
+                    newQuestionText.clear();
+                    questionID.clear();
+                    query.clear();
+                    query.addQueryItem("question[question_name]", "Question " + QString::number(questionNum + 1));
+                    query.addQueryItem("question[position]", QString::number(questionNum + 1));
+                }
+                query.addQueryItem("question[question_type]", "multiple_dropdowns_question");
+                query.addQueryItem("question[question_text]",
+                                   question.text + " <strong> [" + (rank == 0? QString(RANKYOURFIRSTCHOICE) : (QString(RANKYOURCHOICE) + " "
+                                       + QString::number(rank + 1))) + "]</strong>  [options]");
+                int optionNum = 0;
+                for(const auto &option : question.options) {
+                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][blank_id]", "options");
+                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]", option);
+                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_weight]", "100");
+                    optionNum++;
+                }
+            }
+            break;}
         case Question::QuestionType::schedule: {
             if(survey->schedDayNames.size() == 1) {
                 //just one question, set it up to post

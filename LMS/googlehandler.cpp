@@ -304,6 +304,45 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
             questionGroupItem["grid"] = grid;
             item["questionGroupItem"] = questionGroupItem;
             break;}
+        case Question::QuestionType::rankedchoice: {
+            // Create k separate dropdown questions, one per rank
+            for(int rank = 0; rank < question.numRankedChoices; rank++) {
+                if(rank > 0) {
+                    // Push the previous rank via the same path the outer loop uses
+                    newQuestion["item"] = item;
+                    QJsonObject createItem;
+                    createItem["createItem"] = newQuestion;
+                    requests << createItem;
+                    questionNum++;
+
+                    // Reset for next rank
+                    newQuestion = QJsonObject();
+                    QJsonObject nextLocation;
+                    nextLocation["index"] = questionNum;
+                    newQuestion["location"] = nextLocation;
+                    item = QJsonObject();
+                }
+                item["title"] = question.text.simplified() + " [" + (rank == 0? QString(RANKYOURFIRSTCHOICE) :
+                                    (QString(RANKYOURCHOICE) + " " + QString::number(rank + 1))) + "]";
+                QJsonObject questionItem;
+                QJsonObject questionBody;
+                questionBody["required"] = false;
+                QJsonObject kind;
+                kind["type"] = "DROP_DOWN";
+                kind["shuffle"] = false;
+                QJsonArray responseOptions;
+                for(const auto &option : question.options) {
+                    QJsonObject responseOption;
+                    responseOption["value"] = option.simplified();
+                    responseOption["isOther"] = false;
+                    responseOptions << responseOption;
+                }
+                kind["options"] = responseOptions;
+                questionBody["choiceQuestion"] = kind;
+                questionItem["question"] = questionBody;
+                item["questionItem"] = questionItem;
+            }
+            break;}
         }
         newQuestion["item"] = item;
         QJsonObject createItem;

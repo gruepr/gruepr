@@ -29,7 +29,7 @@ float Criterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudent
                                           const DataOptions *dataOptions, const QSet<long long> &/*allIDsBeingTeamed*/)
 {
     // Build a mini-genome: find each team member's index in allStudents
-    std::vector<int> indices;
+    QList<int> indices;
     indices.reserve(team.size);
     for (const auto studentID : team.studentIDs) {
         int i = 0;
@@ -41,8 +41,8 @@ float Criterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudent
         }
     }
 
-    std::vector<float> score(1, 0.0f);
-    std::vector<int> penalty(1, 0);
+    QList<float> score(1, 0.0f);
+    QList<int> penalty(1, 0);
 
     // Temporarily set weight to 1 to get unweighted 0-to-1 score for display.
     // Weight is only meaningful in the GA's composite scoring, not for display.

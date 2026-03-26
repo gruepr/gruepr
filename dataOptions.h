@@ -50,6 +50,7 @@ public:
     bool homeTimezoneUsed = false;                  // whether the students' schedules refer to their own timezone
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
     enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered, numerical} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered, timezone, categorical, or numerical? Are multiple values allowed?
+    QList<int> assignmentPreferenceFields;          // which field(s) in surveyFile have ranked assignment preference info, in rank order?
     QList<int> prefTeammatesField;                  // which field(s) in surveyFile has the preferred teammates info?
     QList<int> prefNonTeammatesField;               // which field(s) in surveyFile has the preferred non-teammates info?
     QStringList sectionNames;                       // all of the section names

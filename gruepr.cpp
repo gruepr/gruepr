@@ -168,6 +168,11 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
             attributeMenuActions.append(currentAttributeAction);
         }
     }
+    if(!dataOptions->assignmentPreferenceFields.empty()) {
+        assignmentPreferenceMenuAction = addNewCriteriaMenu->addAction(tr("Team Assignment Preferences"));
+        connect(assignmentPreferenceMenuAction, &QAction::triggered, this, [this](){
+            gruepr::addCriteriaCard(Criterion::CriteriaType::assignmentPreference);});
+    }
     if (!dataOptions->scheduleField.empty()){
         scheduleMenuAction = new QAction("Meeting Times", this);
         connect(scheduleMenuAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::scheduleMeetingTimes);});
@@ -444,6 +449,17 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             }
             break;
         }
+        case Criterion::CriteriaType::assignmentPreference: {
+            if(assignmentPreferenceCriteriaCard == nullptr) {
+                assignmentPreferenceCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
+                                                                            QString("Team Assignment Preferences"), true);
+                criteriaCardsList.append(assignmentPreferenceCriteriaCard);
+                if(assignmentPreferenceMenuAction != nullptr) {
+                    assignmentPreferenceMenuAction->setVisible(false);
+                }
+            }
+            break;
+        }
         case Criterion::CriteriaType::scheduleMeetingTimes: {
             if (meetingScheduleCriteriaCard == nullptr){
                 meetingScheduleCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
@@ -550,6 +566,14 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
             }
             break;
         }
+        case Criterion::CriteriaType::assignmentPreference: {
+            delete cardToDelete;
+            assignmentPreferenceCriteriaCard = nullptr;
+            if(assignmentPreferenceMenuAction != nullptr) {
+                assignmentPreferenceMenuAction->setVisible(true);
+            }
+            break;
+        }
         case Criterion::CriteriaType::scheduleMeetingTimes: {
             delete cardToDelete;
             meetingScheduleCriteriaCard = nullptr;
@@ -633,11 +657,11 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
 {
     const int _numTeams = _teams.size();
     const auto &_dataOptions = _teams.dataOptions;
-    std::vector<float>teamScores(_numTeams);
-    std::vector<std::vector<float>> criteriaScores(_teamingOptions->realNumScoringFactors, std::vector<float>(_numTeams));
-    std::vector<int> penaltyPoints(_numTeams);
-    std::vector<int> teamSizes(_numTeams);
-    std::vector<int> genome(_numStudents);
+    QList<float>teamScores(_numTeams);
+    QList<QList<float>> criteriaScores(_teamingOptions->realNumScoringFactors, QList<float>(_numTeams));
+    QList<int> penaltyPoints(_numTeams);
+    QList<int> teamSizes(_numTeams);
+    QList<int> genome(_numStudents);
     int ID = 0;
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         teamSizes[teamnum] = _teams[teamnum].size;
@@ -1695,7 +1719,6 @@ void gruepr::optimizationComplete()
 
     for(int team = 0; team < teams.size(); team++) {
         teams[team].name = QString::number(team+1);
-        teams[team].createTooltip(students);
     }
 
     // Sort teams by 1st student's name
@@ -2209,9 +2232,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto *scores = new float[ga.populationsize];
-    std::vector<std::vector<float>> criteriaScores;
-    std::vector<int> penaltyPoints;
-    std::vector<float> unusedTeamScores;
+    QList<QList<float>> criteriaScores;
+    QList<int> penaltyPoints;
+    QList<float> unusedTeamScores;
     bool unpenalizedGenomePresent = false;
     auto sharedStudents = students;
     auto sharedNumTeams = numTeams;
@@ -2225,7 +2248,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         private(unusedTeamScores, criteriaScores, penaltyPoints)
     {
         unusedTeamScores.resize(sharedNumTeams);
-        criteriaScores.resize(teamingOptions->realNumScoringFactors, std::vector<float>(numTeams));
+        criteriaScores.resize(teamingOptions->realNumScoringFactors, QList<float>(numTeams));
         penaltyPoints.resize(numTeams);
 #pragma omp for nowait
         for(int genome = 0; genome < ga.populationsize; genome++) {
@@ -2291,7 +2314,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 private(unusedTeamScores, criteriaScores, penaltyPoints)
             {
                 unusedTeamScores.resize(sharedNumTeams);
-                criteriaScores.resize(teamingOptions->realNumScoringFactors, std::vector<float>(numTeams));
+                criteriaScores.resize(teamingOptions->realNumScoringFactors, QList<float>(numTeams));
                 penaltyPoints.resize(numTeams);
 #pragma omp for nowait
                 for(int genome = 0; genome < ga.populationsize; genome++) {
@@ -2372,7 +2395,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 //////////////////
 float gruepr::getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                             std::vector<std::vector<float>> &_criteriaScores, std::vector<int> &_penaltyPoints)
+                             QList<QList<float>> &_criteriaScores, QList<int> &_penaltyPoints)
 {
     // Initialize each component and team score
     for(auto &penalty : _penaltyPoints) {
