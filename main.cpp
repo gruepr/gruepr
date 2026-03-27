@@ -45,6 +45,7 @@
 //  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
 //  - added numerical attribute, ranked options, and free text response questions
+//  - significantly expanded the ability to make teaming rules based on gender or racial/ethnic identity
 //  - removed dark mode in windows
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
@@ -53,8 +54,6 @@
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - scale the penalty points with weight?
-//  - dialogs/identityrulesdialog: accept wider variety of rules (>, >=, <, <=)
-//  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)

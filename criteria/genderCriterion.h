@@ -3,6 +3,7 @@
 
 #include "criterion.h"
 #include <QCheckBox>
+#include <QLabel>
 #include <QPushButton>
 
 class GenderCriterion : public Criterion {
@@ -23,6 +24,7 @@ public:
                         QList<float> &criteriaScores, QList<int> &penaltyPoints) const override;
 
     QStringList identityOptions() const;
+    void updateComplicatedRuleCountLabel() const;
 
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;
@@ -38,6 +40,7 @@ public:
     QCheckBox *isolatedNonbinary = nullptr;
     QCheckBox *mixedGender = nullptr;
     QPushButton *complicatedGenderRule = nullptr;
+    QLabel *complicatedRuleCountLabel = nullptr;
 
     QMap<QString, IdentityRule> identityRules;   // key: "Woman" or "Man|Nonbinary"
 

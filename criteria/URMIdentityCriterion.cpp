@@ -130,14 +130,18 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
             for (const QString &identity : identities) {
                 count += urmResponseCounts.value(identity, 0);
             }
-            const auto &unallowed = identityRules.value(ruleKey).value("!=");
-            for (const int val : unallowed) {
-                if (count == val) {
-                    penaltyApplied = true;
-                    if (penaltyStatus) {
-                        penaltyPoints[team]++;
+            const auto &valMap = identityRules.value(ruleKey);
+            for (const auto [operation, values] : valMap.asKeyValueRange()) {
+                for (const int val : values) {
+                    if ((operation == "!=" && count == val) ||
+                        (operation == "<"  && count >= val) ||
+                        (operation == ">"  && count <= val)) {
+                        penaltyApplied = true;
+                        if (penaltyStatus) {
+                            penaltyPoints[team]++;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         };
@@ -161,40 +165,6 @@ float URMIdentityCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> 
     // If there are no URM rules at all, nothing is relevant
     if (identityRules.isEmpty()) {
         return Criterion::NO_SCORE;
-    }
-
-    // A rule with "!= 0" means every team is relevant (even teams with zero of that identity violate it).
-    // Otherwise, relevance requires at least one team member whose response matches a rule key.
-    bool anyRuleWithZero = false;
-    for (const auto [response, valMap] : identityRules.asKeyValueRange()) {
-        if (valMap.value("!=").contains(0)) {
-            anyRuleWithZero = true;
-            break;
-        }
-    }
-
-    if (!anyRuleWithZero) {
-        bool anyRelevant = false;
-        for (const auto studentID : team.studentIDs) {
-            for (const auto &student : allStudents) {
-                if (student.ID == studentID) {
-                    for (const auto &ruleKey : identityRules.keys()) {
-                        if (ruleKey.split('|').contains(student.URMResponse)) {
-                            anyRelevant = true;
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-            if (anyRelevant) {
-                break;
-            }
-        }
-
-        if (!anyRelevant) {
-            return Criterion::NO_SCORE;
-        }
     }
 
     // Use the base class implementation to actually calculate the score

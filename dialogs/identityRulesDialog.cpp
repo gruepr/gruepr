@@ -2,6 +2,7 @@
 #include "gruepr_globals.h"
 #include "widgets/checkableComboBox.h"
 #include "widgets/labelWithInstantTooltip.h"
+#include "widgets/styledComboBox.h"
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QPushButton>
@@ -12,6 +13,10 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterio
     : QDialog(parent), mainLayout(new QVBoxLayout(this)), identityRules(identityRules), options(identityOptions)
 
 {
+    if(identityOptions.isEmpty()) {
+        return;
+    }
+
     setWindowTitle(title);
     setMinimumSize(LG_DLG_SIZE, SM_DLG_SIZE);
 
@@ -28,13 +33,16 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterio
     const QString identityOne = options[0];
     const QString identityTwo = options.size() > 1? options[1] : options[0];
     const QString identityThree = options.size() > 2? options[2] : identityOne;
+    const QString identityFour = options.size() > 3? options[3] : identityOne;
     const QString helpText = tr("<html><span style=\"color: black;\">Use this dialog to set the identity rules for forming teams. For example:"
                                 "<ul>") +
                                 "<li> <strong>" + identityOne + tr(" does not equal 0</strong><br>"
                                             "means every team must have 1 or more ") + identityOne + " students.</li>"
                                 "<li> <strong>" + identityTwo + tr(" or ") + identityThree + tr(" does not equal 1</strong><br>"
-                                            "considers ") + identityTwo + tr(" and ") + identityThree + tr(" as interchangable and prevents a "
+                                            "considers ") + identityTwo + tr(" and ") + identityThree + tr(" as interchangeable and prevents a "
                                             "team from having exactly 1 student from either identity.</li>") +
+                                "<li> <strong>" + identityFour + tr(" is less than 3</strong><br>"
+                                            "means every team must have 0, 1, or 2 ") + identityFour + tr(" students.</li>") +
                                 "</ul>";
     helpIcon->setToolTipText(helpText);
     explanation->setToolTipText(helpText);
@@ -45,25 +53,23 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterio
     rulesTable = new QTableWidget(this);
     rulesTable->verticalHeader()->setVisible(false);
     rulesTable->setColumnCount(4);
-    rulesTable->setHorizontalHeaderLabels({tr("Identity"), "", tr("Count"), ""});
-    rulesTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    rulesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    rulesTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    rulesTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+    rulesTable->setHorizontalHeaderLabels({tr("Identity"), tr("Operator"), tr("Count"), ""});
     rulesTable->setColumnWidth(3, 40);
     rulesTable->setSelectionMode(QAbstractItemView::NoSelection);
     rulesTable->setFocusPolicy(Qt::NoFocus);
     rulesTable->setEditTriggers(QAbstractItemView::AllEditTriggers);
     rulesTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
     QHeaderView *header = rulesTable->horizontalHeader();
     header->setStyleSheet("QHeaderView::section {background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt; "
                           "padding: 5px; border: 1px solid #ccc;}");
     rulesTable->setAlternatingRowColors(true);
     rulesTable->setStyleSheet("QTableWidget {alternate-background-color: #f0f0f0; background-color: white; "
                               "font-family: 'DM Sans'; font-size: 12pt; border: none;}");
-
     populateTable();
+    rulesTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    rulesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    rulesTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    rulesTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
 
     scrollArea = new QScrollArea(this);
     scrollArea->setWidget(rulesTable);
@@ -100,15 +106,16 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterio
 void IdentityRulesDialog::addNewIdentityRule()
 {
     const QString defaultIdentity = options.isEmpty() ? "" : options.first();
-    addRow(defaultIdentity, 0);
+    addRow(defaultIdentity, "!=", 0);
 }
 
 void IdentityRulesDialog::populateTable() {
     rulesTable->setRowCount(0);
     for (const auto [identityKey, valMap] : identityRules->asKeyValueRange()) {
-        const QList<int> &noInRule = valMap.value("!=");
-        for (const int val : noInRule) {
-            addRow(identityKey, val);
+        for (const auto [operation, values] : valMap.asKeyValueRange()) {
+            for (const int val : std::as_const(values)) {
+                addRow(identityKey, operation, val);
+            }
         }
     }
 }
@@ -130,7 +137,8 @@ void IdentityRulesDialog::saveRules()
     QSet<QString> seen;
     for (int row = 0; row < rulesTable->rowCount(); ++row) {
         const QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
-        if (!spinBox) {
+        const auto *opCombo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 1));
+        if (spinBox == nullptr || opCombo == nullptr) {
             continue;
         }
         const QString identityKey = identityKeyFromRow(row);
@@ -139,10 +147,11 @@ void IdentityRulesDialog::saveRules()
                                  tr("Each rule must have at least one identity selected."));
             return;
         }
-        const QString uniqueKey = identityKey + "|" + QString::number(spinBox->value());
+        const QString operation = opCombo->currentData().toString();
+        const QString uniqueKey = identityKey + "|" + operation + "|" + QString::number(spinBox->value());
         if (seen.contains(uniqueKey)) {
             grueprGlobal::errorMessage(this, tr("Duplicate Rule"),
-                                 tr("There are duplicate rules. Each identity + count combination must be unique."));
+                                 tr("There are duplicate rules. Each identity + operator + count combination must be unique."));
             return;
         }
         seen.insert(uniqueKey);
@@ -153,16 +162,17 @@ void IdentityRulesDialog::saveRules()
     for (int row = 0; row < rulesTable->rowCount(); ++row) {
         const QString identityKey = identityKeyFromRow(row);
         const QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
-        if (identityKey.isEmpty() || !spinBox) {
+        const auto *opCombo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 1));
+        if (identityKey.isEmpty() || spinBox == nullptr || opCombo == nullptr) {
             continue;
         }
-        (*identityRules)[identityKey]["!="].append(spinBox->value());
+        (*identityRules)[identityKey][opCombo->currentData().toString()].append(spinBox->value());
     }
 
     accept();
 }
 
-void IdentityRulesDialog::addRow(const QString &identityKey, int value)
+void IdentityRulesDialog::addRow(const QString &identityKey, const QString &operation, int value)
 {
     const int row = rulesTable->rowCount();
     rulesTable->insertRow(row);
@@ -174,12 +184,14 @@ void IdentityRulesDialog::addRow(const QString &identityKey, int value)
     identityCombo->setCheckedItems(checkedIdentities);
     rulesTable->setCellWidget(row, 0, identityCombo);
 
-    // Column 1: operator (fixed to "!=")
-    auto *operatorItem = new QTableWidgetItem(" does not equal ");
-    operatorItem->setFlags(operatorItem->flags() & ~Qt::ItemIsEditable);
-    operatorItem->setForeground(QBrush(QColor(DEEPWATERHEX)));
-    operatorItem->setTextAlignment(Qt::AlignCenter);
-    rulesTable->setItem(row, 1, operatorItem);
+    // Column 1: operator
+    auto *operatorCombo = new StyledComboBox(this);
+    operatorCombo->addItem(tr("does not equal"), "!=");
+    operatorCombo->addItem(tr("is less than"), "<");
+    operatorCombo->addItem(tr("is greater than"), ">");
+    const int opIndex = operatorCombo->findData(operation);
+    operatorCombo->setCurrentIndex(opIndex >= 0 ? opIndex : 0);
+    rulesTable->setCellWidget(row, 1, operatorCombo);
 
     // Column 2: count spinbox
     auto *spinBox = new QSpinBox(this);
@@ -203,4 +215,5 @@ void IdentityRulesDialog::addRow(const QString &identityKey, int value)
             }
         }
     });
+    rulesTable->resizeColumnToContents(1);
 }

@@ -23,7 +23,7 @@ private slots:
 private:
     void populateTable();
     void saveRules();
-    void addRow(const QString &identityKey, int value);
+    void addRow(const QString &identityKey, const QString &operation = "!=", int value = 0);
     QString identityKeyFromRow(int row) const;
 
     QTableWidget *rulesTable = nullptr;

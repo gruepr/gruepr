@@ -59,6 +59,8 @@ void GenderCriterion::settingsFromJson(const QJsonObject &json) {
     if (mixedGender) {
         mixedGender->setChecked(identityRules[womanKey]["!="].contains(0) && identityRules[manKey]["!="].contains(0));
     }
+
+    updateComplicatedRuleCountLabel();
 }
 
 
@@ -81,13 +83,17 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOption
     complicatedGenderRule->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     complicatedGenderRule->setFixedHeight(40);
     complicatedGenderRule->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    complicatedRuleCountLabel = new QLabel(parentCard);
 
     genderContentLayout->addWidget(isolatedWomen);
     genderContentLayout->addWidget(isolatedMen);
     genderContentLayout->addWidget(isolatedNonbinary);
     genderContentLayout->addWidget(mixedGender);
     genderContentLayout->addWidget(complicatedGenderRule);
-    parentCard->setContentAreaLayout(*genderContentLayout);   
+    genderContentLayout->addWidget(complicatedRuleCountLabel);
+    parentCard->setContentAreaLayout(*genderContentLayout);
+
+    updateComplicatedRuleCountLabel();
 
     connect(isolatedWomen, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
         if (state == Qt::Checked) {
@@ -160,6 +166,7 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOption
          mixedGender->setChecked(identityRules[womanKey]["!="].contains(0) && identityRules[manKey]["!="].contains(0));
          mixedGender->blockSignals(false);
          delete window;
+         updateComplicatedRuleCountLabel();
     });
 }
 
@@ -199,14 +206,18 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
             for (const QString &identity : identities) {
                 count += genderCounts.value(identity, 0);
             }
-            const auto &unallowed = identityRules.value(ruleKey).value("!=");
-            for (const int val : unallowed) {
-                if (count == val) {
-                    penaltyApplied = true;
-                    if (penaltyStatus) {
-                        penaltyPoints[team]++;
+            const auto &valMap = identityRules.value(ruleKey);
+            for (const auto [operation, values] : valMap.asKeyValueRange()) {
+                for (const int val : values) {
+                    if ((operation == "!=" && count == val) ||
+                        (operation == "<"  && count >= val) ||
+                        (operation == ">"  && count <= val)) {
+                        penaltyApplied = true;
+                        if (penaltyStatus) {
+                            penaltyPoints[team]++;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         };
@@ -231,6 +242,47 @@ QStringList GenderCriterion::identityOptions() const {
         }
     }
     return options;
+}
+
+void GenderCriterion::updateComplicatedRuleCountLabel() const
+{
+    if (!complicatedRuleCountLabel) {
+        return;
+    }
+
+    // Total up all rules
+    int totalCount = 0;
+    for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
+        for (const auto [operation, values] : valMap.asKeyValueRange()) {
+            totalCount += values.size();
+        }
+    }
+
+    // Subtract the ones represented by checkboxes
+    int checkboxCount = 0;
+    if (identityRules.value(womanKey).value("!=").contains(1)) {
+        checkboxCount++;
+    }
+    if (identityRules.value(manKey).value("!=").contains(1)) {
+        checkboxCount++;
+    }
+    if (identityRules.value(nonbinaryKey).value("!=").contains(1)) {
+        checkboxCount++;
+    }
+    if (identityRules.value(womanKey).value("!=").contains(0)) {
+        checkboxCount++;
+    }
+    if (identityRules.value(manKey).value("!=").contains(0)) {
+        checkboxCount++;
+    }
+
+    const int complicatedCount = totalCount - checkboxCount;
+    if (complicatedCount <= 0) {
+        complicatedRuleCountLabel->clear();
+    } else {
+        complicatedRuleCountLabel->setText(QString::number(complicatedCount) +
+                                           (complicatedCount == 1 ? tr(" additional rule set") : tr(" additional rules set")));
+    }
 }
 
 QString GenderCriterion::headerLabel(const DataOptions *dataOptions) const {
