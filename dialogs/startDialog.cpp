@@ -195,6 +195,7 @@ void StartDialog::openGruepr() {
 void StartDialog::checkForNewVersion() {
     // check github for the latest version available for download
     auto *manager = new QNetworkAccessManager(this);
+    manager->setTransferTimeout(5000);
     QNetworkRequest request(QUrl(VERSION_CHECK_URL));
     request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
@@ -282,6 +283,7 @@ void StartDialog::openRegisterDialog() {
             message->setText(tr("Communicating..."));
 
             auto *manager = new QNetworkAccessManager(registerWin);
+            manager->setTransferTimeout(5000);
             auto *request = new QNetworkRequest(QUrl(USER_REGISTRATION_URL));
             request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
             request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);

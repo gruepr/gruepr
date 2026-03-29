@@ -48,7 +48,10 @@
 //  - significantly expanded the ability to make teaming rules based on gender or racial/ethnic identity
 //  - removed dark mode in windows
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
-//  - now preferentially mutates the lowest scoring team(s) within a genome
+//  - now preferentially performs GA::mutate on the lowest scoring team within a genome
+//  - added motion to the LMS busy dialog so that it doesn't appear frozen while connecting / downloading data
+//  - added nicer timeout function to handle LMS connection issue
+//  - fixed errors when trying to connect to Google on network when IPv6 is enabled
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //
 // TO DO:
@@ -59,7 +62,6 @@
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
-//  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
 //
 //    INTERNAL:
 //  - refactor gender counts from teamRecord into genderCrierion
@@ -73,16 +75,15 @@
 //      - move from OpenMP to QThread or c++ threads?
 //
 //    NETWORK IMPLEMENTATION:
-//  - create timeout function to more nicely handle LMS connections
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
 //      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
 //      - Question options: req'd question, answer validity checks (for email & numerical input questions)
-//  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 //  - use multiple genepools with limited cross-breeding
-//  - to get around the redundancy-of-genome issue, store each genome as std::set< std::set< int > >. Each team is set of indexes to the students; each section is set of teams.
-//      - would also allow sorting teams within set by ascending score and thus mutations preferentially at front
+//  - to get around the redundancy-of-genome issue, sort indexes w/in each team  and then each teams w/in the genome
+//      - alternatively, store each genome as std::set< std::set< int > >, but that adds to data overhead
+//      - could also store genepool as std::set < genome >, sorted by score
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"

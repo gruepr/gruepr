@@ -42,16 +42,17 @@ float grueprGlobal::timeStringToHours(const QString &timeStr) {
 bool grueprGlobal::internetIsGood() {
     //make sure we can connect to google
     auto *manager = new QNetworkAccessManager;
+    manager->setTransferTimeout(8000);
     QEventLoop loop;
     QNetworkReply *networkReply = manager->head(QNetworkRequest(QUrl("http://www.google.com")));
     QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    const bool weGotProblems = (networkReply->rawHeaderList().isEmpty());
+    const bool weGotProblems = (!networkReply->isFinished() || networkReply->rawHeaderList().isEmpty());
     networkReply->deleteLater();
     manager->deleteLater();
     if(weGotProblems) {
         grueprGlobal::errorMessage(nullptr, QObject::tr("Error!"), QObject::tr("There does not seem to be an internet connection.\n"
-                                                                         "Check your network connection and try again."));
+                                                                               "Check your network connection and try again."));
     }
     return !weGotProblems;
 }

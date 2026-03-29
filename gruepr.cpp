@@ -2206,7 +2206,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
     // create an initial population
     // start with an array of all the student IDs in order
-    int *randPerm = new int[numActiveStudents];
+    auto randPerm = std::make_unique<int[]>(numActiveStudents);
     for(int i = 0; i < numActiveStudents; i++) {
         randPerm[i] = studentIndexes[i];
     }
@@ -2214,7 +2214,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // just use random values for their initial "ancestor" values
     std::uniform_int_distribution<unsigned int> randAncestor(0, ga.populationsize);
     for(int genome = 0; genome < ga.populationsize; genome++) {
-        std::shuffle(randPerm, randPerm+numActiveStudents, pRNG);
+        std::shuffle(randPerm.get(), randPerm.get()+numActiveStudents, pRNG);
         const auto &thisGenome = genePool[genome];
         for(int ID = 0; ID < numActiveStudents; ID++) {
             thisGenome[ID] = randPerm[ID];
@@ -2224,7 +2224,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             thisGenomesAncestors[ancestor] = int(randAncestor(pRNG));
         }
     }
-    delete[] randPerm;
 
     int *teamSizes = new int[MAX_TEAMS];
     for(int team = 0; team < numTeams; team++) {
@@ -2335,9 +2334,12 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             // get genome indexes in order of score, largest to smallest
             std::sort(orderedIndex, orderedIndex+ga.populationsize, [scores](const int i, const int j){return (scores[i] > scores[j]);});
 
-            // mutate all but the single top-scoring elite genome with some probability
+            // mutate all but the single top-scoring genome with some probability
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-            for(int genome = 1; genome < ga.populationsize; genome++) {
+            for(int genome = 0; genome < ga.populationsize; genome++) {
+                if(genome == orderedIndex[0]) {
+                    continue;
+                }
                 while(randProbability(pRNG) < ga.mutationlikelihood) {
                     ga.mutateWorstTeam(genePool[genome], teamStartPositions.get(), worstTeam[genome], numActiveStudents, pRNG);
                 }

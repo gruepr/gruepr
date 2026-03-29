@@ -3250,7 +3250,9 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = google->actionDialogIcon->size();
     google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (fail? tr("Error. Survey not created.") : tr("Survey created"));
+    const QString resultText = fail ? (tr("Error. Survey not created.") +
+                                       (google->lastErrorMessage.isEmpty() ? "" : ("<br><br><code>" + google->lastErrorMessage + "</code>")))
+                                    : tr("Survey created");
     google->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();
@@ -3323,6 +3325,15 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     auto *busyBox = canvas->actionDialog(this);
     QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
+    if(canvasCourses.isEmpty()) {
+        QString errormsg = tr("Canvas is responding with no courses available.");
+        if(!canvas->lastErrorMessage.isEmpty()) {
+            errormsg += "<br><br>" + tr("Error message:") + "<code>" + canvas->lastErrorMessage + "</code>";
+        }
+        grueprGlobal::errorMessage(this, tr("Error"), errormsg);
+        canvas->deleteLater();
+        return;
+    }
 
     auto *canvasCoursesDialog = new QDialog(this);
     canvasCoursesDialog->setWindowTitle(tr("Choose Canvas course"));
@@ -3361,7 +3372,9 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     const QPixmap resultIcon(success? ":/icons_new/ok.png" : ":/icons_new/error.png");
     const QSize iconSize = canvas->actionDialogIcon->size();
     canvas->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (success? tr("Survey created") : tr("Error. Survey not created."));
+    const QString resultText = success ? tr("Survey created")
+                                       : (tr("Error. Survey not created.") +
+                                          (canvas->lastErrorMessage.isEmpty() ? "" : ("<br><br><code>" + canvas->lastErrorMessage + "</code>")));
     canvas->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();

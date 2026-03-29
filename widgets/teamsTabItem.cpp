@@ -1211,6 +1211,16 @@ void TeamsTabItem::postTeamsToCanvas()
     auto *busyBox = canvas->actionDialog();
     QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
+    if(canvasCourses.isEmpty()) {
+        QString errormsg = tr("Canvas is responding with no courses available.");
+        if(!canvas->lastErrorMessage.isEmpty()) {
+            errormsg += "<br><br>" + tr("Error message:") + "<code>" + canvas->lastErrorMessage + "</code>";
+        }
+        grueprGlobal::errorMessage(this, tr("Error"), errormsg);
+        canvas->deleteLater();
+        return;
+    }
+
     auto *canvasCoursesDialog = new QDialog(this);
     canvasCoursesDialog->setWindowTitle(tr("Choose Canvas course"));
     canvasCoursesDialog->setWindowIcon(QIcon(CanvasHandler::icon()));
@@ -1271,7 +1281,8 @@ void TeamsTabItem::postTeamsToCanvas()
         canvas->actionComplete(busyBox);
     }
     else {
-        canvas->actionDialogLabel->setText(tr("Error. Teams not created."));
+        canvas->actionDialogLabel->setText(tr("Error. Teams not created.") +
+                                           (canvas->lastErrorMessage.isEmpty() ? "" : ("<br><br><code>" + canvas->lastErrorMessage + "</code>")));
         icon.load(":/icons_new/error.png");
         canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);

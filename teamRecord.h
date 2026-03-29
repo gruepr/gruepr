@@ -28,11 +28,11 @@ public:
     int numMen = 0;
     int numNonbinary = 0;
     int numUnknown = 0;
-    QString assignedOption;
     int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     int numMeetingTimes = 0;
     QList<long long> studentIDs;
+    QString assignedOption;
     QString name;
     QString tooltip;
 

@@ -403,8 +403,10 @@ bool loadDataDialog::getFromGoogle()
         busyBox->adjustSize();
     });
     bool fileNotFound = false;
-    connect(google, &GoogleHandler::requestFailed, busyBox, [&fileNotFound](QNetworkReply::NetworkError error){
+    QString requesturl;
+    connect(google, &GoogleHandler::requestFailed, busyBox, [&fileNotFound, &requesturl](QNetworkReply::NetworkError error, const QUrl &url){
         fileNotFound = (error == QNetworkReply::NetworkError::ContentNotFoundError);
+        requesturl = url.toString();
     });
     const QString filepath = google->downloadSurveyResult(googleFormName);
     const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
@@ -412,10 +414,20 @@ bool loadDataDialog::getFromGoogle()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = google->actionDialogIcon->size();
     google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (fail? (tr("Download failed.") + "<br>" +
-                                        (fileNotFound? tr("The survey was not found in your Google Drive. ") :
-                                             tr("Please retry later."))) :
-                                    tr("Survey downloaded"));
+    QString resultText;
+    if(!fail) {
+        resultText = tr("Survey downloaded");
+    }
+    else if(fileNotFound) {
+        resultText = tr("Download failed.") + "<br>" + tr("The survey was not found in your Google Drive.");
+    }
+    else if(!google->lastErrorMessage.isEmpty()) {
+        resultText = tr("Download failed.") + "<br><br>" + tr("Error message:") + "<br><code>" + google->lastErrorMessage +
+                                                                                  "<br>Request url: " + requesturl + "</code>";
+    }
+    else {
+        resultText = tr("Download failed due to unspecified error from Google.") + "<br>" + tr("Please retry later.");
+    }
     google->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();
@@ -454,6 +466,15 @@ bool loadDataDialog::getFromCanvas()
     auto *busyBox = canvas->actionDialog(this);
     QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
+    if(canvasCourses.isEmpty()) {
+        QString errormsg = tr("Canvas is responding with no courses available.");
+        if(!canvas->lastErrorMessage.isEmpty()) {
+            errormsg += "<br><br>" + tr("Error message:") + "<code>" + canvas->lastErrorMessage + "</code>";
+        }
+        grueprGlobal::errorMessage(this, tr("Error"), errormsg);
+        canvas->deleteLater();
+        return false;
+    }
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
     canvasCoursesAndQuizzesDialog->setStyleSheet(QString(LABEL10PTSTYLE) + COMBOBOXSTYLE);
@@ -506,6 +527,12 @@ bool loadDataDialog::getFromCanvas()
 
     //download the survey and, if successful, the roster
     busyBox = canvas->actionDialog(this);
+    bool fileNotFound = false;
+    QString requesturl;
+    connect(canvas, &CanvasHandler::requestFailed, busyBox, [&fileNotFound, &requesturl](QNetworkReply::NetworkError error, const QUrl &url){
+        fileNotFound = (error == QNetworkReply::NetworkError::ContentNotFoundError);
+        requesturl = url.toString();
+    });
     const QString filepath = canvas->downloadQuizResult(course, canvasSurveyName);
     const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
     if(!fail) {
@@ -516,7 +543,20 @@ bool loadDataDialog::getFromCanvas()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = canvas->actionDialogIcon->size();
     canvas->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (fail? tr("Download failed. Please retry later.") : tr("Survey downloaded"));
+    QString resultText;
+    if(!fail) {
+        resultText = tr("Survey downloaded");
+    }
+    else if(fileNotFound) {
+        resultText = tr("Download failed.") + "<br>" + tr("The survey was not found in your Canvas course.");
+    }
+    else if(!canvas->lastErrorMessage.isEmpty()) {
+        resultText = tr("Download failed.") + "<br><br>" + tr("Error message:") + "<br><code>" + canvas->lastErrorMessage +
+                                                                                  "<br>Request url: " + requesturl + "</code>";
+    }
+    else {
+        resultText = tr("Download failed due to unspecified error from Canvas.") + "<br>" + tr("Please retry later.");
+    }
     canvas->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();
