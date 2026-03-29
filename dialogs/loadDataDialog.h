@@ -5,6 +5,7 @@
 #include "dataOptions.h"
 #include "dialogs/startDialog.h"
 #include "studentRecord.h"
+#include <memory>
 #include <QButtonGroup>
 #include <QDialog>
 
@@ -19,7 +20,7 @@ public:
     explicit loadDataDialog(StartDialog *parent = nullptr);
     ~loadDataDialog() override;
 
-    DataOptions *dataOptions = nullptr;
+    std::unique_ptr<DataOptions> dataOptions;
     QList<StudentRecord> students;
     CsvFile* getSurveyFile();
 
@@ -32,7 +33,7 @@ private:
     StartDialog *parent;
     void loadData(QString filePathString);
     void finalizeAccept(bool showCategorizingDialog);
-    CsvFile *surveyFile = nullptr;
+    std::unique_ptr<CsvFile> surveyFile;
     bool getFromFile();
     bool getFromGoogle();
     bool getFromCanvas();

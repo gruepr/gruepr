@@ -1029,7 +1029,7 @@ void gruepr::compareStudentsToRoster()
 {
     // Open the roster file
     const QSettings savedSettings;
-    CsvFile rosterFile(CsvFile::Delimiter::comma, this);
+    CsvFile rosterFile(CsvFile::Delimiter::comma);
     if(!rosterFile.open(this, CsvFile::Operation::read, tr("Open Student Roster File"), savedSettings.value("saveFileLocation").toString(), tr("Roster File"))) {
         return;
     }

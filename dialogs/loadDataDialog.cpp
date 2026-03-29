@@ -144,7 +144,8 @@ loadDataDialog::~loadDataDialog()
     delete ui;
 }
 
-bool loadDataDialog::getFromDropFile(QString filePathString){
+bool loadDataDialog::getFromDropFile(QString filePathString)
+{
     const QPixmap icon(":/icons_new/file.png");
     const QFileInfo fileInfo(filePathString);
     if (fileInfo.suffix().toLower() != "csv") {
@@ -179,31 +180,30 @@ void loadDataDialog::loadData(QString filePathString)
 {
     if(surveyFile != nullptr) {
         surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
-        surveyFile->deleteLater();
     }
-    delete dataOptions;
+    dataOptions.reset();
 
     bool fileLoaded = false;
 
     switch(source) {
     case DataOptions::DataSource::fromUploadFile:
-        dataOptions = new DataOptions;
-        surveyFile = new CsvFile;
+        dataOptions = std::make_unique<DataOptions>();
+        surveyFile = std::make_unique<CsvFile>();
         fileLoaded = getFromFile();
         break;
     case DataOptions::DataSource::fromDragDropFile:
-        dataOptions = new DataOptions;
-        surveyFile = new CsvFile;
+        dataOptions = std::make_unique<DataOptions>();
+        surveyFile = std::make_unique<CsvFile>();
         fileLoaded = getFromDropFile(filePathString);
         break;
     case DataOptions::DataSource::fromGoogle:
-        dataOptions = new DataOptions;
-        surveyFile = new CsvFile;
+        dataOptions = std::make_unique<DataOptions>();
+        surveyFile = std::make_unique<CsvFile>();
         fileLoaded = getFromGoogle();
         break;
     case DataOptions::DataSource::fromCanvas:
-        dataOptions = new DataOptions;
-        surveyFile = new CsvFile;
+        dataOptions = std::make_unique<DataOptions>();
+        surveyFile = std::make_unique<CsvFile>();
         fileLoaded = getFromCanvas();
         break;
     case DataOptions::DataSource::fromPrevWork:
@@ -240,8 +240,9 @@ void loadDataDialog::loadData(QString filePathString)
     ui->reviewCategoriesButton->setEnabled(true);
 }
 
-CsvFile* loadDataDialog::getSurveyFile(){
-    return surveyFile;
+CsvFile* loadDataDialog::getSurveyFile()
+{
+    return surveyFile.get();
 }
 
 bool loadDataDialog::readQuestionsFromHeader()
@@ -612,7 +613,7 @@ bool loadDataDialog::getFromPrevWork()
         students.emplaceBack(studentjson.toObject());
         loadingProgressDialog->setValue(i++);
     }
-    dataOptions = new DataOptions(content["dataoptions"].toObject());
+    dataOptions = std::make_unique<DataOptions>(content["dataoptions"].toObject());
     source = DataOptions::DataSource::fromPrevWork;
     dataOptions->dataSource = source;
 
@@ -645,7 +646,7 @@ void loadDataDialog::acceptWithManualCategories()
 void loadDataDialog::finalizeAccept(bool showCategorizingDialog)
 {
     if(showCategorizingDialog) {
-        const QScopedPointer<CategorizingDialog> categorizingDataDialog(new CategorizingDialog(this, surveyFile, source));
+        const QScopedPointer<CategorizingDialog> categorizingDataDialog(new CategorizingDialog(this, surveyFile.get(), source));
         if(categorizingDataDialog->exec() != QDialog::Accepted) {
             return;
         }

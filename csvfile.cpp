@@ -8,7 +8,7 @@
 #include <QStandardItemModel>
 #include <QString>
 
-CsvFile::CsvFile(Delimiter dlmtr, QObject *parent) : QObject(parent)
+CsvFile::CsvFile(Delimiter dlmtr)
 {
     if(dlmtr == Delimiter::tab) {
         delimiter = '\t';
@@ -27,16 +27,16 @@ CsvFile::~CsvFile()
 //////////////////
 bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption, const QString &filepath, const QString &filetypeDescriptor)
 {
-    file = nullptr;
-    stream = nullptr;
+    file.reset();
+    stream.reset();
 
     if(operation == Operation::read) {
         const QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath,
                                                               filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
         if (!fileName.isEmpty()) {
-            file = new QFile(fileName);
+            file = std::make_unique<QFile>(fileName);
             if(file->open(QIODevice::ReadOnly)) {
-                stream = new QTextStream(file);
+                stream = std::make_unique<QTextStream>(file.get());
                 estimatedNumberRows = stream->readAll().count('\n');
                 stream->seek(0);
             }
@@ -46,9 +46,9 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
         const QString fileName = QFileDialog::getSaveFileName(parent, caption, filepath,
                                                               filetypeDescriptor + " File (*.csv);;Text File (*.txt);;All Files (*)");
         if (!fileName.isEmpty()) {
-            file = new QFile(fileName);
+            file = std::make_unique<QFile>(fileName);
             if(file->open(QIODevice::WriteOnly | QIODevice::Text)) {
-                stream = new QTextStream(file);
+                stream = std::make_unique<QTextStream>(file.get());
             }
         }
     }
@@ -58,14 +58,15 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
 
 bool CsvFile::openExistingFile(const QString &filepath)
 {
-    file = nullptr;
-    stream = nullptr;
+    file.reset();
+    stream.reset();
     if (!filepath.isEmpty()) {
-        file = new QFile(filepath);
-        file->open(QIODevice::ReadOnly);
-        stream = new QTextStream(file);
-        estimatedNumberRows = stream->readAll().count('\n');
-        stream->seek(0);
+        file = std::make_unique<QFile>(filepath);
+        if (file->open(QIODevice::ReadOnly)) {
+            stream = std::make_unique<QTextStream>(file.get());
+            estimatedNumberRows = stream->readAll().count('\n');
+            stream->seek(0);
+        }
     }
 
     return (stream != nullptr);
@@ -108,10 +109,7 @@ QFileInfo CsvFile::fileInfo()
 //////////////////
 void CsvFile::close(bool deleteFile)
 {
-    if(stream != nullptr) {
-        delete stream;
-        stream = nullptr;
-    }
+    stream.reset();
 
     if(file == nullptr) {
         return;
@@ -124,8 +122,7 @@ void CsvFile::close(bool deleteFile)
     if(deleteFile) {
         file->remove();
     }
-    delete file;
-    file = nullptr;
+    file.reset();
 }
 
 
@@ -252,23 +249,23 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
         }
     }
 
-    window = new listTableDialog(tr("Select column definitions"), false, false, parent);
+    window = new listTableDialog(QObject::tr("Select column definitions"), false, false, parent);
     window->setMinimumSize(DIALOGWIDTH, DIALOGHEIGHT);
 
     auto *explanation = new QLabel(window);
     explanation->setStyleSheet(LABEL10PTSTYLE);
-    explanation->setText(tr("<html>The following fields were found in the first row of the file. "
+    explanation->setText(QObject::tr("<html>The following fields were found in the first row of the file. "
                          "Please verify the category of information contained in each column. Select \"") + UNUSEDTEXT +
-                         tr("\" for any field(s) that should be ignored.<hr></html>"));
+                         QObject::tr("\" for any field(s) that should be ignored.<hr></html>"));
     explanation->setWordWrap(true);
     window->theGrid->addWidget(explanation, 0, 0, 1, -1);
 
     auto *hasHeaderRowCheckbox = new QCheckBox(window);
     hasHeaderRowCheckbox->setStyleSheet(CHECKBOXSTYLE);
-    hasHeaderRowCheckbox->setText(tr("This file has a header row"));
+    hasHeaderRowCheckbox->setText(QObject::tr("This file has a header row"));
     hasHeaderRowCheckbox->setChecked(true);
     window->theGrid->addWidget(hasHeaderRowCheckbox, 1, 0, 1, -1);
-    connect(hasHeaderRowCheckbox, &QCheckBox::clicked, this, [this, hasHeaderRowCheckbox]
+    QObject::connect(hasHeaderRowCheckbox, &QCheckBox::clicked, window, [this, hasHeaderRowCheckbox]
                                                       {hasHeaderRow = hasHeaderRowCheckbox->isChecked();
                                                        if(hasHeaderRow)
                                                          {window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));}
@@ -316,7 +313,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
         selector->setMinimumWidth(width);
         selector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         window->theTable->setCellWidget(row, 1, selector);
-        connect(selector, &QComboBox::currentTextChanged, this, [this, row]{validateFieldSelectorBoxes(row);});
+        QObject::connect(selector, &QComboBox::currentTextChanged, window, [this, row]{validateFieldSelectorBoxes(row);});
     }
     validateFieldSelectorBoxes();
     window->theTable->resizeColumnsToContents();
@@ -400,11 +397,12 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
                 fieldMeanings[*row] = UNUSEDTEXT;
                 fullyUsedValues[fieldval]--;
                 if(numAllowed == 1) {
-                    item->setToolTip(tr("The \"") + fieldval + tr("\" field has already been assigned."
+                    item->setToolTip(QObject::tr("The \"") + fieldval + QObject::tr("\" field has already been assigned."
                                      "\nSelecting this will de-select it elsewhere."));
                 }
                 else {
-                    item->setToolTip(tr("All ") + QString::number(numAllowed) + " \"" + fieldval + tr("\" fields have already been assigned."
+                    item->setToolTip(QObject::tr("All ") + QString::number(numAllowed) + " \"" + fieldval +
+                                     QObject::tr("\" fields have already been assigned."
                                      "\nSelecting this will de-select it elsewhere."));
                 }
             }
@@ -412,11 +410,12 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
                 // at capacity, and not selected in this box
                 item->setForeground(Qt::darkRed);
                 if(numAllowed == 1) {
-                    item->setToolTip(tr("The \"") + fieldval + tr("\" field has already been assigned."
+                    item->setToolTip(QObject::tr("The \"") + fieldval + QObject::tr("\" field has already been assigned."
                                      "\nSelecting this will de-select it elsewhere."));
                 }
                 else {
-                    item->setToolTip(tr("All ") + QString::number(numAllowed) + " \"" + fieldval + tr("\" fields have already been assigned."
+                    item->setToolTip(QObject::tr("All ") + QString::number(numAllowed) + " \"" + fieldval +
+                                     QObject::tr("\" fields have already been assigned."
                                      "\nSelecting this will de-select it elsewhere."));
                 }
             }
