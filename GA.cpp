@@ -139,7 +139,8 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
 //////////////////
 // Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
 //////////////////
-void GA::mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG)
+void GA::mate(const int *const mom, const int *const dad, const int teamStartPositions[],
+              const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG)
 {
 
     //randomly choose two team boundaries in the genome from which to cut an allele
@@ -155,17 +156,8 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
     }
 
     //Now, need to find positions in genome to start and end allele--the "breaks" before startTeam and endTeam
-    unsigned int end=0, start=0, team=0, position=0;
-    while(team < endTeam) {
-        if(startTeam == team) {
-            start = position;
-        }
-        //increase position by number of students in this team
-        position += teamSize[team];
-        end = position;
-        //go to next team
-        team++;
-    }
+    const unsigned int start = teamStartPositions[startTeam];
+    const unsigned int end = teamStartPositions[endTeam];
 
     //copy all of dad into child
     std::copy(dad, dad + genomeSize, child);
@@ -190,4 +182,27 @@ void GA::mutate(int genome[], const long long genomeSize, std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned long long> randSite(0, genomeSize-1);
     std::swap(genome[randSite(pRNG)], genome[randSite(pRNG)]);
+}
+
+//////////////////
+// Swap a random student from the worst-scoring team with a random student from any other team
+//////////////////
+void GA::mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize, std::mt19937 &pRNG)
+{
+    const int worstTeamStart = teamStartPositions[worstTeam];
+    const int worstTeamEnd = teamStartPositions[worstTeam + 1];
+    const int worstTeamSize = worstTeamEnd - worstTeamStart;
+
+    // pick a random student in the worst team
+    std::uniform_int_distribution<int> randWorstSite(worstTeamStart, worstTeamEnd - 1);
+    const int siteA = randWorstSite(pRNG);
+
+    // pick a random student NOT in the worst team
+    std::uniform_int_distribution<long long> randOtherSite(0, genomeSize - worstTeamSize - 1);
+    long long siteB = randOtherSite(pRNG);
+    if(siteB >= worstTeamStart) {
+        siteB += worstTeamSize;
+    }
+
+    std::swap(genome[siteA], genome[siteB]);
 }

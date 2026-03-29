@@ -10,17 +10,23 @@ class GA
 public:
     void setGAParameters(int numRecords);
 
-    void clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize);
-    void tournamentSelectParents(const int * const * const genePool, const int *const orderedIndex, const int * const * const ancestors,
+    void clone(const int *const parent, const int *const ancestors, const int parentsIndex,
+               int child[], int parentage[], const int genomeSize);
+
+    void tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
                                  const int *&mom, const int *&dad, int parentage[], std::mt19937 &pRNG);
-    void mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG);
+
+    void mate(const int *const mom, const int *const dad, const int teamStartPositions[],
+              const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG);
 
     void mutate(int genome[], const long long genomeSize, std::mt19937 &pRNG);
+    void mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize, std::mt19937 &pRNG);
+
 
     inline static const int MAX_RECORDS = 1000;             // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow as value gets bigger)
 
-    inline static const int NUM_ELITES = 3;                 // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite significantly stabilizes the high score to end optimization
-    inline static const int TOURNAMENTSIZE = 100;           // most of the next generation is created by mating many pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
+    inline static const int NUM_ELITES = 3;                 // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite stabilizes the high score to end optimization
+    inline static const int TOURNAMENTSIZE = 100;           // most of the next generation is created by mating pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
     inline static const int MIN_GENERATIONS = 40;           // will keep optimizing for at least minGenerations
     inline static const int MAX_GENERATIONS = 500;          // will keep optimizing for at most maxGenerations
     inline static const int GENERATIONS_OF_STABILITY = 25;  // after minGenerations, if score has not improved for generationsOfStability, stop optimizing

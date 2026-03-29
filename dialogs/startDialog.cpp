@@ -106,17 +106,8 @@ StartDialog::StartDialog(QWidget *parent)
     upgradeLabel->setTextFormat(Qt::RichText);
     upgradeLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     upgradeLabel->setOpenExternalLinks(true);
-    // find out if there is an upgrade available
-    const GrueprVersion version = getLatestVersionFromGithub();
-    QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER + " <a href=\"" + GRUEPRDOWNLOADPAGE + "\">";
-    if(version == GrueprVersion::old) {
-        upgradeMessage +=  tr("Upgrade available!");
-    }
-    else if(version == GrueprVersion::beta) {
-        upgradeMessage += tr("(pre-release)");
-    }
-    upgradeMessage += "<\a>";
-    upgradeLabel->setText(upgradeMessage);
+    // show the version number now; upgrade info will appear asynchronously
+    upgradeLabel->setText(tr("Version") + ": " + GRUEPR_VERSION_NUMBER);
     upgradeLabel->setAlignment(Qt::AlignRight);
     theGrid->addWidget(registerLabel, row, 1, 1, 1, Qt::AlignLeft);
     theGrid->addWidget(upgradeLabel, row, 3, 1, 1, Qt::AlignRight);
@@ -156,6 +147,8 @@ StartDialog::StartDialog(QWidget *parent)
     }
     menuBar->addMenu(helpMenu);
 #endif
+    // fire off the async version check — label will update when the reply arrives
+    checkForNewVersion();
 }
 
 
@@ -199,60 +192,75 @@ void StartDialog::openGruepr() {
 }
 
 
-StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
+void StartDialog::checkForNewVersion() {
     // check github for the latest version available for download
     auto *manager = new QNetworkAccessManager(this);
-    auto *request = new QNetworkRequest(QUrl(VERSION_CHECK_URL));
-    request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
-    request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-    auto *reply = manager->get(*request);
-    QString latestVersionString;
-    QEventLoop loop;
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    if(reply->bytesAvailable() == 0) {
-        latestVersionString = "0";
-    }
-    else {
-        static const QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
-        const QRegularExpressionMatch match = versionNum.match(reply->readAll());
-        latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
-    }
-    reply->deleteLater();
-    delete request;
-    manager->deleteLater();
+    QNetworkRequest request(QUrl(VERSION_CHECK_URL));
+    request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    auto *reply = manager->get(request);
 
-    QStringList latestVersion = latestVersionString.split('.');
-    QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
-    // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
-    for(int field = int(latestVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
-        latestVersion << "0";
-    }
-    for(int field = int(thisVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
-        thisVersion << "0";
-    }
-    // convert to single integer
-    unsigned long long latestVersionAsInt = 0, thisVersionAsInt = 0;
-    for(int field = 0; field < NUMBER_VERSION_FIELDS; field++) {
-        latestVersionAsInt = (latestVersionAsInt*NUMBER_VERSION_PRECISION) + latestVersion.at(field).toInt();
-        thisVersionAsInt = (thisVersionAsInt*NUMBER_VERSION_PRECISION) + thisVersion.at(field).toInt();
-    }
+    connect(reply, &QNetworkReply::finished, this, [this, reply, manager]() {
+        reply->deleteLater();
+        manager->deleteLater();
 
-    if(latestVersionAsInt == 0) {
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
-        return GrueprVersion::unknown;
-    }
-    if(latestVersionAsInt > thisVersionAsInt) {
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available to download"));
-        return GrueprVersion::old;
-    }
-    if(thisVersionAsInt > latestVersionAsInt) {
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
-        return GrueprVersion::beta;
-    }
-    upgradeLabel->setToolTip(tr("Your version is up-to-date"));
-    return GrueprVersion::current;
+        QString latestVersionString;
+        if(reply->bytesAvailable() == 0) {
+            latestVersionString = "0";
+        }
+        else {
+            static const QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
+            const QRegularExpressionMatch match = versionNum.match(reply->readAll());
+            latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
+        }
+
+        QStringList latestVersion = latestVersionString.split('.');
+        QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
+        // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
+        for(int field = int(latestVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
+            latestVersion << "0";
+        }
+        for(int field = int(thisVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
+            thisVersion << "0";
+        }
+        // convert to single integer
+        unsigned long long latestVersionAsInt = 0, thisVersionAsInt = 0;
+        for(int field = 0; field < NUMBER_VERSION_FIELDS; field++) {
+            latestVersionAsInt = (latestVersionAsInt*NUMBER_VERSION_PRECISION) + latestVersion.at(field).toInt();
+            thisVersionAsInt = (thisVersionAsInt*NUMBER_VERSION_PRECISION) + thisVersion.at(field).toInt();
+        }
+
+        GrueprVersion version;
+        if(latestVersionAsInt == 0) {
+            upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
+            version = GrueprVersion::unknown;
+        }
+        else if(latestVersionAsInt > thisVersionAsInt) {
+            upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available to download"));
+            version = GrueprVersion::old;
+        }
+        else if(thisVersionAsInt > latestVersionAsInt) {
+            upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
+            version = GrueprVersion::beta;
+        }
+        else {
+            upgradeLabel->setToolTip(tr("Your version is up-to-date"));
+            version = GrueprVersion::current;
+        }
+
+        // update the label with upgrade info
+        QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER + " <a href=\"" + GRUEPRDOWNLOADPAGE + "\">";
+        if(version == GrueprVersion::old) {
+            upgradeMessage += tr("Upgrade available!");
+        }
+        else if(version == GrueprVersion::beta) {
+            upgradeMessage += tr("(pre-release)");
+        }
+        upgradeMessage += "</a>";
+        upgradeLabel->setText(upgradeMessage);
+    });
 }
+
 
 void StartDialog::openRegisterDialog() {
     // open dialog window to allow the user to submit registration info to the Google Form

@@ -465,7 +465,7 @@ Qt::TextElideMode AssignmentPreferenceCriterion::headerElideMode() const
 }
 
 QString AssignmentPreferenceCriterion::teamDisplayText(const TeamRecord &team, const DataOptions */*dataOptions*/,
-                                                       float /*criterionScore*/, const QList<StudentRecord> &students) const
+                                                       float /*criterionScore*/, const QList<StudentRecord> &/*students*/) const
 {
     if(team.studentIDs.isEmpty()) {
         return {};

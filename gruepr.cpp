@@ -12,6 +12,7 @@
 #include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
+#include <memory>
 #include <random>
 #include <QDesktopServices>
 #include <QFile>
@@ -657,7 +658,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
 {
     const int _numTeams = _teams.size();
     const auto &_dataOptions = _teams.dataOptions;
-    QList<float>teamScores(_numTeams);
+    QList<float> teamScores(_numTeams);
     QList<QList<float>> criteriaScores(_teamingOptions->realNumScoringFactors, QList<float>(_numTeams));
     QList<int> penaltyPoints(_numTeams);
     QList<int> teamSizes(_numTeams);
@@ -2230,11 +2231,18 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         teamSizes[team] = teams[team].size;
     }
 
+    auto worstTeam = std::make_unique<int[]>(ga.populationsize);
+    auto teamStartPositions = std::make_unique<int[]>(numTeams + 1);
+    teamStartPositions[0] = 0;
+    for(int team = 0; team < numTeams; team++) {
+        teamStartPositions[team + 1] = teamStartPositions[team] + teamSizes[team];
+    }
+
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto *scores = new float[ga.populationsize];
     QList<QList<float>> criteriaScores;
     QList<int> penaltyPoints;
-    QList<float> unusedTeamScores;
+    QList<float> teamScores;
     bool unpenalizedGenomePresent = false;
     auto sharedStudents = students;
     auto sharedNumTeams = numTeams;
@@ -2245,15 +2253,15 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 #pragma omp parallel \
         default(none) \
         shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-        private(unusedTeamScores, criteriaScores, penaltyPoints)
+        private(teamScores, criteriaScores, penaltyPoints)
     {
-        unusedTeamScores.resize(sharedNumTeams);
+        teamScores.resize(sharedNumTeams);
         criteriaScores.resize(teamingOptions->realNumScoringFactors, QList<float>(numTeams));
         penaltyPoints.resize(numTeams);
 #pragma omp for nowait
         for(int genome = 0; genome < ga.populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
-                                            sharedTeamingOptions, sharedDataOptions, unusedTeamScores.data(),
+                                            sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                             criteriaScores, penaltyPoints);
             unpenalizedGenomePresent = unpenalizedGenomePresent || std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
         }
@@ -2263,7 +2271,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     std::sort(orderedIndex, orderedIndex+ga.populationsize, [&scores](const int i, const int j){return (scores[i] > scores[j]);});
     emit generationComplete(scores, orderedIndex, 0, 0, unpenalizedGenomePresent);
 
-
     const int *mom=nullptr, *dad=nullptr;               // pointer to genome of mom and dad
     float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
@@ -2271,8 +2278,8 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     bool localOptimizationStopped = false;
 
     // now optimize
-    do {                    // allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
-        do {                // keep optimizing until reach stability or maxGenerations
+    do {        // allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
+        do {        // keep optimizing until reach stability or maxGenerations
             // clone the elites in genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
             for(int genome = 0; genome < GA::NUM_ELITES; genome++) {
                 ga.clone(genePool[orderedIndex[genome]], ancestors[orderedIndex[genome]], orderedIndex[genome],
@@ -2285,15 +2292,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 ga.tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
 
                 //mate them and put child in nextGenGenePool
-                ga.mate(mom, dad, teamSizes, numTeams, nextGenGenePool[genome], numActiveStudents, pRNG);
-            }
-
-            // mutate all but the single top-scoring elite genome with some probability; if mutation occurs, mutate same genome again with same probability
-            std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-            for(int genome = 1; genome < ga.populationsize; genome++) {
-                while(randProbability(pRNG) < ga.mutationlikelihood) {
-                    ga.mutate(&nextGenGenePool[genome][0], numActiveStudents, pRNG);
-                }
+                ga.mate(mom, dad, teamStartPositions.get(), numTeams, nextGenGenePool[genome], numActiveStudents, pRNG);
             }
 
             // swap pointers to make nextGen's genePool and ancestors into this generation's
@@ -2310,23 +2309,39 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             sharedDataOptions = dataOptions;
 #pragma omp parallel \
             default(none) \
-                shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-                private(unusedTeamScores, criteriaScores, penaltyPoints)
+                shared(scores, worstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+                private(teamScores, criteriaScores, penaltyPoints)
             {
-                unusedTeamScores.resize(sharedNumTeams);
+                teamScores.resize(sharedNumTeams);
                 criteriaScores.resize(teamingOptions->realNumScoringFactors, QList<float>(numTeams));
                 penaltyPoints.resize(numTeams);
 #pragma omp for nowait
                 for(int genome = 0; genome < ga.populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
-                                                    sharedTeamingOptions, sharedDataOptions, unusedTeamScores.data(),
+                                                    sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                                     criteriaScores, penaltyPoints);
+                    // find this genome's worst team
+                    int worst = 0;
+                    for(int team = 1; team < sharedNumTeams; team++) {
+                        if(teamScores[team] < teamScores[worst]) {
+                            worst = team;
+                        }
+                    }
+                    worstTeam[genome] = worst;
                     unpenalizedGenomePresent = unpenalizedGenomePresent || std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
                 }
             }
 
             // get genome indexes in order of score, largest to smallest
             std::sort(orderedIndex, orderedIndex+ga.populationsize, [scores](const int i, const int j){return (scores[i] > scores[j]);});
+
+            // mutate all but the single top-scoring elite genome with some probability
+            std::uniform_int_distribution<unsigned int> randProbability(1, 100);
+            for(int genome = 1; genome < ga.populationsize; genome++) {
+                while(randProbability(pRNG) < ga.mutationlikelihood) {
+                    ga.mutateWorstTeam(genePool[genome], teamStartPositions.get(), worstTeam[genome], numActiveStudents, pRNG);
+                }
+            }
 
             // determine best score, save in historical record, and calculate score stability
             const float maxScoreInThisGeneration = scores[orderedIndex[0]];

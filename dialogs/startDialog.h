@@ -47,10 +47,9 @@ private:
     enum class GrueprVersion{unknown, old, current, beta};
 
     /**
-     * @brief getLatestVersionFromGithub Obtains the latest version of the Gruepr software from its Github page.
-     * @return An enumeration of which version this Gruepr copy corresponds to (GrueprVersion enumeration).
+     * @brief checkForNewVersion Asynchronously checks Github for the latest version and updates the upgrade label when the result arrives.
      */
-    GrueprVersion getLatestVersionFromGithub();
+    void checkForNewVersion();
 
     QLabel *registerLabel = nullptr;
     QLabel *upgradeLabel = nullptr;
