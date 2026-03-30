@@ -206,3 +206,130 @@ void GA::mutateWorstTeam(int genome[], const int teamStartPositions[], const int
 
     std::swap(genome[siteA], genome[siteB]);
 }
+
+
+//////////////////
+// GenePool RAII wrapper
+//////////////////
+GA::GenePool::GenePool(const GA &ga, int genomeSize)
+    : popSize(ga.populationsize), genSize(genomeSize)
+    , dataVals(new int[static_cast<size_t>(popSize) * genSize]), rows(new int*[popSize])
+{
+    for(int i = 0; i < popSize; ++i) {
+        rows[i] = dataVals + (static_cast<size_t>(i) * genSize);
+    }
+}
+
+GA::GenePool::~GenePool()
+{
+    delete[] rows;
+    delete[] dataVals;
+}
+
+GA::GenePool::GenePool(GenePool &&o) noexcept
+    : popSize(o.popSize), genSize(o.genSize)
+    , dataVals(o.dataVals), rows(o.rows)
+{
+    o.popSize = 0;
+    o.genSize = 0;
+    o.dataVals = nullptr;
+    o.rows = nullptr;
+}
+
+GA::GenePool &GA::GenePool::operator=(GenePool &&o) noexcept
+{
+    if(this != &o) {
+        delete[] rows;
+        delete[] dataVals;
+        popSize = o.popSize;
+        genSize = o.genSize;
+        dataVals = o.dataVals;
+        rows = o.rows;
+        o.popSize = 0;
+        o.genSize = 0;
+        o.dataVals = nullptr;
+        o.rows = nullptr;
+    }
+    return *this;
+}
+
+int *GA::GenePool::operator[](int genome) { return rows[genome]; }
+const int *GA::GenePool::operator[](int genome) const { return rows[genome]; }
+int **GA::GenePool::data() { return rows; }
+const int *const *GA::GenePool::data() const { return rows; }
+int GA::GenePool::populationSize() const { return popSize; }
+int GA::GenePool::genomeSize() const { return genSize; }
+
+void swap(GA::GenePool &a, GA::GenePool &b) noexcept
+{
+    std::swap(a.popSize, b.popSize);
+    std::swap(a.genSize, b.genSize);
+    std::swap(a.dataVals, b.dataVals);
+    std::swap(a.rows, b.rows);
+}
+
+
+//////////////////
+// AncestorPool RAII wrapper
+//////////////////
+GA::AncestorPool::AncestorPool(const GA &ga)
+    : popSize(ga.populationsize), numAncest(2)   // always track mom & dad
+    , dataVals(nullptr), rows(nullptr)
+{
+    for(int generation = 0; generation < ga.numgenerationsofancestors; ++generation) {
+        numAncest += (4 << generation);   // add 2^(n+1) for each level of (great)grandparents
+    }
+    dataVals = new int[static_cast<size_t>(popSize) * numAncest];
+    rows = new int*[popSize];
+    for(int i = 0; i < popSize; ++i) {
+        rows[i] = dataVals + (static_cast<size_t>(i) * numAncest);
+    }
+}
+
+GA::AncestorPool::~AncestorPool()
+{
+    delete[] rows;
+    delete[] dataVals;
+}
+
+GA::AncestorPool::AncestorPool(AncestorPool &&o) noexcept
+    : popSize(o.popSize), numAncest(o.numAncest)
+    , dataVals(o.dataVals), rows(o.rows)
+{
+    o.popSize = 0;
+    o.numAncest = 0;
+    o.dataVals = nullptr;
+    o.rows = nullptr;
+}
+
+GA::AncestorPool &GA::AncestorPool::operator=(AncestorPool &&o) noexcept
+{
+    if(this != &o) {
+        delete[] rows;
+        delete[] dataVals;
+        popSize = o.popSize;
+        numAncest = o.numAncest;
+        dataVals = o.dataVals;
+        rows = o.rows;
+        o.popSize = 0;
+        o.numAncest = 0;
+        o.dataVals = nullptr;
+        o.rows = nullptr;
+    }
+    return *this;
+}
+
+int *GA::AncestorPool::operator[](int genome) { return rows[genome]; }
+const int *GA::AncestorPool::operator[](int genome) const { return rows[genome]; }
+int **GA::AncestorPool::data() { return rows; }
+const int *const *GA::AncestorPool::data() const { return rows; }
+int GA::AncestorPool::populationSize() const { return popSize; }
+int GA::AncestorPool::numAncestors() const { return numAncest; }
+
+void swap(GA::AncestorPool &a, GA::AncestorPool &b) noexcept
+{
+    std::swap(a.popSize, b.popSize);
+    std::swap(a.numAncest, b.numAncest);
+    std::swap(a.dataVals, b.dataVals);
+    std::swap(a.rows, b.rows);
+}

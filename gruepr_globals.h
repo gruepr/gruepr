@@ -850,7 +850,7 @@ inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone 
                                                  "format.</p>"
                                               "<hr>"
                                               "<h3>Further details on the genetic optimization algorithm</h3>"
-                                              "<p>&nbsp; &nbsp;A population of 30,000 random teamings (each is a \"genome\") is created and then refined over multiple generations. "
+                                              "<p>&nbsp; &nbsp;A population of thousands of random teamings (each is a \"genome\") is created and then refined over multiple generations. "
                                                  "In each generation, a few of the highest scoring \"elite\" genomes are directly copied (cloned) into the next generation, and then "
                                                  "the remainder are created by mating tournament-selected parent genomes using ordered crossover. Once the next generation's genepool "
                                                  "is created, each genome has 1 or more potential mutations, implemented as a swapping of two random locations on the genome. A genome's "

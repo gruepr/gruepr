@@ -2182,24 +2182,14 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // For example, if team 1 has 4 students, and genePool[0][] = [4, 9, 12, 1, 3, 6...], then the first genome places
     // students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
 
-    // allocate memory for a genepool for current generation and a next generation as it is being created
-    int **genePool = new int*[ga.populationsize];
-    int **nextGenGenePool = new int*[ga.populationsize];
-    // allocate memory for current and next generation's ancestors
-    int **ancestors = new int*[ga.populationsize];
-    int **nextGenAncestors = new int*[ga.populationsize];
-    int numAncestors = 2;           //always track mom & dad
-    for(int generation = 0; generation < ga.numgenerationsofancestors; generation++) {
-        numAncestors += (4<<generation);   //add an additional 2^(n+1) ancestors for the next level of (great)grandparents
-    }
-    for(int genome = 0; genome < ga.populationsize; genome++) {
-        genePool[genome] = new int[numActiveStudents];
-        nextGenGenePool[genome] = new int[numActiveStudents];
-        ancestors[genome] = new int[numAncestors];
-        nextGenAncestors[genome] = new int[numAncestors];
-    }
-    // allocate memory for array of indexes, to be sorted in order of score (so genePool[orderedIndex[0]] is the one with the top score)
-    int *orderedIndex = new int[ga.populationsize];
+    // allocate memory for gene pools and ancestor pools (RAII — freed automatically)
+    GA::GenePool genePool(ga, numActiveStudents);
+    GA::GenePool nextGenGenePool(ga, numActiveStudents);
+    GA::AncestorPool ancestors(ga);
+    GA::AncestorPool nextGenAncestors(ga);
+
+    // array of indexes, sorted in order of score (so genePool[orderedIndex[0]] is the one with the top score)
+    auto orderedIndex = std::make_unique<int[]>(ga.populationsize);
     for(int genome = 0; genome < ga.populationsize; genome++) {
         orderedIndex[genome] = genome;
     }
@@ -2215,17 +2205,17 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     std::uniform_int_distribution<unsigned int> randAncestor(0, ga.populationsize);
     for(int genome = 0; genome < ga.populationsize; genome++) {
         std::shuffle(randPerm.get(), randPerm.get()+numActiveStudents, pRNG);
-        const auto &thisGenome = genePool[genome];
+        auto *const thisGenome = genePool[genome];
         for(int ID = 0; ID < numActiveStudents; ID++) {
             thisGenome[ID] = randPerm[ID];
         }
-        const auto &thisGenomesAncestors = ancestors[genome];
-        for(int ancestor = 0; ancestor < numAncestors; ancestor++) {
+        auto *const thisGenomesAncestors = ancestors[genome];
+        for(int ancestor = 0; ancestor < ancestors.numAncestors(); ancestor++) {
             thisGenomesAncestors[ancestor] = int(randAncestor(pRNG));
         }
     }
 
-    int *teamSizes = new int[MAX_TEAMS];
+    QList<int> teamSizes(numTeams);
     for(int team = 0; team < numTeams; team++) {
         teamSizes[team] = teams[team].size;
     }
@@ -2238,15 +2228,16 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     }
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    auto *scores = new float[ga.populationsize];
+    auto scores = std::make_unique<float[]>(ga.populationsize);
     QList<QList<float>> criteriaScores;
     QList<int> penaltyPoints;
     QList<float> teamScores;
     bool unpenalizedGenomePresent = false;
-    auto sharedStudents = students;
-    auto sharedNumTeams = numTeams;
-    const auto *sharedTeamingOptions = teamingOptions;
-    const auto *sharedDataOptions = dataOptions;
+    // make local copies of member variables to satisfy openMP's needs
+    const auto &sharedStudents = students;
+    const auto &sharedNumTeams = numTeams;
+    const auto *const sharedTeamingOptions = teamingOptions;
+    const auto *const sharedDataOptions = dataOptions;
 
     //parallel initialization of needed variables.
 #pragma omp parallel \
@@ -2255,11 +2246,11 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         private(teamScores, criteriaScores, penaltyPoints)
     {
         teamScores.resize(sharedNumTeams);
-        criteriaScores.resize(teamingOptions->realNumScoringFactors, QList<float>(numTeams));
-        penaltyPoints.resize(numTeams);
+        criteriaScores.resize(sharedTeamingOptions->realNumScoringFactors, QList<float>(sharedNumTeams));
+        penaltyPoints.resize(sharedNumTeams);
 #pragma omp for nowait
         for(int genome = 0; genome < ga.populationsize; genome++) {
-            scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
+            scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                             sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                             criteriaScores, penaltyPoints);
             unpenalizedGenomePresent = unpenalizedGenomePresent || std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
@@ -2267,8 +2258,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     }
 
     // get genome indexes in order of score, largest to smallest
-    std::sort(orderedIndex, orderedIndex+ga.populationsize, [&scores](const int i, const int j){return (scores[i] > scores[j]);});
-    emit generationComplete(scores, orderedIndex, 0, 0, unpenalizedGenomePresent);
+    std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize,
+              [&scores](const int i, const int j){return (scores[i] > scores[j]);});
+    emit generationComplete(scores.get(), orderedIndex.get(), 0, 0, unpenalizedGenomePresent);
 
     const int *mom=nullptr, *dad=nullptr;               // pointer to genome of mom and dad
     float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
@@ -2288,35 +2280,31 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             // create rest of population in nextGenGenePool by mating
             for(int genome = GA::NUM_ELITES; genome < ga.populationsize; genome++) {
                 //get a couple of parents
-                ga.tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
+                ga.tournamentSelectParents(genePool.data(), orderedIndex.get(), ancestors.data(), mom, dad, nextGenAncestors[genome], pRNG);
 
                 //mate them and put child in nextGenGenePool
-                ga.mate(mom, dad, teamStartPositions.get(), numTeams, nextGenGenePool[genome], numActiveStudents, pRNG);
+                ga.mate(mom, dad, teamStartPositions.get(), sharedNumTeams, nextGenGenePool[genome], numActiveStudents, pRNG);
             }
 
             // swap pointers to make nextGen's genePool and ancestors into this generation's
-            std::swap(genePool, nextGenGenePool);
-            std::swap(ancestors, nextGenAncestors);
+            swap(genePool, nextGenGenePool);
+            swap(ancestors, nextGenAncestors);
 
             generation++;
 
             // calculate this generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
             unpenalizedGenomePresent = false;
-            sharedStudents = students;
-            sharedNumTeams = numTeams;
-            sharedTeamingOptions = teamingOptions;
-            sharedDataOptions = dataOptions;
 #pragma omp parallel \
             default(none) \
                 shared(scores, worstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
                 private(teamScores, criteriaScores, penaltyPoints)
             {
                 teamScores.resize(sharedNumTeams);
-                criteriaScores.resize(teamingOptions->realNumScoringFactors, QList<float>(numTeams));
-                penaltyPoints.resize(numTeams);
+                criteriaScores.resize(sharedTeamingOptions->realNumScoringFactors, QList<float>(sharedNumTeams));
+                penaltyPoints.resize(sharedNumTeams);
 #pragma omp for nowait
                 for(int genome = 0; genome < ga.populationsize; genome++) {
-                    scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
+                    scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                                     sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                                     criteriaScores, penaltyPoints);
                     // find this genome's worst team
@@ -2327,12 +2315,14 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                         }
                     }
                     worstTeam[genome] = worst;
-                    unpenalizedGenomePresent = unpenalizedGenomePresent || std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
+                    unpenalizedGenomePresent = unpenalizedGenomePresent ||
+                                               std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
                 }
             }
 
             // get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex, orderedIndex+ga.populationsize, [scores](const int i, const int j){return (scores[i] > scores[j]);});
+            std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize,
+                      [&scores](const int i, const int j){return (scores[i] > scores[j]);});
 
             // mutate all but the single top-scoring genome with some probability
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
@@ -2356,7 +2346,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             else {
                 scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
             }
-            emit generationComplete(scores, orderedIndex, generation, scoreStability, unpenalizedGenomePresent);
+            emit generationComplete(scores.get(), orderedIndex.get(), generation, scoreStability, unpenalizedGenomePresent);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;
@@ -2385,20 +2375,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     for(int ID = 0; ID < numActiveStudents; ID++) {
         bestTeamSet << bestGenome[ID];
     }
-
-    // deallocate memory
-    for(int genome = 0; genome < ga.populationsize; ++genome) {
-        delete[] nextGenGenePool[genome];
-        delete[] genePool[genome];
-        delete[] nextGenAncestors[genome];
-        delete[] ancestors[genome];
-    }
-    delete[] nextGenGenePool;
-    delete[] genePool;
-    delete[] nextGenAncestors;
-    delete[] ancestors;
-    delete[] orderedIndex;
-    delete[] teamSizes;
 
     return bestTeamSet;
 }

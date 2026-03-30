@@ -57,12 +57,12 @@ Description of gruepr:
 ---------------
 Details on how the teams are optimized:
 
-     To optimize the teams, a genetic algorithm is used. First, a large population of 30,000 random teamings
-     (each is a "genome") is created and then refined over multiple generations. In each generation, a small
-     number of the highest scoring "elite" genomes are directly copied (cloned) into the next generation,
-     and the rest are created by mating tournament-selected parents using ordered crossover. Once the next
-     generation's genepool is created, each genome has 1 or more potential mutations, which is a swapping of
-     two random locations on the genome.
+     To optimize the teams, a genetic algorithm is used. First, a large population (10's of thousands) of
+     random teamings (each is a "genome") is created and then refined over multiple generations. In each
+     generation, a small number of the highest scoring "elite" genomes are directly copied (cloned) into the
+     next generation, and the rest are created by mating tournament-selected parents using ordered crossover.
+     Once the next generation's genepool is created, each genome has 1 or more potential mutations, which is
+     a swapping of two random locations on the genome.
 
      A genome's net score is the harmonic mean of the score for each team. Harmonic mean is used so that low
      scoring teams have more weight. Evolution proceeds for at least minGenerations and at most
