@@ -14,7 +14,7 @@
 class DataOptions
 {
 public:
-    DataOptions();
+    DataOptions() { }
     explicit DataOptions(const QJsonObject &jsonDataOptions);
 
     QJsonObject toJson() const;
@@ -44,21 +44,22 @@ public:
     float lateTimeAsked = 24;                       // latest time asked in survey (in hours since midnight)
     float scheduleResolution = 1;                   // how finely resolved the schedule is (in hours)
     int numAttributes = 0;                          // how many attribute questions are in the survey?
-    int attributeField[MAX_ATTRIBUTES];             // which field(s) in surveyFile have attribute info?
+    QList<int> attributeField;                      // which field(s) in surveyFile have attribute info?
     bool timezoneIncluded = false;                  // is timezone data included in the survey?
     int timezoneField = FIELDNOTPRESENT;            // which field has the timezone info?
     bool homeTimezoneUsed = false;                  // whether the students' schedules refer to their own timezone
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
-    enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered, numerical} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered, timezone, categorical, or numerical? Are multiple values allowed?
+    enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered, numerical};
+    QList<AttributeType> attributeType;             // is each attribute ordered, timezone, categorical, or numerical? Are multiple values allowed?
     QList<int> assignmentPreferenceFields;          // which field(s) in surveyFile have ranked assignment preference info, in rank order?
     QList<int> prefTeammatesField;                  // which field(s) in surveyFile has the preferred teammates info?
     QList<int> prefNonTeammatesField;               // which field(s) in surveyFile has the preferred non-teammates info?
     QStringList sectionNames;                       // all of the section names
     QStringList attributeQuestionText;              // the actual attribute questions asked of the students
-    QStringList attributeQuestionResponses[MAX_ATTRIBUTES];         // the list of responses to each of the attribute questions
-    std::map<QString, int> attributeQuestionResponseCounts[MAX_ATTRIBUTES];  // a count of how many students gave each response
-    std::set<int> attributeVals_discrete[MAX_ATTRIBUTES];           // what values can the ordered or categorical attributes have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
-    std::set<float> attributeVals_continuous[MAX_ATTRIBUTES];       // what values do the timezone and numerical attributes have?
+    QList<QStringList> attributeQuestionResponses;         // the list of responses to each of the attribute questions
+    QList<std::map<QString, int>> attributeQuestionResponseCounts;  // a count of how many students gave each response
+    QList<std::set<int>> attributeVals_discrete;           // what values can the ordered or categorical attributes have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
+    QList<std::set<float>> attributeVals_continuous;       // what values do the timezone and numerical attributes have?
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
     QList<Gender> genderValues;
     std::map<Gender, int> countOfGenderIdentities;      //Identity : Number in Population

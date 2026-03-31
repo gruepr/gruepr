@@ -174,10 +174,9 @@ float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &a
 
 TeammatesCriterion* TeammatesCriterion::findInCriteria(const TeamingOptions *teamingOptions, CriteriaType type)
 {
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        if (teamingOptions->criteria[i] != nullptr &&
-            teamingOptions->criteria[i]->criteriaType == type) {
-            return static_cast<TeammatesCriterion*>(teamingOptions->criteria[i]);
+    for (auto *criterion : std::as_const(teamingOptions->criteria)) {
+        if (criterion->criteriaType == type) {
+            return static_cast<TeammatesCriterion*>(criterion);
         }
     }
     return nullptr;

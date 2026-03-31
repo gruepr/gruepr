@@ -19,10 +19,13 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
     tooltip = jsonTeamRecord["tooltip"].toString();
 
     const QJsonArray numStudentsAvailableArray = jsonTeamRecord["numStudentsAvailable"].toArray();
-    for(int i = 0; i < MAX_DAYS; i++) {
-        const QJsonArray numStudentsAvailableArraySubArray = numStudentsAvailableArray[i].toArray();
-        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
-            numStudentsAvailable[i][j] = numStudentsAvailableArraySubArray[j].toInt();
+    const int numDaysInFile = numStudentsAvailableArray.size();
+    const int numTimesInFile = numDaysInFile > 0 ? numStudentsAvailableArray[0].toArray().size() : 0;
+    numStudentsAvailable.resize(numDaysInFile * numTimesInFile);
+    for(int day = 0; day < numDaysInFile; day++) {
+        const QJsonArray subArray = numStudentsAvailableArray[day].toArray();
+        for(int time = 0; time < numTimesInFile; time++) {
+            numStudentsAvailable[day * numTimesInFile + time] = subArray[time].toInt();
         }
     }
 
@@ -196,7 +199,8 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
             for(int day = 0; day < teamSetDataOptions->dayNames.size(); day++) {
                 QString percentage;
                 if(size > numStudentsWithAmbiguousSchedules) {
-                    percentage = QString::number((100*numStudentsAvailable[day][time]) / (size-numStudentsWithAmbiguousSchedules)) + "% ";
+                    percentage = QString::number((100*numStudentsAvailable[day * teamSetDataOptions->timeNames.size() + time]) /
+                                                 (size-numStudentsWithAmbiguousSchedules)) + "% ";
                 }
                 else {
                     percentage = "?";
@@ -229,13 +233,9 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     numUnknown = 0;
     numStudentsWithAmbiguousSchedules = 0;
     numMeetingTimes = 0;
-    const int numDays = teamSetDataOptions->dayNames.size();
-    const int numTimes = teamSetDataOptions->timeNames.size();
-    for(int day = 0; day < numDays; day++) {
-        for(int time = 0; time < numTimes; time++) {
-            numStudentsAvailable[day][time] = 0;
-        }
-    }
+    const qsizetype numDays = teamSetDataOptions->dayNames.size();
+    const qsizetype numTimes = teamSetDataOptions->timeNames.size();
+    numStudentsAvailable.fill(0, numDays * numTimes);
 
     //set values
     for(int teammate = 0; teammate < size; teammate++) {
@@ -272,8 +272,8 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
         if(!student->ambiguousSchedule) {
             for(int day = 0; day < numDays; day++) {
                 for(int time = 0; time < numTimes; time++) {
-                    if(!student->unavailable[day][time]) {
-                        numStudentsAvailable[day][time]++;
+                    if(!student->unavailable[day * numTimes + time]) {
+                        numStudentsAvailable[day * numTimes + time]++;
                     }
                 }
             }
@@ -288,7 +288,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     for(int day = 0; day < numDays; day++) {
         for(int time = 0; time < numTimes; time++) {
             int blocks = 0;
-            while((numStudentsAvailable[day][time] == numStudentsWithoutAmbiguousSchedules) && (blocks < meetingBlockSize)) {
+            while((numStudentsAvailable[day * numTimes + time] == numStudentsWithoutAmbiguousSchedules) && (blocks < meetingBlockSize)) {
                 blocks++;
                 if(blocks < meetingBlockSize) {
                     time++;
@@ -305,12 +305,14 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
 QJsonObject TeamRecord::toJson() const
 {
     QJsonArray numStudentsAvailableArray, studentIDsArray;
-    for(const auto &numStudentsAvailableInADay : numStudentsAvailable) {
-        QJsonArray numStudentsAvailableArraySubArray;
-        for(const int numStudentsAvailableNow : numStudentsAvailableInADay) {
-            numStudentsAvailableArraySubArray.append(numStudentsAvailableNow);
+    const int numDays = teamSetDataOptions->dayNames.size();
+    const int numTimes = teamSetDataOptions->timeNames.size();
+    for(int day = 0; day < numDays; day++) {
+        QJsonArray subArray;
+        for(int time = 0; time < numTimes; time++) {
+            subArray.append(numStudentsAvailable[day * numTimes + time]);
         }
-        numStudentsAvailableArray.append(numStudentsAvailableArraySubArray);
+        numStudentsAvailableArray.append(subArray);
     }
     for(const auto &studentID : studentIDs) {
         studentIDsArray.append(studentID);

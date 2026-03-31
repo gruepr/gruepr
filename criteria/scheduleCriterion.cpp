@@ -153,9 +153,8 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
         if(!firstStudentOnTeam.ambiguousSchedule) {
             const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
             for(int day = 0; day < numDays; day++) {
-                const auto &firstStudentUnavailabilityThisDay = firstStudentUnavailability[day];
                 for(int time = 0; time < numTimes; time++) {
-                    availabilityChart[day * numTimes + time] = !firstStudentUnavailabilityThisDay[time];
+                    availabilityChart[day * numTimes + time] = !firstStudentUnavailability[day * numTimes + time];
                 }
             }
         }
@@ -180,10 +179,8 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
             }
             const auto &currStudentUnavailability = currStudent.unavailable;
             for(int day = 0; day < numDays; day++) {
-                const auto &currStudentUnavailabilityThisDay = currStudentUnavailability[day];
                 for(int time = 0; time < numTimes; time++) {
-                    // "and" each student's not-unavailability
-                    availabilityChart[day * numTimes + time] = availabilityChart[day * numTimes + time] && !currStudentUnavailabilityThisDay[time];
+                    availabilityChart[day * numTimes + time] = availabilityChart[day * numTimes + time] && !currStudentUnavailability[day * numTimes + time];
                 }
             }
             studentNum++;
@@ -233,10 +230,9 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
 
 int ScheduleCriterion::getNumBlocksForOneMeeting(const TeamingOptions *teamingOptions)
 {
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        if (teamingOptions->criteria[i] != nullptr &&
-            teamingOptions->criteria[i]->criteriaType == CriteriaType::scheduleMeetingTimes) {
-            return static_cast<const ScheduleCriterion*>(teamingOptions->criteria[i])->numBlocksForOneMeeting;
+    for (const auto *criterion : std::as_const(teamingOptions->criteria)) {
+        if (criterion->criteriaType == CriteriaType::scheduleMeetingTimes) {
+            return static_cast<const ScheduleCriterion*>(criterion)->numBlocksForOneMeeting;
         }
     }
     return 1;

@@ -6,12 +6,6 @@
 StudentRecord::StudentRecord()
 {
     surveyTimestamp = QDateTime::currentDateTime();
-
-    for(auto &day : unavailable) {
-        for(auto &time : day) {
-            time = true;
-        }
-    }
 }
 
 StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
@@ -53,11 +47,14 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     for(const auto &item : assignmentPreferencesArray) {
         assignmentPreferences << item.toString();
     }
-    const QJsonArray unavailableArray = jsonStudentRecord["unavailable"].toArray();;
-    for(int i = 0; i < MAX_DAYS; i++) {
-        QJsonArray unavailableArraySubArray = unavailableArray[i].toArray();
-        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
-            unavailable[i][j] = unavailableArraySubArray[j].toBool();
+    const QJsonArray unavailableArray = jsonStudentRecord["unavailable"].toArray();
+    numScheduleDays = unavailableArray.size();
+    numScheduleTimesPerDay = numScheduleDays > 0 ? unavailableArray[0].toArray().size() : 0;
+    unavailable.resize(numScheduleDays * numScheduleTimesPerDay);
+    for(int day = 0; day < numScheduleDays; day++) {
+        const QJsonArray dayArray = unavailableArray[day].toArray();
+        for(int time = 0; time < numScheduleTimesPerDay; time++) {
+            unavailable[day * numScheduleTimesPerDay + time] = dayArray[time].toBool();
         }
     }
 
@@ -136,20 +133,49 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
                                                        : jsonStudentRecord["attributeVals"].toArray(); // backwards compat
     const QJsonArray attributeVals_continuousArray = jsonStudentRecord["attributeVals_continuous"].toArray();
     const QJsonArray attributeResponseArray = jsonStudentRecord["attributeResponse"].toArray();
-    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeResponse[i] = attributeResponseArray[i].toString();
+    const int numAttrsInFile = attributeVals_discreteArray.size();
+    attributeResponse.clear();
+    attributeVals_discrete.clear();
+    attributeVals_continuous.clear();
+    attributeResponse.reserve(numAttrsInFile);
+    attributeVals_discrete.reserve(numAttrsInFile);
+    attributeVals_continuous.reserve(numAttrsInFile);
+    for(int i = 0; i < numAttrsInFile; i++) {
+        attributeResponse << attributeResponseArray[i].toString();
 
-        attributeVals_discrete[i].clear();
+        QList<int> discreteVals;
         for(const auto &val : attributeVals_discreteArray[i].toArray()) {
-            attributeVals_discrete[i] << val.toInt();
+            discreteVals << val.toInt();
         }
+        attributeVals_discrete << discreteVals;
 
-        attributeVals_continuous[i].clear();
+        QList<float> continuousVals;
         for(const auto &val : attributeVals_continuousArray[i].toArray()) {
-            attributeVals_continuous[i] << static_cast<float>(val.toDouble());
+            continuousVals << static_cast<float>(val.toDouble());
         }
+        attributeVals_continuous << continuousVals;
     }
 }
+
+void StudentRecord::reconcileScheduleDimensions(qsizetype numDays, qsizetype numTimesPerDay)
+{
+    if(numScheduleDays == numDays && numScheduleTimesPerDay == numTimesPerDay) {
+        return;
+    }
+
+    QList<bool> resized(numDays * numTimesPerDay, true);
+    const int daysToCopy = std::min(numDays, numScheduleDays);
+    const int timesToCopy = std::min(numTimesPerDay, numScheduleTimesPerDay);
+    for(int day = 0; day < daysToCopy; day++) {
+        for(int time = 0; time < timesToCopy; time++) {
+            resized[day * numTimesPerDay + time] = unavailable[day * numScheduleTimesPerDay + time];
+        }
+    }
+    unavailable = resized;
+    numScheduleDays = numDays;
+    numScheduleTimesPerDay = numTimesPerDay;
+}
+
 
 void StudentRecord::clear() {
     deleted = false;
@@ -157,20 +183,14 @@ void StudentRecord::clear() {
     LMSID = -1;
     duplicateRecord = false;
     gender = {Gender::unknown};
-    for(auto &day : unavailable) {
-        for(auto &time : day) {
-            time = true;
-        }
-    }
+    unavailable.clear();
     timezone = 0;
     ambiguousSchedule = false;
     splitApart.clear();
     groupTogether.clear();
-    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeVals_discrete[i].clear();
-        attributeVals_continuous[i].clear();
-        attributeResponse[i].clear();
-    }
+    attributeVals_discrete.clear();
+    attributeVals_continuous.clear();
+    attributeResponse.clear();
     surveyTimestamp = QDateTime::currentDateTime();
     firstname.clear();
     lastname.clear();
@@ -306,6 +326,9 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // attributes
+    attributeVals_discrete.resize(dataOptions.numAttributes);
+    attributeVals_continuous.resize(dataOptions.numAttributes);
+    attributeResponse.resize(dataOptions.numAttributes);
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
         fieldnum = dataOptions.attributeField[attribute];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
@@ -333,8 +356,9 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
             }
         }
     }
-    const int numDays = int(dataOptions.dayNames.size());
-    const int numTimes = int(dataOptions.timeNames.size());
+    numScheduleDays = int(dataOptions.dayNames.size());
+    numScheduleTimesPerDay = int(dataOptions.timeNames.size());
+    unavailable.fill(true, numScheduleDays * numScheduleTimesPerDay);
     //build a map of the hour value for each timename (e.g., "9:15am" --> 9.25)
     QMap<float, QString> hoursForEachTimeName;
     for(const auto &timeName : dataOptions.timeNames) {
@@ -348,7 +372,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
             for(const auto &timeName : dataOptions.timeNames) {
                 const float time = grueprGlobal::timeStringToHours(timeName);
                 // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
-                if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > 24))) {
+                if((numScheduleDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > 24))) {
                     continue;
                 }
 
@@ -362,7 +386,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                     actualtime += 24;
                     actualday--;
                     if(actualday < 0) {
-                        if(numDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
+                        if(numScheduleDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
                             continue;
                         }
                         actualday += MAX_DAYS;
@@ -371,22 +395,22 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                 if(actualtime >= 24) {
                     actualtime -= 24;
                     actualday++;
-                    if(actualday >= numDays) {
-                        if(numDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
+                    if(actualday >= numScheduleDays) {
+                        if(numScheduleDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
                             continue;
                         }
                         actualday -= MAX_DAYS;
                     }
                 }
                 int timeindex = 0;
-                while((actualtime > hoursForEachTimeName.key(dataOptions.timeNames.at(timeindex))) && (timeindex < numTimes)) {
+                while((actualtime > hoursForEachTimeName.key(dataOptions.timeNames.at(timeindex))) && (timeindex < numScheduleTimesPerDay)) {
                     timeindex++;
                 }
-                if((actualday < 0) || (actualday > MAX_DAYS) || (timeindex < 0) || (timeindex > MAX_BLOCKS_PER_DAY)) {
+                if((actualday < 0) || (actualday >= numScheduleDays) || (timeindex < 0) || (timeindex > numScheduleTimesPerDay)) {
                     continue;   // something went wrong in figuring out where to put this value in the array!
                 }
 
-                bool &unavailabilitySpot = unavailable[actualday][timeindex];
+                bool &unavailabilitySpot = unavailable[actualday * numScheduleTimesPerDay + timeindex];
 
                 if(dataOptions.scheduleDataIsFreetime) {
                     unavailabilitySpot = !timenameRegEx.match(field).hasMatch();
@@ -404,21 +428,21 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(!dataOptions.dayNames.isEmpty()) {
         availabilityChart = QObject::tr("Availability:");
         availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
-        for(int day = 0; day < numDays; day++) {
+        for(int day = 0; day < numScheduleDays; day++) {
             availabilityChart += "<th>" + dataOptions.dayNames.at(day).left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         availabilityChart += "</tr>";
-        for(int time = 0; time < numTimes; time++) {
+        for(int time = 0; time < numScheduleTimesPerDay; time++) {
             availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time) + "</th>";
-            for(int day = 0; day < numDays; day++) {
-                availabilityChart += QString(unavailable[day][time]?
+            for(int day = 0; day < numScheduleDays; day++) {
+                availabilityChart += QString(unavailable[day * numScheduleTimesPerDay + time]?
                             "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
             }
             availabilityChart += "</tr>";
         }
         availabilityChart += "</table>";
     }
-    ambiguousSchedule = (availabilityChart.count("√") == 0 || int(availabilityChart.count("√")) == (numDays * numTimes));
+    ambiguousSchedule = (availabilityChart.count("√") == 0 || int(availabilityChart.count("√")) == (numScheduleDays * numScheduleTimesPerDay));
 
     // section
     if(dataOptions.sectionIncluded) {
@@ -636,10 +660,10 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
 QJsonObject StudentRecord::toJson() const
 {
     QJsonArray gendersArray, unavailableArray, splitApartArray, groupTogetherArray, attributeVals_discreteArray, attributeVals_continuousArray, attributeResponseArray;
-    for(const auto &unavailableDay : unavailable) {
+    for(int day = 0; day < numScheduleDays; day++) {
         QJsonArray unavailableArraySubArray;
-        for(const auto unavailableTime : unavailableDay) {
-            unavailableArraySubArray.append(unavailableTime);
+        for(int time = 0; time < numScheduleTimesPerDay; time++) {
+            unavailableArraySubArray.append(unavailable[day * numScheduleTimesPerDay + time]);
         }
         unavailableArray.append(unavailableArraySubArray);
     }
@@ -652,7 +676,7 @@ QJsonObject StudentRecord::toJson() const
     for(const auto id : groupTogether) {
         groupTogetherArray.append(id);
     }
-    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
+    for(int i = 0; i < attributeResponse.size(); i++) {
         attributeResponseArray.append(attributeResponse[i]);
         QJsonArray discreteSubArray;
         for(const auto &val : attributeVals_discrete[i]) {

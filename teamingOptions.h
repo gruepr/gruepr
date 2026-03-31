@@ -2,7 +2,6 @@
 #define TEAMINGOPTIONS_H
 
 #include "criteria/criterion.h"
-#include "gruepr_globals.h"
 #include <QJsonObject>
 #include <QObject>
 #include <QStringList>
@@ -20,8 +19,7 @@ public:
 
     QJsonObject toJson() const;
 
-    Criterion* criteria[MAX_CRITERIA] = {nullptr};
-    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of criteria to group by (excluding teamsize and section)
+    QList<Criterion*> criteria;
 
     int idealTeamSize = 4;
     QList<int> smallerTeamsSizes;

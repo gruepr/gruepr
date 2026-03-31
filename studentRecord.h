@@ -14,9 +14,12 @@ public:
     StudentRecord();
     explicit StudentRecord(const QJsonObject &jsonStudentRecord);
 
+    void reconcileScheduleDimensions(qsizetype numDays, qsizetype numTimesPerDay);
+
     void clear();
 
     void parseRecordFromStringList(const QStringList &fields, const DataOptions &dataOptions);
+
     void createTooltip(const DataOptions &dataOptions);
 
     QJsonObject toJson() const;
@@ -31,11 +34,11 @@ public:
     QString email;
     QSet<Gender> gender = {Gender::unknown};
     QString URMResponse;                                // the text of the response the the race/ethnicity/culture question
-    QList<int>   attributeVals_discrete[MAX_ATTRIBUTES];   // categorical index or discrete integer value for multiple choice attributes; -1 = unknown
-    QList<float> attributeVals_continuous[MAX_ATTRIBUTES]; // float value for timezone and numerical attributes; empty = unknown
+    QList<QList<int>>   attributeVals_discrete;         // categorical index or discrete integer value for multiple choice attributes; -1 = unknown
+    QList<QList<float>> attributeVals_continuous;       // float value for timezone and numerical attributes; empty = unknown
     QStringList assignmentPreferences;                  // ranked assignment preference option names, index 0 = 1st choice
     QString section;									// section data stored as text
-    bool unavailable[MAX_DAYS][MAX_BLOCKS_PER_DAY];     // true if this is a busy block during week
+    QList<bool> unavailable;                            // true if this is a busy block during week; stored flat: day * numTimesPerDay + time
     QString availabilityChart;
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
     float timezone = 0;                                 // offset from GMT
@@ -44,10 +47,13 @@ public:
     QString prefNonTeammates;
     QSet<long long> splitApart;                         // set of student IDs that this student should be prevented from being on a team with
     QString notes;										// any special notes for this student
-    QString attributeResponse[MAX_ATTRIBUTES];          // the text of the response to each attribute question
+    QStringList attributeResponse;                      // the text of the response to each attribute question
     QString tooltip;
 
 private:
+    qsizetype numScheduleDays = 0;
+    qsizetype numScheduleTimesPerDay = 0;
+
     inline static const int SIZE_OF_NOTES_IN_TOOLTIP = 300;
 };
 

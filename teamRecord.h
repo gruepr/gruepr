@@ -2,7 +2,6 @@
 #define TEAMRECORD_H
 
 #include "dataOptions.h"
-#include "gruepr_globals.h"
 #include "studentRecord.h"
 #include <QList>
 #include <QString>
@@ -28,7 +27,7 @@ public:
     int numMen = 0;
     int numNonbinary = 0;
     int numUnknown = 0;
-    int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
+    QList<int> numStudentsAvailable;                // flat: day * numTimesPerDay + time
     int numStudentsWithAmbiguousSchedules = 0;
     int numMeetingTimes = 0;
     QList<long long> studentIDs;

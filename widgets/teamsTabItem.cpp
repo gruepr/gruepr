@@ -38,12 +38,9 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet
     // Clone criteria and teamingOptions so this tab owns independent copies
     teamingOptions = new TeamingOptions(incomingTeamingOptions);
 
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        if (incomingTeamingOptions.criteria[i] != nullptr) {
-            teamingOptions->criteria[i] = incomingTeamingOptions.criteria[i]->clone();
-        } else {
-            teamingOptions->criteria[i] = nullptr;
-        }
+    teamingOptions->criteria.clear();
+    for (auto *const criterion : std::as_const(incomingTeamingOptions.criteria)) {
+        teamingOptions->criteria << criterion->clone();
     }
 
     sectionNames = incomingSectionNames;
@@ -274,11 +271,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
 
 TeamsTabItem::~TeamsTabItem()
 {
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        delete teamingOptions->criteria[i];
-        teamingOptions->criteria[i] = nullptr;
-    }
-
+    qDeleteAll(teamingOptions->criteria);
     delete teamingOptions;
 }
 
@@ -297,27 +290,23 @@ QJsonObject TeamsTabItem::toJson() const
         studentsArray.append(student.toJson());
     }
 
-    QJsonArray criterionArray;
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+    QJsonArray criteriaArray;
+    for (const auto *const criterion : std::as_const(teamingOptions->criteria)) {
         QJsonObject entry;
-        if (teamingOptions->criteria[i] != nullptr) {
-            auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
-            entry["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(teamingOptions->criteria[i]->criteriaType));
-            entry["settings"] = teamingOptions->criteria[i]->settingsToJson();
-            if (teamingOptions->criteria[i]->criteriaType == Criterion::CriteriaType::attributeQuestion) {
-                const auto *attrCrit = qobject_cast<AttributeCriterion*>(teamingOptions->criteria[i]);
-                if (attrCrit != nullptr) {
-                    entry["attributeIndex"] = attrCrit->attributeIndex;
-                }
-            }
+        auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
+        entry["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(criterion->criteriaType));
+        entry["settings"] = criterion->settingsToJson();
+        if (criterion->criteriaType == Criterion::CriteriaType::attributeQuestion) {
+            auto attrCrit = qobject_cast<const AttributeCriterion *const>(criterion);
+            entry["attributeIndex"] = attrCrit->attributeIndex;
         }
-        criterionArray.append(entry);
+        criteriaArray.append(entry);
     }
 
 
     QJsonObject content {
         {"teamingOptions", teamingOptions->toJson()},
-        {"criteria", criterionArray},
+        {"criteria", criteriaArray},
         {"teams", teamsArray},
         {"students", studentsArray},
         {"numStudents", numStudents},
@@ -371,10 +360,9 @@ void TeamsTabItem::restoreCriteria(const DataOptions *dataOptions)
             if (entry.contains("settings")) {
                 criterion->settingsFromJson(entry["settings"].toObject());
             }
-            teamingOptions->criteria[i] = criterion;
+            teamingOptions->criteria << criterion;
         }
     }
-    teamingOptions->realNumScoringFactors = savedCriteriaJson.size();
     savedCriteriaJson = QJsonArray();
 
     teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
@@ -704,19 +692,17 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             studentATeam.createTooltip(students);
             studentBTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
             studentBTeam.createTooltip(students);
-            for(int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-                if(teamingOptions->criteria[c] != nullptr) {
-                    teamingOptions->criteria[c]->prepareForDisplay(students, teams);
-                }
+            for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
+                criterion->prepareForDisplay(students, teams);
             }
             // Populate each team's assignedOption from the assignment preference criterion's display cache
-            for(int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-                auto *criterion = dynamic_cast<AssignmentPreferenceCriterion*>(teamingOptions->criteria[c]);
-                if(criterion != nullptr) {
+            for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
+                auto *assignCriterion = dynamic_cast<AssignmentPreferenceCriterion*>(criterion);
+                if(assignCriterion != nullptr) {
                     for(auto &team : teams) {
                         if(!team.studentIDs.isEmpty()) {
-                            auto it = criterion->displayAssignment.find(team.studentIDs.first());
-                            team.assignedOption = (it != criterion->displayAssignment.end()) ? it.value() : QString();
+                            auto it = assignCriterion->displayAssignment.find(team.studentIDs.first());
+                            team.assignedOption = (it != assignCriterion->displayAssignment.end()) ? it.value() : QString();
                         }
                     }
                     break;
@@ -847,19 +833,17 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         oldTeam.createTooltip(students);
         newTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
         newTeam.createTooltip(students);
-        for(int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-            if(teamingOptions->criteria[c] != nullptr) {
-                teamingOptions->criteria[c]->prepareForDisplay(students, teams);
-            }
+        for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
+            criterion->prepareForDisplay(students, teams);
         }
         // Populate each team's assignedOption from the assignment preference criterion's display cache
-        for(int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-            auto *criterion = dynamic_cast<AssignmentPreferenceCriterion*>(teamingOptions->criteria[c]);
-            if(criterion != nullptr) {
+        for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
+            auto *assignCriterion = dynamic_cast<AssignmentPreferenceCriterion*>(criterion);
+            if(assignCriterion != nullptr) {
                 for(auto &team : teams) {
                     if(!team.studentIDs.isEmpty()) {
-                        auto it = criterion->displayAssignment.find(team.studentIDs.first());
-                        team.assignedOption = (it != criterion->displayAssignment.end()) ? it.value() : QString();
+                        auto it = assignCriterion->displayAssignment.find(team.studentIDs.first());
+                        team.assignedOption = (it != assignCriterion->displayAssignment.end()) ? it.value() : QString();
                     }
                 }
                 break;
@@ -1307,20 +1291,17 @@ void TeamsTabItem::refreshTeamDisplay()
     studentItems.reserve(numStudents);
 
     // Let criteria that need cross-team context prepare (e.g., assignment preferences)
-    for(int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-        if(teamingOptions->criteria[c] != nullptr) {
-            teamingOptions->criteria[c]->prepareForDisplay(students, teams);
-        }
+    for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
+        criterion->prepareForDisplay(students, teams);
     }
-
     // Populate each team's assignedOption from the assignment preference criterion's display cache
-    for(int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-        auto *criterion = dynamic_cast<AssignmentPreferenceCriterion*>(teamingOptions->criteria[c]);
-        if(criterion != nullptr) {
+    for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
+        auto *assignCriterion = dynamic_cast<AssignmentPreferenceCriterion*>(criterion);
+        if(assignCriterion != nullptr) {
             for(auto &team : teams) {
                 if(!team.studentIDs.isEmpty()) {
-                    auto it = criterion->displayAssignment.find(team.studentIDs.first());
-                    team.assignedOption = (it != criterion->displayAssignment.end()) ? it.value() : QString();
+                    auto it = assignCriterion->displayAssignment.find(team.studentIDs.first());
+                    team.assignedOption = (it != assignCriterion->displayAssignment.end()) ? it.value() : QString();
                 }
             }
             break;
@@ -1487,11 +1468,7 @@ QStringList TeamsTabItem::createStdFileContents()
     }
 
     instructorsFileContents += "\n\n" + tr("Teaming Options") + ":";
-    for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-        const auto *criterion = teamingOptions->criteria[c];
-        if (criterion == nullptr) {
-            continue;
-        }
+    for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
         instructorsFileContents += criterion->exportTeamingOptionText(teamingOptions, &teams.dataOptions);
     }
     instructorsFileContents += "\n\n\n";
@@ -1519,11 +1496,7 @@ QStringList TeamsTabItem::createStdFileContents()
             if(student == nullptr) {
                 continue;
             }
-            for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-                const auto *criterion = teamingOptions->criteria[c];
-                if (criterion == nullptr) {
-                    continue;
-                }
+            for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
                 instructorsFileContents += criterion->exportStudentText(*student, &teams.dataOptions);
             }
             const int nameSize = int((student->firstname + " " + student->lastname).size());
@@ -1546,13 +1519,15 @@ QStringList TeamsTabItem::createStdFileContents()
             instructorsFileContents += "\n";
             studentsFileContents += "\n";
 
-            for(int time = 0; time < teams.dataOptions.timeNames.size(); time++) {
+            const qsizetype numTimes = teams.dataOptions.timeNames.size();
+            const qsizetype numDays = teams.dataOptions.dayNames.size();
+            for(int time = 0; time < numTimes; time++) {
                 instructorsFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
                 studentsFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
-                for(int day = 0; day < teams.dataOptions.dayNames.size(); day++) {
+                for(int day = 0; day < numDays; day++) {
                     QString percentage;
                     if(team.size > team.numStudentsWithAmbiguousSchedules) {
-                        percentage = QString::number((100*team.numStudentsAvailable[day][time]) /
+                        percentage = QString::number((100 * team.numStudentsAvailable[day * numTimes + time]) /
                                                      (team.size-team.numStudentsWithAmbiguousSchedules)) + "% ";
                     }
                     else {
@@ -1587,11 +1562,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
 
     if(customFileOptions.includeTeamingData) {
         customFileContents += tr("Teaming Options") + ":";
-        for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-            const auto *criterion = teamingOptions->criteria[c];
-            if (criterion == nullptr) {
-                continue;
-            }
+        for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
             customFileContents += criterion->exportTeamingOptionText(teamingOptions, &teams.dataOptions);
         }
         customFileContents += "\n\n\n";
@@ -1620,12 +1591,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
             }
 
             // Per-student criterion data, filtered by custom options
-            for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-                const auto *criterion = teamingOptions->criteria[c];
-                if (criterion == nullptr) {
-                    continue;
-                }
-
+            for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
                 // Check whether this criterion's data should be included
                 bool include = false;
                 switch (criterion->criteriaType) {
@@ -1636,7 +1602,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                     include = teams.dataOptions.URMIncluded && customFileOptions.includeURM;
                     break;
                 case Criterion::CriteriaType::attributeQuestion: {
-                    const auto *attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
+                    const auto *const attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
                     if (attrCrit != nullptr && attrCrit->attributeIndex < customFileOptions.includeAttribute.size()) {
                         include = customFileOptions.includeAttribute.at(attrCrit->attributeIndex);
                     }
@@ -1693,12 +1659,13 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
             }
             customFileContents += "\n";
 
-            for(int time = 0; time < teams.dataOptions.timeNames.size(); time++) {
+            const qsizetype numTimes = teams.dataOptions.timeNames.size();
+            for(int time = 0; time < numTimes; time++) {
                 customFileContents += teams.dataOptions.timeNames.at(time) + QString((11 - teams.dataOptions.timeNames.at(time).size()), ' ');
                 for(int day = 0; day < teams.dataOptions.dayNames.size(); day++) {
                     QString percentage;
                     if(team.size > team.numStudentsWithAmbiguousSchedules) {
-                        percentage = QString::number((100 * team.numStudentsAvailable[day][time]) /
+                        percentage = QString::number((100 * team.numStudentsAvailable[day * numTimes + time]) /
                                                      (team.size - team.numStudentsWithAmbiguousSchedules)) + "% ";
                     }
                     else {

@@ -516,16 +516,14 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute
 
 void gruepr::populateCriterionTypes()
 {
-    int index = 0;
+    teamingOptions->criteria.clear();
     for (auto *const criteriaCard : std::as_const(criteriaCardsList)) {
         if (criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
             criteriaCard->criterion->criteriaType == Criterion::CriteriaType::teamSize) {
             continue;
         }
-        teamingOptions->criteria[index] = criteriaCard->criterion;
-        index++;
+        teamingOptions->criteria << criteriaCard->criterion;
     }
-    teamingOptions->realNumScoringFactors = index;
 }
 
 void gruepr::deleteCriteriaCard(int deletedIndex)
@@ -659,7 +657,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     const int _numTeams = _teams.size();
     const auto &_dataOptions = _teams.dataOptions;
     QList<float> teamScores(_numTeams);
-    QList<QList<float>> criteriaScores(_teamingOptions->realNumScoringFactors, QList<float>(_numTeams));
+    QList<QList<float>> criteriaScores(_teamingOptions->criteria.size(), QList<float>(_numTeams));
     QList<int> penaltyPoints(_numTeams);
     QList<int> teamSizes(_numTeams);
     QList<int> genome(_numStudents);
@@ -1525,36 +1523,33 @@ void gruepr::startOptimization()
 {
     // Initialize weights based on priority then normalize all score factor weights using norm factor = number of factors / total weights of all factors
     // First criterion has weight 10, then each subsequent criterion is 3/4 the weight of the prev. one
+    teamingOptions->criteria.clear();
     float weight = 10;
     float sumOfWeights = 0;
-    int index = 0;
     for (auto *const criteriaCard : std::as_const(criteriaCardsList)){
         if (criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
             criteriaCard->criterion->criteriaType == Criterion::CriteriaType::teamSize) {
             continue;
         }
-        teamingOptions->criteria[index] = criteriaCard->criterion;
+        teamingOptions->criteria << criteriaCard->criterion;
         criteriaCard->criterion->weight = weight;
         sumOfWeights += weight;
         weight *= 0.75;
-        index++;
     }
 
-    teamingOptions->realNumScoringFactors = index; //initialize realNumScoringFactors to contain number of criteria to optimize
-    float normFactor = teamingOptions->realNumScoringFactors / sumOfWeights;
+    const int numCriteria = teamingOptions->criteria.size();
+    float normFactor = numCriteria / sumOfWeights;
     if(!std::isfinite(normFactor)) {
         normFactor = 0;
     }
     // convert weights to realWeights
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        teamingOptions->criteria[i]->weight *= normFactor;
+    for (auto *criterion : std::as_const(teamingOptions->criteria)) {
+        criterion->weight *= normFactor;
     }
 
     // prepare the criteria for the optimization process (mostly cache pre-determined values)
-    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
-        if (teamingOptions->criteria[i] != nullptr) {
-            teamingOptions->criteria[i]->prepareForOptimization(students.constData(), numActiveStudents, dataOptions);
-        }
+    for (auto *criterion : std::as_const(teamingOptions->criteria)) {
+        criterion->prepareForOptimization(students.constData(), numActiveStudents, dataOptions);
     }
 
     bestTeamSet.clear();
@@ -2246,7 +2241,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         private(teamScores, criteriaScores, penaltyPoints)
     {
         teamScores.resize(sharedNumTeams);
-        criteriaScores.resize(sharedTeamingOptions->realNumScoringFactors, QList<float>(sharedNumTeams));
+        criteriaScores.resize(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
         penaltyPoints.resize(sharedNumTeams);
 #pragma omp for nowait
         for(int genome = 0; genome < ga.populationsize; genome++) {
@@ -2300,7 +2295,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 private(teamScores, criteriaScores, penaltyPoints)
             {
                 teamScores.resize(sharedNumTeams);
-                criteriaScores.resize(sharedTeamingOptions->realNumScoringFactors, QList<float>(sharedNumTeams));
+                criteriaScores.resize(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
                 penaltyPoints.resize(sharedNumTeams);
 #pragma omp for nowait
                 for(int genome = 0; genome < ga.populationsize; genome++) {
@@ -2355,7 +2350,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         while(!localOptimizationStopped && ((generation < GA::MIN_GENERATIONS) ||
                                             ((generation < GA::MAX_GENERATIONS) && (scoreStability < GA::MIN_SCORE_STABILITY))));
 
-        if(localOptimizationStopped || teamingOptions->realNumScoringFactors == 0) { //if no criteria to group by, return immediately
+        if(localOptimizationStopped || teamingOptions->criteria.empty()) { //if no criteria to group by, return immediately
             keepOptimizing = false;
             emit turnOffBusyCursor();
         }
@@ -2403,10 +2398,7 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
         _teamScores[team] = 0;
     }
 
-    for (int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
-        if (_teamingOptions->criteria[criterion] == nullptr) {
-            continue;
-        }
+    for (int criterion = 0; criterion < _teamingOptions->criteria.size(); criterion++) {
         _teamingOptions->criteria[criterion]->calculateScore(_students, _teammates, _numTeams, _teamSizes,
                                                              _teamingOptions, _dataOptions, _criteriaScores[criterion], _penaltyPoints);
     }
@@ -2414,10 +2406,7 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     // Bring together for a final score for each team:
     // Score is normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < _numTeams; team++) {
-        for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
-            if(_teamingOptions->criteria[criterion] == nullptr) {
-                continue;
-            }
+        for(int criterion = 0; criterion < _teamingOptions->criteria.size(); criterion++) {
             // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
             if(_teamingOptions->criteria[criterion]->criteriaType == Criterion::CriteriaType::scheduleMeetingTimes &&
                 _criteriaScores[criterion][team] > _teamingOptions->criteria[criterion]->weight &&
@@ -2428,7 +2417,7 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
                 _teamScores[team] += _criteriaScores[criterion][team];
             }
         }
-        _teamScores[team] = 100 * ((_teamScores[team] / float(_teamingOptions->realNumScoringFactors)) - _penaltyPoints[team]);
+        _teamScores[team] = 100 * ((_teamScores[team] / float(_teamingOptions->criteria.size())) - _penaltyPoints[team]);
     }
 
     // Finally, bring all team scores together for a total genome score.

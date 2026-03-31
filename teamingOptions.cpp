@@ -6,7 +6,6 @@
 
 TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
 {
-    realNumScoringFactors = jsonTeamingOptions["realNumScoringFactors"].toInt();
     const QJsonArray smallerTeamsSizesArray = jsonTeamingOptions["smallerTeamsSizes"].toArray();
     for (const auto &val : smallerTeamsSizesArray) {
         const int size = val.toInt();
@@ -37,7 +36,6 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     teamsetNumber = jsonTeamingOptions["teamsetNumber"].toInt();
 }
 
-
 void TeamingOptions::reset()
 {
     sectionName.clear();
@@ -58,7 +56,7 @@ QJsonObject TeamingOptions::toJson() const
         teamSizesDesiredArray.append(size);
     }
     QJsonObject content {
-        {"realNumScoringFactors", realNumScoringFactors},
+        {"realNumScoringFactors", int(criteria.size())},    // backwards compat.
         {"idealTeamSize", idealTeamSize},
         {"smallerTeamsSizes", smallerTeamsSizesArray},
         {"smallerTeamsNumTeams", smallerTeamsNumTeams},

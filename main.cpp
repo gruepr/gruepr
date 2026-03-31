@@ -67,8 +67,6 @@
 //    INTERNAL:
 //  - refactor gender counts from teamRecord into genderCrierion
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
-//      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
-//      - much harder: replace arrays for all of the attribute-related stuff
 //      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
 //      - memory leak -> crash when loading large file, unloading, then repeating a few times
@@ -77,7 +75,7 @@
 //
 //    NETWORK IMPLEMENTATION:
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
-//      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
+//      - Form options: don't collect email, don't limit one response per user, don't show link to respond again
 //      - Question options: req'd question, answer validity checks (for email & numerical input questions)
 //
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:

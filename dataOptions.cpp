@@ -2,17 +2,6 @@
 #include <QJsonArray>
 #include <QRegularExpression>
 
-DataOptions::DataOptions()
-{
-    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeField[i] = FIELDNOTPRESENT;
-        attributeVals_discrete[i].clear();
-        attributeVals_continuous[i].clear();
-        attributeQuestionResponseCounts[i].clear();
-        attributeType[i] = AttributeType::categorical;
-    }
-}
-
 DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
 {
     timestampField = jsonDataOptions["timestampField"].toInt();
@@ -59,23 +48,17 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     }
 
     const QJsonArray attributeFieldArray = jsonDataOptions["attributeField"].toArray();
-    int i = 0;
+    attributeField.clear();
+    attributeField.reserve(attributeFieldArray.size());
     for(const auto &item : attributeFieldArray) {
-        attributeField[i] = item.toInt();
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeField[j] = FIELDNOTPRESENT;
+        attributeField << item.toInt();
     }
 
     const QJsonArray attributeTypeArray = jsonDataOptions["attributeType"].toArray();
-    i = 0;
+    attributeType.clear();
+    attributeType.reserve(attributeTypeArray.size());
     for(const auto &item : attributeTypeArray) {
-        attributeType[i] = static_cast<AttributeType>(item.toInt());
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeType[j] = AttributeType::categorical;
+        attributeType << static_cast<AttributeType>(item.toInt());
     }
 
     const QJsonArray prefTeammatesFieldArray = jsonDataOptions["prefTeammatesField"].toArray();
@@ -118,66 +101,53 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     }
 
     const QJsonArray attributeQuestionResponsesArray = jsonDataOptions["attributeQuestionResponses"].toArray();
-    i = 0;
+    attributeQuestionResponses.clear();
+    attributeQuestionResponses.reserve(attributeQuestionResponsesArray.size());
     for(const auto &item : attributeQuestionResponsesArray) {
-        const QJsonArray attributeQuestionResponsesArraySubarray = item.toArray();
-        attributeQuestionResponses[i].reserve(attributeQuestionResponsesArraySubarray.size());
-        for(const auto &response : attributeQuestionResponsesArraySubarray) {
-            attributeQuestionResponses[i] << response.toString();
+        QStringList responses;
+        const QJsonArray subarray = item.toArray();
+        responses.reserve(subarray.size());
+        for(const auto &response : subarray) {
+            responses << response.toString();
         }
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeQuestionResponses[j].clear();
+        attributeQuestionResponses << responses;
     }
 
     const QJsonArray attributeQuestionResponseCountsArray = jsonDataOptions["attributeQuestionResponseCounts"].toArray();
-    i = 0;
+    attributeQuestionResponseCounts.clear();
+    attributeQuestionResponseCounts.reserve(attributeQuestionResponseCountsArray.size());
     for(const auto &item : attributeQuestionResponseCountsArray) {
-        attributeQuestionResponseCounts[i].clear();
-        const QVariantMap attributeQuestionResponseCountsArraySubobject = item.toObject().toVariantMap();
-        for(auto iter = attributeQuestionResponseCountsArraySubobject.cbegin(),
-                 end = attributeQuestionResponseCountsArraySubobject.cend(); iter != end; ++iter) {
-            attributeQuestionResponseCounts[i].emplace(iter.key(), iter.value().toInt());
+        std::map<QString, int> counts;
+        const QVariantMap subobject = item.toObject().toVariantMap();
+        for(auto iter = subobject.cbegin(), end = subobject.cend(); iter != end; ++iter) {
+            counts.emplace(iter.key(), iter.value().toInt());
         }
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeQuestionResponseCounts[j].clear();
+        attributeQuestionResponseCounts << counts;
     }
 
     const QJsonArray discreteValsArray = jsonDataOptions.contains("discreteVals")
                                              ? jsonDataOptions["discreteVals"].toArray()
                                              : jsonDataOptions["attributeVals"].toArray();
-    i = 0;
+    attributeVals_discrete.clear();
+    attributeVals_discrete.reserve(discreteValsArray.size());
     for(const auto &item : discreteValsArray) {
-        attributeVals_discrete[i].clear();
+        std::set<int> vals;
         for(const auto &val : item.toArray()) {
-            attributeVals_discrete[i].insert(val.toInt());
+            vals.insert(val.toInt());
         }
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeVals_discrete[j].clear();
+        attributeVals_discrete << vals;
     }
 
+    attributeVals_continuous.clear();
     if(jsonDataOptions.contains("continuousVals")) {
         const QJsonArray continuousValsArray = jsonDataOptions["continuousVals"].toArray();
-        i = 0;
+        attributeVals_continuous.reserve(continuousValsArray.size());
         for(const auto &item : continuousValsArray) {
-            attributeVals_continuous[i].clear();
+            std::set<float> vals;
             for(const auto &val : item.toArray()) {
-                attributeVals_continuous[i].insert(static_cast<float>(val.toDouble()));
+                vals.insert(static_cast<float>(val.toDouble()));
             }
-            i++;
-        }
-        for(int j = i; j < MAX_ATTRIBUTES; j++) {
-            attributeVals_continuous[j].clear();
-        }
-    }
-    else {
-        for(int j = 0; j < MAX_ATTRIBUTES; j++) {
-            attributeVals_continuous[j].clear();
+            attributeVals_continuous << vals;
         }
     }
 
@@ -266,7 +236,7 @@ QJsonObject DataOptions::toJson() const
     for (const int field : assignmentPreferenceFields) {
         assignmentPreferenceFieldArray.append(field);
     }
-    for (int i = 0; i < MAX_ATTRIBUTES; i++) {
+    for (int i = 0; i < attributeField.size(); i++) {
         attributeFieldArray.append(attributeField[i]);
         attributeTypeArray.append(static_cast<int>(attributeType[i]));
         attributeQuestionResponsesArray.append(QJsonArray::fromStringList(attributeQuestionResponses[i]));

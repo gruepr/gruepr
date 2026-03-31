@@ -617,6 +617,12 @@ bool loadDataDialog::getFromPrevWork()
     source = DataOptions::DataSource::fromPrevWork;
     dataOptions->dataSource = source;
 
+    const int numDays = dataOptions->dayNames.size();
+    const int numTimes = dataOptions->timeNames.size();
+    for(auto &student : students) {
+        student.reconcileScheduleDimensions(numDays, numTimes);     // backwards compat. - old files had fixed sized arrays
+    }
+
     loadingProgressDialog->setValue(loadingProgressDialog->maximum());
     loadingProgressDialog->setLabelText("Opening gruepr window...");
 
@@ -724,7 +730,7 @@ bool loadDataDialog::readData()
     lastFoundIndex = 0;
     dataOptions->numAttributes = int(surveyFile->fieldMeanings.count("Multiple Choice or Numerical"));
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-        dataOptions->attributeField[attribute] = int(surveyFile->fieldMeanings.indexOf("Multiple Choice or Numerical", lastFoundIndex));
+        dataOptions->attributeField << int(surveyFile->fieldMeanings.indexOf("Multiple Choice or Numerical", lastFoundIndex));
         QString questionText = surveyFile->headerValues.at(dataOptions->attributeField[attribute]);
         // if this is coming from Canvas, remove the leading integer (a prepended Canvas question ID number) from the question
         if(source == DataOptions::DataSource::fromCanvas) {
@@ -737,7 +743,7 @@ bool loadDataDialog::readData()
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Multiple Choice or Numerical", lastFoundIndex)));
     }
     if(dataOptions->timezoneIncluded) {
-        dataOptions->attributeField[dataOptions->numAttributes] = dataOptions->timezoneField;
+        dataOptions->attributeField << dataOptions->timezoneField;
         dataOptions->attributeQuestionText << surveyFile->headerValues.at(dataOptions->timezoneField);
         dataOptions->numAttributes++;
     }
@@ -970,11 +976,9 @@ bool loadDataDialog::readData()
                 currStudent.lastname = studentOnRoster.lastname;
                 currStudent.email = studentOnRoster.email;
                 currStudent.section = studentOnRoster.section;
-                for(auto &day : currStudent.unavailable) {
-                    for(auto &time : day) {
-                        time = false;
-                    }
-                }
+                const int numDays = dataOptions->dayNames.size();
+                const int numTimes = dataOptions->timeNames.size();
+                currStudent.unavailable.fill(false, numDays * numTimes);
                 currStudent.ambiguousSchedule = true;
                 students << currStudent;
                 numStudents++;
@@ -1016,174 +1020,177 @@ bool loadDataDialog::readData()
     }
 
     // Set the attribute question options and numerical values for each student
-    for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
+    dataOptions->attributeQuestionResponses.resize(dataOptions->numAttributes);
+    dataOptions->attributeQuestionResponseCounts.resize(dataOptions->numAttributes);
+    dataOptions->attributeVals_discrete.resize(dataOptions->numAttributes);
+    dataOptions->attributeVals_continuous.resize(dataOptions->numAttributes);
+    dataOptions->attributeType.resize(dataOptions->numAttributes);
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         if(loadingProgressDialog->wasCanceled()) {
             surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
             return false;
         }
 
-        if(dataOptions->attributeField[attribute] != DataOptions::FIELDNOTPRESENT) {
-            auto &responses = dataOptions->attributeQuestionResponses[attribute];
-            auto &attributeType = dataOptions->attributeType[attribute];
-            // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses
-            for(const auto &student : std::as_const(students)) {
-                if(!responses.contains(student.attributeResponse[attribute])) {
-                    responses << student.attributeResponse[attribute];
+        auto &responses = dataOptions->attributeQuestionResponses[attribute];
+        auto &attributeType = dataOptions->attributeType[attribute];
+        // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses
+        for(const auto &student : std::as_const(students)) {
+            if(!responses.contains(student.attributeResponse[attribute])) {
+                responses << student.attributeResponse[attribute];
+            }
+        }
+        if(responses.size() > 1) {
+            responses.removeAll(QString(""));
+        }
+
+        // Figure out what type of attribute this is: timezone, ordered/numerical, categorical (one response), or categorical (mult. responses)
+        // If this is the timezone field, it's timezone type;
+        // otherwise, if any response contains a comma, then it's multicategorical
+        // otheriwse, if every response starts with an integer, it is ordered (numerical);
+        // otherwise, if any response is missing an integer at the start, then it is categorical
+        // The regex to recognize ordered/numerical is:
+        // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
+        static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+        static const QRegularExpression isJustAFloat(R"(^-?\d+(\.\d+)?$)");
+        if(dataOptions->attributeField[attribute] == dataOptions->timezoneField) {
+            attributeType = DataOptions::AttributeType::timezone;
+        }
+        else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
+                             {return response.contains(',');})) {
+            attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
+        }
+        else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
+                             {return isJustAFloat.match(response).hasMatch();})) {
+            attributeType = DataOptions::AttributeType::numerical;
+        }
+        else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
+                             {return startsWithInteger.match(response).hasMatch();})) {
+            attributeType = DataOptions::AttributeType::ordered;
+        }
+        else {
+            attributeType = DataOptions::AttributeType::categorical;
+        }
+
+        // for multicategorical, have to reprocess the responses to delimit at the commas and then determine if actually multiordered
+        if(attributeType == DataOptions::AttributeType::multicategorical) {
+            for(int originalResponseNum = 0, numOriginalResponses = int(responses.size()); originalResponseNum < numOriginalResponses; originalResponseNum++) {
+                QStringList newResponses = responses.takeFirst().split(',');
+                for(auto &newResponse : newResponses) {
+                    newResponse = newResponse.trimmed();
+                    if(!responses.contains(newResponse)) {
+                        responses << newResponse;
+                    }
                 }
             }
-            if(responses.size() > 1) {
-                responses.removeAll(QString(""));
+            responses.removeAll(QString(""));
+            // now that we've split them up, let's see if actually multiordered instead of multicategorical
+            if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return startsWithInteger.match(response).hasMatch();})) {
+                attributeType = DataOptions::AttributeType::multiordered;
             }
+        }
 
-            // Figure out what type of attribute this is: timezone, ordered/numerical, categorical (one response), or categorical (mult. responses)
-            // If this is the timezone field, it's timezone type;
-            // otherwise, if any response contains a comma, then it's multicategorical
-            // otheriwse, if every response starts with an integer, it is ordered (numerical);
-            // otherwise, if any response is missing an integer at the start, then it is categorical
-            // The regex to recognize ordered/numerical is:
-            // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
-            static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-            static const QRegularExpression isJustAFloat(R"(^-?\d+(\.\d+)?$)");
-            if(dataOptions->attributeField[attribute] == dataOptions->timezoneField) {
-                attributeType = DataOptions::AttributeType::timezone;
+        // sort alphanumerically unless it's timezone, in which case sort according to offset from GMT, or numerical, in which case sort by float value
+        if(attributeType == DataOptions::AttributeType::timezone) {
+            std::sort(responses.begin(), responses.end(), [] (const QString &A, const QString &B) {
+                float timezoneA = 0, timezoneB = 0;
+                QString unusedtimezoneName;
+                DataOptions::parseTimezoneInfoFromText(A, unusedtimezoneName, timezoneA);
+                DataOptions::parseTimezoneInfoFromText(B, unusedtimezoneName, timezoneB);
+                return timezoneA < timezoneB;
+            });
+        }
+        else if(attributeType == DataOptions::AttributeType::numerical) {
+            std::sort(responses.begin(), responses.end(), [] (const QString &A, const QString &B) {
+                return A.toFloat() < B.toFloat();
+            });
+        }
+        else {
+            QCollator sortAlphanumerically;
+            sortAlphanumerically.setNumericMode(true);
+            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+            std::sort(responses.begin(), responses.end(), sortAlphanumerically);
+        }
+
+        // set values associated with each response and create a spot to hold the responseCounts
+        if((attributeType == DataOptions::AttributeType::ordered) ||
+            (attributeType == DataOptions::AttributeType::multiordered)) {
+            // ordered/numerical values. value is based on number at start of response
+            for(const auto &response : std::as_const(responses)) {
+                dataOptions->attributeVals_discrete[attribute].insert(startsWithInteger.match(response).captured(1).toInt());
+                dataOptions->attributeQuestionResponseCounts[attribute].insert({response, 0});
             }
-            else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
-                                 {return response.contains(',');})) {
-                attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
+        }
+        else if(attributeType == DataOptions::AttributeType::numerical) {
+            // No discrete response set — store observed float range in continuous vals.
+            // The student loop below will insert into attributeVals_continuous.
+            // Response counts are not meaningful for free-range numbers; leave empty.
+        }
+        else if((attributeType == DataOptions::AttributeType::categorical) ||
+                 (attributeType == DataOptions::AttributeType::multicategorical)) {
+            // categorical values. value is based on index of response within sorted list
+            for(int i = 1; i <= responses.size(); i++) {
+                dataOptions->attributeVals_discrete[attribute].insert(i);
+                dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
             }
-            else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
-                                 {return isJustAFloat.match(response).hasMatch();})) {
-                attributeType = DataOptions::AttributeType::numerical;
+        }
+        else { // timezone
+            for(int i = 1; i <= responses.size(); i++) {
+                dataOptions->attributeVals_discrete[attribute].insert(i);
+                dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
             }
-            else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
-                                 {return startsWithInteger.match(response).hasMatch();})) {
-                attributeType = DataOptions::AttributeType::ordered;
+        }
+
+        // set numerical value of each student's response and record in dataOptions a tally for each response
+        for(auto &student : students) {
+            const QString &currentStudentResponse = student.attributeResponse[attribute];
+            QList<int> &discreteVals = student.attributeVals_discrete[attribute];
+            QList<float> &continuousVals = student.attributeVals_continuous[attribute];
+
+            if(!currentStudentResponse.isEmpty()) {
+                if(attributeType == DataOptions::AttributeType::numerical) {
+                    bool scannedAValue = false;
+                    const float val = currentStudentResponse.trimmed().toFloat(&scannedAValue);
+                    if(scannedAValue) {
+                        continuousVals << val;
+                        dataOptions->attributeVals_continuous[attribute].insert(val);
+                    }
+                    // No response count tracking for free-range numbers.
+                }
+                else if(attributeType == DataOptions::AttributeType::ordered) {
+                    discreteVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
+                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                }
+                else if((attributeType == DataOptions::AttributeType::categorical) ||
+                         (attributeType == DataOptions::AttributeType::timezone)) {
+                    discreteVals << int(responses.indexOf(currentStudentResponse)) + 1;
+                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                }
+                else if(attributeType == DataOptions::AttributeType::multicategorical) {
+                    const QStringList parts = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                    for(const auto &part : parts) {
+                        discreteVals << int(responses.indexOf(part.trimmed())) + 1;
+                        dataOptions->attributeQuestionResponseCounts[attribute][part.trimmed()]++;
+                    }
+                }
+                else if(attributeType == DataOptions::AttributeType::multiordered) {
+                    const QStringList parts = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                    for(const auto &part : parts) {
+                        discreteVals << startsWithInteger.match(part.trimmed()).captured(1).toInt();
+                        dataOptions->attributeQuestionResponseCounts[attribute][part.trimmed()]++;
+                    }
+                }
+                // For timezone the float value is set separately via student.timezone;
+                // the discrete sentinel (index into sorted tz list) is set above via
+                // the categorical branch, which is correct existing behaviour.
             }
             else {
-                attributeType = DataOptions::AttributeType::categorical;
-            }
-
-            // for multicategorical, have to reprocess the responses to delimit at the commas and then determine if actually multiordered
-            if(attributeType == DataOptions::AttributeType::multicategorical) {
-                for(int originalResponseNum = 0, numOriginalResponses = int(responses.size()); originalResponseNum < numOriginalResponses; originalResponseNum++) {
-                    QStringList newResponses = responses.takeFirst().split(',');
-                    for(auto &newResponse : newResponses) {
-                        newResponse = newResponse.trimmed();
-                        if(!responses.contains(newResponse)) {
-                            responses << newResponse;
-                        }
-                    }
-                }
-                responses.removeAll(QString(""));
-                // now that we've split them up, let's see if actually multiordered instead of multicategorical
-                if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return startsWithInteger.match(response).hasMatch();})) {
-                    attributeType = DataOptions::AttributeType::multiordered;
-                }
-            }
-
-            // sort alphanumerically unless it's timezone, in which case sort according to offset from GMT, or numerical, in which case sort by float value
-            if(attributeType == DataOptions::AttributeType::timezone) {
-                std::sort(responses.begin(), responses.end(), [] (const QString &A, const QString &B) {
-                    float timezoneA = 0, timezoneB = 0;
-                    QString unusedtimezoneName;
-                    DataOptions::parseTimezoneInfoFromText(A, unusedtimezoneName, timezoneA);
-                    DataOptions::parseTimezoneInfoFromText(B, unusedtimezoneName, timezoneB);
-                    return timezoneA < timezoneB;
-                });
-            }
-            else if(attributeType == DataOptions::AttributeType::numerical) {
-                std::sort(responses.begin(), responses.end(), [] (const QString &A, const QString &B) {
-                    return A.toFloat() < B.toFloat();
-                });
-            }
-            else {
-                QCollator sortAlphanumerically;
-                sortAlphanumerically.setNumericMode(true);
-                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-                std::sort(responses.begin(), responses.end(), sortAlphanumerically);
-            }
-
-            // set values associated with each response and create a spot to hold the responseCounts
-            if((attributeType == DataOptions::AttributeType::ordered) ||
-                (attributeType == DataOptions::AttributeType::multiordered)) {
-                // ordered/numerical values. value is based on number at start of response
-                for(const auto &response : std::as_const(responses)) {
-                    dataOptions->attributeVals_discrete[attribute].insert(startsWithInteger.match(response).captured(1).toInt());
-                    dataOptions->attributeQuestionResponseCounts[attribute].insert({response, 0});
-                }
-            }
-            else if(attributeType == DataOptions::AttributeType::numerical) {
-                // No discrete response set — store observed float range in continuous vals.
-                // The student loop below will insert into attributeVals_continuous.
-                // Response counts are not meaningful for free-range numbers; leave empty.
-            }
-            else if((attributeType == DataOptions::AttributeType::categorical) ||
-                     (attributeType == DataOptions::AttributeType::multicategorical)) {
-                // categorical values. value is based on index of response within sorted list
-                for(int i = 1; i <= responses.size(); i++) {
-                    dataOptions->attributeVals_discrete[attribute].insert(i);
-                    dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
-                }
-            }
-            else { // timezone
-                for(int i = 1; i <= responses.size(); i++) {
-                    dataOptions->attributeVals_discrete[attribute].insert(i);
-                    dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
-                }
-            }
-
-            // set numerical value of each student's response and record in dataOptions a tally for each response
-            for(auto &student : students) {
-                const QString &currentStudentResponse = student.attributeResponse[attribute];
-                QList<int> &discreteVals = student.attributeVals_discrete[attribute];
-                QList<float> &continuousVals = student.attributeVals_continuous[attribute];
-
-                if(!currentStudentResponse.isEmpty()) {
-                    if(attributeType == DataOptions::AttributeType::numerical) {
-                        bool scannedAValue = false;
-                        const float val = currentStudentResponse.trimmed().toFloat(&scannedAValue);
-                        if(scannedAValue) {
-                            continuousVals << val;
-                            dataOptions->attributeVals_continuous[attribute].insert(val);
-                        }
-                        // No response count tracking for free-range numbers.
-                    }
-                    else if(attributeType == DataOptions::AttributeType::ordered) {
-                        discreteVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
-                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-                    }
-                    else if((attributeType == DataOptions::AttributeType::categorical) ||
-                             (attributeType == DataOptions::AttributeType::timezone)) {
-                        discreteVals << int(responses.indexOf(currentStudentResponse)) + 1;
-                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-                    }
-                    else if(attributeType == DataOptions::AttributeType::multicategorical) {
-                        const QStringList parts = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                        for(const auto &part : parts) {
-                            discreteVals << int(responses.indexOf(part.trimmed())) + 1;
-                            dataOptions->attributeQuestionResponseCounts[attribute][part.trimmed()]++;
-                        }
-                    }
-                    else if(attributeType == DataOptions::AttributeType::multiordered) {
-                        const QStringList parts = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                        for(const auto &part : parts) {
-                            discreteVals << startsWithInteger.match(part.trimmed()).captured(1).toInt();
-                            dataOptions->attributeQuestionResponseCounts[attribute][part.trimmed()]++;
-                        }
-                    }
-                    // For timezone the float value is set separately via student.timezone;
-                    // the discrete sentinel (index into sorted tz list) is set above via
-                    // the categorical branch, which is correct existing behaviour.
-                }
-                else {
-                    discreteVals << -1;  // unknown sentinel for discrete types
-                    // for numerical/timezone, empty continuousVals means unknown
-                }
+                discreteVals << -1;  // unknown sentinel for discrete types
+                // for numerical/timezone, empty continuousVals means unknown
             }
         }
         loadingProgressDialog->setValue(2 + numStudents + attribute);
     }
-    loadingProgressDialog->setValue(2 + numStudents + MAX_ATTRIBUTES);
+    loadingProgressDialog->setValue(2 + numStudents + dataOptions->numAttributes);
     // gather all unique URM and section question responses and sort
     for(const auto &student : std::as_const(students)) {
         if(!dataOptions->URMResponses.contains(student.URMResponse, Qt::CaseInsensitive)) {
@@ -1226,13 +1233,13 @@ bool loadDataDialog::readData()
     }
     std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
 
-    loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 3 + MAX_ATTRIBUTES);
+    loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 3 + dataOptions->numAttributes);
 
     // set all of the students' tooltips
     for(auto &student : students) {
         student.createTooltip(*dataOptions);
     }
-    loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + MAX_ATTRIBUTES);
+    loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + dataOptions->numAttributes);
     surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
     loadingProgressDialog->setValue(loadingProgressDialog->maximum());
     loadingProgressDialog->setLabelText("Opening gruepr window...");

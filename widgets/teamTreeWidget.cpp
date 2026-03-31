@@ -114,11 +114,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
         headerView->setColumnElideMode(i++, Qt::ElideRight);
     }
 
-    for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-        const auto *criterion = teamingOptions->criteria[c];
-        if (criterion == nullptr) {
-            continue;
-        }
+    for (const auto *const criterion : std::as_const(teamingOptions->criteria)) {
         headerLabels << criterion->headerLabel(dataOptions);
         headerView->setColumnElideMode(i++, criterion->headerElideMode());
     }
@@ -181,12 +177,7 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
     }
 
     // One more column per scoring criterion
-    for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-        auto *criterion = teamingOptions->criteria[c];
-        if (criterion == nullptr) {
-            continue;
-        }
-
+    for (auto *const criterion : std::as_const(teamingOptions->criteria)) {
         const float score = criterion->scoreForOneTeamInDisplay(students, team, teamingOptions, dataOptions, IDsBeingTeamed);
         const QString text = criterion->teamDisplayText(team, dataOptions, score, students);
         const QVariant sortVal = criterion->teamSortValue(team, dataOptions, score, students);
@@ -234,12 +225,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     }
 
     // One more column per scoring criterion
-    for (int c = 0; c < teamingOptions->realNumScoringFactors; c++) {
-        const auto *criterion = teamingOptions->criteria[c];
-        if (criterion == nullptr) {
-            continue;
-        }
-
+    for (const auto *const criterion : std::as_const(teamingOptions->criteria)) {
         studentItem->setText(column, criterion->studentDisplayText(student, dataOptions));
         studentItem->setToolTip(column, student.tooltip);
         studentItem->setTextAlignment(column, criterion->studentTextAlignment());

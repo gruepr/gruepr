@@ -377,6 +377,19 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         return {};
     }
 
+    //publish the form so that responders can access it (required for forms created by API after June 2026)
+    url = "https://forms.googleapis.com/v1/forms/" + formID + ":setPublishSettings";
+    QJsonObject publishBody;
+    QJsonObject publishSettings;
+    publishSettings["isPublished"] = true;
+    publishSettings["isAcceptingResponses"] = true;
+    publishBody["publishSettings"] = publishSettings;
+    QList<QStringList*> noStringVals;
+    QList<QStringList*> noSubobjectVals;
+    postToGoogleGetSingleResult(url, QJsonDocument(publishBody).toJson(),
+                                {}, noStringVals,
+                                {}, noSubobjectVals);
+
     // append this survey to the saved values
     QSettings settings;
     const int currentArraySize = settings.beginReadArray("GoogleForm");

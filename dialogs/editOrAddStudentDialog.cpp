@@ -164,6 +164,11 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     }
 
     if(dataOptions->numAttributes != 0) {
+        if(student.attributeResponse.size() < dataOptions->numAttributes) {
+            student.attributeResponse.resize(dataOptions->numAttributes);
+            student.attributeVals_discrete.resize(dataOptions->numAttributes);
+            student.attributeVals_continuous.resize(dataOptions->numAttributes);
+        }
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Multiple choice or numerical questions"));
@@ -399,11 +404,12 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         connect(adjustScheduleButton, &QPushButton::clicked, this, [this, &student, dataOptions](){adjustSchedule(student, dataOptions);});
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(adjustScheduleButton, 0);
-        for(int day = 0; day < MAX_DAYS; day++) {
-            for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
-                tempUnavailability[day][time] = student.unavailable[day][time];
-            }
+        const qsizetype numDays = dataOptions->dayNames.size();
+        const qsizetype numTimes = dataOptions->timeNames.size();
+        if(student.unavailable.isEmpty()) {
+            student.unavailable.fill(true, numDays * numTimes);
         }
+        tempUnavailability = student.unavailable;
     }
 
     if(!dataOptions->prefTeammatesField.empty()) {
@@ -565,11 +571,8 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     }
 
     if(!dataOptions->dayNames.isEmpty()){
-        for(int day = 0; day < MAX_DAYS; day++) {
-            for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
-                student.unavailable[day][time] = tempUnavailability[day][time];
-            }
-        }
+        const int numTimes = dataOptions->timeNames.size();
+        student.unavailable = tempUnavailability;
         student.availabilityChart = QObject::tr("Availability:");
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
         for(const auto &dayName : dataOptions->dayNames) {
@@ -579,7 +582,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         for(int time = 0; time < dataOptions->timeNames.size(); time++) {
             student.availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time) + "</th>";
             for(int day = 0; day < dataOptions->dayNames.size(); day++) {
-                student.availabilityChart += QString(student.unavailable[day][time]?
+                student.availabilityChart += QString(student.unavailable[day * numTimes + time]?
                                                          "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
             }
             student.availabilityChart += "</tr>";
@@ -619,13 +622,10 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
 
     //create a window copy of the temp schedule array, and use the values to pre-fill the grid of checkboxes
     //connect the clicking of any checkbox to updating the corresponding element in the window copy of the array
-    bool windowUnavailability[MAX_DAYS][MAX_BLOCKS_PER_DAY];
-    QCheckBox *checkBox[MAX_DAYS][MAX_BLOCKS_PER_DAY];
-    for(int day = 0; day < MAX_DAYS; day++) {
-        for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
-            windowUnavailability[day][time] = tempUnavailability[day][time];
-        }
-    }
+    const int numDays = dataOptions->dayNames.size();
+    const int numTimes = dataOptions->timeNames.size();
+    QList<bool> windowUnavailability = tempUnavailability;
+    QList<QCheckBox*> checkBox(numDays * numTimes, nullptr);
     gridcolumn = 1;
     for(const auto &dayName : dataOptions->dayNames) {
         auto *columnHeader = new QLabel(adjustScheduleWindow);
@@ -640,12 +640,13 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
         rowHeader->setStyleSheet(LABEL10PTSTYLE);
         rowHeader->setText(dataOptions->timeNames.at(time));
         adjustScheduleWindowGrid->addWidget(rowHeader, gridrow, gridcolumn++, 1, 1);
-        for(int day = 0; day < dataOptions->dayNames.size(); day++) {
-            checkBox[day][time] = new QCheckBox(adjustScheduleWindow);
-            checkBox[day][time]->setStyleSheet(CHECKBOXSTYLE);
-            checkBox[day][time]->setChecked(!windowUnavailability[day][time]);
-            adjustScheduleWindowGrid->addWidget(checkBox[day][time], gridrow, gridcolumn++, 1, 1);
-            connect(checkBox[day][time], &QCheckBox::clicked, adjustScheduleWindow, [&windowUnavailability, day, time](bool checked){windowUnavailability[day][time] = !checked;});
+        for(int day = 0; day < numDays; day++) {
+            const int idx = day * numTimes + time;
+            checkBox[idx] = new QCheckBox(adjustScheduleWindow);
+            checkBox[idx]->setStyleSheet(CHECKBOXSTYLE);
+            checkBox[idx]->setChecked(!windowUnavailability[idx]);
+            adjustScheduleWindowGrid->addWidget(checkBox[idx], gridrow, gridcolumn++, 1, 1);
+            connect(checkBox[idx], &QCheckBox::clicked, adjustScheduleWindow, [&windowUnavailability, idx](bool checked){windowUnavailability[idx] = !checked;});
         }
         gridrow++;
     }
@@ -656,25 +657,22 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     adjustScheduleWindowGrid->setRowMinimumHeight(gridrow++, DIALOG_SPACER_ROWHEIGHT);
     auto *invertAllButton = new QPushButton(QIcon(":/icons_new/swap.png"), tr("Invert Schedule"), adjustScheduleWindow);
     invertAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    connect(invertAllButton, &QPushButton::clicked, adjustScheduleWindow, [&windowUnavailability, &dataOptions, checkBox]()
-                                                                           {for(int day = 0; day < dataOptions->dayNames.size(); day++) {
-                                                                                for(int time = 0; time < dataOptions->timeNames.size(); time++) {
-                                                                                    windowUnavailability[day][time] = !windowUnavailability[day][time];
-                                                                                    checkBox[day][time]->toggle();
-                                                                                }
-                                                                           }
-                                                                           });
+    connect(invertAllButton, &QPushButton::clicked, adjustScheduleWindow, [&windowUnavailability, &checkBox, numDays, numTimes]()
+            {for(int day = 0; day < numDays; day++) {
+                    for(int time = 0; time < numTimes; time++) {
+                        const int idx = day * numTimes + time;
+                        windowUnavailability[idx] = !windowUnavailability[idx];
+                        checkBox[idx]->toggle();
+                    }
+                }
+            });
     adjustScheduleWindowGrid->addWidget(invertAllButton, gridrow, gridcolumn++, 1, 1);
     auto *adjustScheduleWindowButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, adjustScheduleWindow);
     adjustScheduleWindowButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     adjustScheduleWindowButtonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     connect(adjustScheduleWindowButtonBox, &QDialogButtonBox::accepted, adjustScheduleWindow, [this, &windowUnavailability, adjustScheduleWindow]()
-                                                                                               {for(int day = 0; day < MAX_DAYS; day++) {
-                                                                                                    for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
-                                                                                                        tempUnavailability[day][time] = windowUnavailability[day][time];
-                                                                                                    }
-                                                                                                }
-                                                                                                adjustScheduleWindow->accept();});
+            {tempUnavailability = windowUnavailability;
+             adjustScheduleWindow->accept();});
     connect(adjustScheduleWindowButtonBox, &QDialogButtonBox::rejected, adjustScheduleWindow, &QDialog::reject);
     adjustScheduleWindowGrid->addWidget(adjustScheduleWindowButtonBox, gridrow, gridcolumn, 1, -1);
 
