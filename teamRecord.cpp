@@ -238,10 +238,10 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     numStudentsAvailable.fill(0, numDays * numTimes);
 
     //set values
-    for(int teammate = 0; teammate < size; teammate++) {
+    for(const auto studentID : std::as_const(studentIDs)) {
         const StudentRecord* student = nullptr;
         for(const auto &thisStudent : std::as_const(students)) {
-            if(thisStudent.ID == studentIDs.at(teammate)) {
+            if(thisStudent.ID == studentID) {
                 student = &thisStudent;
                 break;
             }

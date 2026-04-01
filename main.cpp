@@ -65,9 +65,6 @@
 //  - add integration with Blackboard, Qualtrics, others
 //
 //    INTERNAL:
-//  - refactor gender counts from teamRecord into genderCrierion
-//  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
-//      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
 //      - memory leak -> crash when loading large file, unloading, then repeating a few times
 //  - compile for webassembly, turn into a webapp

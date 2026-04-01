@@ -320,8 +320,8 @@ QJsonObject TeamsTabItem::toJson() const
 
 void TeamsTabItem::restoreCriteria(const DataOptions *dataOptions)
 {
-    for (int i = 0; i < savedCriteriaJson.size(); i++) {
-        const QJsonObject entry = savedCriteriaJson[i].toObject();
+    for (const auto &val : std::as_const(savedCriteriaJson)) {
+        const QJsonObject entry = val.toObject();
         auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
         const int typeInt = Criterion::resolveCriteriaTypeKey(criteriaTypeEnum, entry["criteriaType"].toString());
         if (typeInt == -1) {
@@ -650,18 +650,14 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             for(auto &child : teamItem->takeChildren()) {
                 delete child;
             }
-            const int numStudentsOnTeam = studentATeam.size;
-            QList<TeamTreeWidgetItem*> childItems;
-            childItems.resize(numStudentsOnTeam);
-            for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++) {
-                //Find each teammate based on the ID and make them a leaf on the old team
-                const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
+            for(const auto studentID : std::as_const(studentATeam.studentIDs)) {
+                const StudentRecord* teammate = findStudentFromID(studentID);
                 if(teammate == nullptr) {
                     continue;
                 }
-                childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-                teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-                teamItem->addChild(childItems[studentNum]);
+                auto *childItem = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItem, *teammate, &teams.dataOptions, teamingOptions);
+                teamItem->addChild(childItem);
             }
         }
     }
@@ -726,31 +722,25 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             for(auto &child : studentBTeamItem->takeChildren()) {
                 delete child;
             }
-            const int numStudentsOnTeamA = studentATeam.size;
-            const int numStudentsOnTeamB = studentBTeam.size;
-            QList<TeamTreeWidgetItem*> childItemsTeamA;
-            childItemsTeamA.resize(numStudentsOnTeamA);
-            for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++) {
+            for(const auto studentID : std::as_const(studentATeam.studentIDs)) {
                 //Find each teammate based on the ID and make them a leaf on the team
-                const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
+                const StudentRecord* teammate = findStudentFromID(studentID);
                 if(teammate == nullptr) {
                     continue;
                 }
-                childItemsTeamA[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-                teamDataTree->refreshStudent(childItemsTeamA[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-                studentATeamItem->addChild(childItemsTeamA[studentNum]);
+                auto *childItem = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItem, *teammate, &teams.dataOptions, teamingOptions);
+                studentATeamItem->addChild(childItem);
             }
-            QList<TeamTreeWidgetItem*> childItemsTeamB;
-            childItemsTeamB.resize(numStudentsOnTeamB);
-            for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++) {
+            for(const auto studentID : std::as_const(studentBTeam.studentIDs)) {
                 //Find each teammate based on the ID and make them a leaf on the team
-                const StudentRecord* teammate = findStudentFromID(studentBTeam.studentIDs.at(studentNum));
+                const StudentRecord* teammate = findStudentFromID(studentID);
                 if(teammate == nullptr) {
                     continue;
                 }
-                childItemsTeamB[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-                teamDataTree->refreshStudent(childItemsTeamB[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-                studentBTeamItem->addChild(childItemsTeamB[studentNum]);
+                auto *childItem = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItem, *teammate, &teams.dataOptions, teamingOptions);
+                studentBTeamItem->addChild(childItem);
             }
         }
     }
@@ -868,31 +858,25 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
             delete child;
         }
         //clear and refresh student items on both teams in table
-        const int numStudentsOnOldTeam = oldTeam.size;
-        const int numStudentsOnNewTeam = newTeam.size;
-        QList<TeamTreeWidgetItem*> childItemsOldTeam;
-        childItemsOldTeam.resize(std::max(numStudentsOnOldTeam, numStudentsOnNewTeam));
-        for(int studentNum = 0; studentNum < numStudentsOnOldTeam; studentNum++) {
+        for(const auto studentID : std::as_const(oldTeam.studentIDs)) {
             //Find each teammate based on the ID and make them a leaf on the old team
-            const StudentRecord* teammate = findStudentFromID(oldTeam.studentIDs.at(studentNum));
+            const StudentRecord* teammate = findStudentFromID(studentID);
             if(teammate == nullptr) {
                 continue;
             }
-            childItemsOldTeam[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItemsOldTeam[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-            oldTeamItem->addChild(childItemsOldTeam[studentNum]);
+            auto *childItem = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+            teamDataTree->refreshStudent(childItem, *teammate, &teams.dataOptions, teamingOptions);
+            oldTeamItem->addChild(childItem);
         }
-        QList<TeamTreeWidgetItem*> childItemsNewTeam;
-        childItemsNewTeam.resize(std::max(numStudentsOnOldTeam, numStudentsOnNewTeam));
-        for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++) {
+        for(const auto studentID : std::as_const(newTeam.studentIDs)) {
             //Find each teammate based on the ID and make them a leaf on the new team
-            const StudentRecord* teammate = findStudentFromID(newTeam.studentIDs.at(studentNum));
+            const StudentRecord* teammate = findStudentFromID(studentID);
             if(teammate == nullptr) {
                 continue;
             }
-            childItemsNewTeam[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItemsNewTeam[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-            newTeamItem->addChild(childItemsNewTeam[studentNum]);
+            auto *childItem = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+            teamDataTree->refreshStudent(childItem, *teammate, &teams.dataOptions, teamingOptions);
+            newTeamItem->addChild(childItem);
         }
     }
     teamDataTree->setUpdatesEnabled(true);

@@ -139,10 +139,7 @@ bool CsvFile::readHeader()
     }
     numFields = int(headerValues.size());
     fieldMeanings.clear();
-    fieldMeanings.reserve(numFields);
-    for(int i = 0; i < numFields; i++) {
-        fieldMeanings << "";
-    }
+    fieldMeanings.fill("", numFields);
     return !headerValues.isEmpty();
 }
 
