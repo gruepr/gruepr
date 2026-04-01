@@ -22,7 +22,7 @@ public:
     void prepareForOptimization(const StudentRecord *students, int numStudents, const DataOptions *dataOptions) override;
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                        QList<float> &criteriaScores, QList<int> &penaltyPoints) const override;
+                        QList<float> &criteriaScores, QList<float> &penaltyPoints) const override;
 
     // Must override: assignment is inherently multi-team, so single-team display scoring needs the full assignment
     float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,

@@ -44,7 +44,7 @@ public:
     // calculate the score for the criterion for all the teams in a genome, used in the optimization algorithm
     virtual void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                 const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                                QList<float> &criteriaScores, QList<int> &penaltyPoints) const = 0;
+                                QList<float> &criteriaScores, QList<float> &penaltyPoints) const = 0;
 
     // a convenience wrapper around calculateScore to calculate for one team, used to color the TeamTree display
     virtual float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,

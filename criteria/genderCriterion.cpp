@@ -172,7 +172,7 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOption
 
 void GenderCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                      const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
-                                     QList<float> &criteriaScores, QList<int> &penaltyPoints) const
+                                     QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -214,7 +214,7 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
                         (operation == ">"  && count <= val)) {
                         penaltyApplied = true;
                         if (penaltyStatus) {
-                            penaltyPoints[team]++;
+                            penaltyPoints[team] += 1.0f;
                         }
                         break;
                     }
@@ -230,6 +230,7 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
             criteriaScores[team] = 0;
         }
         criteriaScores[team] *= weight;
+        penaltyPoints[team] *= weight;
     }
 }
 

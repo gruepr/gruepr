@@ -99,7 +99,7 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const /*teamingO
 
 void URMIdentityCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                           const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
-                                          QList<float> &criteriaScores, QList<int> &penaltyPoints) const
+                                          QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -138,7 +138,7 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
                         (operation == ">"  && count <= val)) {
                         penaltyApplied = true;
                         if (penaltyStatus) {
-                            penaltyPoints[team]++;
+                            penaltyPoints[team] += 1.0f;
                         }
                         break;
                     }
@@ -155,6 +155,7 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
         }
 
         criteriaScores[team] *= weight;
+        penaltyPoints[team] *= weight;
     }
 }
 

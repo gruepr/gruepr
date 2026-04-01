@@ -38,6 +38,8 @@ public:
     QList<QList<float>> attributeVals_continuous;       // float value for timezone and numerical attributes; empty = unknown
     QStringList assignmentPreferences;                  // ranked assignment preference option names, index 0 = 1st choice
     QString section;									// section data stored as text
+    qsizetype numScheduleDays = 0;
+    qsizetype numScheduleTimesPerDay = 0;
     QList<bool> unavailable;                            // true if this is a busy block during week; stored flat: day * numTimesPerDay + time
     QString availabilityChart;
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
@@ -51,9 +53,6 @@ public:
     QString tooltip;
 
 private:
-    qsizetype numScheduleDays = 0;
-    qsizetype numScheduleTimesPerDay = 0;
-
     inline static const int SIZE_OF_NOTES_IN_TOOLTIP = 300;
 };
 

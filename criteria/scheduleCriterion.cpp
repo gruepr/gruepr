@@ -126,7 +126,7 @@ void ScheduleCriterion::prepareForOptimization(const StudentRecord *, int, const
 
 void ScheduleCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                        const TeamingOptions *const /*teamingOptions*/, const DataOptions *const dataOptions,
-                                       QList<float> &criteriaScores, QList<int> &penaltyPoints) const
+                                       QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
     const int numDays = int(dataOptions->dayNames.size());
     const int numTimes = int(dataOptions->timeNames.size());
@@ -150,7 +150,7 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
         // start compiling a team availability chart; begin with that of the first student on team (unless they have ambiguous schedule)
         int numStudentsWithAmbiguousSchedules = 0;
         const auto &firstStudentOnTeam = students[teammates[studentNum]];
-        if(!firstStudentOnTeam.ambiguousSchedule) {
+        if(!firstStudentOnTeam.ambiguousSchedule && firstStudentOnTeam.unavailable.size() >= chartSize) {
             const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
             for(int day = 0; day < numDays; day++) {
                 for(int time = 0; time < numTimes; time++) {
@@ -172,7 +172,7 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
         // now move on to each subsequent student and, unless they have ambiguous schedule, merge their availability into the team's
         for(int teammate = 1; teammate < teamSizes[team]; teammate++) {
             const auto &currStudent = students[teammates[studentNum]];
-            if(currStudent.ambiguousSchedule) {
+            if(currStudent.ambiguousSchedule || currStudent.unavailable.size() < chartSize) {
                 numStudentsWithAmbiguousSchedules++;
                 studentNum++;
                 continue;
@@ -221,10 +221,12 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
             }
         }
         else if(criteriaScores[team] < minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, apply penalty
-            penaltyPoints[team]++;
+            penaltyPoints[team] += 1.0f;
         }
+
         criteriaScores[team] /= desiredTimeBlocksOverlap;
         criteriaScores[team] *= weight;
+        penaltyPoints[team] *= weight;
     }
 }
 

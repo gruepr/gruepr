@@ -42,7 +42,7 @@ float Criterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudent
     }
 
     QList<float> score(1, 0.0f);
-    QList<int> penalty(1, 0);
+    QList<float> penalty(1, 0.0f);
 
     // Temporarily set weight to 1 to get unweighted 0-to-1 score for display.
     // Weight is only meaningful in the GA's composite scoring, not for display.

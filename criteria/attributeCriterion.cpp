@@ -123,7 +123,7 @@ void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*
 
 void AttributeCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                         const TeamingOptions *const /*teamingOptions*/, const DataOptions *const dataOptions,
-                                        QList<float> &criteriaScores, QList<int> &_penaltyPoints) const
+                                        QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
     const auto type = dataOptions->attributeType[attributeIndex];
     const bool thisIsNumerical = (type == DataOptions::AttributeType::numerical);
@@ -167,18 +167,18 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                 for(const auto &pair : std::as_const(incompatibleValues)) {
                     const int n = static_cast<int>(discreteLevels.count(pair.first));
                     if(pair.first == pair.second) {
-                        _penaltyPoints[team] += (n * (n - 1)) / 2;
+                        penaltyPoints[team] += (n * (n - 1)) / 2.0f;
                     }
                     else {
                         const int m = static_cast<int>(discreteLevels.count(pair.second));
-                        _penaltyPoints[team] += n * m;
+                        penaltyPoints[team] += n * m;
                     }
                 }
             }
             if(haveAnyRequired) {
                 for(const auto value : std::as_const(requiredValues)) {
                     if(discreteLevels.count(value) == 0) {
-                        _penaltyPoints[team]++;
+                        penaltyPoints[team] += 1.0f;
                     }
                 }
             }
@@ -335,6 +335,7 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
         }
 
         criteriaScores[team] *= weight;
+        penaltyPoints[team] *= weight;
     }
 }
 

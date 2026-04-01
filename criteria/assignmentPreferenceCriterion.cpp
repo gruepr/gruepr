@@ -280,13 +280,12 @@ QList<int> AssignmentPreferenceCriterion::solveAssignment(const StudentRecord *c
 
 void AssignmentPreferenceCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                                    const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
-                                                   QList<float> &criteriaScores, QList<int> &penaltyPoints) const
+                                                   QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
     QList<float> teamScores;
     const QList<int> assignment = solveAssignment(students, teammates, numTeams, teamSizes, teamScores);
 
     for(int team = 0; team < numTeams; team++) {
-        criteriaScores[team] = teamScores[team] * weight;
 
         // Penalty: if enabled and the assigned option was left unranked by any or all team members
         if((penalizeNoOneRanked || penalizeAnyOneUnranked) && assignment[team] >= 0 && assignment[team] < numOptions) {
@@ -306,12 +305,15 @@ void AssignmentPreferenceCriterion::calculateScore(const StudentRecord *const st
                 }
             }
             if(penalizeNoOneRanked && !anyoneRanked) {
-                penaltyPoints[team]++;
+                penaltyPoints[team] += 1.0f;
             }
             if(penalizeAnyOneUnranked && !everyoneRanked) {
-                penaltyPoints[team]++;
+                penaltyPoints[team] += 1.0f;
             }
         }
+
+        criteriaScores[team] = teamScores[team] * weight;
+        penaltyPoints[team] *= weight;
     }
 }
 

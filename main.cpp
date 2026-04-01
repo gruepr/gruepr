@@ -39,6 +39,7 @@
 //     - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
 //  - unified "required" and "requested" teammates
 //  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
+//  - penalty points now scale with the criterion weight so that higher-priority penalties are more impactful
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
 //  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
 //  - now shows bar graphs indicating how many students selected each multiple choice response
@@ -54,12 +55,11 @@
 //  - fixed errors when trying to connect to Google on network when IPv6 is enabled
 //  - C++ code modernization throughout, using RAII architecture and reducing fixed size arrays
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
+//  - added to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //
 // TO DO:
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
-//  - scale the penalty points with weight?
-//  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others

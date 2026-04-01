@@ -573,6 +573,8 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     if(!dataOptions->dayNames.isEmpty()){
         const int numTimes = dataOptions->timeNames.size();
         student.unavailable = tempUnavailability;
+        student.numScheduleDays = dataOptions->dayNames.size();
+        student.numScheduleTimesPerDay = numTimes;
         student.availabilityChart = QObject::tr("Availability:");
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
         for(const auto &dayName : dataOptions->dayNames) {

@@ -658,7 +658,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     const auto &_dataOptions = _teams.dataOptions;
     QList<float> teamScores(_numTeams);
     QList<QList<float>> criteriaScores(_teamingOptions->criteria.size(), QList<float>(_numTeams));
-    QList<int> penaltyPoints(_numTeams);
+    QList<float> penaltyPoints(_numTeams);
     QList<int> teamSizes(_numTeams);
     QList<int> genome(_numStudents);
     int ID = 0;
@@ -2225,7 +2225,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto scores = std::make_unique<float[]>(ga.populationsize);
     QList<QList<float>> criteriaScores;
-    QList<int> penaltyPoints;
+    QList<float> penaltyPoints;
     QList<float> teamScores;
     bool unpenalizedGenomePresent = false;
     // make local copies of member variables to satisfy openMP's needs
@@ -2383,7 +2383,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 //////////////////
 float gruepr::getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                             QList<QList<float>> &_criteriaScores, QList<int> &_penaltyPoints)
+                             QList<QList<float>> &_criteriaScores, QList<float> &_penaltyPoints)
 {
     // Initialize each component and team score
     for(auto &penalty : _penaltyPoints) {
@@ -2416,6 +2416,10 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
             else {
                 _teamScores[team] += _criteriaScores[criterion][team];
             }
+        }
+
+        if(_penaltyPoints[team] > 0) {
+            _penaltyPoints[team] = std::max(_penaltyPoints[team], MINIMUM_PENALTY);
         }
         _teamScores[team] = 100 * ((_teamScores[team] / float(_teamingOptions->criteria.size())) - _penaltyPoints[team]);
     }

@@ -16,7 +16,7 @@ public:
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
     void calculateScore(const StudentRecord *const /*students*/, const int /*teammates*/[], const int /*numTeams*/, const int /*teamSizes*/[],
                         const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
-                        QList<float> &/*criteriaScores*/, QList<int> &/*penaltyPoints*/) const override {};
+                        QList<float> &/*criteriaScores*/, QList<float> &/*penaltyPoints*/) const override {};
 
     QString headerLabel(const DataOptions *) const override { return {}; }
     Qt::TextElideMode headerElideMode() const override { return Qt::ElideNone; }

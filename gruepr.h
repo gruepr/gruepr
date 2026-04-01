@@ -113,7 +113,7 @@ private:
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                                QList<QList<float> > &_criteriaScores, QList<int> &_penaltyPoints);
+                                QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
 
     float teamSetScore = 0;
     int finalGeneration = 1;
@@ -121,6 +121,7 @@ private:
     bool multipleSectionsInProgress = false;
     bool optimizationStopped = false;
     bool keepOptimizing = false;
+    inline const static float MINIMUM_PENALTY = 1.01f;            // ensures that even the smallest penalty to a team makes that team have negative score
 
         // reporting results
     TeamSet teams;
