@@ -702,6 +702,23 @@ QStringList gruepr::getTeamTabNames() const {
     return names;
 }
 
+QList<QList<long long>> gruepr::getTeamSetData(const QString &tabName) const {
+    QList<QList<long long>> teamIDLists;
+    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
+        if (ui->dataDisplayTabWidget->tabText(tab) == tabName) {
+            const auto *teamTab = qobject_cast<TeamsTabItem*>(ui->dataDisplayTabWidget->widget(tab));
+            if (teamTab != nullptr) {
+                teamIDLists.reserve(teamTab->getTeams().size());
+                for (const auto &team : teamTab->getTeams()) {
+                    teamIDLists << team.studentIDs;
+                }
+            }
+            break;
+        }
+    }
+    return teamIDLists;
+}
+
 void gruepr::changeSection(int index)
 {
     const QString desiredSection = sectionSelectionBox->itemText(index);
@@ -2050,6 +2067,16 @@ void gruepr::refreshStudentDisplay()
 {
     ui->studentTable->setUpdatesEnabled(false);
     ui->dataDisplayTabWidget->setCurrentIndex(0);
+    // delete all the widgets and clear the table
+    for(int row = ui->studentTable->rowCount() - 1; row >= 0; row--) {
+        for(int col = ui->studentTable->columnCount() - 1; col >= 0; col--) {
+            QWidget *w = ui->studentTable->cellWidget(row, col);
+            if(w != nullptr) {
+                ui->studentTable->removeCellWidget(row, col);
+                delete w;
+            }
+        }
+    }
     ui->studentTable->clear();
     ui->studentTable->setSortingEnabled(false);
 
@@ -2108,7 +2135,7 @@ void gruepr::refreshStudentDisplay()
                 item->setToolTip(student.tooltip);
             }
 
-            auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/edit.png"), "", this);
+            auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/edit.png"), "", ui->studentTable);
             editButton->setToolTip("<html>" + tr("Edit") + " " + student.firstname + " " + student.lastname + tr("'s data.") + "</html>");
             editButton->setProperty("StudentID", student.ID);
             editButton->setProperty("duplicate", duplicate);
@@ -2117,19 +2144,19 @@ void gruepr::refreshStudentDisplay()
             }
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
-            connect(editButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, editButton]
+            connect(editButton, &PushButtonWithMouseEnter::mouseEntered, ui->studentTable, [this, editButton]
                                                                         {int row=0;
                                                                          while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
                                                                               {row++;}
                                                                          ui->studentTable->cellEntered(row);});
-            connect(editButton, &PushButtonWithMouseEnter::mouseLeft, this, [this, editButton]
+            connect(editButton, &PushButtonWithMouseEnter::mouseLeft, ui->studentTable, [this, editButton]
                                                                      {int row=0;
                                                                       while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
                                                                            {row++;}
                                                                       ui->studentTable->cellLeft(row);});
             ui->studentTable->setCellWidget(numActiveStudents, column++, editButton);
 
-            auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/trashButton.png"), "", this);
+            auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/trashButton.png"), "", ui->studentTable);
             removerButton->setToolTip("<html>" + tr("Remove") + " " + student.firstname + " " + student.lastname + " " +
                                                  tr("from the list.") + "</html>");
             removerButton->setProperty("StudentID", student.ID);
@@ -2137,14 +2164,14 @@ void gruepr::refreshStudentDisplay()
             if(duplicate) {
                 removerButton->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
             }
-            connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, ID = student.ID, removerButton]{removerButton->disconnect(); removeAStudent(ID);});
+            connect(removerButton, &PushButtonWithMouseEnter::clicked, ui->studentTable, [this, ID = student.ID, removerButton]{removerButton->disconnect(); removeAStudent(ID);});
             // pass on mouse enter events onto cell in table
-            connect(removerButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, removerButton]
+            connect(removerButton, &PushButtonWithMouseEnter::mouseEntered, ui->studentTable, [this, removerButton]
                                                                            {int row=0;
                                                                             while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
                                                                                  {row++;}
                                                                             ui->studentTable->cellEntered(row);});
-            connect(removerButton, &PushButtonWithMouseEnter::mouseLeft, this, [this, removerButton]
+            connect(removerButton, &PushButtonWithMouseEnter::mouseLeft, ui->studentTable, [this, removerButton]
                                                                         {int row=0;
                                                                          while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
                                                                               {row++;}
@@ -2404,12 +2431,12 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     }
 
     // Bring together for a final score for each team:
-    // Score is normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
+    // Score is normalized to be out of 100 (but with possible "extra credit" for more than criterion match)
     for(int team = 0; team < _numTeams; team++) {
         for(int criterion = 0; criterion < _teamingOptions->criteria.size(); criterion++) {
-            // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
-            if(_teamingOptions->criteria[criterion]->criteriaType == Criterion::CriteriaType::scheduleMeetingTimes &&
-                _criteriaScores[criterion][team] > _teamingOptions->criteria[criterion]->weight &&
+            // remove any criterion's "extra credit" (score > weight) if **any** penalties are being applied,
+            // so that very high extra credit doesn't cancel out the penalty
+            if(_criteriaScores[criterion][team] > _teamingOptions->criteria[criterion]->weight &&
                 _penaltyPoints[team] > 0) {
                 _teamScores[team] += _teamingOptions->criteria[criterion]->weight;
             }

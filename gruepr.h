@@ -44,6 +44,7 @@ public:
 
     void addSavedTeamsTabs();
     QStringList getTeamTabNames() const;
+    QList<QList<long long>> getTeamSetData(const QString &tabName) const;
 
 signals:
     void closed();

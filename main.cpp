@@ -38,6 +38,7 @@
 //     - UI modernizations and simplifications in start dialog and data loading process
 //     - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
 //  - unified "required" and "requested" teammates
+//  - enabled a 'load from teamsTab' action in the "required" and "prevented" teammates in order to re-create or split apart an existing set of teams
 //  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
 //  - penalty points now scale with the criterion weight so that higher-priority penalties are more impactful
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
@@ -60,7 +61,6 @@
 // TO DO:
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
-//  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
 //

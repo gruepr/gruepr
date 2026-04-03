@@ -38,6 +38,7 @@ public:
     void restoreCriteria(const DataOptions *dataOptions);
 
     QString tabName;
+    const TeamSet& getTeams() const { return teams; }
 
 signals:
     void connectedToPrinter();

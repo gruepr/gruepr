@@ -1,6 +1,7 @@
 #include "teammatesRulesDialog.h"
 #include "ui_teammatesRulesDialog.h"
 #include "csvfile.h"
+#include "gruepr.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "dialogs/findMatchingNameDialog.h"
@@ -15,12 +16,13 @@
 
 TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions,
                                            const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates,
-                                           int initialNumberGiven, QWidget *parent) :
+                                           int initialNumberGiven, gruepr *parent) :
     QDialog(parent),
     ui(new Ui::TeammatesRulesDialog),
     m_type(typeOfTeammates),
     m_typeText(typeToString(typeOfTeammates)),
-    numStudents(incomingStudents.size())
+    numStudents(incomingStudents.size()),
+    grueprParent(parent)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -87,6 +89,13 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         loadFromSurvey->setIcon(QIcon(":/icons_new/list_file.png"));
         connect(loadFromSurvey, &QAction::triggered, this, [this](){loadStudentPrefs();});
         loadMenu->addAction(loadFromSurvey);
+    }
+    if(!teamSets.isEmpty()) {
+        auto *loadFromTeamset = new QAction("from existing set of teams", this);
+        loadFromTeamset->setFont(font);
+        loadFromTeamset->setIcon(QIcon(":/icons_new/similar.png"));
+        connect(loadFromTeamset, &QAction::triggered, this, [this](){loadExistingTeamset();});
+        loadMenu->addAction(loadFromTeamset);
     }
     auto *loadFromCSV = new QAction("from CSV file", this);
     loadFromCSV->setFont(font);
@@ -832,6 +841,45 @@ bool TeammatesRulesDialog::loadExistingTeamset()
         }
         else {
             return false;
+        }
+    }
+
+    const auto teamIDLists = grueprParent->getTeamSetData(teamSet);
+    if(teamIDLists.isEmpty()) {
+        return false;
+    }
+
+    for(const auto &teamIDs : teamIDLists) {
+        for(int i = 0; i < teamIDs.size(); i++) {
+            // find student with this ID
+            int index1 = 0;
+            while((index1 < numStudents) && (students.at(index1).ID != teamIDs[i])) {
+                index1++;
+            }
+            if(index1 == numStudents) {
+                continue;
+            }
+
+            for(int j = i + 1; j < teamIDs.size(); j++) {
+                if(teamIDs[i] != teamIDs[j]) {
+                    int index2 = 0;
+                    while((index2 < numStudents) && (students.at(index2).ID != teamIDs[j])) {
+                        index2++;
+                    }
+                    if(index2 == numStudents) {
+                        continue;
+                    }
+
+                    if(m_type == TypeOfTeammates::groupTogether) {
+                        students[index1].groupTogether << teamIDs[j];
+                        students[index2].groupTogether << teamIDs[i];
+                    }
+                    else {
+                        students[index1].splitApart << teamIDs[j];
+                        students[index2].splitApart << teamIDs[i];
+                    }
+                }
+            }
         }
     }
 

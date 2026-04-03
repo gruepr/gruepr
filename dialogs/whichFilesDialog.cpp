@@ -46,16 +46,18 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     const bool sect = dataOptions->sectionIncluded && sectionType == TeamingOptions::SectionType::allTogether;
     ui->sectioncheckBox->setVisible(sect);
     connect(ui->sectioncheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSect = checked;});
-    QList<QCheckBox*> attributeCheckboxes = {ui->Q1checkBox, ui->Q2checkBox, ui->Q3checkBox, ui->Q4checkBox, ui->Q5checkBox, ui->Q6checkBox,
-                                               ui->Q7checkBox, ui->Q8checkBox, ui->Q9checkBox, ui->Q10checkBox, ui->Q11checkBox, ui->Q12checkBox,
-                                               ui->Q13checkBox, ui->Q14checkBox, ui->Q15checkBox};
-    bool anyAttribute = false;
-    for(int attrib = 0; attrib < attributeCheckboxes.size(); attrib++) {
-        const bool thisAttribute = dataOptions->attributeField[attrib] != DataOptions::FIELDNOTPRESENT;
-        anyAttribute = anyAttribute || thisAttribute;
-        attributeCheckboxes[attrib]->setVisible(thisAttribute);
+    const int numAttributes = dataOptions->numAttributes;
+    const bool anyAttribute = (numAttributes > 0);
+    const int NUM_COLUMNS = 3;
+    const int firstAttributeRow = 3; // rows 0-1: name/gender/etc, row 2: attributeLabel
+    for(int attrib = 0; attrib < numAttributes; attrib++) {
+        auto *checkBox = new QCheckBox(tr("Attribute Q") + QString::number(attrib + 1), this);
+        checkBox->setToolTip(dataOptions->attributeQuestionText.at(attrib));
+        ui->demographicGridLayout->addWidget(checkBox, firstAttributeRow + (attrib / NUM_COLUMNS), attrib % NUM_COLUMNS);
         customFileOptions.includeAttribute << false;
-        connect(attributeCheckboxes[attrib], &QCheckBox::toggled, this, [this, attrib](bool checked){customFileOptions.includeAttribute[attrib] = checked;});
+        connect(checkBox, &QCheckBox::toggled, this, [this, attrib](bool checked) {
+            customFileOptions.includeAttribute[attrib] = checked;
+        });
     }
     const bool sched = !dataOptions->dayNames.isEmpty();
     ui->schedulecheckBox->setVisible(sched);

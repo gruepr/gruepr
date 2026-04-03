@@ -9,6 +9,8 @@
 #include <QDialog>
 #include <QTableWidget>
 
+class gruepr;
+
 namespace Ui {
     class TeammatesRulesDialog;
 }
@@ -21,7 +23,7 @@ public:
     enum class TypeOfTeammates{groupTogether, splitApart};
     explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const QString &sectionname,
                                   const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, int initialNumberGiven = REQUESTED_TEAMMATES_ALL,
-                                  QWidget *parent = nullptr);
+                                  gruepr *parent = nullptr);
     ~TeammatesRulesDialog() override;
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog operator= (const TeammatesRulesDialog&) = delete;
@@ -48,6 +50,7 @@ private:
     const int numStudents;
     QString sectionName;
     QStringList teamSets;
+    gruepr *grueprParent = nullptr;
 
     QList <StyledComboBox *> possibleTeammates;
 
