@@ -66,7 +66,6 @@
 //
 //    INTERNAL:
 //  - analyze for memory leaks
-//      - memory leak -> crash when loading large file, unloading, then repeating a few times
 //  - compile for webassembly, turn into a webapp
 //      - move from OpenMP to QThread or c++ threads?
 //
