@@ -35,7 +35,7 @@ jobs:
         DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
         EOF
 
-    # --- Compile ---
+# --- Compile ---
 
     - name: QMake
       run: qmake gruepr.pro CONFIG+=release
@@ -43,7 +43,7 @@ jobs:
     - name: Compile
       run: make -j$(nproc)
 
-    # --- Create .desktop file and prepare AppImage ---
+# --- Create .desktop file and prepare AppImage ---
 
     - name: Create .desktop file
       run: |
@@ -59,7 +59,7 @@ jobs:
         Terminal=false
         DESKTOP
 
-    # --- Build AppImage ---
+# --- Build AppImage ---
 
     - name: Download linuxdeploy
       run: |
@@ -82,7 +82,7 @@ jobs:
     - name: Rename AppImage
       run: mv gruepr-*.AppImage gruepr-linux-x86_64.AppImage
 
-    # --- Upload ---
+# --- Upload ---
 
     - name: Upload AppImage
       uses: actions/upload-artifact@v6
