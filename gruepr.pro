@@ -65,6 +65,10 @@ macx {
     INCLUDEPATH += $$OMP_PREFIX/include
     LIBS += -L$$OMP_PREFIX/lib -lomp
 }
+linux {
+    QMAKE_CXXFLAGS += -fopenmp
+    QMAKE_LFLAGS += -fopenmp
+}
 
 # Run ASan:
 # macx: QMAKE_CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
@@ -208,6 +212,7 @@ RESOURCES += \
 DISTFILES += \
         .github/workflows/Build.yaml \
         .github/workflows/Build_Windows.yaml \
+        .github/workflows/Build_linux.yaml \
         .github/workflows/Build_macOS.yaml \
         .signpath/policies/gruepr/release-signing.yml \
         .signpath/policies/gruepr/test-signing.yml \

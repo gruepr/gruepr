@@ -1,0 +1,92 @@
+name: Build Linux
+ 
+on: workflow_dispatch # when to trigger this. Here, manually
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+
+# --- Install dependencies ---
+
+- name: Install Qt
+  uses: jurplel/install-qt-action@v4
+  with:
+    version: '6.9.1'
+    host: 'linux'
+    target: 'desktop'
+    arch: 'linux_gcc_64'
+    modules: 'qtnetworkauth'
+    cache: true
+
+- name: Install build dependencies
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y build-essential libgl1-mesa-dev libomp-dev \
+      libxcb-cursor0 libfuse2 \
+      libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+      libxcb-randr0 libxcb-render-util0 libxcb-shape0
+
+- name: Create secrets defines
+  run: |
+    cat > ci_secrets.pri << 'EOF'
+    DEFINES += GITHUB_SECRETS
+    DEFINES += SECRET_GOOGLE_CLIENT_ID=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_ID }}\\\"
+    DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
+    EOF
+
+# --- Compile ---
+
+- name: QMake
+  run: qmake gruepr.pro CONFIG+=release
+
+- name: Compile
+  run: make -j$(nproc)
+
+# --- Create .desktop file and prepare AppImage ---
+
+- name: Create .desktop file
+  run: |
+    mkdir -p linux
+    cat > linux/gruepr.desktop << 'DESKTOP'
+    [Desktop Entry]
+    Type=Application
+    Name=gruepr
+    Comment=Optimally assign students to teams
+    Exec=gruepr
+    Icon=gruepr
+    Categories=Education;
+    Terminal=false
+    DESKTOP
+
+# --- Build AppImage ---
+
+- name: Download linuxdeploy
+  run: |
+    wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+    wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+    chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
+
+- name: Create AppImage
+  run: |
+    export QMAKE=$Qt6_DIR/bin/qmake
+    export LD_LIBRARY_PATH=$Qt6_DIR/lib:$LD_LIBRARY_PATH
+    ./linuxdeploy-x86_64.AppImage \
+      --appdir AppDir \
+      --executable gruepr \
+      --desktop-file linux/gruepr.desktop \
+      --icon-file icons_new/icon.svg \
+      --plugin qt \
+      --output appimage
+
+- name: Rename AppImage
+  run: mv gruepr-*.AppImage gruepr-linux-x86_64.AppImage
+
+# --- Upload ---
+
+- name: Upload AppImage
+  uses: actions/upload-artifact@v6
+  with:
+    name: gruepr-linux-appimage
+    path: gruepr-linux-x86_64.AppImage
+    compression-level: 0
