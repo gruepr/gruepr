@@ -54,7 +54,7 @@ jobs:
         Name=gruepr
         Comment=Optimally assign students to teams
         Exec=gruepr
-        Icon=gruepr
+        Icon=icon
         Categories=Education;
         Terminal=false
         DESKTOP
