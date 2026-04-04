@@ -1077,7 +1077,7 @@ void gruepr::compareStudentsToRoster()
 
             // get the email corresponding to this name on the roster
             const auto index = names.indexOf(name);
-            const QString &rosterEmail = ((index >= 0 && index < emails.size())? emails.at(index) : "");
+            const QString rosterEmail = ((index >= 0 && index < emails.size())? emails.at(index) : "");
 
             if(student != nullptr) {
                 // Exact match for name was found in existing students

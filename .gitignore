@@ -2,6 +2,7 @@
 .DS_Store
 gruepr.pro.user
 gruepr.pro.user*
+build/*
 test_surveys/*
 prev_versions/*
 macOS/*

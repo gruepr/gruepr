@@ -29,8 +29,8 @@ private:
     inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
     inline static const QString UNUSEDTEXT = QObject::tr("Unused");
 
-    static const int MAX_COLUMN_WIDTH = 250;
-    static const int MAX_HEADER_LINES = 4;
+    inline static const int MAX_COLUMN_WIDTH = 250;
+    inline static const int MAX_HEADER_LINES = 4;
     static QString wrapAndElideText(const QString &text, int availableWidth, int maxLines, const QFontMetrics &fm);
 };
 

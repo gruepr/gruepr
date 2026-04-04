@@ -87,8 +87,8 @@ protected:
 private:
     void updateHeaderHeight();
     QString wrapText(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const;
-    static const int MAX_SECTION_WIDTH = 200;
-    static const int MAX_HEADER_HEIGHT = 150;
+    inline static const int MAX_SECTION_WIDTH = 200;
+    inline static const int MAX_HEADER_HEIGHT = 150;
 
     Qt::TextElideMode m_elideMode;
     QMap<int, Qt::TextElideMode> m_columnElideModes;
