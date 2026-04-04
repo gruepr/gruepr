@@ -57,12 +57,13 @@
 //  - C++ code modernization throughout, using RAII architecture and reducing fixed size arrays
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //  - added to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
+//  - added a linux build (untested!)
 //
 // TO DO:
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
-//  - add integration with Blackboard, Qualtrics, others
+//  - add integration with Qualtrics, Microsoft Forms (Azure/Entra, whenever their API is published)
 //
 //    INTERNAL:
 //  - analyze for memory leaks

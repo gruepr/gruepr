@@ -216,7 +216,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // Timestamp
     int fieldnum = dataOptions.timestampField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        const QString &timestampText = fields.at(fieldnum).simplified().remove(QChar(0x00A0));
+        const QString timestampText = fields.at(fieldnum).simplified().remove(QChar(0x00A0));
         surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Google Form
         if(surveyTimestamp.isNull()) {
             surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Google Form
@@ -367,7 +367,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     int day = 0;
     for(const int fieldnum : dataOptions.scheduleField) {
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString &field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0));
+            const QString field = fields.at(fieldnum).trimmed().remove(QChar(0x00A0));
             static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
             for(const auto &timeName : dataOptions.timeNames) {
                 const float time = grueprGlobal::timeStringToHours(timeName);

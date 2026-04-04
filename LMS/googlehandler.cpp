@@ -176,6 +176,7 @@ bool GoogleHandler::authenticate() {
         loginDialog->adjustSize();
         connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
 
+        OAuthFlow->setModifyParametersFunction(getModifyParametersFunction());
         LMS::authenticate();
 
         if(loginDialog->exec() == QDialog::Rejected) {

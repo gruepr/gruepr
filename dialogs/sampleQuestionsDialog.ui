@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>711</width>
-    <height>527</height>
+    <width>545</width>
+    <height>472</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -607,7 +607,7 @@
        <item>
         <widget class="QLabel" name="label_16">
          <property name="text">
-          <string>WHow many of the machine shop tools (listed on our course website) have you completed training?</string>
+          <string>For how many of the machine shop tools have you completed training?</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -638,31 +638,22 @@
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item>
-           <widget class="QRadioButton" name="radioButton_29">
-            <property name="text">
-             <string>1. A lot of experience</string>
+          <item alignment="Qt::AlignmentFlag::AlignLeft">
+           <widget class="QLineEdit" name="lineEdit_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_30">
-            <property name="text">
-             <string>2. Some experience</string>
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>0</height>
+             </size>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_31">
-            <property name="text">
-             <string>3. Little experience</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_32">
-            <property name="text">
-             <string>4. No experience</string>
+            <property name="placeholderText">
+             <string>Enter a number...</string>
             </property>
            </widget>
           </item>

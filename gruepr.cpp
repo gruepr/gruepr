@@ -2110,27 +2110,32 @@ void gruepr::refreshStudentDisplay()
             (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
             (student.section == teamingOptions->sectionName))) {
 
-            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime,
-                                                          QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
+            QList<QTableWidgetItem*> items;
+
             if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
+                auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime,
+                                                              QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
                 ui->studentTable->setItem(numActiveStudents, column++, timestamp);
+                items << timestamp;
             }
-            auto *firstName = new QTableWidgetItem(student.firstname);
             if(dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT) {
+                auto *firstName = new QTableWidgetItem(student.firstname);
                 ui->studentTable->setItem(numActiveStudents, column++, firstName);
+                items << firstName;
             }
-            auto *lastName = new QTableWidgetItem(student.lastname);
             if(dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT) {
+                auto *lastName = new QTableWidgetItem(student.lastname);
                 ui->studentTable->setItem(numActiveStudents, column++, lastName);
+                items << lastName;
             }
-            auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::alphanumeric, student.section);
             if(dataOptions->sectionIncluded) {
+                auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::alphanumeric, student.section);
                 ui->studentTable->setItem(numActiveStudents, column++, section);
+                items << section;
             }
 
             const bool duplicate = student.duplicateRecord;
 
-            QList<QTableWidgetItem*> items = {timestamp, firstName, lastName, section};
             for(auto &item : items) {
                 item->setToolTip(student.tooltip);
             }
