@@ -654,22 +654,22 @@ QString GoogleHandler::getActionDialogLabel() const {
 }
 
 std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> GoogleHandler::getModifyParametersFunction() const {
-    auto code_verifier = (QUuid::createUuid().toString(QUuid::WithoutBraces) +
-                          QUuid::createUuid().toString(QUuid::WithoutBraces)).toLatin1(); // 43 <= length <= 128
-    auto code_challenge = QCryptographicHash::hash(code_verifier, QCryptographicHash::Sha256).
-                          toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+    auto code_verifier = std::make_shared<QByteArray>();
 
-    return [code_verifier, code_challenge](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
+    return [code_verifier](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
         if (stage == QAbstractOAuth::Stage::RequestingAuthorization) {
-            // needed to get refresh_token from Google Cloud
-            parameters->insert("access_type", "offline");
-            // PKCE
-            parameters->insert("code_challenge", code_challenge);
-            parameters->insert("code_challenge_method", "S256");
+            // Generate fresh PKCE for each authorization attempt
+            *code_verifier = (QUuid::createUuid().toString(QUuid::WithoutBraces) +
+                              QUuid::createUuid().toString(QUuid::WithoutBraces)).toLatin1();
+            auto code_challenge = QCryptographicHash::hash(*code_verifier, QCryptographicHash::Sha256).
+                                  toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+
+            parameters->replace("access_type", "offline");
+            parameters->replace("code_challenge", code_challenge);
+            parameters->replace("code_challenge_method", "S256");
         }
         else if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
-            // PKCE
-            parameters->insert("code_verifier", code_verifier);
+            parameters->replace("code_verifier", *code_verifier);
             // Percent-decode the "code" parameter so Google can match it
             const QByteArray code = parameters->value("code").toByteArray();
             parameters->replace("code", QUrl::fromPercentEncoding(code));

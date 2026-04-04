@@ -53,7 +53,7 @@
 //  - now preferentially performs GA::mutate on the lowest scoring team within a genome
 //  - added motion to the LMS busy dialog so that it doesn't appear frozen while connecting / downloading data
 //  - added nicer timeout function to handle LMS connection issue
-//  - fixed errors when trying to connect to Google on network when IPv6 is enabled
+//  - fixed errors with Google connection and authorization related to IPv6 networking and PKCE authorization
 //  - C++ code modernization throughout, using RAII architecture and reducing fixed size arrays
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //  - added to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
@@ -66,7 +66,6 @@
 //  - add integration with Qualtrics, Microsoft Forms (Azure/Entra, whenever their API is published)
 //
 //    INTERNAL:
-//  - analyze for memory leaks
 //  - compile for webassembly, turn into a webapp
 //      - move from OpenMP to QThread or c++ threads?
 //
