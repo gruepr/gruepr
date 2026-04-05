@@ -333,72 +333,118 @@ inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX ";
                                                 "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
                                                 "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
 
-inline static const char LEGENDFRAME[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
-                                       "border-top: 1px solid " DEEPWATERHEX "; border-right: 1px solid " DEEPWATERHEX "; "
-                                         "border-bottom: 1px solid " DEEPWATERHEX "; border-left: 1px solid " DEEPWATERHEX "; border-radius:5px;}";
+inline static const char LEGENDFRAME[] =
+                                    "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
+                                            "border-top: 1px solid " DEEPWATERHEX "; border-right: 1px solid " DEEPWATERHEX "; "
+                                            "border-bottom: 1px solid " DEEPWATERHEX "; border-left: 1px solid " DEEPWATERHEX "; border-radius:5px;}";
 
-inline static const char DROPFRAME[] = "QFrame { background-color: rgba(0, 0, 0, 0); border: 2px dotted rgba(128, 128, 128, 150);"
-                                                " border-radius: 10px;}";
+inline static const char DROPFRAME[] =
+                                    "QFrame { background-color: rgba(0, 0, 0, 0); border: 2px dotted rgba(128, 128, 128, 150);"
+                                            " border-radius: 10px;}";
 
-inline static const char BASICFRAME[] = "QFrame { background-color: rgba(0, 0, 0, 0); border: 2px solid rgba(128, 128, 128, 150);"
-                                                " border-radius: 10px; }";
+inline static const char BASICFRAME[] =
+                                    "QFrame { background-color: rgba(0, 0, 0, 0); border: 2px solid rgba(128, 128, 128, 150);"
+                                            " border-radius: 10px; }";
 
-inline static const char FIXEDCRITERIAFRAME[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
-                                                        "border-top: 1px solid; border-right: 1px solid; "
-                                                        "border-bottom: 1px solid; border-left: 1px solid;}"
-                                                "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
-                                                        "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
-                                                        "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
+inline static const char FIXEDCRITERIAFRAME[] =
+                                    "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
+                                            "border-top: 1px solid; border-right: 1px solid; "
+                                            "border-bottom: 1px solid; border-left: 1px solid;}"
+                                    "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
+                                            "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
+                                            "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
 
-inline static const char BORDERLESSBLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
-                                                   "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
+inline static const char BORDERLESSBLUEFRAME[] =
+                                    "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
+                                    "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
 
-inline static const char DATASOURCEFRAMESTYLE[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
-                                                    "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}";
+inline static const char DATASOURCEFRAMESTYLE[] =
+                                    "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
+                                    "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}";
 
-inline static const char DATASOURCEPRELABELSTYLE[] = "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
-                                                       "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
+inline static const char DATASOURCEPRELABELSTYLE[] =
+                                    "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
+                                    "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
 
-inline static const char DATASOURCELABELSTYLE[] = "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
-                                                    "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
+inline static const char DATASOURCELABELSTYLE[] =
+                                    "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
+                                    "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
 
-inline static const char INSTRUCTIONSLABELSTYLE[] = "QLabel {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
-                                                   "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
+inline static const char INSTRUCTIONSLABELSTYLE[] =
+                                    "QLabel {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
+                                            "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
 
-inline static const char UPLOADBUTTONSTYLE[] =  "QPushButton { background-color: rgba(180, 180, 180, 180); border: none; border-radius: 25px; "
-                                                             " width: 50px;  height: 50px;  }"
-                                                "QPushButton:hover { background-color: rgba(100, 100, 100, 200); }";
+inline static const char UPLOADBUTTONSTYLE[] =
+                                    "QPushButton { background-color: rgba(180, 180, 180, 180); border: none; border-radius: 25px; "
+                                                 " width: 50px;  height: 50px;  }"
+                                    "QPushButton:hover { background-color: rgba(100, 100, 100, 200); }";
 
-inline static const char STANDARDBUTTON[] = "QPushButton { background-color: rgba(180, 180, 180, 100); padding: 5px; border-radius: 8px;"
-                                                         " border: 1px solid" DEEPWATERHEX "; font-size: 10pt; }"
-                                            "QPushButton:hover { background-color: rgba(180, 180, 180, 140); }";
+inline static const char STANDARDBUTTON[] =
+                                    "QPushButton { background-color: rgba(180, 180, 180, 100); padding: 5px; border-radius: 8px;"
+                                                 " border: 1px solid" DEEPWATERHEX "; font-size: 10pt; }"
+                                    "QPushButton:hover { background-color: rgba(180, 180, 180, 140); }";
 
-inline static const char LABELONLYBUTTON[] = "QPushButton { background-color: none;  border: none; font-family:'DM Sans'; font-size: 10pt;}";
+inline static const char LABELONLYBUTTON[] =
+                                    "QPushButton { background-color: none;  border: none; font-family:'DM Sans'; font-size: 10pt;}";
 
-inline static const char ATTRIBUTESTACKWIDGETSTYLE[] = "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
+inline static const char ATTRIBUTESTACKWIDGETSTYLE[] =
+                                    "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
 
-inline static const char TEAMTREEWIDGETSTYLE[] = "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
-                                                   "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
-                                                   "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
-                                                   "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
-                                                   "	border-image: none; image: url(:/icons_new/smallRightButton.png);}"
-                                                   "QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {"
-                                                   "	border-image: none; image: url(:/icons_new/smallDownButton.png);}";
+inline static const char STUDENTTABLEWIDGETHORIZONTALHEADERSTYLE[] =
+                                    "QHeaderView{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
+                                                "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                "color: white; text-align:left;}"
+                                    "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; "
+                                                         "border-bottom: none;"
+                                                         "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                         "color: white; text-align:left;}"
+                                    "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px; "
+                                                            "subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                                    "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px; "
+                                                          "subcontrol-origin: padding; subcontrol-position: top left;}";
 
-inline static const char TEAMTREEWIDGETHEADERSTYLE[] = "QHeaderView {border-top: none; border-left: none; border-right: 1px solid lightGray;"
-                                                         "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
-                                                         "   font-size: 12pt; color: white; text-align:left;}"
-                                                         "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; "
-                                                         "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
-                                                         "   font-size: 12pt; color: white; text-align:left;}"
-                                                         "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 12px;"
+inline static const char STUDENTTABLEWIDGETVERTICALALHEADERSTYLE[] =
+                                    "QHeaderView{border-top: none; border-left: none; border-right: none; border-bottom: none; padding: 1px;"
+                                                "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                "color: white; text-align:center;}"
+                                    "QHeaderView::section{border-top: none; border-left: none; border-right: none; "
+                                                         "border-bottom: none; padding: 1px;"
+                                                         "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                         "color: white; text-align:center;}";
+
+inline static const char STUDENTTABLEWIDGETSTYLE[] =
+                                    "QTableView{gridline-color: lightGray; font-family: 'DM Sans'; font-size: 12pt;}"
+                                    "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; "
+                                                                "border-bottom: none; background-color: " DEEPWATERHEX ";}"
+                                    "QTableWidget::item{border-right: 1px solid lightGray; color: black;}"
+                                    "QTableWidget::item:selected{background-color: " BUBBLYHEX ";}"
+                                    "QTableWidget::item:hover{background-color: " BUBBLYHEX ";}";
+
+inline static const char TEAMTREEWIDGETSTYLE[] =
+                                   "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
+                                   "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
+                                   "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
+                                   "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
+                                           "	border-image: none; image: url(:/icons_new/smallRightButton.png);}"
+                                   "QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {"
+                                           "	border-image: none; image: url(:/icons_new/smallDownButton.png);}";
+
+inline static const char TEAMTREEWIDGETHEADERSTYLE[] =
+                                    "QHeaderView {border-top: none; border-left: none; border-right: 1px solid lightGray;"
+                                              "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                                              "   font-size: 12pt; color: white; text-align:left;}"
+                                    "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; "
+                                                       "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                                                       "   font-size: 12pt; color: white; text-align:left;}"
+                                    "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 12px;"
                                                          "   subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                                                         "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 12px;"
-                                                         "   subcontrol-origin: padding; subcontrol-position: top left;}";
+                                    "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 12px;"
+                                                       "   subcontrol-origin: padding; subcontrol-position: top left;}";
 
-inline static const char FAKETABLEHEADERWIDGETSTYLE[] = "QWidget{border-top: none; border-left: none; border-right: 1px solid lightGray; "
-                                                  "border-bottom: none; background-color:" DEEPWATERHEX "; "
-                                                  "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center; padding:2px;}";
+inline static const char FAKETABLEHEADERWIDGETSTYLE[] =
+                                    "QWidget{border-top: none; border-left: none; border-right: 1px solid lightGray; "
+                                            "border-bottom: none; background-color:" DEEPWATERHEX "; "
+                                            "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center; padding:2px;}";
 
 inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;

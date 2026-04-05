@@ -9,7 +9,6 @@
 #include "dialogs/editSectionNamesDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
-#include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
 #include <memory>
@@ -24,6 +23,7 @@
 #include <QMessageBox>
 #include <QMetaEnum>
 #include <QMimeData>
+#include <QPushButton>
 #include <QScreen>
 #include <QScrollBar>
 #include <QSettings>
@@ -1247,20 +1247,44 @@ void gruepr::compareStudentsToRoster()
 void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 {
     // go back through all records to see if any are duplicates; assume each isn't and then check
+    // First pass: reset all duplicate flags
+    for(auto &student : students) {
+        student.duplicateRecord = false;
+    }
+    // Now build hash maps of name -> indices and email -> indices (skipping deleted students and empty keys)
+    QHash<QString, QList<int>> nameToIndices;
+    QHash<QString, QList<int>> emailToIndices;
     for(int index = 0; index < students.size(); index++) {
-        auto &student1 = students[index];
-        student1.duplicateRecord = false;
-        for(int index2 = 0; index2 < index; index2++) {
-            auto &student2 = students[index2];
-            if(!student1.deleted && !student2.deleted &&
-               (((student1.firstname + student1.lastname == student2.firstname + student2.lastname) && !((student1.firstname + student1.lastname).isEmpty())) ||
-                ((student1.email == student2.email) && !student1.email.isEmpty()))) {
-                student1.duplicateRecord = true;
-                student2.duplicateRecord = true;
-                student2.createTooltip(*dataOptions);
+        const auto &student = students[index];
+        if(student.deleted) {
+            continue;
+        }
+        const QString fullName = (student.firstname + student.lastname).toLower();
+        if(!fullName.isEmpty()) {
+            nameToIndices[fullName] << index;
+        }
+        if(!student.email.isEmpty()) {
+            emailToIndices[student.email.toLower()] << index;
+        }
+    }
+    // Any key with more than one index means those students are duplicates
+    for(auto it = nameToIndices.constBegin(); it != nameToIndices.constEnd(); ++it) {
+        if(it.value().size() > 1) {
+            for(const int index : it.value()) {
+                students[index].duplicateRecord = true;
             }
         }
-        student1.createTooltip(*dataOptions);
+    }
+    for(auto it = emailToIndices.constBegin(); it != emailToIndices.constEnd(); ++it) {
+        if(it.value().size() > 1) {
+            for(const int index : it.value()) {
+                students[index].duplicateRecord = true;
+            }
+        }
+    }
+    // Rebuild tooltips once per student
+    for(auto &student : students) {
+        student.createTooltip(*dataOptions);
     }
 
     // Re-build the URM info
@@ -1863,9 +1887,6 @@ void gruepr::loadUI()
         teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
     }
 
-    refreshStudentDisplay();
-    ui->studentTable->resetTable();
-
     //Initialize all cards, but do not add them to the layout
     for (int attribute = 0; attribute < dataOptions->numAttributes; attribute++){
         const QString title = "Attribute: "+ dataOptions->attributeQuestionText.at(attribute);
@@ -1880,8 +1901,7 @@ void gruepr::loadUI()
 
     //Remove duplicates
     if(std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;})) {
-        grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
-                                                        "Possible duplicates are marked with a yellow background in the edit and remove buttons."), tr("OK"));
+        grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions."), tr("OK"));
     }
     refreshStudentDisplay();
     ui->studentTable->resetTable();
@@ -2080,10 +2100,54 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->clear();
     ui->studentTable->setSortingEnabled(false);
 
-    ui->studentTable->setColumnCount(2 + (dataOptions->timestampField != DataOptions::FIELDNOTPRESENT? 1 : 0) + (dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT? 1 : 0) +
-                                     (dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0));
+    const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(),
+                                           [](const StudentRecord &s){ return !s.deleted && s.duplicateRecord; });
+
+    // Build duplicate group sort keys so clicking the status column clusters likely duplicates
+    QHash<long long, QString> duplicateSortKeys;
+    if(anyDuplicates) {
+        QHash<QString, QList<long long>> nameGroups;
+        QHash<QString, QList<long long>> emailGroups;
+        for(const auto &student : std::as_const(students)) {
+            if(student.deleted) {
+                continue;
+            }
+            const QString fullName = (student.firstname + student.lastname).toLower();
+            if(!fullName.isEmpty()) {
+                nameGroups[fullName] << student.ID;
+            }
+            if(!student.email.isEmpty()) {
+                emailGroups[student.email.toLower()] << student.ID;
+            }
+        }
+        for(auto it = nameGroups.constBegin(); it != nameGroups.constEnd(); ++it) {
+            if(it.value().size() > 1) {
+                for(const long long id : it.value()) {
+                    duplicateSortKeys[id] = it.key();
+                }
+            }
+        }
+        for(auto it = emailGroups.constBegin(); it != emailGroups.constEnd(); ++it) {
+            if(it.value().size() > 1) {
+                for(const long long id : it.value()) {
+                    if(!duplicateSortKeys.contains(id)) {
+                        duplicateSortKeys[id] = it.key();
+                    }
+                }
+            }
+        }
+    }
+
+    ui->studentTable->setColumnCount((anyDuplicates ? 1 : 0) + 2 +
+                                     (dataOptions->timestampField != DataOptions::FIELDNOTPRESENT ? 1 : 0) +
+                                     (dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT ? 1 : 0) +
+                                     (dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT ? 1 : 0) +
+                                     (dataOptions->sectionIncluded ? 1 : 0));
     const QIcon unsortedIcon(":/icons_new/upDownButton_white.png");
     int column = 0;
+    if(anyDuplicates) {
+        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Duplicate?  ")));
+    }
     if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Survey  \n  Timestamp  ")));
     }
@@ -2101,17 +2165,32 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setRowCount(students.size());
     numActiveStudents = 0;
+    const QIcon duplicateIcon(":/icons_new/important_yellow.png");
     for(const auto &student : std::as_const(students)) {
         column = 0;
         if((numActiveStudents < students.size()) &&            // make sure student exists, hasn't been deleted, and is in the section(s) being teamed
-           (!student.deleted) &&
-           ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
-            (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
-            (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
-            (student.section == teamingOptions->sectionName))) {
+            (!student.deleted) &&
+            ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+             (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
+             (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
+             (student.section == teamingOptions->sectionName))) {
 
             QList<QTableWidgetItem*> items;
 
+            if(anyDuplicates) {
+                auto *statusItem = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::alphanumeric, "");
+                if(student.duplicateRecord) {
+                    statusItem->setSortKey("0_" + duplicateSortKeys.value(student.ID) + "_" +
+                                           student.surveyTimestamp.toString(Qt::ISODate));
+                    statusItem->setIcon(duplicateIcon);
+                    statusItem->setToolTip(tr("Possible duplicate submission"));
+                }
+                else {
+                    statusItem->setSortKey("1");    // putting non-duplicates strictly after the duplicates
+                }
+                ui->studentTable->setItem(numActiveStudents, column++, statusItem);
+                items << statusItem;
+            }
             if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
                 auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime,
                                                               QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
@@ -2134,59 +2213,33 @@ void gruepr::refreshStudentDisplay()
                 items << section;
             }
 
-            const bool duplicate = student.duplicateRecord;
-
             for(auto &item : items) {
-                item->setToolTip(student.tooltip);
+                if(item->toolTip().isEmpty()) {
+                    item->setToolTip(student.tooltip);
+                }
             }
 
-            auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/edit.png"), "", ui->studentTable);
+            auto *editButton = new QPushButton(QIcon(":/icons_new/edit.png"), "", ui->studentTable);
+            editButton->setFlat(true);
+            editButton->setIconSize(QSize(20, 20));
             editButton->setToolTip("<html>" + tr("Edit") + " " + student.firstname + " " + student.lastname + tr("'s data.") + "</html>");
             editButton->setProperty("StudentID", student.ID);
-            editButton->setProperty("duplicate", duplicate);
-            if(duplicate) {
-                editButton->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
-            }
-            connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
-            // pass on mouse enter events onto cell in table
-            connect(editButton, &PushButtonWithMouseEnter::mouseEntered, ui->studentTable, [this, editButton]
-                                                                        {int row=0;
-                                                                         while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
-                                                                              {row++;}
-                                                                         ui->studentTable->cellEntered(row);});
-            connect(editButton, &PushButtonWithMouseEnter::mouseLeft, ui->studentTable, [this, editButton]
-                                                                     {int row=0;
-                                                                      while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
-                                                                           {row++;}
-                                                                      ui->studentTable->cellLeft(row);});
+            connect(editButton, &QPushButton::clicked, this, &gruepr::editAStudent);
             ui->studentTable->setCellWidget(numActiveStudents, column++, editButton);
 
-            auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/trashButton.png"), "", ui->studentTable);
+            auto *removerButton = new QPushButton(QIcon(":/icons_new/trashButton.png"), "", ui->studentTable);
+            removerButton->setFlat(true);
+            removerButton->setIconSize(QSize(20, 20));
             removerButton->setToolTip("<html>" + tr("Remove") + " " + student.firstname + " " + student.lastname + " " +
-                                                 tr("from the list.") + "</html>");
+                                      tr("from the student roster.") + "</html>");
             removerButton->setProperty("StudentID", student.ID);
-            removerButton->setProperty("duplicate", duplicate);
-            if(duplicate) {
-                removerButton->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
-            }
-            connect(removerButton, &PushButtonWithMouseEnter::clicked, ui->studentTable, [this, ID = student.ID, removerButton]{removerButton->disconnect(); removeAStudent(ID);});
-            // pass on mouse enter events onto cell in table
-            connect(removerButton, &PushButtonWithMouseEnter::mouseEntered, ui->studentTable, [this, removerButton]
-                                                                           {int row=0;
-                                                                            while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
-                                                                                 {row++;}
-                                                                            ui->studentTable->cellEntered(row);});
-            connect(removerButton, &PushButtonWithMouseEnter::mouseLeft, ui->studentTable, [this, removerButton]
-                                                                        {int row=0;
-                                                                         while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
-                                                                              {row++;}
-                                                                         ui->studentTable->cellLeft(row);});
+            connect(removerButton, &QPushButton::clicked, ui->studentTable, [this, ID = student.ID, removerButton]{removerButton->disconnect(); removeAStudent(ID);});
             ui->studentTable->setCellWidget(numActiveStudents, column, removerButton);
 
             numActiveStudents++;
         }
     }
-    ui->studentTable->setRowCount(std::min(students.size(), numActiveStudents));   // not sure how numActiveStudents could be larger, but safer to take min
+    ui->studentTable->setRowCount(std::min(students.size(), numActiveStudents));
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();

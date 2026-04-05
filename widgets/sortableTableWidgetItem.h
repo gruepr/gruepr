@@ -18,6 +18,7 @@ public:
     SortableTableWidgetItem(SortableTableWidgetItem&&) = delete;
     SortableTableWidgetItem& operator= (SortableTableWidgetItem&&) = delete;
 
+    void setSortKey(const QString &key);
     bool operator <(const QTableWidgetItem &other) const override;
 
 private:

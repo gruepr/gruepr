@@ -509,13 +509,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
 ////////////////////////////////////////////
 void StudentRecord::createTooltip(const DataOptions &dataOptions)
 {
-    QString toolTip = "<html>";
-    if(duplicateRecord) {
-        toolTip += "<table><tr><td bgcolor=" STARFISHHEX "><b>" +
-                   QObject::tr("There appears to be multiple survey submissions from this student!") +
-                   "</b></td></tr></table><br>";
-    }
-    toolTip += firstname + " " + lastname;
+    QString toolTip = "<html>" + firstname + " " + lastname;
     if(dataOptions.emailField != DataOptions::FIELDNOTPRESENT) {
         toolTip += "<br>" + email;
     }

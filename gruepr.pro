@@ -55,9 +55,6 @@ QMAKE_CXXFLAGS -= -Os
 # add the desired -O2 if not present
 QMAKE_CXXFLAGS += -O2
 
-# stop compilation for dangling references
-QMAKE_CXXFLAGS += -Wdangling -Werror=dangling
-
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -openmp
 macx {
@@ -81,6 +78,9 @@ linux {
 # macx: QMAKE_LFLAGS += -fsanitize=address,undefined
 # Run leaks:
 # macx: QMAKE_CXXFLAGS += -g
+# stop compilation for dangling references
+# macx: QMAKE_CXXFLAGS += -Wdangling -Werror=dangling
+
 
 SOURCES += \
         criteria/assignmentPreferenceCriterion.cpp \
@@ -124,7 +124,6 @@ SOURCES += \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
-        widgets/pushButtonWithMouseEnter.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
         widgets/surveyMakerQuestion.cpp \
@@ -185,7 +184,6 @@ HEADERS += \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
-        widgets/pushButtonWithMouseEnter.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
         widgets/styledComboBox.h \
