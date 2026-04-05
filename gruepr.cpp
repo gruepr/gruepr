@@ -1634,14 +1634,14 @@ void gruepr::startOptimization()
                                                                          optimizationStoppedmutex.unlock();
                                                                         });
 
+        // set the working value of the genetic algorithm's population size and tournament selection probability
+        ga.setGAParameters(numActiveStudents);
+
         // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
         optimizationStopped = false;
         future = QtConcurrent::run(&gruepr::optimizeTeams, this, studentIndexes);       // spin optimization off into a separate thread
         futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
         multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
-
-        // set the working value of the genetic algorithm's population size and tournament selection probability
-        ga.setGAParameters(numActiveStudents);
 
         // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
@@ -2256,9 +2256,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto scores = std::make_unique<float[]>(ga.populationsize);
-    QList<QList<float>> criteriaScores;
-    QList<float> penaltyPoints;
-    QList<float> teamScores;
     bool unpenalizedGenomePresent = false;
     // make local copies of member variables to satisfy openMP's needs
     const auto &sharedStudents = students;
@@ -2269,13 +2266,13 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     //parallel initialization of needed variables.
 #pragma omp parallel \
         default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-        private(teamScores, criteriaScores, penaltyPoints)
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions) \
+        reduction(||:unpenalizedGenomePresent)
     {
-        teamScores.resize(sharedNumTeams);
-        criteriaScores.resize(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
-        penaltyPoints.resize(sharedNumTeams);
-#pragma omp for nowait
+        QList<float> teamScores(sharedNumTeams);
+        QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
+        QList<float> penaltyPoints(sharedNumTeams);
+#pragma omp for
         for(int genome = 0; genome < ga.populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                             sharedTeamingOptions, sharedDataOptions, teamScores.data(),
@@ -2323,13 +2320,13 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             unpenalizedGenomePresent = false;
 #pragma omp parallel \
             default(none) \
-                shared(scores, worstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-                private(teamScores, criteriaScores, penaltyPoints)
+                shared(scores, worstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions) \
+                reduction(||:unpenalizedGenomePresent)
             {
-                teamScores.resize(sharedNumTeams);
-                criteriaScores.resize(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
-                penaltyPoints.resize(sharedNumTeams);
-#pragma omp for nowait
+                QList<float> teamScores(sharedNumTeams);
+                QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
+                QList<float> penaltyPoints(sharedNumTeams);
+#pragma omp for
                 for(int genome = 0; genome < ga.populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                                     sharedTeamingOptions, sharedDataOptions, teamScores.data(),

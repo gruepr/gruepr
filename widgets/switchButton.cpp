@@ -132,7 +132,9 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
     QSize initial_size(hback, hback);
     QSize final_size(width() - 4, hback);
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     int xi = 2;
+#endif
     const int y  = 2;
     int xf = width() - 22;
 
@@ -140,7 +142,9 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
         final_size = QSize(hback, hback);
         initial_size = QSize(width() - 4, hback);
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
         xi = xf;
+#endif
         xf = 2;
 
         _labelon->hide();

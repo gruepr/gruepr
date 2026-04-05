@@ -48,12 +48,15 @@ DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060500
 CONFIG += c++20
 
 # remove possible other optimization flags
-QMAKE_CXXFLAGS_RELEASE -= -O
-QMAKE_CXXFLAGS_RELEASE -= -O1
-QMAKE_CXXFLAGS_RELEASE -= -O3
-QMAKE_CXXFLAGS_RELEASE -= -Os
+QMAKE_CXXFLAGS -= -O
+QMAKE_CXXFLAGS -= -O1
+QMAKE_CXXFLAGS -= -O3
+QMAKE_CXXFLAGS -= -Os
 # add the desired -O2 if not present
-QMAKE_CXXFLAGS_RELEASE += -O2
+QMAKE_CXXFLAGS += -O2
+
+# stop compilation for dangling references
+QMAKE_CXXFLAGS += -Wdangling -Werror=dangling
 
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -openmp
@@ -70,9 +73,14 @@ linux {
     QMAKE_LFLAGS += -fopenmp
 }
 
+# Run TSan:
+# macx: QMAKE_CXXFLAGS += -fsanitize=thread -fno-omit-frame-pointer
+# macx: QMAKE_LFLAGS += -fsanitize=thread
 # Run ASan:
-# macx: QMAKE_CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
-# macx: QMAKE_LFLAGS += -fsanitize=address
+# macx: QMAKE_CXXFLAGS += -fsanitize=address,undefined -g -fno-omit-frame-pointer
+# macx: QMAKE_LFLAGS += -fsanitize=address,undefined
+# Run leaks:
+# macx: QMAKE_CXXFLAGS += -g
 
 SOURCES += \
         criteria/assignmentPreferenceCriterion.cpp \
