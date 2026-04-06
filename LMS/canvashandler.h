@@ -37,6 +37,7 @@ public:
 
     inline static const QString SCHEDULEQUESTIONINTRO1{QObject::tr("The following ")};
     inline static const QString SCHEDULEQUESTIONINTRO2{QObject::tr(" questions ask about your schedule on ")};
+    inline static const QString SCHEDULEQUESTIONINTRO3{QObject::tr("You may leave a question blank as appropriate.")};
 
 private:
     void authenticateWithManualToken(const QString &token);
@@ -62,7 +63,7 @@ private:
 
     QWidget *parent = nullptr;
 
-    QString getScopes() const override;
+    QSet<QByteArray> getScopes() const override;
     QString getClientID() const override;
     QString getClientSecret() const override;
     QString getClientAuthorizationUrl() const override;

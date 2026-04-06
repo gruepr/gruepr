@@ -1,9 +1,9 @@
 #ifndef WHICHFILESDIALOG_H
 #define WHICHFILESDIALOG_H
 
-#include <QDialog>
 #include "dataOptions.h"
 #include "teamingOptions.h"
+#include <QDialog>
 
 namespace Ui {
 class WhichFilesDialog;
@@ -31,14 +31,15 @@ public:
         bool includeFileData = false;
         bool includeTeamingData = false;
         bool includeTeamScore = false;
+        bool includeTeamAssignment = false;
         bool includeFirstName = false;
         bool includeLastName = false;
         bool includeEmail = false;
         bool includeGender = false;
         bool includeURM = false;
         bool includeSect = false;
-        QList<bool> includeMultiChoice;
-        bool includeSechedule = false;
+        QList<bool> includeAttribute;
+        bool includeSchedule = false;
     } customFileOptions;
 
 private:

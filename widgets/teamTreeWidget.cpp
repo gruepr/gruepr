@@ -1,6 +1,10 @@
 #include "teamTreeWidget.h"
 #include "gruepr_globals.h"
 #include <QDropEvent>
+#include <QPainter>
+#include <QTextLayout>
+#include <QTimer>
+#include <QToolTip>
 
 
 //////////////////
@@ -9,11 +13,9 @@
 TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     :QTreeWidget(parent)
 {
-    setHeader(new TeamTreeHeaderView(this));
+    headerView = new TeamTreeHeaderView(Qt::Horizontal, this);
+    setHeader(headerView);
     setStyleSheet(QString(TEAMTREEWIDGETSTYLE) + SCROLLBARSTYLE);
-    header()->setSectionResizeMode(QHeaderView::Interactive);
-    header()->setStretchLastSection(false);
-    header()->setStyleSheet(TEAMTREEWIDGETHEADERSTYLE);
     setMouseTracking(true);
     setHeaderHidden(false);
     setDragDropMode(QAbstractItemView::InternalMove);
@@ -22,18 +24,17 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     setAutoScroll(true);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setStyle(new NoHoverStyle(style()));
+    setItemDelegate(new NoHoverDelegate(this));
 
-    connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
-    connect(this, &QTreeWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
     connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::itemCollapse);
     connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::itemExpand);
 }
 
-
 void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
 {
     // only collapse teams (not students or sections)
-    auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
+    auto *newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
     if(newItem == nullptr) {
         return;
     }
@@ -48,10 +49,9 @@ void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
     }
 }
 
-
 void TeamTreeWidget::itemExpand(QTreeWidgetItem *item)
 {
-    auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
+    auto *newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
     if(newItem == nullptr) {
         return;
     }
@@ -60,13 +60,12 @@ void TeamTreeWidget::itemExpand(QTreeWidgetItem *item)
     }
 }
 
-
 void TeamTreeWidget::collapseAll()
 {
     setUpdatesEnabled(false);
 
     // iterate through tree, collapsing only the teams
-    auto item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
+    auto *item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
     while(item != nullptr) {
         const bool itemIsTeam = (item->treeItemType == TeamTreeWidgetItem::TreeItemType::team);
         if(itemIsTeam) {
@@ -79,15 +78,15 @@ void TeamTreeWidget::collapseAll()
     }
 
     setUpdatesEnabled(true);
+    repaint();
 }
-
 
 void TeamTreeWidget::expandAll()
 {
     setUpdatesEnabled(false);
 
     // iterate through tree, expanding every section and team
-    auto item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
+    auto *item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
     while(item != nullptr) {
         const bool itemIsStudent = (item->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
         if(!itemIsStudent) {
@@ -98,61 +97,45 @@ void TeamTreeWidget::expandAll()
         }
         item = dynamic_cast<TeamTreeWidgetItem*>(itemBelow(item));
     }
-
     setUpdatesEnabled(true);
+    repaint();
 }
-
 
 void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     QStringList headerLabels;
-    headerLabels << tr("  Name  ") << tr("  Score  ");
-    if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
-        headerLabels << tr("  Sections  ");
+    int i = 0;
+    headerLabels << tr("Name");
+    headerView->setColumnElideMode(i++, Qt::ElideNone);
+
+    // Add section column if showing all sections together (not criterion-driven, just info)
+    if (teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
+        headerLabels << tr("Sections");
+        headerView->setColumnElideMode(i++, Qt::ElideRight);
     }
-    if(dataOptions->genderIncluded) {
-        if(dataOptions->genderType == GenderType::pronoun) {
-            headerLabels << tr("  Pronouns  ");
-        }
-        else {
-            headerLabels << tr("  Gender  ");
-        }
+
+    for (const auto *const criterion : std::as_const(teamingOptions->criteria)) {
+        headerLabels << criterion->headerLabel(dataOptions);
+        headerView->setColumnElideMode(i++, criterion->headerElideMode());
     }
-    if(dataOptions->URMIncluded) {
-        headerLabels << tr("  URM  ");
-    }
-    const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
-    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
-        headerLabels << tr("  Q") + QString::number(attribute+1) + "  ";
-    }
-    if(dataOptions->timezoneIncluded) {
-        headerLabels << tr("  Timezone  ");
-    }
-    if(!dataOptions->dayNames.isEmpty()) {
-        headerLabels << tr("  Meeting  \n  times  ");
-    }
+
     headerLabels << tr("display_order");
 
     setColumnCount(int(headerLabels.size()));
-    for(int i = 0; i < headerLabels.size()-1; i++) {
+    for(int i = 0; i < headerLabels.size() - 1; i++) {
         showColumn(i);
     }
-    hideColumn(int(headerLabels.size())-1);  // don't show the sort order column (can comment this out when debugging sorting operations)
+    hideColumn(int(headerLabels.size()) - 1);  // don't show the sort order column (can comment this out when debugging sorting operations)
 
-    auto *headerTextWithIcon = new QTreeWidgetItem;
+    setHeaderLabels(headerLabels);
     for(int i = 0; i < headerLabels.size(); i++) {
-        headerTextWithIcon->setIcon(i, QIcon(":/icons_new/upDownButton_white.png"));
-        headerTextWithIcon->setText(i, headerLabels.at(i));
+        headerView->setColumnIcon(i, QIcon(":/icons_new/upDownButton_white.png"));
     }
-    setHeaderItem(headerTextWithIcon);
-    setSortingEnabled(false);
-    header()->setDefaultAlignment(Qt::AlignCenter);
-    header()->setSectionResizeMode(QHeaderView::Interactive);
 
+    setSortingEnabled(false);
     setFocus();
     clear();
 }
-
 
 void TeamTreeWidget::refreshSection(TeamTreeWidgetItem *sectionItem, const QString &sectionName)
 {
@@ -163,29 +146,27 @@ void TeamTreeWidget::refreshSection(TeamTreeWidgetItem *sectionItem, const QStri
     sectionItem->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
 }
 
-
 void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum,
-                                 const QString &firstStudentName, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
+                                 const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions,
+                                 const QList<StudentRecord> &students, const QSet<long long> &IDsBeingTeamed)
 {
     if(teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) {
         return;
     }
 
-    //create team items and fill in information
+    // create team items and fill in information
     int column = 0;
+
+    // Name column
     teamItem->setText(column, tr("Team ") + team.name);
     teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
     teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, tr("Team ") + team.name);
-    teamItem->setData(column, TEAMINFO_SORT_ROLE, firstStudentName);
+    teamItem->setData(column, TEAMINFO_SORT_ROLE, team.name); //sort based on team name
     teamItem->setData(column, TEAM_NUMBER_ROLE, teamNum);
     teamItem->setToolTip(column, team.tooltip);
     column++;
-    teamItem->setText(column, ((team.size > 1)? (QString::number(double(team.score), 'f', 2)) : ("  --  ")));
-    teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
-    teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(double(team.score), 'f', 2));
-    teamItem->setData(column, TEAMINFO_SORT_ROLE, team.score);
-    teamItem->setToolTip(column, team.tooltip);
-    column++;
+
+    // Sections column
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
         teamItem->setText(column, QString::number(team.numSections));
         teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
@@ -194,138 +175,24 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
-    if(dataOptions->genderIncluded) {
-        QStringList genderInitials;
-        if(dataOptions->genderType == GenderType::biol) {
-            genderInitials = QString(BIOLGENDERSINITIALS).split('/');
-        }
-        else if(dataOptions->genderType == GenderType::adult) {
-            genderInitials = QString(ADULTGENDERSINITIALS).split('/');
-        }
-        else if(dataOptions->genderType == GenderType::child) {
-            genderInitials = QString(CHILDGENDERSINITIALS).split('/');
-        }
-        else {          //if(dataOptions->genderResponses == GenderType::pronoun)
-            genderInitials = QString(PRONOUNSINITIALS).split('/');
-        }
-        QString genderText;
-        if(team.numWomen > 0) {
-            genderText += QString::number(team.numWomen) + genderInitials.at(static_cast<int>(Gender::woman));
-            if(team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0) {
-                genderText += ", ";
-            }
-        }
-        if(team.numMen > 0) {
-            genderText += QString::number(team.numMen) + genderInitials.at(static_cast<int>(Gender::man));
-            if(team.numNonbinary > 0 || team.numUnknown > 0) {
-                genderText += ", ";
-            }
-        }
-        if(team.numNonbinary > 0) {
-            genderText += QString::number(team.numNonbinary) + genderInitials.at(static_cast<int>(Gender::nonbinary));
-            if(team.numUnknown > 0) {
-                genderText += ", ";
-            }
-        }
-        if(team.numUnknown > 0) {
-            genderText += QString::number(team.numUnknown) + genderInitials.at(static_cast<int>(Gender::unknown));
-        }
-        teamItem->setText(column, genderText);
-        teamItem->setTextAlignment(column, Qt::AlignCenter);
-        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, genderText);
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numMen - team.numWomen);
-        teamItem->setToolTip(column, team.tooltip);
-        column++;
-    }
-    if(dataOptions->URMIncluded) {
-        teamItem->setText(column, QString::number(team.numURM));
-        teamItem->setTextAlignment(column, Qt::AlignCenter);
-        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(team.numURM));
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numURM);
-        teamItem->setToolTip(column, team.tooltip);
-        column++;
-    }
-    const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
-    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
-        QString attributeText;
-        int sortData;
-        auto firstTeamVal = team.attributeVals[attribute].cbegin();
-        auto lastTeamVal = team.attributeVals[attribute].crbegin();
-        if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-            (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-            // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
-            if(*firstTeamVal == -1) {
-                firstTeamVal++;
-            }
 
-            if(firstTeamVal != team.attributeVals[attribute].cend()) {
-                if(*firstTeamVal == *lastTeamVal) {
-                    attributeText = QString::number(*firstTeamVal);
-                }
-                else {
-                    attributeText = QString::number(*firstTeamVal) + " - " + QString::number(*lastTeamVal);
-                }
-                sortData = *firstTeamVal * 100 + *lastTeamVal;
-            }
-            else {
-                //only attribute value was -1
-                attributeText = "?";
-                sortData = -1;
-            }
-        }
-        else {
-            // attribute is categorical or multicategorical, so important info is the list of values
-            // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
-            attributeText = (*firstTeamVal <= 26 ? QString(char(*firstTeamVal - 1 + 'A')) : QString(char((*firstTeamVal - 1)%26 + 'A')).repeated(1+((*firstTeamVal - 1)/26)));
-            for(auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++) {
-                attributeText += ", ";
-                attributeText += (*val <= 26 ? QString(char(*val - 1 + 'A')) : QString(char((*val - 1)%26 + 'A')).repeated(1+((*val - 1)/26)));
-            }
-            // sort by first item, then number of items, then second item
-            sortData = (*firstTeamVal * 10000) + (int(team.attributeVals[attribute].size()) * 100) + (int(team.attributeVals[attribute].size()) > 1 ? *lastTeamVal : 0);
-        }
-        teamItem->setText(column, attributeText);
-        teamItem->setTextAlignment(column, Qt::AlignCenter);
-        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, attributeText);
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, sortData);
-        teamItem->setToolTip(column, team.tooltip);
-        column++;
-    }
-    if(dataOptions->timezoneIncluded) {
-        const float firstTeamVal = *(team.timezoneVals.cbegin());
-        const float lastTeamVal = *(team.timezoneVals.crbegin());
-        QString timezoneText;
-        if(firstTeamVal == lastTeamVal) {
-            const int hour = int(firstTeamVal);
-            const int minutes = 60*(firstTeamVal - int(firstTeamVal));
-            timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));;
-        }
-        else {
-            const int hourF = int(firstTeamVal);
-            const int minutesF = 60*(firstTeamVal - int(firstTeamVal));
-            const int hourL = int(lastTeamVal);
-            const int minutesL = 60*(lastTeamVal - int(lastTeamVal));
-            timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(std::abs(minutesF), 2, 10, QChar('0')) + " " + RIGHTARROW + " " +
-                            QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(std::abs(minutesL), 2, 10, QChar('0'));
-        }
-        const int sortData = int(firstTeamVal * 100 + lastTeamVal);
+    // One more column per scoring criterion
+    for (auto *const criterion : std::as_const(teamingOptions->criteria)) {
+        const float score = criterion->scoreForOneTeamInDisplay(students, team, teamingOptions, dataOptions, IDsBeingTeamed);
+        const QString text = criterion->teamDisplayText(team, dataOptions, score, students);
+        const QVariant sortVal = criterion->teamSortValue(team, dataOptions, score, students);
 
-        teamItem->setText(column, timezoneText);
-        teamItem->setTextAlignment(column, Qt::AlignCenter);
-        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, timezoneText);
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, sortData);
+        teamItem->setText(column, text);
+        teamItem->setTextAlignment(column, criterion->teamTextAlignment());
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, text);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, sortVal);
         teamItem->setToolTip(column, team.tooltip);
+        teamItem->setBackground(column, criterion->teamDisplayColor(score));
+
         column++;
     }
-    if(!dataOptions->dayNames.isEmpty()) {
-        const int numAvailTimes = team.numMeetingTimes;
-        teamItem->setText(column, ((team.size > 1)? (QString::number(numAvailTimes)) : ("  --  ")));
-        teamItem->setTextAlignment(column, Qt::AlignCenter);
-        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(numAvailTimes));
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, numAvailTimes);
-        teamItem->setToolTip(column, team.tooltip);
-        column++;
-    }
+
+    // Display order column
     if(refreshType == RefreshType::newTeam) {
         teamItem->setText(column, QString::number(teamNum));
         teamItem->setTextAlignment(column, Qt::AlignCenter);
@@ -334,126 +201,42 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
     }
 }
 
-
-void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
+void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &student,
+                                    const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     if(studentItem->treeItemType != TeamTreeWidgetItem::TreeItemType::student) {
         return;
     }
 
     int column = 0;
-    studentItem->setText(column, stu.firstname + " " + stu.lastname);
-    studentItem->setData(column, Qt::UserRole, stu.ID);
-    studentItem->setToolTip(column, stu.tooltip);
+
+    // Name column
+    studentItem->setText(column, student.firstname + " " + student.lastname);
+    studentItem->setData(column, Qt::UserRole, student.ID);
+    studentItem->setToolTip(column, student.tooltip);
     studentItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
     column++;
-    // blank teamscore column, but show a tooltip if hovered
-    studentItem->setText(column, " ");
-    studentItem->setToolTip(column, stu.tooltip);
-    column++;
-    if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
-        studentItem->setText(column, stu.section);
-        studentItem->setToolTip(column, stu.tooltip);
-        column++;
-    }
-    if(dataOptions->genderIncluded) {
-        QStringList genderOptions;
-        if(dataOptions->genderType == GenderType::biol) {
-            genderOptions = QString(BIOLGENDERS).split('/');
-        }
-        else if(dataOptions->genderType == GenderType::adult) {
-            genderOptions = QString(ADULTGENDERS).split('/');
-        }
-        else if(dataOptions->genderType == GenderType::child) {
-            genderOptions = QString(CHILDGENDERS).split('/');
-        }
-        else {         //if(dataOptions->genderType == GenderType::pronoun)
-            genderOptions = QString(PRONOUNS).split('/');
-        }
-        QString genderText;
-        bool firstGender = true;
-        for(const auto gen : stu.gender) {
-            if(!firstGender) {
-                genderText += ", ";
-            }
-            genderText += genderOptions.at(static_cast<int>(gen));
-            firstGender = false;
-        }
-        studentItem->setText(column, genderText);
-        studentItem->setToolTip(column, stu.tooltip);
-        studentItem->setTextAlignment(column, Qt::AlignCenter);
-        column++;
-    }
-    if(dataOptions->URMIncluded) {
-        if(stu.URM) {
-            studentItem->setText(column,tr("yes"));
 
-        }
-        else {
-            studentItem->setText(column,"");
-        }
-        studentItem->setToolTip(column, stu.tooltip);
-        studentItem->setTextAlignment(column, Qt::AlignCenter);
+    // Section column
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
+        studentItem->setText(column, student.section);
+        studentItem->setToolTip(column, student.tooltip);
         column++;
     }
-    const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
-    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
-        auto value = stu.attributeVals[attribute].constBegin();
-        if(*value != -1) {
-            if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) {
-                studentItem->setText(column, QString::number(*value));
-            }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) {
-                studentItem->setText(column, ((*value) <= 26 ? QString(char((*value)-1 + 'A')) : QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
-            }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
-                QString studentsVals;
-                const auto lastVal = stu.attributeVals[attribute].constEnd();
-                while(value != lastVal) {
-                    studentsVals += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) : QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
-                    value++;
-                    if(value != lastVal) {
-                        studentsVals += ", ";
-                    }
-                }
-                studentItem->setText(column, studentsVals);
-            }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered) {
-                QString studentsVals;
-                const auto lastVal = stu.attributeVals[attribute].constEnd();
-                while(value != lastVal) {
-                    studentsVals += QString::number(*value);
-                    value++;
-                    if(value != lastVal) {
-                        studentsVals += ", ";
-                    }
-                }
-                studentItem->setText(column, studentsVals);
-            }
-        }
-        else {
-            studentItem->setText(column, "?");
-        }
-        studentItem->setToolTip(column, stu.tooltip);
-        studentItem->setTextAlignment(column, Qt::AlignCenter);
+
+    // One more column per scoring criterion
+    for (const auto *const criterion : std::as_const(teamingOptions->criteria)) {
+        studentItem->setText(column, criterion->studentDisplayText(student, dataOptions));
+        studentItem->setToolTip(column, student.tooltip);
+        studentItem->setTextAlignment(column, criterion->studentTextAlignment());
         column++;
-    }
-    if(dataOptions->timezoneIncluded) {
-        const int hour = int(stu.timezone);
-        const int minutes = 60*(stu.timezone - int(stu.timezone));
-        studentItem->setText(column, QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0')));
-        studentItem->setToolTip(column, stu.tooltip);
-        studentItem->setTextAlignment(column, Qt::AlignCenter);
-        column++;
-    }
-    if(!dataOptions->dayNames.isEmpty()) {
-        const int availableTimes = stu.ambiguousSchedule? 0 : int(stu.availabilityChart.count("√"));
-        studentItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
-        studentItem->setToolTip(column, stu.tooltip);
-        studentItem->setTextAlignment(column, Qt::AlignCenter);
     }
 }
 
+void TeamTreeWidget::setColumnHeaderIcon(int column, const QIcon &icon)
+{
+    headerView->setColumnIcon(column, icon);
+}
 
 void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
 {
@@ -468,7 +251,6 @@ void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
     dragDropEventLabel->setTextFormat(Qt::RichText);
 }
 
-
 void TeamTreeWidget::dragLeaveEvent(QDragLeaveEvent *event)
 {
     QTreeWidget::dragLeaveEvent(event);
@@ -479,7 +261,6 @@ void TeamTreeWidget::dragLeaveEvent(QDragLeaveEvent *event)
         dragDropEventLabel = nullptr;
     }
 }
-
 
 void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 {
@@ -512,8 +293,8 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 
     const bool draggedItemIsStudent = (draggedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
     const bool droppedItemIsStudent = (droppedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
-    const auto draggedItemParent = draggedItem->parent();
-    const auto droppedItemParent = droppedItem->parent();
+    const auto *const draggedItemParent = draggedItem->parent();
+    const auto *const droppedItemParent = droppedItem->parent();
 
     if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItemParent == droppedItem)) {
         // ignore if dragging item onto self, team->student, or student->own team
@@ -594,7 +375,6 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     }
 }
 
-
 void TeamTreeWidget::dropEvent(QDropEvent *event)
 {
     if(dragDropEventLabel != nullptr) {
@@ -603,7 +383,7 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
         dragDropEventLabel = nullptr;
     }
 
-    // get the item being dragged and ensure that the item is a TeamTreeWidgetItem
+    // ensure that the dragged item is a TeamTreeWidgetItem
     if(draggedItem == nullptr) {
         event->setDropAction(Qt::IgnoreAction);
         event->ignore();
@@ -619,69 +399,71 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
         return;
     }
 
-
     const bool draggedItemIsStudent = (draggedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
     const bool droppedItemIsStudent = (droppedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
-    const auto draggedItemParent = draggedItem->parent();
-    const auto droppedItemParent = droppedItem->parent();
+    const auto *const draggedItemParent = draggedItem->parent();
+    const auto *const droppedItemParent = droppedItem->parent();
 
-    if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItem->parent() == droppedItem)) {
-        // ignore if dragging item onto self, team->student, or student->own team
+    // ignore if dragging item onto self, team->student, or student->own team, or if something went wrong looking up the team for this student
+    if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItem->parent() == droppedItem) ||
+        (draggedItemIsStudent && (draggedItemParent == nullptr))) {
         event->setDropAction(Qt::IgnoreAction);
         event->ignore();
     }
     else if(draggedItemIsStudent && droppedItemIsStudent) {
         // swapping two students
         // verify they want this if separated sections and dragging between different sections
-        if(draggedItemParent != nullptr && droppedItemParent != nullptr &&
-            draggedItemParent->parent() != nullptr && droppedItemParent->parent() != nullptr &&
-            draggedItemParent->parent() != droppedItemParent->parent()) {
-                const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
-                                                                  tr("You are swapping students between different sections.\n"
-                                                                     "Are you sure you want to continue?"),
-                                                                  tr("Yes"), tr("No"));
-                if(!okClear) {
+        if(draggedItemParent->parent() != nullptr && droppedItemParent != nullptr && droppedItemParent->parent() != nullptr &&
+           draggedItemParent->parent() != droppedItemParent->parent()) {
+                const bool sureAboutThat = grueprGlobal::warningMessage(this, "gruepr",
+                                                                    tr("You are swapping students between different sections.\n"
+                                                                       "Are you sure you want to continue?"),
+                                                                    tr("Yes"), tr("No"));
+            if(!sureAboutThat) {
                     event->setDropAction(Qt::IgnoreAction);
                     event->ignore();
+                    return;
                 }
-                else {
-                    emit swapStudents({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
-                                      (draggedItem->data(0, Qt::UserRole)).toInt(),
-                                       droppedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
-                                      (droppedItem->data(0, Qt::UserRole)).toInt()});
-                }
+                emit swapStudents({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                                   (draggedItem->data(0, Qt::UserRole)).toInt(),
+                                   droppedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                                   (droppedItem->data(0, Qt::UserRole)).toInt()});
+                return;
         }
-        else {
+        if(droppedItemParent != nullptr) {
             emit swapStudents({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
                               (draggedItem->data(0, Qt::UserRole)).toInt(),
                                droppedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
                               (droppedItem->data(0, Qt::UserRole)).toInt()});
+            return;
         }
+        event->setDropAction(Qt::IgnoreAction);
+        event->ignore();
+        return;
     }
     else if(draggedItemIsStudent && !droppedItemIsStudent && (draggedItemParent->childCount() != 1)) {
         // dragging student onto team and not the only student left on the team
         // verify they want this if separated sections and dragging between different sections
         if(draggedItemParent != nullptr && droppedItemParent != nullptr &&
            draggedItemParent->parent() != nullptr && draggedItemParent->parent() != droppedItemParent) {
-            const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
-                                                              tr("You are moving a student to a team in a different section.\n"
-                                                                 "Are you sure you want to continue?"),
-                                                              tr("Yes"), tr("No"));
-            if(!okClear) {
+            const bool sureAboutThat = grueprGlobal::warningMessage(this, "gruepr",
+                                                                    tr("You are moving a student to a team in a different section.\n"
+                                                                       "Are you sure you want to continue?"),
+                                                                    tr("Yes"), tr("No"));
+            if(!sureAboutThat) {
                 event->setDropAction(Qt::IgnoreAction);
                 event->ignore();
+                return;
             }
-            else {
-                emit moveStudent({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
-                                 (draggedItem->data(0, Qt::UserRole)).toInt(),
-                                  droppedItem->data(0, TEAM_NUMBER_ROLE).toInt()});
-            }
-        }
-        else {
             emit moveStudent({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
-                             (draggedItem->data(0, Qt::UserRole)).toInt(),
+                              (draggedItem->data(0, Qt::UserRole)).toInt(),
                               droppedItem->data(0, TEAM_NUMBER_ROLE).toInt()});
+            return;
         }
+        emit moveStudent({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                          (draggedItem->data(0, Qt::UserRole)).toInt(),
+                          droppedItem->data(0, TEAM_NUMBER_ROLE).toInt()});
+        return;
     }
     else if(!draggedItemIsStudent && !droppedItemIsStudent) {
         // dragging team onto teams in order to reorder
@@ -690,75 +472,254 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
           ((draggedItemParent != nullptr) && (droppedItemParent != nullptr) && (draggedItemParent == droppedItemParent))) {
             emit reorderTeams({(draggedItem->data(0, TEAM_NUMBER_ROLE)).toInt(),
                                (droppedItem->data(0, TEAM_NUMBER_ROLE)).toInt()});
+            return;
         }
-        else {
-            event->setDropAction(Qt::IgnoreAction);
-            event->ignore();
-        }
-    }
-    else {
         event->setDropAction(Qt::IgnoreAction);
         event->ignore();
+        return;
     }
+    event->setDropAction(Qt::IgnoreAction);
+    event->ignore();
+    return;
 }
-
 
 void TeamTreeWidget::resorting(int column)
 {
+    auto sortOrder = headerView->sortIndicatorOrder();
     for(int i = 0; i < columnCount(); i++) {
         if(i != column) {
-            headerItem()->setIcon(i, QIcon(":/icons_new/upDownButton_white.png"));
+            headerView->setColumnIcon(i, QIcon(":/icons_new/upDownButton_white.png"));
         }
-        else {
-            headerItem()->setIcon(column, QIcon(":/icons_new/blank_arrow.png"));
+        else if(sortOrder == Qt::AscendingOrder){
+            headerView->setColumnIcon(column, QIcon(":/icons_new/downButton_white.png"));
+        }
+        else { // sortOrder == Qt::DescendingOrder
+            headerView->setColumnIcon(column, QIcon(":/icons_new/upButton_white.png"));
         }
     }
     emit updateTeamOrder();
 }
 
 
-void TeamTreeWidget::itemEntered(const QModelIndex &index)
+///////////////////////////////////////////////////////////////////////
+
+TeamTreeHeaderView::TeamTreeHeaderView(Qt::Orientation orientation, TeamTreeWidget *parent)
+    :QHeaderView(orientation, parent), m_elideMode(Qt::ElideMiddle), m_lineCount(1), m_iconSize(ICONSIZE, ICONSIZE)
 {
-    // select the item cursor is hovered over
-    setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    setAttribute(Qt::WA_Hover);
+    setMouseTracking(true);
+    setSectionResizeMode(QHeaderView::Interactive);
+    setDefaultAlignment(Qt::AlignCenter);
+    setStretchLastSection(false);
+    setStyleSheet(TEAMTREEWIDGETHEADERSTYLE);
+    setMaximumSectionSize(MAX_SECTION_WIDTH);
+
+    connect(this, &TeamTreeHeaderView::sectionClicked, parent, &TeamTreeWidget::resorting);
+    connect(this, &TeamTreeHeaderView::sectionResized, this, &TeamTreeHeaderView::updateHeaderHeight);
 }
 
+void TeamTreeHeaderView::setElideMode(Qt::TextElideMode mode) {
+    m_elideMode = mode;
+    viewport()->update();
+}
 
-void TeamTreeWidget::leaveEvent(QEvent *event)
+void TeamTreeHeaderView::setColumnElideMode(int column, Qt::TextElideMode mode) {
+    m_columnElideModes[column] = mode;
+    viewport()->update();
+}
+
+void TeamTreeHeaderView::setColumnIcon(int column, const QIcon &icon) {
+    m_columnIcons[column] = icon;
+    viewport()->update();
+}
+
+void TeamTreeHeaderView::setIconSize(const QSize &size) {
+    m_iconSize = size;
+    updateHeaderHeight();
+    viewport()->update();
+}
+
+void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const
 {
-    selectionModel()->clearSelection();
-    if(event != nullptr) {
-        QWidget::leaveEvent(event);
+    if (!rect.isValid()) {
+        return;
     }
+
+    // Get the full text
+    const QString fullText = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
+    m_fullTexts[logicalIndex] = fullText;
+
+    // Prepare style option
+    QStyleOptionHeader opt;
+    initStyleOption(&opt);
+    opt.rect = rect;
+    opt.section = logicalIndex;
+
+    // Check if we have an icon
+    const bool hasIcon = m_columnIcons.contains(logicalIndex) && !m_columnIcons[logicalIndex].isNull();
+
+    // Calculate available text width
+    int textWidth = rect.width() - 4; // padding
+    if (hasIcon) {
+        textWidth -= (m_iconSize.width() + 4);
+    }
+
+    // Get the elide mode for this section
+    Qt::TextElideMode columnElideMode = m_elideMode;
+    if (m_columnElideModes.contains(logicalIndex)) {
+        columnElideMode = m_columnElideModes[logicalIndex];
+    }
+
+    // Check if text would be elided
+    const QFontMetrics fm(font());
+    const bool wouldElide = fm.horizontalAdvance(fullText) > textWidth;
+
+    // For middle eliding, switch to word wrap if text would be elided
+    if (wouldElide) {
+        const int prevLineCount = m_lineCountPerColumn.value(logicalIndex, 1);
+        const QString wrappedText = wrapText(logicalIndex, fullText, textWidth, fm);
+        opt.text = wrappedText;
+
+        if (m_lineCountPerColumn.value(logicalIndex, 1) != prevLineCount) {
+            QTimer::singleShot(0, const_cast<TeamTreeHeaderView*>(this),
+                               &TeamTreeHeaderView::updateHeaderHeight);
+        }
+    }
+    else {
+        // Use normal eliding for other modes
+        m_lineCountPerColumn[logicalIndex] = 1;
+        opt.text = fm.elidedText(fullText, columnElideMode, textWidth);
+    }
+    opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+
+    // Set icon in the option if we have one
+    if (hasIcon) {
+        opt.icon = m_columnIcons[logicalIndex];
+        opt.iconAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+    }
+
+    // Let the style draw everything including the icon
+    style()->drawControl(QStyle::CE_Header, &opt, painter, this);
 }
+
+QSize TeamTreeHeaderView::sectionSizeFromContents(int logicalIndex) const {
+    QSize size = QHeaderView::sectionSizeFromContents(logicalIndex);
+    if (m_lineCountPerColumn.contains(logicalIndex) && m_lineCountPerColumn[logicalIndex] > 1) {
+        const int height = (fontMetrics().height() * m_lineCountPerColumn[logicalIndex]) + 12;
+        size.setHeight(std::max(size.height(), height));
+    }
+    return size;
+}
+
+bool TeamTreeHeaderView::event(QEvent *e)
+{
+    if (e->type() == QEvent::ToolTip) {
+        const auto *const helpEvent = static_cast<QHelpEvent *>(e);
+        const int column = logicalIndexAt(helpEvent->pos());
+
+        if (column >= 0 && m_fullTexts.contains(column)) {
+            const QString fullText = m_fullTexts[column];
+
+            // Only show tooltip if text is elided
+            const QFontMetrics fm(font());
+            int sectionWidth = sectionSize(column) - 4;
+            if (m_columnIcons.contains(column)) {
+                sectionWidth -= m_iconSize.width() + 4;
+            }
+
+            if (fm.horizontalAdvance(fullText) > sectionWidth) {
+                QToolTip::showText(helpEvent->globalPos(), fullText);
+                return true;
+            }
+        }
+        QToolTip::hideText();
+        return true;
+    }
+    return QHeaderView::event(e);
+}
+
+void TeamTreeHeaderView::resizeEvent(QResizeEvent *e)
+{
+    QHeaderView::resizeEvent(e);
+    updateHeaderHeight();
+}
+
+void TeamTreeHeaderView::updateHeaderHeight()
+{
+    if (!model()) {
+        return;
+    }
+
+    int maxLines = 1;
+    for (const auto lines : std::as_const(m_lineCountPerColumn)) {
+        maxLines = std::max(maxLines, lines);
+    }
+    const int maxHeight = std::min((fontMetrics().height() * maxLines) + 12, MAX_HEADER_HEIGHT);
+
+    setMinimumHeight(maxHeight);
+    updateGeometry();
+}
+
+QString TeamTreeHeaderView::wrapText(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const
+{
+    // Respect explicit newlines first
+    const QStringList explicitLines = text.split('\n');
+    QStringList finalLines;
+
+    for (const auto &line : explicitLines) {
+        const QStringList words = line.split(' ', Qt::SkipEmptyParts);
+        if (words.isEmpty()) {
+            finalLines << line;
+            continue;
+        }
+
+        QString currentLine = words.first();
+        for (int i = 1; i < words.size(); i++) {
+            const QString candidate = currentLine + " " + words[i];
+            if (fm.horizontalAdvance(candidate) <= availableWidth) {
+                currentLine = candidate;
+            } else {
+                finalLines << currentLine;
+                currentLine = words[i];
+            }
+        }
+        finalLines << currentLine;
+    }
+
+    // Truncate to the number of lines that fit within MAX_HEADER_HEIGHT
+    const int maxLines = std::max(1, (MAX_HEADER_HEIGHT - 12) / fm.height());
+    if (finalLines.size() > maxLines) {
+        finalLines = finalLines.mid(0, maxLines);
+        finalLines.last() += QStringLiteral("\u2026");  // add an elipsis if truncating the height
+    }
+
+    // Elide any lines that are still too wide
+    for (auto &line : finalLines) {
+        if (fm.horizontalAdvance(line) > availableWidth) {
+            line = fm.elidedText(line, Qt::ElideRight, availableWidth);
+        }
+    }
+
+    m_lineCountPerColumn[logicalIndex] = finalLines.size();
+    return finalLines.join("\n");
+}
+
 
 ///////////////////////////////////////////////////////////////////////
 
-TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, float teamScore)
+TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns)
 {
     treeItemType = type;
     if(treeItemType == TreeItemType::team && columns > 0) {
         for(int col = 0; col < columns; col++) {
             setForeground(col, Qt::black);
         }
-        setScoreColor(teamScore);
     }
     if(treeItemType == TreeItemType::section) {
         //sections are fixed--they cannot be dragged or dropped onto
         setFlags(flags() & ~Qt::ItemIsDragEnabled & ~Qt::ItemIsDropEnabled);
     }
 }
-
-void TeamTreeWidgetItem::setScoreColor(float teamScore)
-{
-    if(teamScore < 0) {
-        setBackground(1, QColor::fromString(STARFISHHEX));
-    }
-    else {
-        setBackground(1, background(0));
-    }
-}
-
 
 bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 {
@@ -768,20 +729,8 @@ bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 
     const int sortColumn = treeWidget()->sortColumn();
 
-    if(sortColumn == 0) {
-        return (data(sortColumn, TEAMINFO_SORT_ROLE).toString() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toString());
-    }
-
     // sort using sortorder data in column, and use existing order to break ties
-    return((data(sortColumn, TEAMINFO_SORT_ROLE).toInt() != other.data(sortColumn, TEAMINFO_SORT_ROLE).toInt()) ?
-               (data(sortColumn, TEAMINFO_SORT_ROLE).toInt() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toInt()) :
-               (data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt() < other.data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt()));
-}
-
-///////////////////////////////////////////////////////////////////////
-
-TeamTreeHeaderView::TeamTreeHeaderView(TeamTreeWidget *parent)
-    :QHeaderView(Qt::Horizontal, parent)
-{
-    connect(this, &TeamTreeHeaderView::sectionClicked, parent, &TeamTreeWidget::resorting);
+    return((data(sortColumn, TEAMINFO_SORT_ROLE).toDouble() != other.data(sortColumn, TEAMINFO_SORT_ROLE).toDouble()) ?
+                (data(sortColumn, TEAMINFO_SORT_ROLE).toDouble() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toDouble()) :
+                (data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt() < other.data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt()));
 }

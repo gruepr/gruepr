@@ -2,10 +2,12 @@
 .DS_Store
 gruepr.pro.user
 gruepr.pro.user*
+build/*
 test_surveys/*
 prev_versions/*
 macOS/*
 !macOS/MyAppInfo.plist
+!macOS/DMG_background.png
 windows/*
 !windows/gruepr_InstallScript.nsi
 !windows/install.bmp
@@ -15,4 +17,3 @@ local_secrets.pri
 LMS/canvasScopes.txt
 Brandbook-Gruepr.pdf
 hecvatlite305.xlsx
-build/*

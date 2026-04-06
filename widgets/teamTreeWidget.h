@@ -10,28 +10,15 @@
 #include "teamingOptions.h"
 #include <QHeaderView>
 #include <QLabel>
+#include <QMap>
+#include <QPainter>
+#include <QProxyStyle>
+#include <QStyledItemDelegate>
 #include <QTreeWidget>
 
-
-///////////////////////////////////////////////////////////////////////
-
-class TeamTreeWidgetItem : public QTreeWidgetItem
-{
-public:
-    enum class TreeItemType{section, team, student} treeItemType;
-    explicit TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
-    ~TeamTreeWidgetItem() override = default;
-    TeamTreeWidgetItem(const TeamTreeWidgetItem&) = delete;
-    TeamTreeWidgetItem operator= (const TeamTreeWidgetItem&) = delete;
-    TeamTreeWidgetItem(TeamTreeWidgetItem&&) = delete;
-    TeamTreeWidgetItem& operator= (TeamTreeWidgetItem&&) = delete;
-    void setScoreColor(float teamScore);
-
-private:
-    bool operator<(const QTreeWidgetItem &other) const override;
-};
-
-///////////////////////////////////////////////////////////////////////
+// Need a couple of forward declarations; both are defined below
+class TeamTreeHeaderView;
+class TeamTreeWidgetItem;
 
 class TeamTreeWidget : public QTreeWidget
 {
@@ -44,20 +31,20 @@ public:
     void resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void refreshSection(TeamTreeWidgetItem *sectionItem, const QString &sectionName);
     enum class RefreshType{newTeam, existingTeam};
-    void refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
-                     const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
-    void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu,
+    void refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum,
+                     const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions,
+                     const QList<StudentRecord> &students, const QSet<long long> &IDsBeingTeamed);
+    void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &student,
                         const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
+    void setColumnHeaderIcon(int column, const QIcon &icon);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;        // remember which item is being dragged
     void dragLeaveEvent(QDragLeaveEvent *event) override;        // get rid of tooltip if drag leaves
     void dragMoveEvent(QDragMoveEvent *event) override;          // update tooltip during drag
     void dropEvent(QDropEvent *event) override;                  // handle when the dragged item is being dropped to allow swapping of teammates or teams
-    void leaveEvent(QEvent *event) override;
 
 private slots:
-    void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it
     void itemCollapse(QTreeWidgetItem *item);
     void itemExpand(QTreeWidgetItem *item);
 
@@ -71,6 +58,7 @@ signals:
     void updateTeamOrder();
 
 private:
+    TeamTreeHeaderView *headerView = nullptr;
     TeamTreeWidgetItem *draggedItem = nullptr;
     TeamTreeWidgetItem *droppedItem = nullptr;
     QLabel *dragDropEventLabel = nullptr;
@@ -83,7 +71,109 @@ class TeamTreeHeaderView : public QHeaderView
     Q_OBJECT
 
 public:
-    TeamTreeHeaderView(TeamTreeWidget *parent = nullptr);
+    TeamTreeHeaderView(Qt::Orientation orientation, TeamTreeWidget *parent = nullptr);
+
+    void setElideMode(Qt::TextElideMode mode);
+    void setColumnElideMode(int column, Qt::TextElideMode mode);
+    void setColumnIcon(int column, const QIcon &icon);
+    void setIconSize(const QSize &size);
+
+protected:
+    void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override;
+    QSize sectionSizeFromContents(int logicalIndex) const override;
+    bool event(QEvent *e) override;
+    void resizeEvent(QResizeEvent *e) override;
+
+private:
+    void updateHeaderHeight();
+    QString wrapText(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const;
+    inline static const int MAX_SECTION_WIDTH = 200;
+    inline static const int MAX_HEADER_HEIGHT = 150;
+
+    Qt::TextElideMode m_elideMode;
+    QMap<int, Qt::TextElideMode> m_columnElideModes;
+    mutable QMap<int, QString> m_fullTexts;
+    QMap<int, QIcon> m_columnIcons;
+    mutable QMap<int, int> m_lineCountPerColumn;
+    int m_lineCount;
+    QSize m_iconSize;
+    static const int ICONSIZE = 16;
+};
+
+///////////////////////////////////////////////////////////////////////
+
+class TeamTreeWidgetItem : public QTreeWidgetItem
+{
+public:
+    enum class TreeItemType{section, team, student} treeItemType;
+    explicit TeamTreeWidgetItem(TreeItemType type, int columns = 0);
+    ~TeamTreeWidgetItem() override = default;
+    TeamTreeWidgetItem(const TeamTreeWidgetItem&) = delete;
+    TeamTreeWidgetItem operator= (const TeamTreeWidgetItem&) = delete;
+    TeamTreeWidgetItem(TeamTreeWidgetItem&&) = delete;
+    TeamTreeWidgetItem& operator= (TeamTreeWidgetItem&&) = delete;
+
+private:
+    bool operator<(const QTreeWidgetItem &other) const override;
+};
+
+///////////////////////////////////////////////////////////////////////
+// Two classes to handle translucent highlighting of each row on hovering the mouse
+
+class NoHoverDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+    void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
+    {
+        QStyledItemDelegate::initStyleOption(option, index);
+        // Save hover state, then strip it so platform doesn't paint its own highlight
+        option->state &= ~QStyle::State_Selected;
+    }
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        const bool hovered = option.state & QStyle::State_MouseOver;
+
+        // Strip hover before default painting
+        QStyleOptionViewItem opt(option);
+        opt.state &= ~QStyle::State_MouseOver;
+        QStyledItemDelegate::paint(painter, opt, index);
+
+        // Paint translucent overlay if hovered
+        if (hovered) {
+            QColor overlay(OPENWATERHEX);
+            overlay.setAlpha(33);
+            painter->fillRect(option.rect, overlay);
+        }
+    }
+};
+
+class NoHoverStyle : public QProxyStyle
+{
+    Q_OBJECT
+
+public:
+    using QProxyStyle::QProxyStyle;
+    void drawPrimitive(PrimitiveElement element, const QStyleOption *option,
+                       QPainter *painter, const QWidget *widget = nullptr) const override
+    {
+        if (element == PE_PanelItemViewRow || element == PE_PanelItemViewItem) {
+            QStyleOption opt(*option);
+            const bool hovered = opt.state & State_MouseOver;
+            opt.state &= ~(State_MouseOver | State_Selected);
+            QProxyStyle::drawPrimitive(element, &opt, painter, widget);
+            if (hovered) {
+                QColor overlay(OPENWATERHEX);
+                overlay.setAlpha(33);
+                painter->fillRect(opt.rect, overlay);
+            }
+            return;
+        }
+        QProxyStyle::drawPrimitive(element, option, painter, widget);
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 #define CSVFILE_H
 
 #include "dialogs/listTableDialog.h"
+#include <memory>
 #include <QFile>
 #include <QFileInfo>
 #include <QString>
@@ -32,28 +33,27 @@ struct possFieldMeaning
 /**
  * @brief The CsvFile class corresponding to a CSV file. This class can represent a CSV file that needs to be read or written by gruepr.
  */
-class CsvFile : public QObject
+class CsvFile
 {
-    Q_OBJECT
-
 public:
     enum class Delimiter {comma, tab};
     enum class Source {fileOnly, fileOrOnline};
     enum class Operation {read, write};
     enum class ReadLocation {currentPosition, beginningOfFile};
 
-    CsvFile(Delimiter dlmtr = Delimiter::comma, QObject *parent = nullptr);
-    ~CsvFile() override;
+    CsvFile(Delimiter dlmtr = Delimiter::comma);
+    ~CsvFile();
     CsvFile(const CsvFile&) = delete;
     CsvFile operator= (const CsvFile&) = delete;
     CsvFile(CsvFile&&) = delete;
     CsvFile& operator= (CsvFile&&) = delete;
 
-    bool open(QWidget *parent = nullptr, Operation operation = Operation::read, const QString &caption = tr("Open csv File"),
+    bool open(QWidget *parent = nullptr, Operation operation = Operation::read, const QString &caption = QObject::tr("Open csv File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");
     bool openExistingFile(const QString &filepath);
     QFileInfo fileInfo();
     bool isOpen();
+    bool atEnd();
     void close(bool deleteFile = false);
     bool readHeader();
     //void setFieldMeanings();
@@ -73,8 +73,8 @@ public:
     QStringList fieldsToBeIgnored;
 
 private:
-    QFile *file = nullptr;
-    QTextStream *stream = nullptr;
+    std::unique_ptr<QFile> file;
+    std::unique_ptr<QTextStream> stream;
     char delimiter = ',';
     listTableDialog *window = nullptr;
     QStringList getLine(const int minFields = -1);

@@ -3,10 +3,10 @@
 
 // a subclassed combobox that paints with elided contents
 
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 
 
-class ComboBoxWithElidedContents : public QComboBox
+class ComboBoxWithElidedContents : public StyledComboBox
 {
     Q_OBJECT
 

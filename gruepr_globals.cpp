@@ -43,61 +43,45 @@ float grueprGlobal::timeStringToHours(const QString &timeStr) {
 bool grueprGlobal::internetIsGood() {
     //make sure we can connect to google
     auto *manager = new QNetworkAccessManager;
+    manager->setTransferTimeout(8000);
     QEventLoop loop;
     QNetworkReply *networkReply = manager->head(QNetworkRequest(QUrl("http://www.google.com")));
     QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    const bool weGotProblems = (networkReply->rawHeaderList().isEmpty());
+    const bool weGotProblems = (!networkReply->isFinished() || networkReply->rawHeaderList().isEmpty());
     networkReply->deleteLater();
     manager->deleteLater();
     if(weGotProblems) {
         grueprGlobal::errorMessage(nullptr, QObject::tr("Error!"), QObject::tr("There does not seem to be an internet connection.\n"
-                                                                         "Check your network connection and try again."));
+                                                                               "Check your network connection and try again."));
     }
     return !weGotProblems;
 }
 
-QJsonArray grueprGlobal::genderListToJsonArray(const QList<Gender>& genders) {
-    QJsonArray jsonArray;
-    for (Gender gender : genders) {
-        switch (gender) {
-        case Gender::woman: jsonArray.append("woman"); break;
-        case Gender::man: jsonArray.append("man"); break;
-        case Gender::nonbinary: jsonArray.append("nonbinary"); break;
-        case Gender::unknown: jsonArray.append("unknown"); break;
-        }
-    }
-    return jsonArray;
-}
-
-QList<Gender> grueprGlobal::jsonArrayToGenderList(const QJsonArray& jsonArray) {
-    QList<Gender> genders;
-    for (const QJsonValue& value : jsonArray) {
-        QString genderStr = value.toString().toLower();
-        if (genderStr == "woman") genders.append(Gender::woman);
-        else if (genderStr == "man") genders.append(Gender::man);
-        else if (genderStr == "nonbinary") genders.append(Gender::nonbinary);
-        else genders.append(Gender::unknown);  // Fallback for unrecognized values
-    }
-    return genders;
-}
-
-
-QString grueprGlobal::genderToString(Gender gender) {
+QString grueprGlobal::genderToString(const Gender gender) {
     switch (gender) {
-        case Gender::woman: return "Woman";
-        case Gender::man: return "Man";
-        case Gender::nonbinary: return "Non-binary";
-        case Gender::unknown: return "Unknown";
-        default: return "Unknown";
+        case Gender::woman:
+            return "Woman";
+        case Gender::man:
+            return "Man";
+        case Gender::nonbinary:
+            return "Nonbinary";
+        default:
+            return "Unknown";
     }
 }
 
 // Convert string to enum
 Gender grueprGlobal::stringToGender(const QString& genderStr) {
-    if (genderStr == "Woman") return Gender::woman;
-    if (genderStr == "Man") return Gender::man;
-    if (genderStr == "Non-binary") return Gender::nonbinary;
+    if (genderStr == "Woman") {
+        return Gender::woman;
+    }
+    if (genderStr == "Man") {
+        return Gender::man;
+    }
+    if (genderStr == "Nonbinary") {
+        return Gender::nonbinary;
+    }
     return Gender::unknown; // Default to unknown if input is invalid
 }
 

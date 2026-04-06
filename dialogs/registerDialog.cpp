@@ -49,8 +49,9 @@ registerDialog::registerDialog(QWidget *parent)
     //(one or more letters, digits, or special symbols, then '@', then one or more letters, digits, or special symbols, then '.', then 2, 3 or 4 letters)
     static const QRegularExpression emailAddressFormat(EMAILADDRESSREGEX, QRegularExpression::CaseInsensitiveOption);
     emailLineEdit->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
-    connect(emailLineEdit, &QLineEdit::textChanged, this, [this]()
-                                                    {emailLineEdit->setStyleSheet(emailLineEdit->hasAcceptableInput()? LINEEDITSTYLE : LINEEDITERRORSTYLE);});
+    connect(emailLineEdit, &QLineEdit::textChanged, this, [this]() {
+        emailLineEdit->setStyleSheet(emailLineEdit->hasAcceptableInput()? LINEEDITSTYLE : LINEEDITERRORSTYLE);
+    });
 
     //a spacer then ok/cancel buttons
     theBox->addSpacing(DIALOG_SPACER_ROWHEIGHT);
@@ -62,15 +63,24 @@ registerDialog::registerDialog(QWidget *parent)
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    connect(nameLineEdit, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   emailLineEdit->hasAcceptableInput() && !(nameLineEdit->text().isEmpty()) && !(institutionLineEdit->text().isEmpty()));
-                                                   name = nameLineEdit->text();});
-    connect(institutionLineEdit, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   emailLineEdit->hasAcceptableInput() && !(nameLineEdit->text().isEmpty()) && !(institutionLineEdit->text().isEmpty()));
-                                                   institution = institutionLineEdit->text();});
-    connect(emailLineEdit, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   emailLineEdit->hasAcceptableInput() && !(nameLineEdit->text().isEmpty()) && !(institutionLineEdit->text().isEmpty()));
-                                                   email = emailLineEdit->text();});
+    connect(nameLineEdit, &QLineEdit::textChanged, this, [this]() {
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(emailLineEdit->hasAcceptableInput() &&
+                                                             !(nameLineEdit->text().isEmpty()) &&
+                                                             !(institutionLineEdit->text().isEmpty()));
+        name = nameLineEdit->text();
+    });
+    connect(institutionLineEdit, &QLineEdit::textChanged, this, [this]() {
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(emailLineEdit->hasAcceptableInput() &&
+                                                             !(nameLineEdit->text().isEmpty()) &&
+                                                             !(institutionLineEdit->text().isEmpty()));
+        institution = institutionLineEdit->text();
+    });
+    connect(emailLineEdit, &QLineEdit::textChanged, this, [this]() {
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(emailLineEdit->hasAcceptableInput() &&
+                                                             !(nameLineEdit->text().isEmpty()) &&
+                                                             !(institutionLineEdit->text().isEmpty()));
+        email = emailLineEdit->text();
+    });
 
     adjustSize();
 }

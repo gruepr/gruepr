@@ -35,7 +35,7 @@ jobs:
         DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
         EOF
 
-    # --- Compile ---
+# --- Compile ---
 
     - name: QMake
       run: qmake gruepr.pro CONFIG+=release
@@ -43,7 +43,7 @@ jobs:
     - name: Compile
       run: make -j$(nproc)
 
-    # --- Create .desktop file and prepare AppImage ---
+# --- Create .desktop file and prepare AppImage ---
 
     - name: Create .desktop file
       run: |
@@ -54,12 +54,12 @@ jobs:
         Name=gruepr
         Comment=Optimally assign students to teams
         Exec=gruepr
-        Icon=gruepr
+        Icon=icon
         Categories=Education;
         Terminal=false
         DESKTOP
 
-    # --- Build AppImage ---
+# --- Build AppImage ---
 
     - name: Download linuxdeploy
       run: |
@@ -69,8 +69,8 @@ jobs:
 
     - name: Create AppImage
       run: |
-        export QMAKE=$Qt6_DIR/bin/qmake
-        export LD_LIBRARY_PATH=$Qt6_DIR/lib:$LD_LIBRARY_PATH
+        export QMAKE=$QT_ROOT_DIR/bin/qmake
+        export LD_LIBRARY_PATH=$QT_ROOT_DIR/lib:$LD_LIBRARY_PATH
         ./linuxdeploy-x86_64.AppImage \
           --appdir AppDir \
           --executable gruepr \
@@ -82,7 +82,7 @@ jobs:
     - name: Rename AppImage
       run: mv gruepr-*.AppImage gruepr-linux-x86_64.AppImage
 
-    # --- Upload ---
+# --- Upload ---
 
     - name: Upload AppImage
       uses: actions/upload-artifact@v6

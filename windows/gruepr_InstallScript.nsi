@@ -6,8 +6,9 @@
 ;--------------------------------
 
   !define APPNAME "gruepr"
+
   !ifndef BASELOCATION
-    !define BASELOCATION "\"
+    !define BASELOCATION "C:\Users\jhertz\Documents\GDrive\CPP\Qt"
   !endif
   !define APPLOCATION "${BASELOCATION}\gruepr"
   !ifndef BUILDDIR
@@ -38,7 +39,11 @@
 ; Basics
 
   Name "${APPNAME}"
-  OutFile "install_${APPNAME}.exe"
+  !ifdef CI
+    OutFile "install_${APPNAME}.exe"
+  !else
+    OutFile "install_${APPNAME}V${VERSION}.exe"
+  !endif
   InstallDir "$PROGRAMFILES\${APPNAME}"
   InstallDirRegKey HKCU "Software\${APPNAME}" "Install_Dir"
 
@@ -94,6 +99,19 @@
 ;Languages
 
   !insertmacro MUI_LANGUAGE "English"
+
+;--------------------------------
+; Check if gruepr is currently running
+
+Function .onInit
+    nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq gruepr.exe" 2>nul | find /c "gruepr.exe"'
+    Pop $0  ; return value
+    Pop $1  ; output string (the count)
+    StrCmp $1 "0" done
+        MessageBox MB_OK|MB_ICONEXCLAMATION "gruepr is currently running. Please close it before installing."
+        Abort
+    done:
+FunctionEnd
 
 ;--------------------------------
 ; Installation

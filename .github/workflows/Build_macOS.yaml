@@ -15,7 +15,7 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qtcharts qtnetworkauth'
+          modules: 'qtnetworkauth'
           cache: true
 
       - name: Build universal libomp
@@ -40,16 +40,18 @@ jobs:
       # --- Build ARM ---
       - name: Build ARM
         run: |
-          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal" QMAKE_APPLE_DEVICE_ARCHS=arm64
-          make -j$(sysctl -n hw.ncpu)
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS=arm64 EXPORT_DEFAULT_ARCHS=arm64
+          file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-arm64
           make clean
 
       # --- Build Intel ---
       - name: Build Intel
         run: |
-          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal" QMAKE_APPLE_DEVICE_ARCHS=x86_64
-          make -j$(sysctl -n hw.ncpu)
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS=x86_64 EXPORT_DEFAULT_ARCHS=x86_64
+          file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-x86_64
 
       # --- Create universal binary ---
@@ -68,31 +70,31 @@ jobs:
           cp libomp-universal/lib/libomp.dylib gruepr.app/Contents/Frameworks/
           install_name_tool -change @rpath/libomp.dylib @executable_path/../Frameworks/libomp.dylib gruepr.app/Contents/MacOS/gruepr
 
-#      # --- Import signing certificate ---
-#      - name: Import certificate
-#        run: |
-#          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-#          KEYCHAIN_PASSWORD=$(openssl rand -hex 12)
-#
-#          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-#          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-#          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-#
-#          echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/certificate.p12
-#          security import $RUNNER_TEMP/certificate.p12 \
-#            -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" \
-#            -A -t cert -f pkcs12 \
-#            -k "$KEYCHAIN_PATH"
-#
-#          security list-keychain -d user -s "$KEYCHAIN_PATH"
-#
-#      # --- Sign the app ---
-#      - name: Sign app
-#        run: |
-#          codesign --force --deep --options runtime \
-#            --sign "Developer ID Application: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
-#            gruepr.app
-#
+      # --- Import signing certificate ---
+      - name: Import certificate
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 12)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 \
+            -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      # --- Sign the app ---
+      - name: Sign app
+        run: |
+          codesign --force --deep --options runtime \
+            --sign "Developer ID Application: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            gruepr.app
+
       # --- Create DMG ---
       - name: Create DMG
         run: |
@@ -104,30 +106,30 @@ jobs:
             -ov -format UDZO \
             gruepr.dmg
 
-#      # --- Sign the DMG ---
-#      - name: Sign DMG
-#        run: |
-#          codesign --force \
-#            --sign "Developer ID Application: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
-#            gruepr.dmg
-#
-#      # --- Notarize ---
-#      - name: Notarize
-#        run: |
-#          xcrun notarytool submit gruepr.dmg \
-#            --apple-id "${{ secrets.APPLE_ID }}" \
-#            --password "${{ secrets.APPLE_ID_PASSWORD }}" \
-#            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
-#            --wait
-#
-#      - name: Staple
-#        run: xcrun stapler staple gruepr.dmg
-#
-#      # --- Cleanup keychain ---
-#      - name: Cleanup
-#        if: always()
-#        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
-#
+      # --- Sign the DMG ---
+      - name: Sign DMG
+        run: |
+          codesign --force \
+            --sign "Developer ID Application: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            gruepr.dmg
+
+      # --- Notarize ---
+      - name: Notarize
+        run: |
+          xcrun notarytool submit gruepr.dmg \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --password "${{ secrets.APPLE_ID_PASSWORD }}" \
+            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
+            --wait
+
+      - name: Staple
+        run: xcrun stapler staple gruepr.dmg
+
+      # --- Cleanup keychain ---
+      - name: Cleanup
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+
       # --- Upload final DMG ---
       - name: Upload signed DMG
         uses: actions/upload-artifact@v6

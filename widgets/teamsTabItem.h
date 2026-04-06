@@ -2,16 +2,18 @@
 #define TEAMSTABITEM_H
 
 #include "studentRecord.h"
-#include "dialogs/whichFilesDialog.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
+#include "dialogs/whichFilesDialog.h"
+#include "widgets/styledComboBox.h"
 #include "widgets/teamTreeWidget.h"
 #include <QCheckBox>
-#include <QComboBox>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QLabel>
 #include <QPrinter>
 #include <QPushButton>
+#include <QTableWidget>
 #include <QWidget>
 
 class TeamsTabItem : public QWidget
@@ -33,15 +35,18 @@ public:
     TeamsTabItem& operator= (TeamsTabItem&&) = delete;
 
     QJsonObject toJson() const;
+    void restoreCriteria(const DataOptions *dataOptions);
 
     QString tabName;
+    const TeamSet& getTeams() const { return teams; }
 
 signals:
     void connectedToPrinter();
     void saveState();
+    void addCriterionRequested(Criterion::CriteriaType type);
 
 private slots:
-    void changeTeamNames(int index);
+    void changeTeamNames(const int index);
     void toggleSectionsInTeamNames(bool addSectionNames);
     void randomizeTeamnames(bool random);
     void updateTeamNamesInTableAndTooltips();
@@ -68,6 +73,7 @@ private:
     QStringList sectionNames;
     TeamSet teams;
     QList<StudentRecord> students;
+    QSet<long long> IDsBeingTeamed;
     int numStudents = 1;
 
     struct UndoRedoItem{void (TeamsTabItem::*action)(const QList<int> &arguments);
@@ -80,11 +86,14 @@ private:
 
     static const QStringList teamnameCategories;
     static const QStringList teamnameLists;
-    QComboBox *teamnamesComboBox = nullptr;
+    StyledComboBox *teamnamesComboBox = nullptr;
     QCheckBox *randTeamnamesCheckBox = nullptr;
     QCheckBox *addSectionToTeamnamesCheckBox = nullptr;
     bool randomizedTeamNames = false;
     bool sectionsInTeamNames = false;
+
+    // used to save and restore the teamsTab when gruepr is closed/reopened
+    QJsonArray savedCriteriaJson;
 
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     TeamingOptions *externalTeamingOptions = nullptr;

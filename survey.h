@@ -8,14 +8,16 @@
 
 struct Question
 {
-    enum class QuestionType{shorttext, dropdown, radiobutton, checkbox, schedule, longtext};
+    enum class QuestionType{shorttext, dropdown, radiobutton, checkbox, schedule, longtext, freeresponsenumber, rankedchoice};
 
-    Question(const QString &questionText = "", const QuestionType questionType = QuestionType::longtext, const QStringList &responseOptions = {}) :
-          text(questionText), type(questionType), options(responseOptions) {};
+    Question(const QString &questionText = "", const QuestionType questionType = QuestionType::longtext,
+             const QStringList &responseOptions = {}, const int numRankedChoices = 0) :
+          text(questionText), type(questionType), options(responseOptions), numRankedChoices(numRankedChoices) {};
 
     QString text;
     QuestionType type;
     QStringList options;
+    int numRankedChoices = 0;
 };
 
 

@@ -6,7 +6,7 @@
 // QComboBox that paints with elided contents
 //////////////////
 ComboBoxWithElidedContents::ComboBoxWithElidedContents(const QString &minWidthText, QWidget *parent)
-    :QComboBox(parent)
+    :StyledComboBox(parent)
 {
     minText = minWidthText;
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);

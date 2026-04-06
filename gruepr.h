@@ -1,20 +1,23 @@
 #ifndef GRUEPR_H
 #define GRUEPR_H
 
-#include <QMainWindow>
 #include "csvfile.h"
 #include "dataOptions.h"
-#include "dialogs/progressDialog.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
+#include "dialogs/progressDialog.h"
 #include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include "widgets/styledComboBox.h"
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QMainWindow>
 #include <QPrinter>
+#include <QProgressDialog>
+#include <QSpinBox>
 
 
 namespace Ui {class gruepr;}
@@ -27,7 +30,7 @@ class gruepr : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget *parent = nullptr);
+    explicit gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QProgressDialog *progressDialog = nullptr);
     ~gruepr() override;
     gruepr(const gruepr&) = delete;
     gruepr operator= (const gruepr&) = delete;
@@ -37,11 +40,12 @@ public:
     static void calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
                                TeamSet &_teams, const TeamingOptions *const _teamingOptions);
 
-    bool restartRequested = false;
+    QList<StudentRecord> students;
+    DataOptions *dataOptions = nullptr;
 
-    inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
-    inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
-    inline static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
+    void addSavedTeamsTabs();
+    QStringList getTeamTabNames() const;
+    QList<QList<long long>> getTeamSetData(const QString &tabName) const;
 
 signals:
     void closed();
@@ -50,11 +54,21 @@ signals:
     void sectionOptimizationFullyComplete();
     void turnOffBusyCursor();
 
+public slots:
+    void moveCriteriaCard(int draggedIndex, int targetIndex);
+    void showDropIndicator(int targetIndex);
+    void showBottomDropZone();
+    void hideDropIndicator();
+    void deleteCriteriaCard(int deletedIndex);
+    void doAutoScroll(QPoint point);
+    void refreshCriteriaLayout();
+    void saveState();
+
 protected:
     void closeEvent(QCloseEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
-    void restartWithNewData();
     void changeSection(int index);
     void editSectionNames();
     void editAStudent();
@@ -63,28 +77,19 @@ private slots:
     void addAStudent();
     void compareStudentsToRoster();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
-    void simpleUIItemUpdate(QObject *sender = nullptr);
-    void selectURMResponses();
-    void responsesRulesButton_clicked(int attribute, int tabIndex);
     void changeIdealTeamSize();
     void chooseTeamSizes(int index);
-    void makeTeammatesRules();
     void startOptimization();
     void updateOptimizationProgress(const float *const allScores, const int *const orderedIndex,
                                     const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void optimizationComplete();
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
-    void saveState();
-private slots:
-    void swapCriteriaCards(int draggedIndex, int targetIndex);
-    void deleteCriteriaCard(int deletedIndex);
+
 private:
         // setup
     Ui::gruepr *ui;
-    void loadDefaultSettings();
-    void loadUI();
-    DataOptions *dataOptions = nullptr;
+    void loadUI(QProgressDialog *progressDialog);
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
     inline void setTeamSizes(const QList<int> &teamSizes);
@@ -93,17 +98,14 @@ private:
 
         // reading survey data
     long long numActiveStudents = MAX_STUDENTS;
-    QList<StudentRecord> students;
     inline StudentRecord* findStudentFromID(const long long ID);
-    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks survey names and emails against roster
-    void refreshStudentDisplay();
+    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks names and emails against roster
+    void refreshStudentDisplay(QProgressDialog *progressDialog = nullptr, int progressStart = 0, int progressEnd = 0);
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
-    QList<QPushButton *> attributeSelectorButtons;
-    QList<AttributeWidget *> attributeWidgets = {};
-    QList<GroupingCriteriaCard *> initializedAttributeCriteriaCards = {};
-    QList<CriteriaType> teammateRulesExistence;
+
         // team set optimization
+    QPushButton *letsDoItButton = nullptr;
     QList<int> studentIndexes;                                    // the indexes of students to be placed on teams
     QList<int> optimizeTeams(const QList<int> studentIndexes);    // return value is a single permutation-of-indexes
     QFuture< QList<int> > future;                                 // needed so that optimization can happen in a separate thread
@@ -112,80 +114,53 @@ private:
     progressDialog *progressWindow = nullptr;
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                float _teamScores[], float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints,
-                                std::set<int> _attributesBeingScored, bool _schedBeingScored, bool _genderBeingScored, bool _URMBeingScored,
-                                bool _teammatesBeingScored);
-    inline static void getAttributeScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                          const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                          float **_attributeScore, const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,
-                                          int *_penaltyPoints);
-    inline static void getScheduleScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                         float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);
-    inline static void getGenderPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                          const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
-    inline static void getURMPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                       int *_penaltyPoints);
-    inline static void getTeammatePenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                            const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
+                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
+                                QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
+
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
     bool multipleSectionsInProgress = false;
     bool optimizationStopped = false;
     bool keepOptimizing = false;
+    inline const static float MINIMUM_PENALTY = 1.01f;            // ensures that even the smallest penalty to a team makes that team have negative score
 
         // reporting results
     TeamSet teams;
     QList<int> bestTeamSet;
     TeamSet finalTeams;
 
-    //Extra refactoring
-    QPushButton *letsDoItButton;
-    QPushButton *addGroupingCriteriaButton;
-    void initializeCriteriaCardPriorities();
-    QPushButton* createAddNewCriteriaButton(bool hoverToSee);
-    //QList<QPushButton*> addNewCriteriaCardButtons;
-    QPushButton* addNewCriteriaCardButton;
-    QHBoxLayout* createIdentityOperatorRule(QString identity, QString operatorString = "", int noOfIdentity = -1);
-    void updateIdentityCriteriaCard(GroupingCriteriaCard *identityCard, QString identity, bool addNewCriteria);
 
-    //make an enum criteria type.
-    void addCriteriaCard(CriteriaType criteriaType);
-    void addCriteriaCard(CriteriaType criteriaType, Gender gender);
-    void addCriteriaCard(CriteriaType criteriaType, QString urmResponse);
-    void addCriteriaCard(CriteriaType criteriaType, int attribute);
-
-    QMenu *mainMenu;
-
-    //Criteria Cards
+        //Criteria Cards
+    GroupingCriteriaCard *teamsizeCriteriaCard = nullptr;
+        StyledComboBox *teamSizeBox = nullptr;
+        QSpinBox *idealTeamSizeBox = nullptr;
+    GroupingCriteriaCard *sectionCriteriaCard = nullptr;
+        StyledComboBox *sectionSelectionBox = nullptr;
+    GroupingCriteriaCard *genderIdentityCriteriaCard = nullptr;
+    GroupingCriteriaCard *urmIdentityCard = nullptr;
+    GroupingCriteriaCard *assignmentPreferenceCriteriaCard = nullptr;
+    GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
+    QList<Criterion::CriteriaType> teammateRulesExistence;
+    QList<GroupingCriteriaCard*> initializedAttributeCriteriaCards;
+    QList<AttributeWidget*> attributeWidgets;
+        QList<int> addedAttributeNumbersList;
     QList<GroupingCriteriaCard*> criteriaCardsList;
-
-    //Single: Team Size Criteria Card
-    GroupingCriteriaCard* teamSizeCriteriaCard = nullptr;
-    QHBoxLayout* teamSizeContentAreaLayout;
-    QComboBox* teamSizeBox = nullptr;
-    QSpinBox* idealTeamSizeBox = nullptr;
-
-    //Single: Section Criteria Card
-    GroupingCriteriaCard* sectionCriteriaCard = nullptr;
-    QHBoxLayout* sectionContentLayout = nullptr;
-    QPushButton *editSectionNameButton = nullptr;
-    QComboBox *sectionSelectionBox = nullptr;
-
-    //MCQ Criteria Card //likert scale or categorical?
-    QList<int> addedAttributeNumbersList;
-
-    //Identity Options Card (these are all objects that can be created)
-    QList<GroupingCriteriaCard*> identityOptionsCardList;
-    QMap<QString, QCheckBox*> uiCheckBoxMap;
-
-    //Single: Meeting Schedule Criteria Card
-    GroupingCriteriaCard* meetingScheduleCriteriaCard = nullptr;
-    QSpinBox* minMeetingTimes = nullptr;
-    QSpinBox* desiredMeetingTimes = nullptr;
-    QDoubleSpinBox* meetingLengthSpinBox = nullptr;
+    QPushButton *addNewCriteriaCardButton = nullptr;
+    QMenu *addNewCriteriaMenu = nullptr;
+    QAction *genderMenuAction = nullptr;
+    QAction *urmMenuAction = nullptr;
+    QAction *assignmentPreferenceMenuAction = nullptr;
+    QAction *scheduleMenuAction = nullptr;
+    QAction *groupTogetherMenuAction = nullptr;
+    QAction *splitApartMenuAction = nullptr;
+    QList<QAction*> attributeMenuActions;
+    void addCriteriaCard(Criterion::CriteriaType criteriaType);
+    void addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute);
+    void initializeCriteriaCardPriorities();
+    void populateCriterionTypes();
+    QFrame *dropIndicator = nullptr;
+    QWidget *bottomDropZone = nullptr;
 };
 
 #endif // GRUEPR_H

@@ -1,8 +1,8 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019 - 2025
-// Joshua Hertz
+// Copyright (C) 2019 - 2026
+// Joshua Hertz, Giovanni Assad, Nikhen Nyo
 // info@gruepr.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    This program is free software: you can redistribute it and/or modify
@@ -22,10 +22,7 @@
 //    using version 6.9. These can be freely downloaded from
 //    < http://qt.io/download >.
 //
-//    Some icons were originally created by Icons8 < https://icons8.com >.
-//    These icons have been made available under the creative commons license:
-//    Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0).
-//    Other icons and graphics are original creations for the gruepr project by Scout
+//    Icons and graphics are original creations for the gruepr project by Scout
 //    < https://scout.camd.northeastern.edu/ >.
 //
 //    Several embedded fonts are used:
@@ -35,54 +32,60 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - changed handling of gender, allowing it to be multi-valued (check one or more in survey; set of values in the studentRecord)
-//  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
+//  - Pulling in ***incredible*** dissertation work by Nikhen:
+//     - Turned teaming criteria into individual 'cards' that are added, removed, and rearranged to make team formation goals
+//     - Added visualization to show how well each team meets each team formation goal
+//     - UI modernizations and simplifications in start dialog and data loading process
+//     - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
+//  - unified "required" and "requested" teammates
+//  - enabled a 'load from teamsTab' action in the "required" and "prevented" teammates in order to re-create or split apart an existing set of teams
+//  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
+//  - penalty points now scale with the criterion weight so that higher-priority penalties are more impactful
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
 //  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
-//  - attribute response counts now correctly account for added / removed / edited students
+//  - now shows bar graphs indicating how many students selected each multiple choice response
+//  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
-//
-// INPROG:
-//  - export of teams should include the section number if that's being displayed (having trouble re-creating)
-//  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
+//  - added numerical attribute, ranked options, and free text response questions
+//  - significantly expanded the ability to make teaming rules based on gender or racial/ethnic identity
+//  - removed dark mode in windows
+//  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
+//  - now preferentially performs GA::mutate on the lowest scoring team within a genome
+//  - added motion to the LMS busy dialog so that it doesn't appear frozen while connecting / downloading data
+//  - added nicer timeout function to handle LMS connection issue
+//  - fixed errors with Google connection and authorization related to IPv6 networking and PKCE authorization
+//  - fixed several memory leaks and thread race conditions
+//  - improved loading speed for surveymaker and gruepr
+//  - C++ code modernization throughout, using RAII architecture and reducing fixed size arrays
+//  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
+//  - added to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
+//  - added a linux build (untested!)
 //
 // TO DO:
-//    BUGFIXES:
-//
 //    NEW FEATURES:
-//  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
-//  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
-//  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
-//  - in teammatesRules dialog, enable the 'load from teamsTab' action
+//  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
-//  - add integration with Blackboard, Qualtrics, others
+//  - add integration with Qualtrics, Microsoft Forms (Azure/Entra, whenever their API is published)
 //
 //    INTERNAL:
-//  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
-//      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
-//      - much harder: replace arrays for all of the attribute-related stuff
-//      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
-//  - analyze for memory leaks
-//      - memory leak -> crash when loading large file, unloading, then repeating a few times
 //  - compile for webassembly, turn into a webapp
-//      - move from OpenMP to QThread?
+//      - move from OpenMP to QThread or c++ threads?
 //
 //    NETWORK IMPLEMENTATION:
-//  - create timeout function to more nicely handle LMS connections
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
-//      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
-//      - Question options: req'd question, answer validity checks
-//  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
+//      - Form options: don't collect email, don't limit one response per user, don't show link to respond again
+//      - Question options: req'd question, answer validity checks (for email & numerical input questions)
 //
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
-//  - preferentially mutate the lowest scoring team(s) within a genome
 //  - use multiple genepools with limited cross-breeding
-//  - to get around the redundancy-of-genome issue, store each genome as std::set< std::set< int > >. Each team is set of indexes to the students; each section is set of teams.
-//      - would also allow sorting teams within set by ascending score and thus mutations preferentially at front
+//  - to get around the redundancy-of-genome issue, sort indexes w/in each team  and then each teams w/in the genome
+//      - alternatively, store each genome as std::set< std::set< int > >, but that adds to data overhead
+//      - could also store genepool as std::set < genome >, sorted by score
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"
 #include "dialogs/startDialog.h"
+#include "widgets/verticalspinboxstyle.h"
 #include <QApplication>
 #include <QFontDatabase>
 #include <QScreen>
@@ -92,6 +95,10 @@
 int main(int argc, char *argv[])
 {
     // Set up application
+    #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+        // remove darkmode on Windows (it is removed in the plist on macOS)
+        qputenv("QT_QPA_PLATFORM", "windows:darkmode=0");
+    #endif
     const QApplication a(argc, argv);
     QApplication::setOrganizationName("gruepr");
     QApplication::setApplicationName("gruepr");
@@ -103,6 +110,11 @@ int main(int argc, char *argv[])
     const QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
     qApp->setProperty("_SCREENWIDTH", screenGeometry.width());
     qApp->setProperty("_SCREENHEIGHT", screenGeometry.height());
+
+    #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+        // give spinboxes vertically aligned up and down arrows (which is default on macOS)
+        a.setStyle(new VerticalSpinBoxStyle(a.style()));
+    #endif
 
     // Show splash screen
     const QPixmap splashPic(":/icons_new/splash_new.png");

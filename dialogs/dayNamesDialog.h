@@ -1,8 +1,8 @@
 #ifndef DAYNAMESDIALOG_H
 #define DAYNAMESDIALOG_H
 
-#include <QDialog>
 #include <QCheckBox>
+#include <QDialog>
 #include <QLineEdit>
 
 class dayNamesDialog : public QDialog

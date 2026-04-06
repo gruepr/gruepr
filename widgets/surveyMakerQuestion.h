@@ -3,6 +3,7 @@
 
 #include "switchButton.h"
 #include "widgets/comboBoxWithElidedContents.h"
+#include "widgets/styledComboBox.h"
 #include <QCheckBox>
 #include <QFrame>
 #include <QGridLayout>
@@ -47,7 +48,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class SurveyMakerMultichoiceQuestion : public QFrame
+class SurveyMakerAttributeQuestion : public QFrame
 {
     Q_OBJECT
     Q_PROPERTY(QString question READ getQuestion WRITE setQuestion NOTIFY questionChanged)
@@ -55,7 +56,7 @@ class SurveyMakerMultichoiceQuestion : public QFrame
     Q_PROPERTY(bool multi READ getMulti WRITE setMulti NOTIFY multiChanged)
 
 public:
-    explicit SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent = nullptr);
+    explicit SurveyMakerAttributeQuestion(int questionNum, QWidget *parent = nullptr);
 
     void resizeEvent(QResizeEvent *event) override;
 
@@ -68,6 +69,7 @@ public:
     QStringList getResponses() const;
     void setMulti(const bool newMulti);
     bool getMulti() const;
+    inline static const QString FREERESPONSENUMBER = "*****";
 
 signals:
     void deleteRequested();
@@ -98,6 +100,43 @@ private:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+class SurveyMakerFreeResponseQuestion : public QFrame
+{
+    Q_OBJECT
+    Q_PROPERTY(QString question READ getQuestion WRITE setQuestion NOTIFY questionChanged)
+
+public:
+    explicit SurveyMakerFreeResponseQuestion(int questionNum, QWidget *parent = nullptr);
+
+    void resizeEvent(QResizeEvent *event) override;
+
+    void setNumber(const int questionNum);
+    QWidget *previewWidget = nullptr;
+
+    void setQuestion(const QString &newQuestion);
+    QString getQuestion() const;
+
+signals:
+    void deleteRequested();
+    void questionChanged(const QString &newQuestion);
+
+private slots:
+    void deleteRequest();
+    void questionChange();
+
+private:
+    QLabel *label = nullptr;
+    QPushButton *deleteButton = nullptr;
+    QPlainTextEdit *questionPlainTextEdit = nullptr;
+    void resizeQuestionPlainTextEdit();
+    QVBoxLayout *previewLayout = nullptr;
+    void updatePreviewWidget();
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 class SurveyMakerPreviewSection : public QFrame
 {
     Q_OBJECT
@@ -107,7 +146,7 @@ public:
     QList<QSpacerItem *> preQuestionSpacer;
     QList<QLabel *> questionLabel;
     QList<QLineEdit *> questionLineEdit;
-    QList<QComboBox *> questionComboBox;
+    QList<StyledComboBox *> questionComboBox;
     QList<QGroupBox *> questionGroupBox;
     QList<QVBoxLayout *> questionGroupLayout;
 

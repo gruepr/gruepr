@@ -176,6 +176,7 @@ bool GoogleHandler::authenticate() {
         loginDialog->adjustSize();
         connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
 
+        OAuthFlow->setModifyParametersFunction(getModifyParametersFunction());
         LMS::authenticate();
 
         if(loginDialog->exec() == QDialog::Rejected) {
@@ -233,11 +234,13 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         QJsonObject location;
         location["index"] = questionNum;
         newQuestion["location"] = location;
+        const QString questionAddendum = question.type == Question::QuestionType::freeresponsenumber? (QString("  (") + WRITEANUMBER) + ".)" : "";
         QJsonObject item;
-        item["title"] = question.text.simplified();
+        item["title"] = question.text.simplified() + questionAddendum;
         switch(question.type) {
         case Question::QuestionType::shorttext:
-        case Question::QuestionType::longtext: {
+        case Question::QuestionType::longtext:
+        case Question::QuestionType::freeresponsenumber: {  // Google Forms API doesn't have a native number input - this will be free text!
             QJsonObject questionItem;
             QJsonObject questionBody;
             questionBody["required"] = false;
@@ -302,6 +305,45 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
             questionGroupItem["grid"] = grid;
             item["questionGroupItem"] = questionGroupItem;
             break;}
+        case Question::QuestionType::rankedchoice: {
+            // Create k separate dropdown questions, one per rank
+            for(int rank = 0; rank < question.numRankedChoices; rank++) {
+                if(rank > 0) {
+                    // Push the previous rank via the same path the outer loop uses
+                    newQuestion["item"] = item;
+                    QJsonObject createItem;
+                    createItem["createItem"] = newQuestion;
+                    requests << createItem;
+                    questionNum++;
+
+                    // Reset for next rank
+                    newQuestion = QJsonObject();
+                    QJsonObject nextLocation;
+                    nextLocation["index"] = questionNum;
+                    newQuestion["location"] = nextLocation;
+                    item = QJsonObject();
+                }
+                item["title"] = question.text.simplified() + " [" + (rank == 0? QString(RANKYOURFIRSTCHOICE) :
+                                    (QString(RANKYOURCHOICE) + " " + QString::number(rank + 1))) + "]";
+                QJsonObject questionItem;
+                QJsonObject questionBody;
+                questionBody["required"] = false;
+                QJsonObject kind;
+                kind["type"] = "DROP_DOWN";
+                kind["shuffle"] = false;
+                QJsonArray responseOptions;
+                for(const auto &option : question.options) {
+                    QJsonObject responseOption;
+                    responseOption["value"] = option.simplified();
+                    responseOption["isOther"] = false;
+                    responseOptions << responseOption;
+                }
+                kind["options"] = responseOptions;
+                questionBody["choiceQuestion"] = kind;
+                questionItem["question"] = questionBody;
+                item["questionItem"] = questionItem;
+            }
+            break;}
         }
         newQuestion["item"] = item;
         QJsonObject createItem;
@@ -335,6 +377,19 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
     if(revisionID.isEmpty()) {
         return {};
     }
+
+    //publish the form so that responders can access it (required for forms created by API after June 2026)
+    url = "https://forms.googleapis.com/v1/forms/" + formID + ":setPublishSettings";
+    QJsonObject publishBody;
+    QJsonObject publishSettings;
+    publishSettings["isPublished"] = true;
+    publishSettings["isAcceptingResponses"] = true;
+    publishBody["publishSettings"] = publishSettings;
+    QList<QStringList*> noStringVals;
+    QList<QStringList*> noSubobjectVals;
+    postToGoogleGetSingleResult(url, QJsonDocument(publishBody).toJson(),
+                                {}, noStringVals,
+                                {}, noSubobjectVals);
 
     // append this survey to the saved values
     QSettings settings;
@@ -498,17 +553,18 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     const QJsonArray responses = json_doc["responses"].toArray();
     QStringList allValuesInField;
     for(const auto &response : std::as_const(responses)) {
-        out << response.toObject()["lastSubmittedTime"].toString();
+        out << response.toObject().value("lastSubmittedTime").toString();
 
         //pull out the answer(s) to each question in order, joining the answers with a semicolon if >1
-        const QJsonObject answers = response.toObject()["answers"].toObject();
+        const QJsonObject answers = response.toObject().value("answers").toObject();
         for(const auto &question : std::as_const(questions)) {
             const QJsonArray nestedAnswers = answers[question.ID]["textAnswers"]["answers"].toArray();
             allValuesInField.clear();
             allValuesInField.reserve(nestedAnswers.size());
             for(const auto &nestedAnswer : std::as_const(nestedAnswers)) {
                 const auto answerObject = nestedAnswer.toObject();
-                allValuesInField << answerObject["value"].toString().replace('"', '\'');  // stray quotation marks in field can confuse the csv parser --> replace with apostrophe
+                allValuesInField << answerObject["value"].toString()
+                                        .replace('"', '\'').replace('\n', ' ').replace('\r', ' ');  // strip stray quotation marks, newlines
             }
             out << ",\"" << allValuesInField.join(question.type == GoogleFormQuestion::Type::schedule? ';' : ',') << "\"";
         }
@@ -561,8 +617,12 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     }
 }
 
-QString GoogleHandler::getScopes() const {
-    return SCOPES;
+QSet<QByteArray> GoogleHandler::getScopes() const {
+    QSet<QByteArray> result;
+    for (const auto &s : QString(SCOPES).split(' ', Qt::SkipEmptyParts)) {
+        result.insert(s.toUtf8());
+    }
+    return result;
 }
 
 QString GoogleHandler::getClientID() const {
@@ -594,22 +654,22 @@ QString GoogleHandler::getActionDialogLabel() const {
 }
 
 std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> GoogleHandler::getModifyParametersFunction() const {
-    auto code_verifier = (QUuid::createUuid().toString(QUuid::WithoutBraces) +
-                          QUuid::createUuid().toString(QUuid::WithoutBraces)).toLatin1(); // 43 <= length <= 128
-    auto code_challenge = QCryptographicHash::hash(code_verifier, QCryptographicHash::Sha256).
-                          toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+    auto code_verifier = std::make_shared<QByteArray>();
 
-    return [code_verifier, code_challenge](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
+    return [code_verifier](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
         if (stage == QAbstractOAuth::Stage::RequestingAuthorization) {
-            // needed to get refresh_token from Google Cloud
-            parameters->insert("access_type", "offline");
-            // PKCE
-            parameters->insert("code_challenge", code_challenge);
-            parameters->insert("code_challenge_method", "S256");
+            // Generate fresh PKCE for each authorization attempt
+            *code_verifier = (QUuid::createUuid().toString(QUuid::WithoutBraces) +
+                              QUuid::createUuid().toString(QUuid::WithoutBraces)).toLatin1();
+            auto code_challenge = QCryptographicHash::hash(*code_verifier, QCryptographicHash::Sha256).
+                                  toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+
+            parameters->replace("access_type", "offline");
+            parameters->replace("code_challenge", code_challenge);
+            parameters->replace("code_challenge_method", "S256");
         }
         else if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
-            // PKCE
-            parameters->insert("code_verifier", code_verifier);
+            parameters->replace("code_verifier", *code_verifier);
             // Percent-decode the "code" parameter so Google can match it
             const QByteArray code = parameters->value("code").toByteArray();
             parameters->replace("code", QUrl::fromPercentEncoding(code));

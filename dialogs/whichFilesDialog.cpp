@@ -26,6 +26,8 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     connect(ui->fileDatacheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeFileData = checked;});
     connect(ui->teamingDatacheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamingData = checked;});
     connect(ui->teamScorecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamScore = checked;});
+    ui->assignmentcheckBox->setVisible(!dataOptions->assignmentPreferenceFields.empty());
+    connect(ui->assignmentcheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamAssignment = checked;});
     const bool first = dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT;
     ui->firstnamecheckBox->setVisible(first);
     connect(ui->firstnamecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeFirstName = checked;});
@@ -44,23 +46,25 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     const bool sect = dataOptions->sectionIncluded && sectionType == TeamingOptions::SectionType::allTogether;
     ui->sectioncheckBox->setVisible(sect);
     connect(ui->sectioncheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSect = checked;});
-    QList<QCheckBox*> multichoiceCheckboxes = {ui->Q1checkBox, ui->Q2checkBox, ui->Q3checkBox, ui->Q4checkBox, ui->Q5checkBox, ui->Q6checkBox,
-                                               ui->Q7checkBox, ui->Q8checkBox, ui->Q9checkBox, ui->Q10checkBox, ui->Q11checkBox, ui->Q12checkBox,
-                                               ui->Q13checkBox, ui->Q14checkBox, ui->Q15checkBox};
-    bool anyMultiChoice = false;
-    for(int attrib = 0; attrib < multichoiceCheckboxes.size(); attrib++) {
-        const bool thisMultiChoice = dataOptions->attributeField[attrib] != DataOptions::FIELDNOTPRESENT;
-        anyMultiChoice = anyMultiChoice || thisMultiChoice;
-        multichoiceCheckboxes[attrib]->setVisible(thisMultiChoice);
-        customFileOptions.includeMultiChoice << false;
-        connect(multichoiceCheckboxes[attrib], &QCheckBox::toggled, this, [this, attrib](bool checked){customFileOptions.includeMultiChoice[attrib] = checked;});
+    const int numAttributes = dataOptions->numAttributes;
+    const bool anyAttribute = (numAttributes > 0);
+    const int NUM_COLUMNS = 3;
+    const int firstAttributeRow = 3; // rows 0-1: name/gender/etc, row 2: attributeLabel
+    for(int attrib = 0; attrib < numAttributes; attrib++) {
+        auto *checkBox = new QCheckBox(tr("Attribute Q") + QString::number(attrib + 1), this);
+        checkBox->setToolTip(dataOptions->attributeQuestionText.at(attrib));
+        ui->demographicGridLayout->addWidget(checkBox, firstAttributeRow + (attrib / NUM_COLUMNS), attrib % NUM_COLUMNS);
+        customFileOptions.includeAttribute << false;
+        connect(checkBox, &QCheckBox::toggled, this, [this, attrib](bool checked) {
+            customFileOptions.includeAttribute[attrib] = checked;
+        });
     }
     const bool sched = !dataOptions->dayNames.isEmpty();
     ui->schedulecheckBox->setVisible(sched);
-    connect(ui->schedulecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSechedule = checked;});
+    connect(ui->schedulecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSchedule = checked;});
 
-    ui->multipleChoiceLabel->setVisible(anyMultiChoice);
-    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyMultiChoice);
+    ui->attributeLabel->setVisible(anyAttribute);
+    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyAttribute);
     ui->CustomFileContentsBox->hide();
 
     ui->studentFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);

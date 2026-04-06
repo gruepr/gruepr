@@ -29,7 +29,8 @@ class LMS : public QObject
     Q_OBJECT
 
 public:
-    LMS(QObject *parent = nullptr);
+    LMS(QObject *parent) :
+        QObject(parent), redirectUri(QString(REDIRECT_URI)), port(static_cast<quint16>(redirectUri.port(REDIRECT_URI_PORT))) { }
 
     //"Please wait, still communicating" dialog
     QDialog* actionDialog(QWidget *parent = nullptr);
@@ -37,11 +38,15 @@ public:
     QLabel *actionDialogLabel = nullptr;
     QDialogButtonBox *actionDialogButtons = nullptr;
     void actionComplete(QDialog *busyDialog);
+    void startBusyAnimation();
+    void stopBusyAnimation();
+    QString lastErrorMessage;
     inline static const int NUM_RETRIES_BEFORE_ABORT = 5;   //number of times we will retry a GET or POST before fully giving up
 
 signals:
     void retrying(int attemptNum);
-    void requestFailed(QNetworkReply::NetworkError);
+    void requestFailed(QNetworkReply::NetworkError error, const QUrl &url);
+    void connectionTimedOut();
 
 protected:
     void initOAuth2();
@@ -55,8 +60,9 @@ protected:
     grueprOAuthHttpServerReplyHandler *replyHandler = nullptr;
     QUrl redirectUri;
     quint16 port;
+    QTimer *busyAnimationTimer = nullptr;
 
-    virtual QString getScopes() const = 0;
+    virtual QSet<QByteArray> getScopes() const = 0;
     virtual QString getClientID() const = 0;
     virtual QString getClientSecret() const = 0;
     virtual QString getClientAuthorizationUrl() const = 0;
@@ -69,6 +75,7 @@ protected:
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
     inline static const int TIMEOUT_TIME = 5000;   //msec
     inline static const int RETRY_DELAY_TIME = 100;  //msec, delay time before retrying a GET or POST following an error returned
+    inline static const int OVERALL_TIMEOUT = 30000;   //msec, total time for all retries of a single httpRequest before giving up
     inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
     inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT) + "/"};
 };

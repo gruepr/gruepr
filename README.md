@@ -1,6 +1,12 @@
 gruepr
 
-Copyright (C) 2019-2025, Joshua Hertz < info@gruepr.com >
+Copyright (C) 2019-2026, Joshua Hertz, Giovanni Assad, Nikhen Nyo
+< info@gruepr.com >
+
+---------------
+SPONSORS:
+
+     Free code signing on Windows provided by SignPath.io, certificate by SignPath Foundation.
 
 ---------------
 SPONSORS:
@@ -16,7 +22,7 @@ Description of gruepr:
 
      Data about the students are collected and the students are split into teams of any desired size(s). A
      good distribution of students into teams is determined by a numerical score. The score can be based on:
-        1) preventing isolated women, isolated men, isolated non-binary persons, and/or single-gender teams;
+        1) preventing isolated women, isolated men, isolated nonbinary persons, and/or single-gender teams;
         2) preventing isolated URM students;
         3) achieving within each team either homogeneity or heterogeneity of up to 15 "attributes", which 
            could be skills assessments, work preferences, attitudes, major, topic preference(s), or any 
@@ -50,19 +56,18 @@ Description of gruepr:
      Canvas course, can directly import the survey results, and can upload the created teams as groups in
      the Canvas course.
 
-     COMPILING NOTES: Need C++17 and OpenMP on all systems. Needs OpenSSL on Windows. Enabling the speed
-     optimization switch -O2 seems to offer significant speed boost; -O3 does not seem to offer any
-     improvement.
+     COMPILING NOTES: Need C++20 and OpenMP on all systems. Enabling the speed optimization switch -O2 seems
+     to offer significant speed boost; -O3 does not seem to offer any improvement.
 
 ---------------
 Details on how the teams are optimized:
 
-     To optimize the teams, a genetic algorithm is used. First, a large population of 30,000 random teamings
-     (each is a "genome") is created and then refined over multiple generations. In each generation, a small
-     number of the highest scoring "elite" genomes are directly copied (cloned) into the next generation,
-     and the rest are created by mating tournament-selected parents using ordered crossover. Once the next
-     generation's genepool is created, each genome has 1 or more potential mutations, which is a swapping of
-     two random locations on the genome.
+     To optimize the teams, a genetic algorithm is used. First, a large population (10's of thousands) of
+     random teamings (each is a "genome") is created and then refined over multiple generations. In each
+     generation, a small number of the highest scoring "elite" genomes are directly copied (cloned) into the
+     next generation, and the rest are created by mating tournament-selected parents using ordered crossover.
+     Once the next generation's genepool is created, each genome has 1 or more potential mutations, which is
+     a swapping of two random locations on the genome.
 
      A genome's net score is the harmonic mean of the score for each team. Harmonic mean is used so that low
      scoring teams have more weight. Evolution proceeds for at least minGenerations and at most
@@ -110,9 +115,7 @@ DISCLAIMER:
      This software incorporates code from the open source Qt libraries, using version 6.9. These can be
      freely downloaded from < http://qt.io/download >.
 
-     Some icons were originally created by Icons8 < https://icons8.com >. These icons have been made
-     available under the creative commons license: Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0). Other
-     icons and graphics are original creations for the gruepr project by
+     Icons and graphics are original creations for the gruepr project by
      Scout < https://scout.camd.northeastern.edu/ >.
 
      Several embedded fonts are used:

@@ -2,11 +2,9 @@
 #define TEAMRECORD_H
 
 #include "dataOptions.h"
-#include "gruepr_globals.h"
 #include "studentRecord.h"
 #include <QList>
 #include <QString>
-#include <set>
 
 // all the info about one team
 
@@ -16,7 +14,7 @@ public:
     explicit TeamRecord(const DataOptions *const teamSetDataOptions, int teamSize) : size(teamSize), teamSetDataOptions(teamSetDataOptions) {};
     explicit TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord, const QList<StudentRecord> &students);
 
-    void createTooltip();
+    void createTooltip(const QList<StudentRecord> &students);
     void refreshTeamInfo(const QList<StudentRecord> &students, const int meetingBlockSize);
 
     QJsonObject toJson() const;
@@ -29,13 +27,11 @@ public:
     int numMen = 0;
     int numNonbinary = 0;
     int numUnknown = 0;
-    int numURM = 0;
-    std::set<int> attributeVals[MAX_ATTRIBUTES];
-    std::set<float> timezoneVals;
-    int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
+    QList<int> numStudentsAvailable;                // flat: day * numTimesPerDay + time
     int numStudentsWithAmbiguousSchedules = 0;
     int numMeetingTimes = 0;
     QList<long long> studentIDs;
+    QString assignedOption;
     QString name;
     QString tooltip;
 

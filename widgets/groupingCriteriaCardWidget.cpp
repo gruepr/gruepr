@@ -18,21 +18,97 @@
     along with Elypson/qt-collapsible-section. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "groupingCriteriaCardWidget.h"
+#include "gruepr.h"
+#include "criteria/assignmentPreferenceCriterion.h"
+#include "criteria/attributeCriterion.h"
+#include "criteria/genderCriterion.h"
+#include "criteria/scheduleCriterion.h"
+#include "criteria/sectionCriterion.h"
+#include "criteria/teammatesCriterion.h"
+#include "criteria/teamsizeCriterion.h"
+#include "criteria/URMIdentityCriterion.h"
+#include <QAbstractScrollArea>
+#include <QDrag>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QPainter>
 #include <QPropertyAnimation>
 
-#include "groupingCriteriaCardWidget.h"
+int GroupingCriteriaCard::fixedCardOffset = 0;
 
-GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool draggable)
-    : QFrame(parent) {
+GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
+                                           QWidget *parent, QString title, bool draggable, const int attribute)
+    : QFrame(parent)
+{
 
-    //make it draggable and droppable
-    setAcceptDrops(draggable);
-    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+    switch(criterionType) {
+    case Criterion::CriteriaType::section:
+        criterion = new SectionCriterion(criterionType, 0, true, this);
+        criterion->precedence = Criterion::Precedence::fixed;
+        break;
+    case Criterion::CriteriaType::teamSize:
+        criterion = new TeamsizeCriterion(criterionType, 0, true, this);
+        criterion->precedence = Criterion::Precedence::fixed;
+        break;
+    case Criterion::CriteriaType::genderIdentity:
+        criterion = new GenderCriterion(dataOptions, criterionType, 0, true, this);
+        break;
+    case Criterion::CriteriaType::urmIdentity:
+        criterion = new URMIdentityCriterion(dataOptions, criterionType, 0, true, this);
+        break;
+    case Criterion::CriteriaType::attributeQuestion:
+        if(dataOptions != nullptr && attribute != -1) {
+            criterion = new AttributeCriterion(dataOptions, criterionType, 0, false, this, attribute);
+            break;
+        }
+        else {
+            return;
+            break;
+        }
+    case Criterion::CriteriaType::assignmentPreference:
+        if(dataOptions != nullptr) {
+            criterion = new AssignmentPreferenceCriterion(dataOptions, criterionType, 0, false, this);
+            break;
+        }
+        else {
+            return;
+            break;
+        }
+    case Criterion::CriteriaType::scheduleMeetingTimes:
+        if(dataOptions != nullptr) {
+            criterion = new ScheduleCriterion(dataOptions, criterionType, 0, false, this);
+            break;
+        }
+        else {
+            return;
+            break;
+        }
+    case Criterion::CriteriaType::groupTogether:
+    case Criterion::CriteriaType::splitApart:
+        criterion = new TeammatesCriterion(criterionType, 0, true, this);
+        break;
+    }
+
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+
+    //initialize timer
+    m_dragTimer.setInterval(50);
+    m_dragTimer.setSingleShot(false);
+
+    connect(&m_dragTimer, &QTimer::timeout, this, [this]() {
+        emit criteriaCardMoved(m_lastPos);
+    });
 
     //initialize parts of section
     toggleButton = new QToolButton(this);
-    toggleAnimation = new QParallelAnimationGroup(this);
-    contentArea = new QScrollArea(this);
+    titleLabel = new LabelThatForwardsMouseClicks(this);
+    contentArea = new QWidget(this);
+    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    contentArea->setMaximumHeight(0);
+    contentArea->setMinimumHeight(0);
     dragHandleButton = new QPushButton(this);
     mainVerticalLayout = new QVBoxLayout();
 
@@ -49,33 +125,57 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
         }
     )");
     toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toggleButton->setArrowType(Qt::ArrowType::RightArrow);
-    toggleButton->setText(title);
+    toggleButton->setArrowType(Qt::ArrowType::DownArrow);
     toggleButton->setCheckable(true);
     toggleButton->setChecked(false);
-    toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    //set initial toggle to true
+    toggleButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    titleLabel->setText(title);
+    titleLabel->setWordWrap(true);
+    titleLabel->setStyleSheet(R"(
+        QLabel {
+            border: none;
+            font-family: 'DM Sans';  /* Set font family to DM Sans */
+            font-size: 12pt;         /* Set font size to 12 */
+        }
+        QLabel:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+            border-radius: 1px;
+        }
+    )");
+    connect(titleLabel, &LabelThatForwardsMouseClicks::mousePressed, toggleButton, &QToolButton::click);
+    toggleLayout = new QHBoxLayout();
+    toggleLayout->setSpacing(0);
+    toggleLayout->setContentsMargins(0, 0, 0, 0);
+    toggleLayout->addWidget(toggleButton);
+    toggleLayout->addWidget(titleLabel);
+    toggleButton->installEventFilter(this);
+    titleLabel->installEventFilter(this);
 
     //dragHandleButton settings
     dragHandleButton->setIcon(QIcon(":/icons_new/drag-handle.png"));
     dragHandleButton->setToolTip(QString("Drag and drop to reorder"));
     dragHandleButton->setStyleSheet(R"(
-    QPushButton {
-        background-color: transparent;
-        border: none;
-    }
-    QPushButton:hover {
-        background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
-        border-radius: 1px;
-    }
+        QPushButton {
+            background-color: transparent;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+            border-radius: 1px;
+        }
     )");
     // Ensure dragHandleButton only takes as much space as its content
-    dragHandleButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    dragHandleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     dragHandleButton->setMinimumWidth(24);
     dragHandleButton->setMinimumHeight(24);
+    dragHandleButton->setCursor(Qt::OpenHandCursor);
+
+    lockButton = new QPushButton(this);
+    lockButton->setStyleSheet("border: none;");
+    lockButton->setIcon(QIcon(":/icons_new/lock.png"));
 
     //contentArea settings
-    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     contentArea->setStyleSheet("QScrollArea { border: none; }");
 
     //start out collapsed
@@ -83,134 +183,216 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     contentArea->setMinimumHeight(0);
 
     // let the entire widget grow and shrink with its content
+    toggleAnimation = new QParallelAnimationGroup(this);
     toggleAnimation->addAnimation(new QPropertyAnimation(this, "minimumHeight"));
     toggleAnimation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
     toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
+    connect(toggleAnimation, &QAbstractAnimation::finished, this, [this]() {
+        QTimer::singleShot(animationDuration + 10, this, [this]() {
+            refreshParentLayout();
+        });
+    });
 
-    QString priorityOrder = QString::number(this->priorityOrder);
-    priorityOrderLabel = new QLabel("#" + priorityOrder); //how to update this?
-    priorityOrderLabel->setFixedWidth(20);
-    priorityOrderLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-    priorityOrderLabel->setToolTip("Priority of the Criteria");
+    priorityOrderLabel = new QLabel;
+    priorityOrderLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    priorityOrderLabel->setStyleSheet("border: none");
+    switch(criterion->precedence) {
+        case Criterion::Precedence::fixed:
+            priorityOrderLabel->setText("");
+            priorityOrderLabel->setFixedWidth(5);
+        break;
+        case Criterion::Precedence::need:
+            priorityOrderLabel->setText(tr("Requirement"));// "# " + priorityOrder + " - " + tr("Need");
+            priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
+        break;
+        case Criterion::Precedence::want:
+            priorityOrderLabel->setText(tr("Preference") + " # " + QString::number(priorityOrder + 1 - fixedCardOffset)); // + " - " + tr("Want");
+            priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+    }
+
     headerRowLayout = new QHBoxLayout();
-    QHBoxLayout* contentRowLayout = new QHBoxLayout();
+    auto *contentRowLayout = new QHBoxLayout();
     mainVerticalLayout->addLayout(headerRowLayout);
 
-    if (draggable == false){
-        QPushButton *lockButton = new QPushButton(this);
-        lockButton->setStyleSheet("border: none;");
-        lockButton->setIcon(QIcon(":/icons_new/lock.png"));
-        headerRowLayout->addWidget(lockButton);
-        dragHandleButton->setVisible(false);
-    } else {
-        headerRowLayout->addWidget(dragHandleButton);
-    }
     deleteGroupingCriteriaCardButton = new QPushButton(this);
-    deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/close_square.png"));
+    deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/trashButton.png"));
     deleteGroupingCriteriaCardButton->setStyleSheet(R"(
-            QPushButton {
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
-                border-radius: 1px;
-            }
-        )");
-    deleteGroupingCriteriaCardButton->setFixedSize(25, 25);
-    if (title == "Team Size"){
+        QPushButton {
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+            border-radius: 1px;
+        }
+    )");
+    deleteGroupingCriteriaCardButton->setFixedSize(40, 40);
+
+    if (draggable){
+        setDraggable(true);
+    }
+    else {
+        setAcceptDrops(false);
+        headerRowLayout->addWidget(lockButton, 0, Qt::AlignLeft);
+        lockButton->setVisible(true);
+        dragHandleButton->setVisible(false);
+        headerRowLayout->addWidget(priorityOrderLabel, 0, Qt::AlignLeft);
+        headerRowLayout->addLayout(toggleLayout, 1);
         deleteGroupingCriteriaCardButton->setVisible(false);
     }
-    headerRowLayout->addWidget(priorityOrderLabel, Qt::AlignLeft);
-    headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
-    headerRowLayout->addStretch();
-    headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
+
     contentRowLayout->addWidget(contentArea);
     mainVerticalLayout->addLayout(contentRowLayout);
 
     setLayout(mainVerticalLayout);
     setContentsMargins(2,2,2,2);
     connect(deleteGroupingCriteriaCardButton, &QPushButton::clicked, this, [this](){
-        emit deleteCardRequested(this->priorityOrder);
+        emit deleteCardRequested(priorityOrder);
     });
     connect(toggleButton, &QToolButton::toggled, this, &GroupingCriteriaCard::toggle);
     connect(dragHandleButton, &QToolButton::pressed, this, &GroupingCriteriaCard::dragStarted);
     connect(dragHandleButton, &QToolButton::released, this, &QFrame::unsetCursor);
+
     //set initial toggle to be true
+    toggleButton->blockSignals(true);
     toggleButton->setChecked(true);
+    toggleButton->blockSignals(false);
+
+    if(criterion != nullptr) {
+        criterion->setParent(this);
+        if(teamingOptions != nullptr) {
+            criterion->generateCriteriaCard(teamingOptions);
+        }
+    }
+
+    if (auto *grueprParent = qobject_cast<gruepr*>(parent)) {
+        connect(this, &GroupingCriteriaCard::criteriaCardMoveRequested, grueprParent, &gruepr::moveCriteriaCard);
+        connect(this, &GroupingCriteriaCard::dragStarting, grueprParent, &gruepr::showBottomDropZone);
+        connect(this, &GroupingCriteriaCard::dragEnteredCard, grueprParent, &gruepr::showDropIndicator);
+        connect(this, &GroupingCriteriaCard::dragFinished, grueprParent, &gruepr::hideDropIndicator);
+        connect(this, &GroupingCriteriaCard::criteriaCardMoved, grueprParent, &gruepr::doAutoScroll);
+        connect(this, &GroupingCriteriaCard::deleteCardRequested, grueprParent, &gruepr::deleteCriteriaCard);
+        connect(this, &GroupingCriteriaCard::includePenaltyStateChanged, grueprParent, &gruepr::refreshCriteriaLayout);
+    }
 }
 
-// QPushButton* GroupingCriteriaCard::getDeleteButton(){
-//     return deleteGroupingCriteriaCardButton;
-// }
 
-//delete button! and checkbox button!
+void GroupingCriteriaCard::setDraggable(bool draggable)
+{
+    // Clear and Rebuild Layout
+    while (headerRowLayout->count() > 1) {
+        headerRowLayout->removeItem(headerRowLayout->itemAt(1));
+    }
 
-//if draggable is false, it locks the criteria!
-// void GroupingCriteriaCard::setDraggable(bool draggable){
-//     setAcceptDrops(draggable);
+    if (draggable) {
+        setAcceptDrops(true);
+        dragHandleButton->setVisible(true);
+        lockButton->setVisible(false);
+        headerRowLayout->addWidget(dragHandleButton, 0, Qt::AlignLeft);
+        headerRowLayout->addWidget(priorityOrderLabel, 0, Qt::AlignLeft);
+        headerRowLayout->addLayout(toggleLayout,1);
+        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, 0, Qt::AlignRight);
+    }
+    else {
+        setAcceptDrops(false);
+        dragHandleButton->setVisible(false);
+        lockButton->setVisible(true);
+        headerRowLayout->addWidget(lockButton, 0, Qt::AlignLeft);
+        headerRowLayout->addWidget(priorityOrderLabel, 0, Qt::AlignLeft);
+        headerRowLayout->addLayout(toggleLayout,1);
+        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, 0, Qt::AlignRight);
+    }
+}
 
-//     // Clear and Rebuild Layout
-//     while (headerRowLayout->count() > 1) {
-//         headerRowLayout->removeItem(headerRowLayout->itemAt(1));
-//     }
-
-//     if (draggable == false){
-//         QPushButton *lockButton = new QPushButton(this);
-//         lockButton->setIcon(QIcon(":/icons_new/lock.png"));
-//         headerRowLayout->addWidget(lockButton);
-//         dragHandleButton->setVisible(false);
-//     } else {
-//         headerRowLayout->addWidget(dragHandleButton);
-//     }
-//     headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
-//     headerRowLayout->addStretch();
-//     headerRowLayout->addWidget(priorityOrderLabel, Qt::AlignRight);
-// }
-
-void GroupingCriteriaCard::toggle(bool collapsed) {
+void GroupingCriteriaCard::toggle(bool collapsed)
+{
     toggleButton->setArrowType(collapsed ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
     toggleAnimation->setDirection(collapsed ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
     toggleAnimation->start();
 }
 
+void GroupingCriteriaCard::refreshParentLayout()
+{
+    if (parentSplitter == nullptr) {
+        auto *w = parentWidget();
+        while (w != nullptr && qobject_cast<QSplitter*>(w) == nullptr) {
+            w = w->parentWidget();
+        }
+        parentSplitter = qobject_cast<QSplitter*>(w);
+    }
+    if (parentSplitter != nullptr) {
+        QList<int> sizes = parentSplitter->sizes();
+        static int direction = -1;
+        sizes[0] += direction;
+        sizes[1] -= direction;
+        direction = -direction;
+        parentSplitter->setSizes(sizes);
+    }
+}
 
 //Sets ContentLayout for the contentArea, this function always needs to be called otherwise, the expanded portion does not have a layout
-void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout) {
+void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
+{
     delete contentArea->layout();
-    contentArea->setLayout(&contentLayout);
 
-    const auto collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
-    auto contentHeight = contentLayout.sizeHint().height();
-    qDebug() << "contentHeight: " << contentHeight;
+    auto *mainLayout = new QVBoxLayout();
+    mainLayout->addLayout(&contentLayout);
+
+    // if (criteriaType == CriteriaType::teamSize || criteriaType == CriteriaType::section){
+    //     mainLayout->addLayout(&contentLayout);
+    // } else {
+    //     mainLayout->addLayout(&contentLayout);
+    //     includePenaltyCheckBox = new QCheckBox(this);
+    //     includePenaltyCheckBox->setText(QString("Set Criteria as Mandatory"));
+    //     includePenaltyCheckBox->setToolTip(QString("If condition is unmet, gruepr applies a penalty to the team score"));
+    //     includePenaltyCheckBox->setStyleSheet(CHECKBOXSTYLE);
+    //     connect(includePenaltyCheckBox, &QCheckBox::stateChanged, this, [this](){
+    //         this->criterion->penaltyStatus = (includePenaltyCheckBox->checkState() == Qt::Checked);
+    //         if (includePenaltyCheckBox->checkState() == Qt::Checked){
+    //             this->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    //             this->setDraggable(false);
+    //         } else {
+    //             this->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    //             this->setDraggable(true);
+    //         }
+    //         emit includePenaltyStateChanged();
+    //     });
+    //     mainLayout->addWidget(includePenaltyCheckBox);
+    // }
+
+    contentArea->setLayout(mainLayout);
+
+    const int contentHeight = mainLayout->sizeHint().height();
+    const int collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
 
     for (int i = 0; i < toggleAnimation->animationCount() - 1; ++i) {
-        QPropertyAnimation *SectionAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(i));
+        auto *SectionAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(i));
         SectionAnimation->setDuration(animationDuration);
         SectionAnimation->setStartValue(collapsedHeight);
         SectionAnimation->setEndValue(collapsedHeight + contentHeight);
     }
 
-    QPropertyAnimation *contentAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(
-        toggleAnimation->animationCount() - 1));
+    auto *contentAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(toggleAnimation->animationCount() - 1));
     contentAnimation->setDuration(animationDuration);
     contentAnimation->setStartValue(0);
     contentAnimation->setEndValue(contentHeight);
 
     if (toggleButton->isChecked()) {
         contentArea->setMaximumHeight(contentHeight);
+        setMinimumHeight(collapsedHeight + contentHeight);
+        setMaximumHeight(collapsedHeight + contentHeight);
     }
 }
 
 // Drag and Drop Methods
 
 void GroupingCriteriaCard::dragStarted() {
-    setCursor(Qt::ClosedHandCursor);
-    QDrag *drag = new QDrag(this);
-    QMimeData *mimeData = new QMimeData;
+    QApplication::setOverrideCursor(Qt::ClosedHandCursor);
+    auto *drag = new QDrag(this);
+    auto *mimeData = new QMimeData;
     mimeData->setText(QString::number(reinterpret_cast<quintptr>(this)));
-    qDebug() << mimeData;
     drag->setMimeData(mimeData);
-    QPixmap pixmap = grab();
+    const QPixmap pixmap = grab();
 
     // Create a transparentPixmap over which we will paint the pixmap in 50% opacity
     QPixmap transparentPixmap(pixmap.size());
@@ -223,49 +405,145 @@ void GroupingCriteriaCard::dragStarted() {
 
     drag->setPixmap(transparentPixmap); //Capture the widget's appearance
 
-    QPoint hotSpot = QPoint(10, 10);
+    const QPoint hotSpot = QPoint(10, 10);
     drag->setHotSpot(hotSpot);
+
+    // Insert a placeholder where this card is, then hide the card
+    auto *parentLayout = qobject_cast<QVBoxLayout*>(parentWidget()->layout());
+    if (parentLayout != nullptr) {
+        const int layoutIndex = parentLayout->indexOf(this);
+        m_dragPlaceholder = new QWidget(parentWidget());
+        m_dragPlaceholder->setFixedHeight(height());
+        m_dragPlaceholder->setStyleSheet("background-color: rgba(0, 0, 0, 0.05); border: 2px dashed rgba(0, 0, 0, 0.15); border-radius: 4px;");
+        parentLayout->insertWidget(layoutIndex, m_dragPlaceholder);
+    }
+
+    this->hide();  // hide card from layout during drag so the gap appears naturally
+    emit dragStarting();
     drag->exec(Qt::MoveAction);
+
+    // Remove placeholder
+    if (m_dragPlaceholder != nullptr) {
+        delete m_dragPlaceholder;
+        m_dragPlaceholder = nullptr;
+    }
+
+    QApplication::restoreOverrideCursor();
+    this->show();  // restore visibility after drag ends (refreshCriteriaLayout will reposition)
+    emit dragFinished();
 }
 
-void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event) {
+QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local)
+{
+    QWidget *w = parentWidget();
+    while (w != nullptr && qobject_cast<QAbstractScrollArea*>(w) == nullptr) {
+        w = w->parentWidget();
+    }
+    auto *vp = qobject_cast<QAbstractScrollArea*>(w);
+    if (vp != nullptr) {
+        return vp->viewport()->mapFromGlobal(mapToGlobal(local.toPoint()));
+    }
+    return local.toPoint();
+}
+
+
+void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event)
+{
     if (event->mimeData()->hasText()) {
-        qDebug() << "drag enter event accepted";
         event->acceptProposedAction();
+        m_lastPos = mapToViewport(event->position());
+        if (!m_dragTimer.isActive()) {
+            m_dragTimer.start();
+        }
+        emit dragEnteredCard(this->priorityOrder);
     }
 }
 
-void GroupingCriteriaCard::dropEvent(QDropEvent *event) {
+void GroupingCriteriaCard::dragMoveEvent(QDragMoveEvent *e)
+{
+    m_lastPos = mapToViewport(e->position()); // just refresh the cached pos
+}
+
+void GroupingCriteriaCard::dropEvent(QDropEvent *event)
+{
     // Get the widget ID (pointer stored in mime data)
-    QString widgetID = event->mimeData()->text();
-    GroupingCriteriaCard *draggedFrame = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
-
-    if (draggedFrame!=this) {
+    const QString widgetID = event->mimeData()->text();
+    const auto *draggedFrame = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
+    m_dragTimer.stop();
+    if (draggedFrame != this) {
         // Find the index of both frames in the layout
-        int draggedPriorityOrder = draggedFrame->getPriorityOrder();
-        int targetPriorityOrder = this->getPriorityOrder();
+        const int draggedPriorityOrder = draggedFrame->getPriorityOrder();
+        const int targetPriorityOrder = this->getPriorityOrder();
 
-        qDebug() << this->getPriorityOrder();
-        qDebug() << draggedFrame->getPriorityOrder();
+        //qDebug() << this->getPriorityOrder();
+        //qDebug() << draggedFrame->getPriorityOrder();
 
         // Insert the widgets back at their new positions
         event->acceptProposedAction();
-        emit criteriaCardSwapRequested(draggedPriorityOrder, targetPriorityOrder);  // Emitting the signal
+        emit criteriaCardMoveRequested(draggedPriorityOrder, targetPriorityOrder);  // Emitting the signal
     }
 }
 
-int GroupingCriteriaCard::getPriorityOrder(){
-    return this->priorityOrder;
+int GroupingCriteriaCard::getPriorityOrder() const
+{
+    return priorityOrder;
 }
-void GroupingCriteriaCard::setPriorityOrder(int priorityOrder){
-    qDebug() << "set priority for " << priorityOrder;
-    this->priorityOrder = priorityOrder;
-    priorityOrderLabel->setText("#" + QString::number(this->priorityOrder+1)); //priorityOrder starts with 0, so add 1 to make more clear
+
+void GroupingCriteriaCard::setPriorityOrder(int newPriorityOrder)
+{
+    //qDebug() << "set priority for " << newPriorityOrder;
+    priorityOrder = newPriorityOrder;
+    QString labelText;
+    switch(criterion->precedence) {
+    case Criterion::Precedence::fixed:
+        labelText = "";
+        break;
+    case Criterion::Precedence::need:
+        labelText = tr("Requirement");// "# " + QString::number(priorityOrder+1) + " - " + tr("Need");
+        priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
+        break;
+    case Criterion::Precedence::want:
+        labelText = tr("Preference") + " # " + QString::number(priorityOrder + 1 - fixedCardOffset); // + " - " + tr("Want");
+        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+    }
+    priorityOrderLabel->setText(labelText);
     headerRowLayout->update();
 }
 
+Criterion::Precedence GroupingCriteriaCard::getPrecedence() const
+{
+    return criterion->precedence;
+}
+
+void GroupingCriteriaCard::setPrecedence(Criterion::Precedence precedence)
+{
+    criterion->precedence = precedence;
+    QString labelText;
+    switch(criterion->precedence) {
+    case Criterion::Precedence::fixed:
+        labelText = "";
+        break;
+    case Criterion::Precedence::need:
+        labelText = tr("Requirement");// "# " + QString::number(priorityOrder+1) + " - " + tr("Need");
+        priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
+        break;
+    case Criterion::Precedence::want:
+        labelText = tr("Preference") + " # " + QString::number(priorityOrder + 1 - fixedCardOffset); // + " - " + tr("Want");
+        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+    }
+    priorityOrderLabel->setText(labelText);
+    headerRowLayout->update();
+}
+
+void GroupingCriteriaCard::stopDragTimer()
+{
+    m_dragTimer.stop();
+}
+
 // --------------------------------------------------------------------------------
-//                          QCustomWidget methods
+//                          QCustomWidget needed methods
 // --------------------------------------------------------------------------------
 
 QString GroupingCriteriaCard::name() const {
@@ -273,7 +551,7 @@ QString GroupingCriteriaCard::name() const {
 }
 
 QString GroupingCriteriaCard::includeFile() const {
-    return "Section.h";
+    return "groupingCriteriaCardWidget.h";
 }
 
 QString GroupingCriteriaCard::group() const {
@@ -281,7 +559,7 @@ QString GroupingCriteriaCard::group() const {
 }
 
 QIcon GroupingCriteriaCard::icon() const {
-    return QIcon("icon.png");
+    return {};
 }
 
 QString GroupingCriteriaCard::toolTip() const {
@@ -290,7 +568,7 @@ QString GroupingCriteriaCard::toolTip() const {
 
 QString GroupingCriteriaCard::whatsThis() const
 {
-    return tr("Cool collapsible and expandable section widget");
+    return tr("A collapsible and expandable section widget");
 }
 
 bool GroupingCriteriaCard::isContainer() const
@@ -300,5 +578,52 @@ bool GroupingCriteriaCard::isContainer() const
 
 QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
 {
-    return new GroupingCriteriaCard( parent);
+    return new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, nullptr, nullptr, parent);
+}
+
+bool GroupingCriteriaCard::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == toggleButton || watched == titleLabel) {
+        if (event->type() == QEvent::Enter) {
+            toggleButton->setStyleSheet(R"(
+                QToolButton {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+            titleLabel->setStyleSheet(R"(
+                QLabel {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+        }
+        else if (event->type() == QEvent::Leave) {
+            toggleButton->setStyleSheet(R"(
+                QToolButton {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                }
+                QToolButton:hover {
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+            titleLabel->setStyleSheet(R"(
+                QLabel {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                }
+                QLabel:hover {
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+        }
+    }
+    return QFrame::eventFilter(watched, event);
 }

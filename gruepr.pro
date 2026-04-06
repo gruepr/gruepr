@@ -4,16 +4,14 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 12.8
-copyright_year = 2019-2025
+gruepr_version = 13.0
+copyright_year = 2019-2026
 
-QT       += core gui widgets concurrent network printsupport charts networkauth
-QT       += designer
+QT += core gui widgets concurrent network printsupport networkauth designer
 
 TARGET = gruepr
 TEMPLATE = app
 macx: QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
-macx: QMAKE_APPLE_DEVICE_ARCHS = x86_64
 
 DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
 DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
@@ -31,9 +29,6 @@ DEFINES += GRUEPRHELPEMAIL='\\"info@gruepr.com\\"'
 exists(ci_secrets.pri): include(ci_secrets.pri)
 exists(local_secrets.pri): include(local_secrets.pri)
 
-#Set Config
-CONFIG += no_moc_predefs #Added to avoid file name conflicts
-
 # set application properties
 VERSION = $$gruepr_version
 QMAKE_TARGET_COPYRIGHT = $$copyright_year
@@ -50,53 +45,67 @@ macx: QMAKE_TARGET_BUNDLE_PREFIX = com.gruepr
 
 DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060500
 
-CONFIG += c++17
+CONFIG += c++20
 
 # remove possible other optimization flags
-QMAKE_CXXFLAGS_RELEASE -= -O
-QMAKE_CXXFLAGS_RELEASE -= -O1
-QMAKE_CXXFLAGS_RELEASE -= -O3
-QMAKE_CXXFLAGS_RELEASE -= -Os
+QMAKE_CXXFLAGS -= -O
+QMAKE_CXXFLAGS -= -O1
+QMAKE_CXXFLAGS -= -O3
+QMAKE_CXXFLAGS -= -Os
 # add the desired -O2 if not present
-QMAKE_CXXFLAGS_RELEASE += -O2
+QMAKE_CXXFLAGS += -O2
 
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -openmp
 macx {
-    HOMEBREW_PREFIX = $$system(brew --prefix)
-    OMP_PREFIX = $$system(brew --prefix libomp)
+    isEmpty(OMP_PREFIX) {
+        OMP_PREFIX = $$system(brew --prefix libomp)
+    }
     QMAKE_CXXFLAGS += -Xclang -fopenmp
-    QMAKE_LFLAGS += -lomp
     INCLUDEPATH += $$OMP_PREFIX/include
     LIBS += -L$$OMP_PREFIX/lib -lomp
 }
+linux {
+    QMAKE_CXXFLAGS += -fopenmp
+    QMAKE_LFLAGS += -fopenmp
+}
+
+# Run TSan:
+# macx: QMAKE_CXXFLAGS += -fsanitize=thread -fno-omit-frame-pointer
+# macx: QMAKE_LFLAGS += -fsanitize=thread
+# Run ASan:
+# macx: QMAKE_CXXFLAGS += -fsanitize=address,undefined -g -fno-omit-frame-pointer
+# macx: QMAKE_LFLAGS += -fsanitize=address,undefined
+# Run leaks:
+# macx: QMAKE_CXXFLAGS += -g
+# stop compilation for dangling references
+# macx: QMAKE_CXXFLAGS += -Wdangling -Werror=dangling
+
 
 SOURCES += \
-        csvfile.cpp \
-        dataOptions.cpp \
-        dialogs/dataTypesTableDialog.cpp \
-        dialogs/identityrulesdialog.cpp \
-        gruepr_globals.cpp \
-        gruepr.cpp \
-        GA.cpp \
-        Levenshtein.cpp \
-        main.cpp \
-        studentRecord.cpp \
-        surveyMakerWizard.cpp \
-        teamRecord.cpp \
-        teamingOptions.cpp \
+        criteria/assignmentPreferenceCriterion.cpp \
+        criteria/attributeCriterion.cpp \
+        criteria/criterion.cpp \
+        criteria/genderCriterion.cpp \
+        criteria/scheduleCriterion.cpp \
+        criteria/sectionCriterion.cpp \
+        criteria/teammatesCriterion.cpp \
+        criteria/teamsizeCriterion.cpp \
+        criteria/URMIdentityCriterion.cpp \
         dialogs/attributeRulesDialog.cpp \
         dialogs/baseTimeZoneDialog.cpp \
+        dialogs/categorizingDialog.cpp \
         dialogs/customResponseOptionsDialog.cpp \
         dialogs/customTeamnamesDialog.cpp \
         dialogs/customTeamsizesDialog.cpp \
+        dialogs/dataTypesTableDialog.cpp \
         dialogs/dayNamesDialog.cpp \
         dialogs/editOrAddStudentDialog.cpp \
         dialogs/editSectionNamesDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
-        dialogs/gatherURMResponsesDialog.cpp \
-        dialogs/getGrueprDataDialog.cpp \
+        dialogs/identityRulesDialog.cpp \
         dialogs/listTableDialog.cpp \
+        dialogs/loadDataDialog.cpp \
         dialogs/progressDialog.cpp \
         dialogs/registerDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
@@ -108,44 +117,55 @@ SOURCES += \
         LMS/googlehandler.cpp \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
+        widgets/checkableComboBox.cpp \
         widgets/comboBoxWithElidedContents.cpp \
+        widgets/dropcsvframe.cpp \
+        widgets/frameThatForwardsMouseClicks.cpp \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
-        widgets/pushButtonWithMouseEnter.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
         widgets/surveyMakerQuestion.cpp \
         widgets/switchButton.cpp \
         widgets/teamsTabItem.cpp \
-        widgets/teamTreeWidget.cpp
+        widgets/teamTreeWidget.cpp \
+        csvfile.cpp \
+        dataOptions.cpp \
+        GA.cpp \
+        gruepr.cpp \
+        gruepr_globals.cpp \
+        Levenshtein.cpp \
+        main.cpp \
+        studentRecord.cpp \
+        surveyMakerWizard.cpp \
+        teamingOptions.cpp \
+        teamRecord.cpp
 
 HEADERS += \
-        csvfile.h \
-        dataOptions.h \
-        dialogs/dataTypesTableDialog.h \
-        dialogs/identityrulesdialog.h \
-        gruepr.h \
-        GA.h \
-        gruepr_globals.h \
-        Levenshtein.h \
-        studentRecord.h \
-        survey.h \
-        surveyMakerWizard.h \
-        teamRecord.h \
-        teamingOptions.h \
+        criteria/assignmentPreferenceCriterion.h \
+        criteria/attributeCriterion.h \
+        criteria/criterion.h \
+        criteria/genderCriterion.h \
+        criteria/scheduleCriterion.h \
+        criteria/sectionCriterion.h \
+        criteria/teammatesCriterion.h \
+        criteria/teamsizeCriterion.h \
+        criteria/URMIdentityCriterion.h \
         dialogs/attributeRulesDialog.h \
         dialogs/baseTimeZoneDialog.h \
+        dialogs/categorizingDialog.h \
         dialogs/customResponseOptionsDialog.h \
         dialogs/customTeamnamesDialog.h \
         dialogs/customTeamsizesDialog.h \
+        dialogs/dataTypesTableDialog.h \
         dialogs/dayNamesDialog.h \
         dialogs/editOrAddStudentDialog.h \
         dialogs/editSectionNamesDialog.h \
         dialogs/findMatchingNameDialog.h \
-        dialogs/gatherURMResponsesDialog.h \
-        dialogs/getGrueprDataDialog.h \
+        dialogs/identityRulesDialog.h \
         dialogs/listTableDialog.h \
+        dialogs/loadDataDialog.h \
         dialogs/progressDialog.h \
         dialogs/registerDialog.h \
         dialogs/sampleQuestionsDialog.h \
@@ -157,33 +177,50 @@ HEADERS += \
         LMS/googlehandler.h \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
+        widgets/checkableComboBox.h \
         widgets/comboBoxWithElidedContents.h \
+        widgets/dropcsvframe.h \
+        widgets/frameThatForwardsMouseClicks.h \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
-        widgets/pushButtonWithMouseEnter.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
+        widgets/styledComboBox.h \
         widgets/surveyMakerQuestion.h \
         widgets/switchButton.h \
         widgets/teamsTabItem.h \
-        widgets/teamTreeWidget.h
+        widgets/teamTreeWidget.h \
+        widgets/verticalspinboxstyle.h \
+        csvfile.h \
+        dataOptions.h \
+        GA.h \
+        gruepr.h \
+        gruepr_globals.h \
+        Levenshtein.h \
+        studentRecord.h \
+        survey.h \
+        surveyMakerWizard.h \
+        teamingOptions.h \
+        teamRecord.h
 
 FORMS += \
-      dialogs/attributeRulesDialog.ui \
-      dialogs/getGrueprDataDialog.ui \
-      dialogs/sampleQuestionsDialog.ui \
-      dialogs/teammatesRulesDialog.ui \
-      dialogs/whichFilesDialog.ui \
-      gruepr.ui
+        dialogs/attributeRulesDialog.ui \
+        dialogs/loadDataDialog.ui \
+        dialogs/sampleQuestionsDialog.ui \
+        dialogs/teammatesRulesDialog.ui \
+        dialogs/whichFilesDialog.ui \
+        gruepr.ui
 
 RESOURCES += \
-          gruepr.qrc
-
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+        gruepr.qrc
 
 DISTFILES += \
-    macOS/MyAppInfo.plist
+        .github/workflows/Build.yaml \
+        .github/workflows/Build_Windows.yaml \
+        .github/workflows/Build_linux.yaml \
+        .github/workflows/Build_macOS.yaml \
+        .signpath/policies/gruepr/release-signing.yml \
+        .signpath/policies/gruepr/test-signing.yml \
+        macOS/DMG_background.png \
+        macOS/MyAppInfo.plist

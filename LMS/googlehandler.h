@@ -37,7 +37,7 @@ private:
 
     QWidget *parent = nullptr;
 
-    QString getScopes() const override;
+    QSet<QByteArray> getScopes() const override;
     QString getClientID() const override;
     QString getClientSecret() const override;
     QString getClientAuthorizationUrl() const override;

@@ -4,23 +4,83 @@
 // Code related to the Genetic Algorithm used in gruepr
 
 #include <random>
+#include <utility>
 
 class GA
 {
 public:
     void setGAParameters(int numRecords);
 
-    void clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize);
-    void tournamentSelectParents(const int * const * const genePool, const int *const orderedIndex, const int * const * const ancestors,
+    void clone(const int *const parent, const int *const ancestors, const int parentsIndex,
+               int child[], int parentage[], const int genomeSize);
+
+    void tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
                                  const int *&mom, const int *&dad, int parentage[], std::mt19937 &pRNG);
-    void mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG);
+
+    void mate(const int *const mom, const int *const dad, const int teamStartPositions[],
+              const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG);
 
     void mutate(int genome[], const long long genomeSize, std::mt19937 &pRNG);
+    void mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize, std::mt19937 &pRNG);
+
+    class GenePool {
+    public:
+        GenePool(const GA &ga, int genomeSize);
+        ~GenePool();
+
+        GenePool(const GenePool &) = delete;
+        GenePool &operator=(const GenePool &) = delete;
+        GenePool(GenePool &&o) noexcept;
+        GenePool &operator=(GenePool &&o) noexcept;
+
+        int *operator[](int genome);
+        const int *operator[](int genome) const;
+        int **data();
+        const int *const *data() const;
+
+        int populationSize() const;
+        int genomeSize() const;
+
+        friend void swap(GenePool &a, GenePool &b) noexcept;
+
+    private:
+        int popSize = 0;
+        int genSize = 0;
+        int *dataVals = nullptr;
+        int **rows = nullptr;
+    };
+
+    class AncestorPool {
+    public:
+        AncestorPool(const GA &ga);
+        ~AncestorPool();
+
+        AncestorPool(const AncestorPool &) = delete;
+        AncestorPool &operator=(const AncestorPool &) = delete;
+        AncestorPool(AncestorPool &&o) noexcept;
+        AncestorPool &operator=(AncestorPool &&o) noexcept;
+
+        int *operator[](int genome);
+        const int *operator[](int genome) const;
+        int **data();
+        const int *const *data() const;
+
+        int populationSize() const;
+        int numAncestors() const;
+
+        friend void swap(AncestorPool &a, AncestorPool &b) noexcept;
+
+    private:
+        int popSize = 0;
+        int numAncest = 0;
+        int *dataVals = nullptr;
+        int **rows = nullptr;
+    };
 
     inline static const int MAX_RECORDS = 1000;             // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow as value gets bigger)
 
-    inline static const int NUM_ELITES = 3;                 // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite significantly stabilizes the high score to end optimization
-    inline static const int TOURNAMENTSIZE = 100;           // most of the next generation is created by mating many pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
+    inline static const int NUM_ELITES = 3;                 // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite stabilizes the high score to end optimization
+    inline static const int TOURNAMENTSIZE = 100;           // most of the next generation is created by mating pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
     inline static const int MIN_GENERATIONS = 40;           // will keep optimizing for at least minGenerations
     inline static const int MAX_GENERATIONS = 500;          // will keep optimizing for at most maxGenerations
     inline static const int GENERATIONS_OF_STABILITY = 25;  // after minGenerations, if score has not improved for generationsOfStability, stop optimizing
@@ -33,7 +93,7 @@ public:
     unsigned int mutationlikelihood = MUTATIONLIKELIHOOD[3];
 
 private:
-    static constexpr int POPULATIONSIZE[] = {60000, 45000, 20000, 10000};// the number of genomes in each generation--larger size is slower, but each generation is more likely to have optimal result.
+    static constexpr int POPULATIONSIZE[] = {60000, 45000, 25000, 15000};// the number of genomes in each generation--larger size is slower, but each generation is more likely to have optimal result.
     static constexpr int TOPGENOMELIKELIHOOD[] = {25, 33, 66, 100};      // percent likelihood of selecting the best genome in the tournament as parent; if top is not selected, move to next best genome with same probability, and so on
     static constexpr int NUMGENERATIONSOFANCESTORS[] = {3, 3, 3, 2};     // how many generations of ancestors to look back when preventing the selection of related mates:
                                                                          //      1 = prevent if either parent is same (no siblings mating);

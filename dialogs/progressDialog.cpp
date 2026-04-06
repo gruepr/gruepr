@@ -1,6 +1,7 @@
 #include "progressDialog.h"
 #include "gruepr_globals.h"
 #include <QDialogButtonBox>
+#include <QPainter>
 #include <QRegularExpression>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -9,7 +10,7 @@
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-progressDialog::progressDialog(const QString &currSection, QChartView *chart, QWidget *parent)
+progressDialog::progressDialog(const QString &currSection, QWidget *chart, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window
@@ -80,6 +81,11 @@ void progressDialog::setText(const QString &text, int generation, float score, b
 {
     explanationText->setText(tr("Generation ") + QString::number(generation) + " - " + tr("Top Score = ") + QString::number(score));
     QString action = text;
+
+    if (score > 99.5f) {
+        action += tr("\nOptimal groups achieved!");
+    }
+
     if(autostopInProgress && !onlyStopManually->isChecked()) {
         action += tr("\nOptimization will end in ") + QString::number(secsLeftToClose) + tr(" seconds.");
         score = PROGRESSBARMAX - ((PROGRESSBARMAX - score) * secsLeftToClose / SECSINCOUNTDOWNTIMER);
@@ -130,7 +136,7 @@ void progressDialog::reject()
     QDialog::reject();
 }
 
-void progressDialog::statsButtonPushed(QChartView *chart)
+void progressDialog::statsButtonPushed(QWidget *chart)
 {
     graphShown = !graphShown;
 

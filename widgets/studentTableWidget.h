@@ -11,8 +11,6 @@ public:
     StudentTableWidget(QWidget *parent = nullptr);
     void resetTable();
     void clearSortIndicator();
-    void cellEntered(const int row);
-    void cellLeft(const int row);
 
 public slots:
     void sortByColumn(int column);

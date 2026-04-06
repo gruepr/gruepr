@@ -8,31 +8,9 @@ StudentTableWidget::StudentTableWidget(QWidget *parent)
 {
     horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    horizontalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
-                                                   "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
-                                                   "color: white; text-align:left;}"
-                                       "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; "
-                                                             "border-bottom: none;"
-                                                             "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
-                                                             "color: white; text-align:left;}"
-                                       "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px; "
-                                                                "subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                                       "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px; "
-                                                              "subcontrol-origin: padding; subcontrol-position: top left;}");
-    verticalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: none; border-bottom: none; padding: 1px;"
-                                                 "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
-                                                 "color: white; text-align:center;}"
-                                     "QHeaderView::section{border-top: none; border-left: none; border-right: none; "
-                                                           "border-bottom: none; padding: 1px;"
-                                                           "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
-                                                           "color: white; text-align:center;}");
-    setStyleSheet(QString("QTableView{gridline-color: lightGray; font-family: 'DM Sans'; font-size: 12pt;}"
-                           "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; "
-                                                        "border-bottom: none; background-color: " DEEPWATERHEX ";}"
-                           "QTableWidget::item{border-right: 1px solid lightGray; color: black;}"
-                           "QTableWidget::item:selected{background-color: " BUBBLYHEX ";}"
-                           "QTableWidget::item:hover{background-color: " BUBBLYHEX ";}") +
-                  SCROLLBARSTYLE);
+    horizontalHeader()->setStyleSheet(STUDENTTABLEWIDGETHORIZONTALHEADERSTYLE);
+    verticalHeader()->setStyleSheet(STUDENTTABLEWIDGETVERTICALALHEADERSTYLE);
+    setStyleSheet(QString(STUDENTTABLEWIDGETSTYLE) + SCROLLBARSTYLE);
 
     connect(this, &QTableWidget::entered, this, &StudentTableWidget::itemEntered);
     connect(this, &QTableWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
@@ -79,27 +57,8 @@ void StudentTableWidget::sortByColumn(int column)
 void StudentTableWidget::leaveEvent(QEvent *event)
 {
     selectionModel()->clearSelection();
-    for(int row = 0; row < rowCount(); row++) {
-        cellLeft(row);
-    }
     if(event != nullptr) {
         QWidget::leaveEvent(event);
-    }
-}
-
-
-void StudentTableWidget::cellLeft(const int row)
-{
-    selectionModel()->clearSelection();
-    const int numCols = columnCount();
-    if(cellWidget(row, numCols-1)->property("duplicate").toBool()) {
-        cellWidget(row, numCols-1)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
-        cellWidget(row, numCols-2)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
-    }
-    else {
-        cellWidget(row, numCols-1)->setStyleSheet("");
-        cellWidget(row, numCols-2)->setStyleSheet("");
-
     }
 }
 
@@ -107,35 +66,5 @@ void StudentTableWidget::cellLeft(const int row)
 void StudentTableWidget::itemEntered(const QModelIndex &index)
 {
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-    cellEntered(index.row());
-}
-
-
-void StudentTableWidget::cellEntered(const int row)
-{
-    // select the current row, reset the background color of the edit and remover buttons in previously selected row
-    // and change their color in the current row
-    selectRow(row);
-    static int prevID = -1;
-    const int numCols = columnCount();
-    const int numRows = rowCount();
-    if(prevID != -1) {
-        int prevRow = 0;
-        while((prevRow < numRows) && (prevID != cellWidget(prevRow, numCols-1)->property("StudentID").toInt())) {
-            prevRow++;
-        }
-        if(prevRow < numRows) {
-            if(cellWidget(prevRow, numCols-1)->property("duplicate").toBool()) {
-                cellWidget(prevRow, numCols-1)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
-                cellWidget(prevRow, numCols-2)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
-            }
-            else {
-                cellWidget(prevRow, numCols-1)->setStyleSheet("");
-                cellWidget(prevRow, numCols-2)->setStyleSheet("");
-            }
-        }
-    }
-    prevID = cellWidget(row, numCols-1)->property("StudentID").toInt();
-    cellWidget(row, numCols-1)->setStyleSheet(EDITREMOVEBUTTONSELECTEDSTYLE);
-    cellWidget(row, numCols-2)->setStyleSheet(EDITREMOVEBUTTONSELECTEDSTYLE);
+    selectRow(index.row());
 }

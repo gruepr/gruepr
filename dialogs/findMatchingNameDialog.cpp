@@ -57,8 +57,7 @@ findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &stude
     explanation->setText(explanationText);
     theGrid->addWidget(explanation, row++, 0, 1, -1);
 
-    namesList = new QComboBox(this);
-    namesList->setStyleSheet(COMBOBOXSTYLE);
+    namesList = new StyledComboBox(this);
     QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
     while (i != possibleStudents.constEnd()) {
         const QStringList nameAndNum = i.value().split("&index=");    // split off the index to use as the UserData role

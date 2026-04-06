@@ -2,16 +2,6 @@
 #include <QJsonArray>
 #include <QRegularExpression>
 
-DataOptions::DataOptions()
-{
-    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeField[i] = FIELDNOTPRESENT;
-        attributeVals[i].clear();
-        attributeQuestionResponseCounts[i].clear();
-        attributeType[i] = AttributeType::categorical;
-    }
-}
-
 DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
 {
     timestampField = jsonDataOptions["timestampField"].toInt();
@@ -27,14 +17,14 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     sectionIncluded = jsonDataOptions["sectionIncluded"].toBool();
     sectionField = jsonDataOptions["sectionField"].toInt();
     scheduleDataIsFreetime = jsonDataOptions["scheduleDataIsFreetime"].toBool();
+    earlyTimeAsked = jsonDataOptions["earlyTimeAsked"].toDouble();
+    lateTimeAsked = jsonDataOptions["lateTimeAsked"].toDouble();
+    scheduleResolution = jsonDataOptions["scheduleResolution"].toDouble();
     numAttributes = jsonDataOptions["numAttributes"].toInt();
     timezoneIncluded = jsonDataOptions["timezoneIncluded"].toBool();
     timezoneField = jsonDataOptions["timezoneField"].toInt();
     homeTimezoneUsed = jsonDataOptions["homeTimezoneUsed"].toBool();
     baseTimezone = jsonDataOptions["baseTimezone"].toDouble();
-    earlyTimeAsked = jsonDataOptions["earlyTimeAsked"].toDouble();
-    lateTimeAsked = jsonDataOptions["lateTimeAsked"].toDouble();
-    scheduleResolution = jsonDataOptions["scheduleResolution"].toDouble();
     dataSourceName = jsonDataOptions["dataSourceName"].toString();
     dataSource = static_cast<DataSource>(jsonDataOptions["dataSource"].toInt());
     saveStateFileName = jsonDataOptions["saveStateFileName"].toString();
@@ -58,23 +48,17 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     }
 
     const QJsonArray attributeFieldArray = jsonDataOptions["attributeField"].toArray();
-    int i = 0;
+    attributeField.clear();
+    attributeField.reserve(attributeFieldArray.size());
     for(const auto &item : attributeFieldArray) {
-        attributeField[i] = item.toInt();
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeField[j] = FIELDNOTPRESENT;
+        attributeField << item.toInt();
     }
 
     const QJsonArray attributeTypeArray = jsonDataOptions["attributeType"].toArray();
-    i = 0;
+    attributeType.clear();
+    attributeType.reserve(attributeTypeArray.size());
     for(const auto &item : attributeTypeArray) {
-        attributeType[i] = static_cast<AttributeType>(item.toInt());
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeType[j] = AttributeType::categorical;
+        attributeType << static_cast<AttributeType>(item.toInt());
     }
 
     const QJsonArray prefTeammatesFieldArray = jsonDataOptions["prefTeammatesField"].toArray();
@@ -95,6 +79,15 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         }
     }
 
+    const QJsonArray assignmentPreferenceFieldArray = jsonDataOptions["assignmentPreferenceFields"].toArray();
+    assignmentPreferenceFields.reserve(assignmentPreferenceFieldArray.size());
+    for(const auto &item : assignmentPreferenceFieldArray) {
+        const int fieldNum = item.toInt();
+        if(fieldNum != FIELDNOTPRESENT) {
+            assignmentPreferenceFields << fieldNum;
+        }
+    }
+
     const QJsonArray sectionNamesArray = jsonDataOptions["sectionNames"].toArray();
     sectionNames.reserve(sectionNamesArray.size());
     for(const auto &item : sectionNamesArray) {
@@ -108,43 +101,54 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     }
 
     const QJsonArray attributeQuestionResponsesArray = jsonDataOptions["attributeQuestionResponses"].toArray();
-    i = 0;
+    attributeQuestionResponses.clear();
+    attributeQuestionResponses.reserve(attributeQuestionResponsesArray.size());
     for(const auto &item : attributeQuestionResponsesArray) {
-        const QJsonArray attributeQuestionResponsesArraySubarray = item.toArray();
-        attributeQuestionResponses[i].reserve(attributeQuestionResponsesArraySubarray.size());
-        for(const auto &response : attributeQuestionResponsesArraySubarray) {
-            attributeQuestionResponses[i] << response.toString();
+        QStringList responses;
+        const QJsonArray subarray = item.toArray();
+        responses.reserve(subarray.size());
+        for(const auto &response : subarray) {
+            responses << response.toString();
         }
-        i++;
+        attributeQuestionResponses << responses;
     }
 
     const QJsonArray attributeQuestionResponseCountsArray = jsonDataOptions["attributeQuestionResponseCounts"].toArray();
-    i = 0;
+    attributeQuestionResponseCounts.clear();
+    attributeQuestionResponseCounts.reserve(attributeQuestionResponseCountsArray.size());
     for(const auto &item : attributeQuestionResponseCountsArray) {
-        attributeQuestionResponseCounts[i].clear();
-        const QVariantMap attributeQuestionResponseCountsArraySubobject = item.toObject().toVariantMap();
-        for(auto iter = attributeQuestionResponseCountsArraySubobject.cbegin(),
-                 end = attributeQuestionResponseCountsArraySubobject.cend(); iter != end; ++iter) {
-            attributeQuestionResponseCounts[i].emplace(iter.key(), iter.value().toInt());
+        std::map<QString, int> counts;
+        const QVariantMap subobject = item.toObject().toVariantMap();
+        for(auto iter = subobject.cbegin(), end = subobject.cend(); iter != end; ++iter) {
+            counts.emplace(iter.key(), iter.value().toInt());
         }
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeQuestionResponseCounts[j].clear();
+        attributeQuestionResponseCounts << counts;
     }
 
-    const QJsonArray attributeValsArray = jsonDataOptions["attributeVals"].toArray();
-    i = 0;
-    for(const auto &item : attributeValsArray) {
-        attributeVals[i].clear();
-        const QJsonArray attributeValsArraySubarray = item.toArray();
-        for(const auto &val : attributeValsArraySubarray) {
-            attributeVals[i].insert(val.toInt());
+    const QJsonArray discreteValsArray = jsonDataOptions.contains("discreteVals")
+                                             ? jsonDataOptions["discreteVals"].toArray()
+                                             : jsonDataOptions["attributeVals"].toArray();
+    attributeVals_discrete.clear();
+    attributeVals_discrete.reserve(discreteValsArray.size());
+    for(const auto &item : discreteValsArray) {
+        std::set<int> vals;
+        for(const auto &val : item.toArray()) {
+            vals.insert(val.toInt());
         }
-        i++;
+        attributeVals_discrete << vals;
     }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeVals[j].clear();
+
+    attributeVals_continuous.clear();
+    if(jsonDataOptions.contains("continuousVals")) {
+        const QJsonArray continuousValsArray = jsonDataOptions["continuousVals"].toArray();
+        attributeVals_continuous.reserve(continuousValsArray.size());
+        for(const auto &item : continuousValsArray) {
+            std::set<float> vals;
+            for(const auto &val : item.toArray()) {
+                vals.insert(static_cast<float>(val.toDouble()));
+            }
+            attributeVals_continuous << vals;
+        }
     }
 
     const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
@@ -154,6 +158,27 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     URMResponses.reserve(URMResponsesArray.size());
     for(const auto &item : URMResponsesArray) {
         URMResponses << item.toString();
+    }
+
+    const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
+    genderValues.reserve(GendersArray.size());
+    for(const auto &item : GendersArray) {
+        if(item.isDouble()) {
+            genderValues << static_cast<Gender>(item.toInt());
+        }
+        else if(item.isString()) {
+            genderValues << grueprGlobal::stringToGender(item.toString());
+        }
+    }
+
+    const QVariantMap GenderIdentitiesCountMap = jsonDataOptions["GenderIdentitiesCount"].toObject().toVariantMap();
+    for(auto iter = GenderIdentitiesCountMap.cbegin(), end = GenderIdentitiesCountMap.cend(); iter != end; ++iter) {
+        countOfGenderIdentities.emplace(grueprGlobal::stringToGender(iter.key()), iter.value().toInt());
+    }
+
+    const QVariantMap URMIdentitiesCountMap = jsonDataOptions["URMIdentitiesCount"].toObject().toVariantMap();
+    for(auto iter = URMIdentitiesCountMap.cbegin(), end = URMIdentitiesCountMap.cend(); iter != end; ++iter) {
+        countOfURMIdentities.emplace(iter.key(), iter.value().toInt());
     }
 
     const QJsonArray dayNamesArray = jsonDataOptions["dayNames"].toArray();
@@ -194,8 +219,10 @@ bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &ti
 
 QJsonObject DataOptions::toJson() const
 {
-    QJsonArray notesFieldArray, scheduleFieldArray, attributeFieldArray, attributeTypeArray, prefTeammatesFieldArray, prefNonTeammatesFieldArray,
-        attributeQuestionResponsesArray, attributeQuestionResponseCountsArray, attributeValsArray;
+    QJsonArray notesFieldArray, scheduleFieldArray, attributeFieldArray, attributeTypeArray,
+               attributeQuestionResponsesArray, attributeQuestionResponseCountsArray,
+               discreteValsArray, continuousValsArray, assignmentPreferenceFieldArray,
+               prefTeammatesFieldArray, prefNonTeammatesFieldArray, gendersArray;
 
     for (const int field : notesFields) {
         notesFieldArray.append(field);
@@ -209,7 +236,10 @@ QJsonObject DataOptions::toJson() const
     for (const int field : prefNonTeammatesField) {
         prefNonTeammatesFieldArray.append(field);
     }
-    for (int i = 0; i < MAX_ATTRIBUTES; i++) {
+    for (const int field : assignmentPreferenceFields) {
+        assignmentPreferenceFieldArray.append(field);
+    }
+    for (int i = 0; i < attributeField.size(); i++) {
         attributeFieldArray.append(attributeField[i]);
         attributeTypeArray.append(static_cast<int>(attributeType[i]));
         attributeQuestionResponsesArray.append(QJsonArray::fromStringList(attributeQuestionResponses[i]));
@@ -218,11 +248,30 @@ QJsonObject DataOptions::toJson() const
             attributeQuestionResponseCountsObj.insert(item.first, item.second);
         }
         attributeQuestionResponseCountsArray.append(attributeQuestionResponseCountsObj);
-        QJsonArray attributeValsArraySubArray;
-        for (const auto &val : attributeVals[i]) {
-            attributeValsArraySubArray.append(val);
+        QJsonArray discreteValsArraySubArray;
+        for (const auto &val : attributeVals_discrete[i]) {
+            discreteValsArraySubArray.append(val);
         }
-        attributeValsArray.append(attributeValsArraySubArray);
+        discreteValsArray.append(discreteValsArraySubArray);
+        QJsonArray continuousValsArraySubArray;
+        for (const auto &val : attributeVals_continuous[i]) {
+            continuousValsArraySubArray.append(val);
+        }
+        continuousValsArray.append(continuousValsArraySubArray);
+    }
+    for (const Gender genderValue : genderValues) {
+        gendersArray.append(grueprGlobal::genderToString(genderValue));
+    }
+    if (gendersArray.isEmpty()) {
+        gendersArray.append("unknown");
+    }
+    QJsonObject GenderIdentitiesCountObj;
+    for(const auto &item : countOfGenderIdentities) {
+        GenderIdentitiesCountObj.insert(grueprGlobal::genderToString(item.first), item.second);
+    }
+    QJsonObject URMIdentitiesCountObj;
+    for(const auto &item : countOfURMIdentities) {
+        URMIdentitiesCountObj.insert(item.first, item.second);
     }
 
     QJsonObject content {
@@ -241,25 +290,29 @@ QJsonObject DataOptions::toJson() const
         {"notesField", notesFieldArray},
         {"scheduleDataIsFreetime", scheduleDataIsFreetime},
         {"scheduleField", scheduleFieldArray},
+        {"earlyTimeAsked", earlyTimeAsked},
+        {"lateTimeAsked", lateTimeAsked},
+        {"scheduleResolution", scheduleResolution},
         {"numAttributes", numAttributes},
         {"attributeField", attributeFieldArray},
         {"timezoneIncluded", timezoneIncluded},
         {"timezoneField", timezoneField},
         {"homeTimezoneUsed", homeTimezoneUsed},
         {"baseTimezone", baseTimezone},
-        {"earlyTimeAsked", earlyTimeAsked},
-        {"lateTimeAsked", lateTimeAsked},
-        {"scheduleResolution", scheduleResolution},
         {"attributeType", attributeTypeArray},
         {"prefTeammatesField", prefTeammatesFieldArray},
         {"prefNonTeammatesField", prefNonTeammatesFieldArray},
+        {"assignmentPreferenceFields", assignmentPreferenceFieldArray},
         {"sectionNames", QJsonArray::fromStringList(sectionNames)},
         {"attributeQuestionText", QJsonArray::fromStringList(attributeQuestionText)},
         {"attributeQuestionResponses", attributeQuestionResponsesArray},
         {"attributeQuestionResponseCounts", attributeQuestionResponseCountsArray},
-        {"attributeVals", attributeValsArray},
-        {"Genders", grueprGlobal::genderListToJsonArray(Genders)},
+        {"discreteVals", discreteValsArray},
+        {"continuousVals", continuousValsArray},
         {"URMResponses", QJsonArray::fromStringList(URMResponses)},
+        {"Genders", gendersArray},
+        {"GenderIdentitiesCount", GenderIdentitiesCountObj},
+        {"URMIdentitiesCount", URMIdentitiesCountObj},
         {"dataSourceName", dataSourceName},
         {"dataSource", static_cast<int>(dataSource)},
         {"dayNames", QJsonArray::fromStringList(dayNames)},

@@ -1,284 +1,382 @@
 #include "attributeWidget.h"
-#include "qbuttongroup.h"
-#include "qradiobutton.h"
-#include <QApplication>
-#include <QFrame>
+#include "criteria/attributeCriterion.h"
+#include "dialogs/attributeRulesDialog.h"
+#include <QButtonGroup>
 #include <QGridLayout>
+#include <QPainter>
 
-AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
+AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,
+                                 AttributeCriterion *incomingCriterion, DataOptions::AttributeType attributeType, QWidget *parent)
+    : QWidget(parent), attribute(attribute), attributeType(attributeType), dataOptions(incomingDataOptions),
+    teamingOptions(incomingTeamingOptions), criterion(incomingCriterion)
 {
     setContentsMargins(0,0,0,0);
 
-    // auto *theGrid = new QGridLayout(this);
-    // theGrid->setContentsMargins(0,0,0,0);
-    // theGrid->setHorizontalSpacing(4);
-    // theGrid->setVerticalSpacing(2);
-    // setLayout(theGrid);
-    // int row = 0, column = 0;
-
     auto *mainLayout = new QHBoxLayout(this);
     mainLayout->setSpacing(4);
-
-    auto *attributeSettingsLayout = new QVBoxLayout(this);
+    auto *attributeSettingsLayout = new QVBoxLayout();
     attributeSettingsLayout->setSpacing(2);
+    auto *attributeResponsesLayout = new QVBoxLayout();
+    attributeResponsesLayout->setSpacing(2);
 
-
-    setLayout(mainLayout);
-
-
-    // questionLabel = new QLabel(this);
-    // questionLabel->setStyleSheet(LABEL12PTSTYLE);
-    // questionLabel->setTextFormat(Qt::RichText);
-    // questionLabel->setWordWrap(true);
-    // theGrid->addWidget(questionLabel, row++, column, 1, -1);
-
-    responsesLabel = new QLabel(this);
-    responsesLabel->setStyleSheet(LABEL10PTSTYLE);
-    responsesLabel->setTextFormat(Qt::RichText);
-    responsesLabel->setWordWrap(true);
-    responsesLabel->setIndent(10);
     auto *responsesFrame = new QFrame(this);
-    responsesFrame->setStyleSheet("QFrame {background-color: " TRANSPARENT "; border: 1px solid; border-color: " AQUAHEX "; padding: 2 px;}");
-    responsesFrame->setLineWidth(1);
-    responsesFrame->setFrameStyle(QFrame::Box | QFrame::Plain);
-    auto *hlay = new QHBoxLayout(responsesFrame);
-    hlay->addWidget(responsesLabel);
-    mainLayout->addWidget(responsesFrame, 7);
-
-    // auto *weightPreLabel = new QLabel(tr("Weight:"), this);
-    //theGrid->addWidget(weightPreLabel, row, column++, Qt::AlignLeft);
-    // weight = new QDoubleSpinBox(this);
-    // weight->setFocusPolicy(Qt::StrongFocus);
-    // weight->installEventFilter(new MouseWheelBlocker(weight));
-    // weight->setDecimals(1);
-    // weight->setMinimum(0);
-    // weight->setMaximum(TeamingOptions::MAXWEIGHT);
-    // weight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT) + "   ");
-    // weight->setToolTip(TeamingOptions::WEIGHTTOOLTIP);
-    // weight->setValue(1);
-    // theGrid->addWidget(weight, row, column++);
-    // theGrid->setColumnStretch(column++, 1);
-
-    // auto *attributeDiversityLabel = new QLabel(tr("Attribute Diversity"), this);
-    // attributeDiversityLabel->setToolTip(HOMOGENTOOLTIP);
-    // attributeDiversityLabel->setAlignment(Qt::AlignCenter);
-    // attributeSettingsLayout->addWidget(attributeDiversityLabel, 1, Qt::AlignCenter);
-
-    // attribute_diversity_slider = new AttributeDiversitySlider(this);
-    // attribute_diversity_slider->setToolTip(HOMOGENTOOLTIP);
-    // QLabel *sliderLabel1 = new QLabel("Diverse", this);
-    // QLabel *sliderLabel2 = new QLabel("Ignore", this);
-    // QLabel *sliderLabel3 = new QLabel("Similar", this);
-    // attributeSettingsLayout->addWidget(attribute_diversity_slider);
-    // // Align labels under the slider evenly
-    // QHBoxLayout *sliderLabelsLayout = new QHBoxLayout(this);
-    // sliderLabelsLayout->addWidget(sliderLabel1);
-    // sliderLabelsLayout->addWidget(sliderLabel2);
-    // sliderLabelsLayout->addWidget(sliderLabel3);
+    responsesFrame->setStyleSheet(BLUEFRAME);
+    responsesLayout = new QVBoxLayout(responsesFrame);
+    responsesLayout->setContentsMargins(2, 2, 2, 2);
+    responsesLayout->setSpacing(4);
+    auto *responsesText = new QLabel(tr(" Responses:"));
+    responsesText->setStyleSheet(LABEL12PTSTYLE);
+    responsesLayout->addWidget(responsesText);
+    attributeResponsesLayout->addWidget(responsesFrame);
+    attributeResponsesLayout->addStretch();
+    mainLayout->addLayout(attributeResponsesLayout, 7);
 
     // Create a horizontal layout
-    auto *attributeDiversityLayout = new QHBoxLayout(this);
-
+    auto *attributeDiversityLayout = new QHBoxLayout();
 
     // Create the "Diverse" card
-
-    static const char RADIOBUTTONCARDSSTYLE[] = "QFrame#similarCard, QFrame#diverseCard {border-color: " DEEPWATERHEX "; "
-                                                        "color: " DEEPWATERHEX "; background-color: white;} "
-                                                        "QFrame#similarCard:checked, QFrame#diverseCard:checked {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
-
+    diverseCard = new FrameThatForwardsMouseClicks(this);
+    diverseCard->setFixedSize(100, 120);
+    diverseCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    diverseCard->setToolTip(DIVERSETOOLTIP);
     diverseButton = new QRadioButton(this);
-    diverseButton->setToolTip("All of the students in the team will have a wide range of responses to this question.");
-    diverseCard = new QFrame(this);
-    diverseCard->setObjectName("diverseCard");
-    diverseCard->setStyleSheet(RADIOBUTTONCARDSSTYLE);
-    diverseButton->setIcon(QIcon(":/icons_new/heterogeneous.png"));
-    diverseButton->setIconSize(QSize(40, 40)); // Bigger icon
+    diverseButton->setIcon(QIcon(":/icons_new/diverse.png"));
+    diverseButton->setIconSize(QSize(50, 50));
     diverseButton->setStyleSheet("font-size: 15px;");
-    diverseButton->setChecked(true);
     auto *diverseLayout = new QVBoxLayout(diverseCard);
-    QLabel *diverseLabel = new QLabel("Diverse", this);
-    diverseLabel->setStyleSheet("background-color: white;");
+    auto *diverseLabel = new QLabel("Diverse\nTeammates", this);
     diverseButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     diverseLayout->addWidget(diverseButton, 0, Qt::AlignTop);
     diverseLayout->addWidget(diverseLabel,0,Qt::AlignBottom);
+    diverseCard->setStyleSheet(QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE);
+    diverseButton->setChecked(true);
+    connect(diverseCard, &FrameThatForwardsMouseClicks::clicked, diverseButton, &QRadioButton::click);
 
     // Create the "Similar" card
+    similarCard = new FrameThatForwardsMouseClicks(this);
+    similarCard->setFixedSize(100, 120);
+    similarCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    similarCard->setToolTip(SIMILARTOOLTIP);
     similarButton = new QRadioButton(this);
-    similarButton->setToolTip("All of the students in the team will have similar responses to this question.");
-    similarCard = new QFrame(this);
-    similarCard->setObjectName("similarCard");
-    similarCard->setStyleSheet(RADIOBUTTONCARDSSTYLE);
-    similarButton->setIcon(QIcon(":/icons_new/homogeneous.png"));
-    similarButton->setIconSize(QSize(40, 40));
+    similarButton->setIcon(QIcon(":/icons_new/similar.png"));
+    similarButton->setIconSize(QSize(50, 50));
     similarButton->setStyleSheet("font-size: 15px;");
     auto *similarLayout = new QVBoxLayout(similarCard);
-    QLabel *similarLabel = new QLabel("Similar", this);
-    similarLabel->setStyleSheet("background-color: white;");
+    auto *similarLabel = new QLabel("Similar\nTeammates", this);
     similarButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     similarLayout->addWidget(similarButton, 0, Qt::AlignTop);
     similarLayout->addWidget(similarLabel,0,Qt::AlignBottom);
+    similarCard->setStyleSheet(QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE);
+    similarButton->setChecked(false);
+    connect(similarCard, &FrameThatForwardsMouseClicks::clicked, similarButton, &QRadioButton::click);
 
-    // Set square size for the "Diverse" button
-    diverseCard->setFixedSize(100, 100); // You can change 100 to any size you prefer
+    // Create the "Average" card for numerical types
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        averageCard = new FrameThatForwardsMouseClicks(this);
+        averageCard->setFixedSize(100, 120);
+        averageCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        averageCard->setToolTip(AVERAGETOOLTIP);
+        averageButton = new QRadioButton(this);
+        averageButton->setIcon(QIcon(":/icons_new/average.png"));
+        averageButton->setIconSize(QSize(50, 50));
+        averageButton->setStyleSheet("font-size: 15px;");
+        auto *averageLayout = new QVBoxLayout(averageCard);
+        auto *averageLabel = new QLabel("Class\nAverage", this);
+        averageButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
+        averageLayout->addWidget(averageButton, 0, Qt::AlignTop);
+        averageLayout->addWidget(averageLabel,0,Qt::AlignBottom);
+        averageCard->setStyleSheet(QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE);
+        averageButton->setChecked(false);
+        connect(averageCard, &FrameThatForwardsMouseClicks::clicked, averageButton, &QRadioButton::click);
+/*
+        minimumSpinBox = new QDoubleSpinBox(parentCard);
+        minimumSpinBox->setPrefix(tr("Min: "));
+        minimumSpinBox->setMinimum(static_cast<double>(lo));
+        minimumSpinBox->setMaximum(static_cast<double>(hi));
+        minimumSpinBox->setValue(targetMin <= lo ? static_cast<double>(lo) : static_cast<double>(targetMin));
+        minimumSpinBox->setSingleStep(1.0);
+        minimumSpinBox->setDecimals(2);
+        minimumSpinBox->setMinimumHeight(40);
 
-    // Set square size for the "Similar" button
-    similarCard->setFixedSize(100, 100); // Same here, adjust as needed
+        maximumSpinBox = new QDoubleSpinBox(parentCard);
+        maximumSpinBox->setPrefix(tr("Max: "));
+        maximumSpinBox->setMinimum(static_cast<double>(lo));
+        maximumSpinBox->setMaximum(static_cast<double>(hi));
+        maximumSpinBox->setValue(targetMax >= hi ? static_cast<double>(hi) : static_cast<double>(targetMax));
+        maximumSpinBox->setSingleStep(1.0);
+        maximumSpinBox->setDecimals(2);
+        maximumSpinBox->setMinimumHeight(40);
 
-    // Optionally, keep the expanding size policy to ensure proper layout behavior
-    diverseCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    similarCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        // Sync initial values into the criterion
+        targetMin = static_cast<float>(minimumSpinBox->value());
+        targetMax = static_cast<float>(maximumSpinBox->value());
 
+        auto *spinLayout = new QHBoxLayout();
+        spinLayout->addWidget(minimumSpinBox);
+        spinLayout->addWidget(maximumSpinBox);
 
-    QButtonGroup *radioButtonGroup = new QButtonGroup(this);
+        auto *spinVLayout = new QVBoxLayout();
+        spinVLayout->addWidget(new QLabel(tr("Target group average range:")));
+        spinVLayout->addLayout(spinLayout);
+*/
+    }
+
+    // Add the cards to the horizontal layout and update styles when toggled
+    attributeDiversityLayout->addWidget(diverseCard);
+    attributeDiversityLayout->addSpacing(4);
+    attributeDiversityLayout->addWidget(similarCard);
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        attributeDiversityLayout->addSpacing(4);
+        attributeDiversityLayout->addWidget(averageCard);
+    }
+
+    auto *radioButtonGroup = new QButtonGroup(this);
     radioButtonGroup->addButton(similarButton);
     radioButtonGroup->addButton(diverseButton);
-
-    // Add the cards to the horizontal layout
-    attributeDiversityLayout->addWidget(diverseCard);
-    attributeDiversityLayout->addWidget(similarCard);
-
-    //Signal to update style on selection
-    connect(diverseButton, &QRadioButton::toggled, [=](bool checked) {
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        radioButtonGroup->addButton(averageButton);
+    }
+    connect(diverseButton, &QRadioButton::toggled, diverseCard, [this](bool checked) {
         diverseCard->setStyleSheet(checked ?
-                                       "QFrame#diverseCard {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX ";}" :
-                                       "QFrame#diverseCard {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: white;}"
+                                       QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE :
+                                       QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
                                    );
-        // Update QLabel background color based on selection
-        diverseLabel->setStyleSheet(checked ? "background-color: " BUBBLYHEX ";" : "background-color: white;");
     });
-    connect(similarButton, &QRadioButton::toggled, [=](bool checked) {
+    connect(similarButton, &QRadioButton::toggled, similarCard, [this](bool checked) {
         similarCard->setStyleSheet(checked ?
-                                       "QFrame#similarCard {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX ";}" :
-                                       "QFrame#similarCard {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: white;}"
+                                       QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE :
+                                       QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
                                    );
-        // Update QLabel background color based on selection
-        similarLabel->setStyleSheet(checked ? "background-color: " BUBBLYHEX ";" : "background-color: white;");
     });
-
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        connect(averageButton, &QRadioButton::toggled, averageCard, [this](bool checked) {
+            averageCard->setStyleSheet(checked ?
+                                           QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE :
+                                           QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
+                                       );
+        });
+    }
+    connect(diverseButton, &QRadioButton::clicked, this, [this]() {
+        criterion->diversity = Criterion::AttributeDiversity::diverse;
+    });
+    connect(similarButton, &QRadioButton::clicked, this, [this]() {
+        criterion->diversity = Criterion::AttributeDiversity::similar;
+    });
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        connect(averageButton, &QRadioButton::clicked, this, [this]() {
+            criterion->diversity = Criterion::AttributeDiversity::average;
+        });
+    }
 
     attributeSettingsLayout->addLayout(attributeDiversityLayout, 2);
 
-    setRequiredStudentsButton = new QPushButton(tr("Enforce Students Together"), this);
-    setRequiredStudentsButton->setToolTip(REQUIREDINCOMPATTOOLTIP);
-    attributeSettingsLayout->addWidget(setRequiredStudentsButton, 1);
-    QSpacerItem *buttonSpacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    attributeSettingsLayout->addItem(buttonSpacer);
+    if(attributeType != DataOptions::AttributeType::numerical) {
+        setRequiredValuesButton = new QPushButton(tr("Required Student"), this);
+        setRequiredValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        setRequiredValuesButton->setToolTip(REQUIREDTOOLTIP);
+        setIncompatibleValuesButton = new QPushButton(tr("Separated Students"), this);
+        setIncompatibleValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        setIncompatibleValuesButton->setToolTip(INCOMPATTOOLTIP);
+        connect(setRequiredValuesButton, &QPushButton::clicked, this, [this] {
+            const int currAttribute = this->attribute;
 
-    setIncompatibleStudentsButton = new QPushButton(tr("Enforce Students Separation"), this);
-    setIncompatibleStudentsButton->setToolTip(REQUIREDINCOMPATTOOLTIP);
-    attributeSettingsLayout->addWidget(setIncompatibleStudentsButton, 1);
+            //Open specialized dialog box to collect attribute values that are required on each team
+            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *criterion, AttributeRulesDialog::TypeOfRules::required, this);
+
+            //If user clicks OK, replace with new sets of values
+            const int reply = win->exec();
+            if(reply == QDialog::Accepted) {
+                criterion->haveAnyRequired = !(win->requiredValues.isEmpty());
+                criterion->requiredValues = win->requiredValues;
+
+                criterion->haveAnyIncompatible = !(win->incompatibleValues.isEmpty());
+                criterion->incompatibleValues = win->incompatibleValues;
+            }
+
+            delete win;
+        });
+        connect(setIncompatibleValuesButton, &QPushButton::clicked, this, [this] {
+            const int currAttribute = this->attribute;
+
+            //Open specialized dialog box to collect attribute values that are required on each team
+            auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *criterion, AttributeRulesDialog::TypeOfRules::incompatible, this);
+
+            //If user clicks OK, replace with new sets of values
+            const int reply = win->exec();
+            if(reply == QDialog::Accepted) {
+                criterion->haveAnyRequired = !(win->requiredValues.isEmpty());
+                criterion->requiredValues = win->requiredValues;
+
+                criterion->haveAnyIncompatible = !(win->incompatibleValues.isEmpty());
+                criterion->incompatibleValues = win->incompatibleValues;
+            }
+
+            delete win;
+        });
+
+        attributeSettingsLayout->addWidget(setRequiredValuesButton, 1);
+        auto *buttonSpacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        attributeSettingsLayout->addItem(buttonSpacer);
+        attributeSettingsLayout->addWidget(setIncompatibleValuesButton, 1);
+    }
     mainLayout->addLayout(attributeSettingsLayout, 3);
 }
 
-void AttributeWidget::setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions)
+void AttributeWidget::setValues(bool updateResponsesToo)
 {
     if(attribute >= dataOptions->numAttributes) {
-        //questionLabel->setText(tr("N/A"));
-        responsesLabel->setText(tr("N/A"));
-        // weight->setEnabled(false);
         diverseCard->setEnabled(false);
         similarCard->setEnabled(false);
-        setRequiredStudentsButton->setEnabled(false);
-        setIncompatibleStudentsButton->setEnabled(false);
+        if(attributeType == DataOptions::AttributeType::numerical) {
+            averageCard->setEnabled(false);
+        }
+        setRequiredValuesButton->setEnabled(false);
+        setIncompatibleValuesButton->setEnabled(false);
         return;
     }
 
-    updateQuestionAndResponses(attribute, dataOptions);
+    if(updateResponsesToo) {
+        updateResponses();
+    }
 
-    if(dataOptions->attributeVals[attribute].size() == 1) {
-        teamingOptions->attributeWeights[attribute] = 0;
-        // weight->setEnabled(false);
-        // weight->setToolTip(ONLYONETOOLTIP);
-        diverseCard->setEnabled(true);
-        similarCard->setEnabled(true);
-        //attribute_diversity_slider->setToolTip(ONLYONETOOLTIP);
-        setRequiredStudentsButton->setEnabled(true);
-        setIncompatibleStudentsButton->setEnabled(true);
-        //requiredIncompatsButton->setToolTip(ONLYONETOOLTIP);
+    if(attributeType != DataOptions::AttributeType::numerical && dataOptions->attributeVals_discrete[attribute].size() == 1) {
+        diverseCard->setEnabled(false);
+        similarCard->setEnabled(false);
+        setRequiredValuesButton->setEnabled(false);
+        setIncompatibleValuesButton->setEnabled(false);
     }
     else {
-        // weight->setEnabled(true);
-        // weight->setToolTip(TeamingOptions::WEIGHTTOOLTIP);
         diverseCard->setEnabled(true);
         similarCard->setEnabled(true);
-        //attribute_diversity_slider->setToolTip(HOMOGENTOOLTIP);
-        setRequiredStudentsButton->setEnabled(true);
-        setIncompatibleStudentsButton->setEnabled(true);
-        // requiredIncompatsButton->setToolTip(REQUIREDINCOMPATTOOLTIP);
-    }
-    // weight->setValue(double(teamingOptions->attributeWeights[attribute]));
-    //Convert AttributeDiversity to Slider Index then set slider value
-    bool homogeneous = teamingOptions->attributeDiversity[attribute];
-    diverseButton->toggled(!homogeneous);
-    similarButton->toggled(homogeneous);
-}
-
-void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts)
-{
-    const auto type = dataOptions->attributeType[attribute];
-
-    QString questionText = "<html>" + dataOptions->attributeQuestionText.at(attribute);
-    if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
-        questionText += "<br><i>Multiple responses allowed.</i>";
-    }
-    questionText += "</html>";
-    //questionLabel->setText(questionText);
-
-    static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-    QRegularExpressionMatch match;
-    int responseNum = 0;
-    bool first = true;
-
-    QString responsesText = "<html>";
-    //Create Table to store text
-    responsesText += "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%;'>";
-    responsesText += "<tr style='background-color: #f2f2f2;'><th>Response</th><th>Count</th></tr>";  // Table headers
-
-    for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute])) {
-        QString rowColor = (responseNum % 2 == 0) ? "#ffffff" : BUBBLYHEX;  // Alternate row colors (white and light blue)
-
-        responsesText += "<tr style='background-color: " + rowColor + ";'>";
-
-        responsesText += "<td>";
-        responsesText += "<b>";
-        if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {
-            // show response with starting number
-            match = startsWithInteger.match(response);
-            responsesText += match.captured(1) + "</b>" + response.mid(match.capturedLength(1));
-        }
-        else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical)) {
-            // show response with a preceding letter (letter repeated for responses after 26)
-            responsesText += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
-            responsesText += "</b>. " + response;
+        if(attributeType == DataOptions::AttributeType::numerical) {
+            averageCard->setEnabled(true);
         }
         else {
-            // timezone, show response with GMT
-            QString timezoneName;
-            float hours=0, minutes=0, offsetFromGMT=0;
-            if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT)) {
-                const QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
-                responsesText += GMTtext + "</b> " + timezoneName;
+            setRequiredValuesButton->setEnabled(true);
+            setIncompatibleValuesButton->setEnabled(true);
+        }
+    }
+
+    diverseButton->setChecked(criterion->diversity == Criterion::AttributeDiversity::diverse);
+    similarButton->setChecked(criterion->diversity == Criterion::AttributeDiversity::similar);
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        averageButton->setChecked(criterion->diversity == Criterion::AttributeDiversity::average);
+    }
+}
+
+void AttributeWidget::updateResponses(const std::map<QString, int> &responseCounts)
+{
+    setUpdatesEnabled(false);
+
+    // clear the responses displayed
+    for(auto &responseRow : responseRows) {
+        responsesLayout->removeWidget(responseRow);
+        responseRow->deleteLater();
+    }
+    responseRows.clear();
+
+    if(attributeType == DataOptions::AttributeType::numerical) {
+        const auto minVal = *dataOptions->attributeVals_continuous[attribute].cbegin();
+        const auto maxVal = *dataOptions->attributeVals_continuous[attribute].crbegin();
+        const auto meanVal = std::accumulate(dataOptions->attributeVals_continuous[attribute].cbegin(),
+                                             dataOptions->attributeVals_continuous[attribute].cend(), 0.0) /
+                             dataOptions->attributeVals_continuous[attribute].size();
+        auto *responseLabel = new QLabel(QString("Minimum: %1<br>Average: %2<br>Maximum: %3").arg(minVal).arg(meanVal, 0, 'f', 2).arg(maxVal));
+        responseLabel->setStyleSheet(LABEL10PTSTYLE);
+        responseLabel->setWordWrap(true);
+        responsesLayout->addWidget(responseLabel);
+        responseRows << responseLabel;
+    }
+
+    else {
+        static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+        QRegularExpressionMatch match;
+
+        auto &responseCountRef = responseCounts.empty() ? dataOptions->attributeQuestionResponseCounts[attribute] : responseCounts;
+        int totNumResponses = 0;
+        for (const auto& pair : responseCountRef) {
+            totNumResponses += pair.second;
+        }
+
+        int responseNum = 0;
+        for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
+            auto *row = new QWidget(this);
+            auto *rowLayout = new QHBoxLayout(row);
+            rowLayout->setContentsMargins(0, 0, 2, 2);
+            rowLayout->setSpacing(4);
+
+            // Response count bar graph
+            auto *responseBarGraph = new ResponseLabelBarGraph(responseCountRef.at(response), totNumResponses, BARGRAPHWIDTH, row);
+
+            // Response value
+            QString label, text;
+            if((attributeType == DataOptions::AttributeType::ordered) || (attributeType == DataOptions::AttributeType::multiordered)) {
+                // show response with starting number
+                match = startsWithInteger.match(response);
+                label = match.captured(1);
+                text = " " + response.mid(match.capturedLength(1));
+            }
+            else if((attributeType == DataOptions::AttributeType::categorical) || (attributeType == DataOptions::AttributeType::multicategorical)) {
+                // show response with a preceding letter (letter repeated for responses after 26)
+                label = (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+                text = ". " + response;
             }
             else {
-                responsesText += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
-                responsesText += "</b>. " + response;
+                // timezone, show response with GMT
+                QString timezoneName;
+                float hours=0, minutes=0, offsetFromGMT=0;
+                if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT)) {
+                    const QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
+                    label = GMTtext;
+                    text = " " + timezoneName;
+                }
+                else {
+                    label = (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+                    text = ". " + response;
+                }
             }
+            auto *responseLabel = new QLabel(QString("<b>%1</b>%2").arg(label, text), row);
+            responseLabel->setStyleSheet(LABEL10PTSTYLE);
+            responseLabel->setWordWrap(true);
+
+            rowLayout->addWidget(responseBarGraph);
+            rowLayout->addWidget(responseLabel);
+            row->setToolTip(QString::number(responseCountRef.at(response)) + tr(" students gave response ") + label + ".");
+
+            responseRows << row;
+            responsesLayout->addWidget(row);
+            responseNum++;
         }
-        responsesText += "</td>";
-
-        // Display response count
-        responsesText += "<td>";
-        responsesText += QString::number(responseCounts.empty() ?
-                                             (dataOptions->attributeQuestionResponseCounts[attribute].at(response)) :
-                                             (responseCounts.at(response))) +
-                         " " + tr("students");
-        responsesText += "</td>";
-
-        responsesText += "</tr>";  // End row
-
-        responseNum++;
     }
-    responsesText += "</table>";  // End table
-    responsesText += "</html>";
-    responsesLabel->setText(responsesText);
+    setUpdatesEnabled(true);
+}
+
+
+ResponseLabelBarGraph::ResponseLabelBarGraph(int value, int maxValue, int barWidth, QWidget *parent)
+    : QWidget(parent), m_value(value), m_barWidth(barWidth)
+{
+    setFixedSize(barWidth, 20);
+    if(maxValue == 0) {
+        m_maxValue = 1;
+        return;
+    }
+    m_maxValue = maxValue;
+}
+
+void ResponseLabelBarGraph::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    const int barHeight = height();
+
+    // Draw bar background
+    painter.fillRect(0, 0, m_barWidth, barHeight, QColor(Qt::white));
+
+    // Draw filled portion
+    painter.fillRect(1, 1, 1 + (((m_barWidth * m_value) - 1) / m_maxValue), barHeight - 1, QColor(DEEPWATERHEX));   // using ceiling division
+
+    // Draw border
+    painter.setPen(OPENWATERHEX);
+    painter.drawRect(0, 0, m_barWidth, barHeight);
 }

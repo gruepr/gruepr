@@ -79,7 +79,7 @@ void SurveyMakerQuestionWithSwitch::moveWidget(QWidget *widget, int newRow, int 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent)
+SurveyMakerAttributeQuestion::SurveyMakerAttributeQuestion(int questionNum, QWidget *parent)
     : QFrame{parent}
 {
     setStyleSheet(QString(BLUEFRAME) + SCROLLBARSTYLE);
@@ -117,14 +117,16 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
         responsesComboBox->setItemData(item + 2, responseOption, Qt::ToolTipRole);
         item++;
     }
-    responsesComboBox->setItemData(item + 1, QStringList({""}));    // reset the "Custom options..." item data and tooltip
-    responsesComboBox->setItemData(item + 1, "", Qt::ToolTipRole);
+    responsesComboBox->insertItem(numOfResponseOptions + 1, tr("Free response number"), QStringList({FREERESPONSENUMBER}));
+    numOfResponseOptions++;
+    responsesComboBox->setItemData(numOfResponseOptions + 1, QStringList({""}));    // reset the "Custom options..." item data and tooltip
+    responsesComboBox->setItemData(numOfResponseOptions + 1, "", Qt::ToolTipRole);
     multiAllowed = new QCheckBox(tr("Allow students to select multiple options"), this);
 
-    connect(deleteButton, &QPushButton::clicked, this, &SurveyMakerMultichoiceQuestion::deleteRequest);
-    connect(questionPlainTextEdit, &QPlainTextEdit::textChanged, this, &SurveyMakerMultichoiceQuestion::questionChange);
-    connect(responsesComboBox, &QComboBox::activated, this, &SurveyMakerMultichoiceQuestion::responsesComboBoxActivated);
-    connect(multiAllowed, &QCheckBox::toggled, this, &SurveyMakerMultichoiceQuestion::multiChange);
+    connect(deleteButton, &QPushButton::clicked, this, &SurveyMakerAttributeQuestion::deleteRequest);
+    connect(questionPlainTextEdit, &QPlainTextEdit::textChanged, this, &SurveyMakerAttributeQuestion::questionChange);
+    connect(responsesComboBox, &QComboBox::activated, this, &SurveyMakerAttributeQuestion::responsesComboBoxActivated);
+    connect(multiAllowed, &QCheckBox::toggled, this, &SurveyMakerAttributeQuestion::multiChange);
 
     auto *layout = new QGridLayout(this);
     int row = 0;
@@ -147,39 +149,39 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     previewWidget->setLayout(previewLayout);
 }
 
-void SurveyMakerMultichoiceQuestion::resizeEvent(QResizeEvent *event)
+void SurveyMakerAttributeQuestion::resizeEvent(QResizeEvent *event)
 {
     resizeQuestionPlainTextEdit();
     QWidget::resizeEvent(event);
 }
 
-void SurveyMakerMultichoiceQuestion::setNumber(const int questionNum)
+void SurveyMakerAttributeQuestion::setNumber(const int questionNum)
 {
     label->setText(tr("Question ") + QString::number(questionNum));
 }
 
-void SurveyMakerMultichoiceQuestion::deleteRequest()
+void SurveyMakerAttributeQuestion::deleteRequest()
 {
     emit deleteRequested();
 }
 
-void SurveyMakerMultichoiceQuestion::questionChange()
+void SurveyMakerAttributeQuestion::questionChange()
 {
     resizeQuestionPlainTextEdit();
     emit questionChanged(questionPlainTextEdit->toPlainText());
 }
 
-void SurveyMakerMultichoiceQuestion::setQuestion(const QString &newQuestion)
+void SurveyMakerAttributeQuestion::setQuestion(const QString &newQuestion)
 {
     questionPlainTextEdit->setPlainText(newQuestion);
 }
 
-QString SurveyMakerMultichoiceQuestion::getQuestion() const
+QString SurveyMakerAttributeQuestion::getQuestion() const
 {
     return questionPlainTextEdit->toPlainText();
 }
 
-void SurveyMakerMultichoiceQuestion::multiChange(const bool newMulti)
+void SurveyMakerAttributeQuestion::multiChange(const bool newMulti)
 {
     emit multiChanged(newMulti);
 
@@ -189,9 +191,17 @@ void SurveyMakerMultichoiceQuestion::multiChange(const bool newMulti)
     updatePreviewWidget();
 }
 
-void SurveyMakerMultichoiceQuestion::setResponses(const QStringList &newResponses)
+void SurveyMakerAttributeQuestion::setResponses(const QStringList &newResponses)
 {
-    if(newResponses == QStringList({""})) {
+    if(newResponses == QStringList({FREERESPONSENUMBER})) {
+        for(int i = 0; i < responsesComboBox->count(); i++) {
+            if(responsesComboBox->itemData(i).toStringList() == QStringList({FREERESPONSENUMBER})) {
+                responsesComboBox->setCurrentIndex(i);
+                break;
+            }
+        }
+    }
+    else if(newResponses == QStringList({""})) {
         responsesComboBox->setCurrentIndex(0);
     }
     else {
@@ -215,22 +225,22 @@ void SurveyMakerMultichoiceQuestion::setResponses(const QStringList &newResponse
     updatePreviewWidget();
 }
 
-QStringList SurveyMakerMultichoiceQuestion::getResponses() const
+QStringList SurveyMakerAttributeQuestion::getResponses() const
 {
     return responsesComboBox->currentData().toStringList();
 }
 
-void SurveyMakerMultichoiceQuestion::setMulti(const bool newMulti)
+void SurveyMakerAttributeQuestion::setMulti(const bool newMulti)
 {
     multiAllowed->setChecked(newMulti);
 }
 
-bool SurveyMakerMultichoiceQuestion::getMulti() const
+bool SurveyMakerAttributeQuestion::getMulti() const
 {
     return multiAllowed->isChecked();
 }
 
-void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
+void SurveyMakerAttributeQuestion::responsesComboBoxActivated(int index)
 {
     static int prevIndex = 0;
     static QStringList currentCustomOptions;
@@ -277,7 +287,7 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
     updatePreviewWidget();
 }
 
-void SurveyMakerMultichoiceQuestion::resizeQuestionPlainTextEdit()
+void SurveyMakerAttributeQuestion::resizeQuestionPlainTextEdit()
 {
     // make the edit box at least 2 rows of text tall but as big as needed to show all text
     const auto *const doc = questionPlainTextEdit->document();
@@ -288,7 +298,7 @@ void SurveyMakerMultichoiceQuestion::resizeQuestionPlainTextEdit()
     questionPlainTextEdit->setFixedHeight(height);
 }
 
-void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
+void SurveyMakerAttributeQuestion::updatePreviewWidget()
 {
     previewWidget->setUpdatesEnabled(false);
     QLayoutItem *child;
@@ -298,7 +308,17 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
     }
 
     if(responsesComboBox->currentIndex() != 0) {
-        if(multiAllowed->isChecked()) {
+        if(responsesComboBox->currentData().toStringList() == QStringList({FREERESPONSENUMBER})) {
+            // free response number, so preview is a line edit
+            auto *re = new QLineEdit;
+            re->setStyleSheet(LINEEDITSTYLE);
+            re->setPlaceholderText(tr("Enter a number..."));
+            re->setReadOnly(true);
+            previewLayout->addWidget(re);
+            multiAllowed->setChecked(false);
+            multiAllowed->setVisible(false);
+        }
+        else if(multiAllowed->isChecked()) {
             //multiallowed, so preview is list of checkboxes
             auto *topLabel = new QLabel(SELECTMULT);
             topLabel->setStyleSheet(LABEL10PTSTYLE);
@@ -327,20 +347,124 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
                 previewLayout->addWidget(re.last());
             }
             re.first()->setChecked(true);
+            multiAllowed->setVisible(true);
         }
         else {
             //select one and >=10 options, so dropdown with explainer label
             auto list = responsesComboBox->currentData().toStringList();
-            auto *re = new QComboBox;
-            re->setStyleSheet(COMBOBOXSTYLE);
+            auto *re = new StyledComboBox;
             re->addItems(list);
             previewLayout->addWidget(re);
             auto *bottomLabel = new QLabel(tr("Options") + ": " + list.join(" / "));
             bottomLabel->setStyleSheet(LABEL10PTSTYLE);
             bottomLabel->setWordWrap(true);
             previewLayout->addWidget(bottomLabel);
+            multiAllowed->setVisible(true);
         }
     }
+    previewWidget->setUpdatesEnabled(true);
+    previewWidget->update();
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+SurveyMakerFreeResponseQuestion::SurveyMakerFreeResponseQuestion(int questionNum, QWidget *parent)
+    : QFrame{parent}
+{
+    setStyleSheet(QString(BLUEFRAME) + SCROLLBARSTYLE);
+
+    label = new QLabel(this);
+    label->setStyleSheet(LABEL12PTSTYLE);
+    setNumber(questionNum);
+    deleteButton = new QPushButton(this);
+    deleteButton->setStyleSheet(DELBUTTONSTYLE);
+    deleteButton->setText(tr("Delete"));
+    deleteButton->setIcon(QIcon(":/icons_new/trashButton.png"));
+
+    auto *questionLabel = new QLabel(tr("Question"), this);
+    questionLabel->setStyleSheet(LABEL10PTSTYLE);
+    questionPlainTextEdit = new QPlainTextEdit;
+    questionPlainTextEdit->setStyleSheet(PLAINTEXTEDITSTYLE);
+    questionPlainTextEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    questionPlainTextEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    resizeQuestionPlainTextEdit();
+    questionPlainTextEdit->setPlaceholderText(tr("Type your question..."));
+
+    connect(deleteButton, &QPushButton::clicked, this, &SurveyMakerFreeResponseQuestion::deleteRequest);
+    connect(questionPlainTextEdit, &QPlainTextEdit::textChanged, this, &SurveyMakerFreeResponseQuestion::questionChange);
+
+    auto *layout = new QGridLayout(this);
+    int row = 0;
+    layout->addWidget(label, row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(deleteButton, row++, 1, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
+    layout->setRowMinimumHeight(row++, 10);
+    layout->addWidget(questionLabel, row++, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(questionPlainTextEdit, row++, 0, 1, -1, Qt::AlignVCenter);
+    layout->setRowMinimumHeight(row++, 10);
+    layout->setColumnStretch(0, 1);
+
+    previewWidget = new QWidget(this);
+    previewWidget->setStyleSheet(QString() + "QWidget{border-style:none;}" + SCROLLBARSTYLE);
+    previewLayout = new QVBoxLayout;
+    previewLayout->setSpacing(0);
+    previewLayout->setContentsMargins(20, 0, 0, 0);
+    previewWidget->setLayout(previewLayout);
+}
+
+void SurveyMakerFreeResponseQuestion::resizeEvent(QResizeEvent *event)
+{
+    resizeQuestionPlainTextEdit();
+    QWidget::resizeEvent(event);
+}
+
+void SurveyMakerFreeResponseQuestion::setNumber(const int questionNum)
+{
+    label->setText(tr("Question ") + QString::number(questionNum));
+}
+
+void SurveyMakerFreeResponseQuestion::deleteRequest()
+{
+    emit deleteRequested();
+}
+
+void SurveyMakerFreeResponseQuestion::questionChange()
+{
+    resizeQuestionPlainTextEdit();
+    emit questionChanged(questionPlainTextEdit->toPlainText());
+}
+
+void SurveyMakerFreeResponseQuestion::setQuestion(const QString &newQuestion)
+{
+    questionPlainTextEdit->setPlainText(newQuestion);
+}
+
+QString SurveyMakerFreeResponseQuestion::getQuestion() const
+{
+    return questionPlainTextEdit->toPlainText();
+}
+
+void SurveyMakerFreeResponseQuestion::resizeQuestionPlainTextEdit()
+{
+    // make the edit box at least 2 rows of text tall but as big as needed to show all text
+    const auto *const doc = questionPlainTextEdit->document();
+    const QFontMetrics font(doc->defaultFont());
+    const auto margins = questionPlainTextEdit->contentsMargins();
+    const int height = (font.lineSpacing() * std::max(2.0, doc->size().height())) +
+                       (doc->documentMargin() + questionPlainTextEdit->frameWidth()) * 2 + margins.top() + margins.bottom();
+    questionPlainTextEdit->setFixedHeight(height);
+}
+
+void SurveyMakerFreeResponseQuestion::updatePreviewWidget()
+{
+    previewWidget->setUpdatesEnabled(false);
+    QLayoutItem *child;
+    while ((child = previewLayout->takeAt(0)) != nullptr) {
+        delete child->widget(); // delete the widget
+        delete child;   // delete the layout item
+    }
+
     previewWidget->setUpdatesEnabled(true);
     previewWidget->update();
 }
@@ -392,7 +516,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         layout->addWidget(questionLineEdit.last(), row++, 0, 1, -1);
         questionLineEdit.last()->hide();
 
-        questionComboBox << new QComboBox(this);
+        questionComboBox << new StyledComboBox(this);
         questionComboBox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         questionComboBox.last()->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
         questionComboBox.last()->installEventFilter(new MouseWheelBlocker(questionComboBox.last()));

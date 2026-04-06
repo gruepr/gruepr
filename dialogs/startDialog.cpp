@@ -1,9 +1,10 @@
 #include "startDialog.h"
+#include "dialogs/loadDataDialog.h"
+#include "dialogs/registerDialog.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
-#include "dialogs/getGrueprDataDialog.h"
-#include "dialogs/registerDialog.h"
 #include "surveyMakerWizard.h"
+#include <memory>
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QDesktopServices>
@@ -62,7 +63,7 @@ StartDialog::StartDialog(QWidget *parent)
     const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     survMakeButton->setIconSize(ICONSIZE);
     survMakeButton->setFont(labelFont);
-    survMakeButton->setText(tr("Use our form builder\nto create the\nperfect survey for your class."));
+    survMakeButton->setText(tr("Need to collect student data?\nUse our form builder."));
     survMakeButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
@@ -75,7 +76,7 @@ StartDialog::StartDialog(QWidget *parent)
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
     grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(labelFont);
-    grueprButton->setText(tr("Use the survey results\nto form your grueps."));
+    grueprButton->setText(tr("Already have your student data?\nStart forming your groups."));
     grueprButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
@@ -106,17 +107,8 @@ StartDialog::StartDialog(QWidget *parent)
     upgradeLabel->setTextFormat(Qt::RichText);
     upgradeLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     upgradeLabel->setOpenExternalLinks(true);
-    // find out if there is an upgrade available
-    const GrueprVersion version = getLatestVersionFromGithub();
-    QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER + " <a href=\"" + GRUEPRDOWNLOADPAGE + "\">";
-    if(version == GrueprVersion::old) {
-        upgradeMessage +=  tr("Upgrade available!");
-    }
-    else if(version == GrueprVersion::beta) {
-        upgradeMessage += tr("(pre-release)");
-    }
-    upgradeMessage += "<\a>";
-    upgradeLabel->setText(upgradeMessage);
+    // show the version number now; upgrade info will appear asynchronously
+    upgradeLabel->setText(tr("Version") + ": " + GRUEPR_VERSION_NUMBER);
     upgradeLabel->setAlignment(Qt::AlignRight);
     theGrid->addWidget(registerLabel, row, 1, 1, 1, Qt::AlignLeft);
     theGrid->addWidget(upgradeLabel, row, 3, 1, 1, Qt::AlignRight);
@@ -156,102 +148,121 @@ StartDialog::StartDialog(QWidget *parent)
     }
     menuBar->addMenu(helpMenu);
 #endif
+    // fire off the async version check — label will update when the reply arrives
+    checkForNewVersion();
 }
 
 
 void StartDialog::openSurveyMaker() {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+    const auto surveyMakerWizard = std::make_unique<SurveyMakerWizard>();
+    surveyMakerWizard->show();
     this->hide();
-    const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard);
+    QApplication::processEvents();          // force the intro page to paint
+    surveyMakerWizard->addSecondaryPages(); // then construct the other 6 pages
     QApplication::restoreOverrideCursor();
-    surveyMakerWizard->exec();
+    QEventLoop loop;
+    connect(surveyMakerWizard.get(), &QWizard::finished, &loop, &QEventLoop::quit);
+    loop.exec();
     this->show();
 }
 
 
 void StartDialog::openGruepr() {
     QApplication::setOverrideCursor(Qt::BusyCursor);
-
-    bool spawnNewWindow = true;
-    while(spawnNewWindow) {
-        const QScopedPointer<GetGrueprDataDialog> getDataDialog(new GetGrueprDataDialog(this));
+    const auto getDataDialog = std::make_unique<loadDataDialog>(this);
+    this->hide();
+    QApplication::restoreOverrideCursor();
+    auto result = getDataDialog->exec();
+    if(result == QDialog::Accepted) {
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+        const auto grueprWindow = std::make_unique<gruepr>(*getDataDialog->dataOptions, getDataDialog->students, getDataDialog->loadingProgressDialog);
+        grueprWindow->show();
+        emit closeDataDialogProgressBar();
+        QApplication::processEvents();      // force the main window to paint
+        grueprWindow->addSavedTeamsTabs();  //then do the time-consuming constructors of any saved teams tabs
         QApplication::restoreOverrideCursor();
-        auto result = getDataDialog->exec();
-        if(result == QDialog::Accepted) {
-            QApplication::setOverrideCursor(Qt::BusyCursor);
-            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this));
-            this->hide();
-            grueprWindow->show();
-            emit closeDataDialogProgressBar();
-            QApplication::restoreOverrideCursor();
-            QEventLoop loop;
-            connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
-            loop.exec();
-            spawnNewWindow = grueprWindow->restartRequested;
-            this->show();
-        }
-        else {
-            spawnNewWindow = false;
-            emit closeDataDialogProgressBar();
-        }
-    }
-}
-
-
-StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
-    // check github for the latest version available for download
-    auto *manager = new QNetworkAccessManager(this);
-    auto *request = new QNetworkRequest(QUrl(VERSION_CHECK_URL));
-    request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
-    request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-    auto *reply = manager->get(*request);
-    QString latestVersionString;
-    QEventLoop loop;
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    if(reply->bytesAvailable() == 0) {
-        latestVersionString = "0";
+        QEventLoop loop;
+        connect(grueprWindow.get(), &gruepr::closed, &loop, &QEventLoop::quit);
+        loop.exec();
     }
     else {
-        static const QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
-        const QRegularExpressionMatch match = versionNum.match(reply->readAll());
-        latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
+        emit closeDataDialogProgressBar();
     }
-    reply->deleteLater();
-    delete request;
-    manager->deleteLater();
-
-    QStringList latestVersion = latestVersionString.split('.');
-    QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
-    // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
-    for(int field = int(latestVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
-        latestVersion << "0";
-    }
-    for(int field = int(thisVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
-        thisVersion << "0";
-    }
-    // convert to single integer
-    unsigned long long latestVersionAsInt = 0, thisVersionAsInt = 0;
-    for(int field = 0; field < NUMBER_VERSION_FIELDS; field++) {
-        latestVersionAsInt = (latestVersionAsInt*NUMBER_VERSION_PRECISION) + latestVersion.at(field).toInt();
-        thisVersionAsInt = (thisVersionAsInt*NUMBER_VERSION_PRECISION) + thisVersion.at(field).toInt();
-    }
-
-    if(latestVersionAsInt == 0) {
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
-        return GrueprVersion::unknown;
-    }
-    if(latestVersionAsInt > thisVersionAsInt) {
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available to download"));
-        return GrueprVersion::old;
-    }
-    if(thisVersionAsInt > latestVersionAsInt) {
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
-        return GrueprVersion::beta;
-    }
-    upgradeLabel->setToolTip(tr("Your version is up-to-date"));
-    return GrueprVersion::current;
+    this->show();
 }
+
+
+void StartDialog::checkForNewVersion() {
+    // check github for the latest version available for download
+    auto *manager = new QNetworkAccessManager(this);
+    manager->setTransferTimeout(5000);
+    QNetworkRequest request(QUrl(VERSION_CHECK_URL));
+    request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    auto *reply = manager->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, manager]() {
+        reply->deleteLater();
+        manager->deleteLater();
+
+        QString latestVersionString;
+        if(reply->bytesAvailable() == 0) {
+            latestVersionString = "0";
+        }
+        else {
+            static const QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
+            const QRegularExpressionMatch match = versionNum.match(reply->readAll());
+            latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
+        }
+
+        QStringList latestVersion = latestVersionString.split('.');
+        QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
+        // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
+        for(int field = int(latestVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
+            latestVersion << "0";
+        }
+        for(int field = int(thisVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
+            thisVersion << "0";
+        }
+        // convert to single integer
+        unsigned long long latestVersionAsInt = 0, thisVersionAsInt = 0;
+        for(int field = 0; field < NUMBER_VERSION_FIELDS; field++) {
+            latestVersionAsInt = (latestVersionAsInt*NUMBER_VERSION_PRECISION) + latestVersion.at(field).toInt();
+            thisVersionAsInt = (thisVersionAsInt*NUMBER_VERSION_PRECISION) + thisVersion.at(field).toInt();
+        }
+
+        GrueprVersion version;
+        if(latestVersionAsInt == 0) {
+            upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
+            version = GrueprVersion::unknown;
+        }
+        else if(latestVersionAsInt > thisVersionAsInt) {
+            upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available to download"));
+            version = GrueprVersion::old;
+        }
+        else if(thisVersionAsInt > latestVersionAsInt) {
+            upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
+            version = GrueprVersion::beta;
+        }
+        else {
+            upgradeLabel->setToolTip(tr("Your version is up-to-date"));
+            version = GrueprVersion::current;
+        }
+
+        // update the label with upgrade info
+        QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER + " <a href=\"" + GRUEPRDOWNLOADPAGE + "\">";
+        if(version == GrueprVersion::old) {
+            upgradeMessage += tr("Upgrade available!");
+        }
+        else if(version == GrueprVersion::beta) {
+            upgradeMessage += tr("(pre-release)");
+        }
+        upgradeMessage += "</a>";
+        upgradeLabel->setText(upgradeMessage);
+    });
+}
+
 
 void StartDialog::openRegisterDialog() {
     // open dialog window to allow the user to submit registration info to the Google Form
@@ -273,6 +284,7 @@ void StartDialog::openRegisterDialog() {
             message->setText(tr("Communicating..."));
 
             auto *manager = new QNetworkAccessManager(registerWin);
+            manager->setTransferTimeout(5000);
             auto *request = new QNetworkRequest(QUrl(USER_REGISTRATION_URL));
             request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
             request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);

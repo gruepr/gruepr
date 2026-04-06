@@ -1,0 +1,37 @@
+#ifndef CATEGORIZINGDIALOG_H
+#define CATEGORIZINGDIALOG_H
+
+#include "csvfile.h"
+#include "dataOptions.h"
+#include "widgets/styledComboBox.h"
+#include <QDialog>
+#include <QTableWidget>
+
+class CategorizingDialog : public QDialog
+{
+    Q_OBJECT
+public:
+    explicit CategorizingDialog(QWidget* parent = nullptr, CsvFile* surveyFile = nullptr, DataOptions::DataSource dataSource = DataOptions::DataSource::fromUploadFile);
+    QTableWidget* datasetTableWidget = nullptr;
+    QHBoxLayout* datasetTableHeaderLayout = nullptr;
+    CsvFile* surveyFile = nullptr;
+    DataOptions::DataSource source;
+    QList<StyledComboBox*> dataTypeComboBoxes;
+    QList<QWidget*> columnWidgets;
+    QDialogButtonBox* confirmCancelButtonBox = nullptr;
+    bool initializeComboBoxes();
+    void validateFieldSelectorBoxes(int callingRow);
+    void populateTable();
+
+private:
+    inline static const QString HEADERTEXT = QObject::tr("Question text");
+    inline static const QString CATEGORYTEXT = QObject::tr("Category");
+    inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
+    inline static const QString UNUSEDTEXT = QObject::tr("Unused");
+
+    inline static const int MAX_COLUMN_WIDTH = 250;
+    inline static const int MAX_HEADER_LINES = 4;
+    static QString wrapAndElideText(const QString &text, int availableWidth, int maxLines, const QFontMetrics &fm);
+};
+
+#endif // CATEGORIZINGDIALOG_H

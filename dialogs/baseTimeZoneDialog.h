@@ -2,7 +2,7 @@
 #define BASETIMEZONEDIALOG_H
 
 #include <QDialog>
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
 
 class baseTimezoneDialog : public QDialog
 {
@@ -13,7 +13,7 @@ public:
     float baseTimezoneVal = 0;
 
 private:
-    QComboBox *timezones = nullptr;
+    StyledComboBox *timezones = nullptr;
 };
 
 

@@ -1,14 +1,18 @@
 #ifndef TEAMMATESRULESDIALOG_H
 #define TEAMMATESRULESDIALOG_H
 
-#include <QDialog>
 #include "dataOptions.h"
 #include "studentRecord.h"
-#include "teamingOptions.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
+#include <QAbstractButton>
+#include <QBoxLayout>
+#include <QDialog>
+#include <QTableWidget>
+
+class gruepr;
 
 namespace Ui {
-class TeammatesRulesDialog;
+    class TeammatesRulesDialog;
 }
 
 class TeammatesRulesDialog : public QDialog
@@ -16,10 +20,10 @@ class TeammatesRulesDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum class TypeOfTeammates{required, prevented, requested};
-    explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
-                                  const QString &sectionname, const QStringList &currTeamSets, QWidget *parent = nullptr,
-                                  bool autoLoadRequired = false, bool autoLoadPrevented = false, bool autoLoadRequested = false);
+    enum class TypeOfTeammates{groupTogether, splitApart};
+    explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const QString &sectionname,
+                                  const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, int initialNumberGiven = REQUESTED_TEAMMATES_ALL,
+                                  gruepr *parent = nullptr);
     ~TeammatesRulesDialog() override;
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog operator= (const TeammatesRulesDialog&) = delete;
@@ -27,41 +31,49 @@ public:
     TeammatesRulesDialog& operator= (TeammatesRulesDialog&&) = delete;
 
     QList<StudentRecord> students;
-    bool required_teammatesSpecified = false;
-    bool prevented_teammatesSpecified = false;
-    bool requested_teammatesSpecified = false;
-    int numberRequestedTeammatesGiven = 1;
+    bool teammatesSpecified = false;
+    int numberGroupTogethersGiven = REQUESTED_TEAMMATES_ALL;
 
-private slots:
-    void clearAllValues();
+    // Header widgets (public so layout can be managed)
+    QHBoxLayout *headerLayout = nullptr;
+    QWidget *headerWidget = nullptr;
+    QAbstractButton *topLeftTableHeaderButton = nullptr;
+    int initialWidthStudentHeader = 0;
+    QTableWidget *tableWidget = nullptr;
 
 private:
     Ui::TeammatesRulesDialog *ui;
-    QPushButton *clearAllValuesButton = nullptr;
+    const TypeOfTeammates m_type;
+    const QString m_typeText;
 
-    bool positiverequestsInSurvey = false;
-    bool negativerequestsInSurvey = false;
+    bool requestsInSurvey = false;
     const int numStudents;
     QString sectionName;
     QStringList teamSets;
+    gruepr *grueprParent = nullptr;
 
-    QList <QComboBox *> possibleRequiredTeammates;
-    QList <QComboBox *> possiblePreventedTeammates;
-    QList <QComboBox *> possibleRequestedTeammates;
+    QList <StyledComboBox *> possibleTeammates;
 
-    void addTeammateSelector(TypeOfTeammates typeOfTeammates);
-    void refreshDisplay(TypeOfTeammates typeOfTeammates);
-    void addOneTeammateSet(TypeOfTeammates typeOfTeammates);
-    void clearValues(TypeOfTeammates typeOfTeammates, bool verify = true);
+    void showToast(QWidget *parent, const QString &message, int duration = 3000);
+    void initializeTableHeaders(QString searchBarText = "", bool initializeStatus = false);
+    void refreshDisplay(int verticalScrollPos, int horizontalScrollPos, QString searchBarText="");
+    void clearValues(bool verify = true);
 
     // these all return true on success, false on fail
-    //bool saveCSVFile(TypeOfTeammates typeOfTeammates);    // removed the save button once autosaving implemented
-    bool loadCSVFile(TypeOfTeammates typeOfTeammates);
-    bool loadStudentPrefs(TypeOfTeammates typeOfTeammates);
-    bool loadSpreadsheetFile(TypeOfTeammates typeOfTeammates);
-    bool loadExistingTeamset(TypeOfTeammates typeOfTeammates);
+    bool loadCSVFile();
+    bool loadStudentPrefs();
+    bool loadSpreadsheetFile();
+    bool loadExistingTeamset();
 
     const QSize ICONSIZE = QSize(15,15);
+
+    static QString typeToString(TypeOfTeammates type) {
+        switch(type) {
+        case TypeOfTeammates::splitApart: return tr("Split Apart");
+        case TypeOfTeammates::groupTogether: return tr("Group Together");
+        }
+        return {};
+    }
 };
 
 #endif // TEAMMATESRULESDIALOG_H

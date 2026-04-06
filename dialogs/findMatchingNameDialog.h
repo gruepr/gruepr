@@ -1,9 +1,9 @@
 #ifndef FINDMATCHINGNAMEDIALOG_H
 #define FINDMATCHINGNAMEDIALOG_H
 
-#include <QDialog>
 #include "studentRecord.h"
-#include <QComboBox>
+#include "widgets/styledComboBox.h"
+#include <QDialog>
 #include <QRadioButton>
 
 class findMatchingNameDialog : public QDialog
@@ -27,7 +27,7 @@ public:
     long long currSurveyID = 0;
 
 private:
-    QComboBox *namesList = nullptr;
+    StyledComboBox *namesList = nullptr;
     QRadioButton *useSurveyNameCheckbox = nullptr;
     QRadioButton *useRosterNameCheckbox = nullptr;
     QRadioButton *useSurveyEmailCheckbox = nullptr;

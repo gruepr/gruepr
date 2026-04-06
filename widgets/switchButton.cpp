@@ -94,30 +94,28 @@ SwitchButton::~SwitchButton()
 
 void SwitchButton::paintEvent(QPaintEvent*)
 {
-    auto *painter = new QPainter;
-    painter->begin(this);
-    painter->setRenderHint(QPainter::Antialiasing, true);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
     const QPen pen(Qt::NoPen);
-    painter->setPen(pen);
+    painter.setPen(pen);
 
     if (_enabled) {
-        painter->setBrush(_bordercolor);
-        painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
-        painter->setBrush(QColor::fromString(BUBBLYHEX));
-        painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
+        painter.setBrush(_bordercolor);
+        painter.drawRoundedRect(0, 0, width(), height(), 12, 12);
+        painter.setBrush(QColor::fromString(BUBBLYHEX));
+        painter.drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
         _labeloff->setStyleSheet("QLabel {background-color: " BUBBLYHEX "; color: " OPENWATERHEX "; border: none;}");
         _labelon->setStyleSheet("QLabel {background-color: " OPENWATERHEX "; color: " BUBBLYHEX "; border: none;}");
     }
     else {
-        painter->setBrush(QColor(190, 190, 190));
-        painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
-        painter->setBrush(QColor(QColor(230, 230, 230)));
-        painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
+        painter.setBrush(QColor(190, 190, 190));
+        painter.drawRoundedRect(0, 0, width(), height(), 12, 12);
+        painter.setBrush(QColor(QColor(230, 230, 230)));
+        painter.drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
         _labeloff->setStyleSheet("QLabel {background-color: #e6e6e6; color: darkgrey; border: none}");
         _labelon->setStyleSheet("QLabel {background-color: #bebebe; color: #e6e6e6; border: none}");
     }
-    painter->end();
 }
 
 void SwitchButton::mousePressEvent(QMouseEvent*)
@@ -134,7 +132,9 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
     QSize initial_size(hback, hback);
     QSize final_size(width() - 4, hback);
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     int xi = 2;
+#endif
     const int y  = 2;
     int xf = width() - 22;
 
@@ -142,7 +142,9 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
         final_size = QSize(hback, hback);
         initial_size = QSize(width() - 4, hback);
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
         xi = xf;
+#endif
         xf = 2;
 
         _labelon->hide();
@@ -184,12 +186,10 @@ void SwitchButton::setValue(bool flag)
     if (flag == value()) {
         return;
     }
-    else {
-        _value = flag;
-        _update();
-        setEnabled(_enabled);
-        emit valueChanged(_value);
-    }
+    _value = flag;
+    _update();
+    setEnabled(_enabled);
+    emit valueChanged(_value);
 }
 
 bool SwitchButton::value() const
@@ -234,21 +234,19 @@ SwitchButton::SwitchBackground::SwitchBackground(QWidget* parent)
 
 void SwitchButton::SwitchBackground::paintEvent(QPaintEvent*)
 {
-    auto *painter = new QPainter;
-    painter->begin(this);
-    painter->setRenderHint(QPainter::Antialiasing, true);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
     const QPen pen(Qt::NoPen);
-    painter->setPen(pen);
+    painter.setPen(pen);
     if (_enabled) {
-        painter->setBrush(_bluebrush);
-        painter->drawRoundedRect(0, 0, width(), height(), 10, 10);
+        painter.setBrush(_bluebrush);
+        painter.drawRoundedRect(0, 0, width(), height(), 10, 10);
     }
     else {
-        painter->setBrush(_graybrush);
-        painter->drawRoundedRect(0, 0, width(), height(), 10, 10);
+        painter.setBrush(_graybrush);
+        painter.drawRoundedRect(0, 0, width(), height(), 10, 10);
     }
-    painter->end();
 }
 void SwitchButton::SwitchBackground::setEnabled(bool flag)
 {
@@ -269,27 +267,24 @@ SwitchButton::SwitchCircle::SwitchCircle(QWidget* parent)
 
 void SwitchButton::SwitchCircle::paintEvent(QPaintEvent*)
 {
-    auto *painter = new QPainter;
-    painter->begin(this);
-    painter->setRenderHint(QPainter::Antialiasing, true);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
     const QPen pen(Qt::NoPen);
-    painter->setPen(pen);
+    painter.setPen(pen);
 
     if (_enabled) {
-        painter->setBrush(_bluebrush);
-        painter->drawEllipse(0, 0, 20, 20);
-        painter->setBrush(_whitebrush);
-        painter->drawEllipse(2, 2, 16, 16);
+        painter.setBrush(_bluebrush);
+        painter.drawEllipse(0, 0, 20, 20);
+        painter.setBrush(_whitebrush);
+        painter.drawEllipse(2, 2, 16, 16);
     }
     else {
-        painter->setBrush(_graybrush.darker(150));
-        painter->drawEllipse(0, 0, 20, 20);
-        painter->setBrush(_graybrush);
-        painter->drawEllipse(2, 2, 16, 16);
+        painter.setBrush(_graybrush.darker(150));
+        painter.drawEllipse(0, 0, 20, 20);
+        painter.setBrush(_graybrush);
+        painter.drawEllipse(2, 2, 16, 16);
     }
-
-    painter->end();
 }
 void SwitchButton::SwitchCircle::setEnabled(bool flag)
 {

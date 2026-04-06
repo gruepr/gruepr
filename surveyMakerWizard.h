@@ -1,8 +1,6 @@
 #ifndef SURVEYMAKERWIZARD_H
 #define SURVEYMAKERWIZARD_H
 
-#include <QWizard>
-#include <QWizardPage>
 #include "gruepr_globals.h"
 #include "survey.h"
 #include "dialogs/dayNamesDialog.h"
@@ -10,17 +8,20 @@
 #include "widgets/comboBoxWithElidedContents.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
 #include "widgets/labelWithInstantTooltip.h"
+#include "widgets/styledComboBox.h"
 #include "widgets/surveyMakerQuestion.h"
 #include <QCheckBox>
-#include <QComboBox>
 #include <QDate>
 #include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QWizard>
+#include <QWizardPage>
 
 
 /**
@@ -31,20 +32,24 @@ class SurveyMakerWizard : public QWizard
     Q_OBJECT
 
 public:
-    SurveyMakerWizard(QWidget *parent = nullptr);
+    SurveyMakerWizard();
     ~SurveyMakerWizard() override;
     SurveyMakerWizard(const SurveyMakerWizard&) = delete;
     SurveyMakerWizard operator= (const SurveyMakerWizard&) = delete;
     SurveyMakerWizard(SurveyMakerWizard&&) = delete;
     SurveyMakerWizard& operator= (SurveyMakerWizard&&) = delete;
 
-    static inline const int numPages = 6;
-    enum Page{introtitle, demographics, multichoice, schedule, courseinfo, previewexport};
-    static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 2, 3, 0};
-    static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Multiple Choice"),
-                                                 QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Preview & Export")};
+    static inline const int numPages = 8;
+    enum Page{introtitle, demographics, attribute, assignmentpreference, schedule, courseinfo, freeresponse, previewexport};
+    static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 1, 2, 3, MAX_NOTES, 0};
+    static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Attributes"),
+                                                 QObject::tr("Project or Assignment"),
+                                                 QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Free Response"),
+                                                 QObject::tr("Preview & Export")};
 
-    static inline const auto sundayMidnight = QDateTime(QDate(2017, 1, 1), QTime(0, 0));
+    void addSecondaryPages();       // speeds the loading of the title window by postponing the construction of the later pages
+
+    static inline const auto sundayMidnight = QDateTime(QDate(2017, 1, 1), QTime(0, 0));    // 2017/1/1 just happens to be a Sunday
     static inline const auto locale = QLocale::system();
     static inline const QStringList defaultDayNames = {locale.toString(SurveyMakerWizard::sundayMidnight.addDays(0), "dddd"),
                                                        locale.toString(SurveyMakerWizard::sundayMidnight.addDays(1), "dddd"),
@@ -66,9 +71,11 @@ public:
 
     QFileInfo saveFileLocation;
     bool previewPageVisited = false;
+    bool surveyHasBeenExported = false;
 
 public slots:
     void loadSurvey(int customButton);
+    void reject() override;
 };
 
 /**
@@ -115,6 +122,8 @@ public:
      */
     void initializePage() override;
 
+    QPushButton *getStartedButton = nullptr;
+
 private:
     QGridLayout *layout = nullptr;
     QLabel *pageTitle = nullptr;
@@ -124,7 +133,6 @@ private:
     QLabel *topLabel = nullptr;
     QLineEdit *surveyTitle = nullptr;
     QLabel *bottomLabel = nullptr;
-    QPushButton *getStartedButton = nullptr;
 };
 
 /**
@@ -154,7 +162,7 @@ private:
     QLineEdit *ln = nullptr;
     QLineEdit *em = nullptr;
     QLabel *genderResponsesLabel = nullptr;
-    QComboBox *genderResponsesComboBox = nullptr;
+    StyledComboBox *genderResponsesComboBox = nullptr;
     QCheckBox *genderResponsesAllowMulti = nullptr;
     QLabel *toplabelrb = nullptr;
     QLabel *toplabelcb = nullptr;
@@ -169,9 +177,9 @@ private:
 };
 
 /**
- * @brief The MultipleChoicePage class responsible for
+ * @brief The AttributePage class responsible for
  */
-class MultipleChoicePage : public SurveyMakerPage
+class AttributePage : public SurveyMakerPage
 {
     Q_OBJECT
     Q_PROPERTY(int numQuestions READ getNumQuestions WRITE setNumQuestions NOTIFY numQuestionsChanged)
@@ -180,7 +188,7 @@ class MultipleChoicePage : public SurveyMakerPage
     Q_PROPERTY(QList<bool> questionMultis READ getQuestionMultis WRITE setQuestionMultis NOTIFY questionMultisChanged)
 
 public:
-    MultipleChoicePage(QWidget *parent = nullptr);
+    AttributePage(QWidget *parent = nullptr);
 
     /**
      * @brief initializePage CURRENTLY AN EMPTY METHOD.
@@ -259,7 +267,8 @@ private:
     QLabel *sampleQuestionsLabel = nullptr;
     QPushButton *sampleQuestionsButton = nullptr;
     SampleQuestionsDialog *sampleQuestionsDialog = nullptr;
-    QList<SurveyMakerMultichoiceQuestion *> multichoiceQuestions;
+    QLayoutItem *stretch = nullptr;
+    QList<SurveyMakerAttributeQuestion *> attributeQuestions;
     QList<QSpacerItem *> spacers;
     QList<QFrame *> previewSeparators;
     QFrame *addQuestionButtonFrame = nullptr;
@@ -272,6 +281,58 @@ private:
     int numQuestions = 0;
     void addQuestion();
     void deleteAQuestion(int questionNum);
+};
+
+/**
+ * @brief The AssignmentPreferencePage class handles the team assignment preference
+ *        ranking page of the survey maker. Students rank options (projects, topics,
+ *        clients, etc.) and each team is assigned exactly one option during optimization.
+ */
+class AssignmentPreferencePage : public SurveyMakerPage
+{
+    Q_OBJECT
+    Q_PROPERTY(QStringList assignmentOptions READ getAssignmentOptions WRITE setAssignmentOptions NOTIFY assignmentOptionsChanged)
+    Q_PROPERTY(int numRankedChoices READ getNumRankedChoices WRITE setNumRankedChoices NOTIFY numRankedChoicesChanged)
+    Q_PROPERTY(QString assignmentPreferenceQuestionText READ getAssignmentPreferenceQuestionText
+                   WRITE setAssignmentPreferenceQuestionText NOTIFY assignmentPreferenceQuestionTextChanged)
+
+public:
+    AssignmentPreferencePage(QWidget *parent = nullptr);
+
+    void initializePage() override;
+    void cleanupPage() override;
+    bool validatePage() override;
+
+    void setAssignmentOptions(const QStringList &newOptions);
+    QStringList getAssignmentOptions() const;
+
+    void setNumRankedChoices(const int newNumRankedChoices);
+    int getNumRankedChoices() const;
+
+    void setAssignmentPreferenceQuestionText(const QString &newText);
+    QString getAssignmentPreferenceQuestionText() const;
+
+signals:
+    void assignmentOptionsChanged(const QStringList &newOptions);
+    void numRankedChoicesChanged(int newNumRankedChoices);
+    void assignmentPreferenceQuestionTextChanged(const QString &newText);
+
+private:
+    QFrame *tipFrame = nullptr;
+    QHBoxLayout *tipLayout = nullptr;
+    LabelWithInstantTooltip *tipIcon = nullptr;
+    LabelWithInstantTooltip *tipLabel = nullptr;
+
+    QPlainTextEdit *optionsTextEdit = nullptr;
+    QSpinBox *numRankedChoicesSpinBox = nullptr;
+    QLineEdit *questionTextEdit = nullptr;
+    QLabel *numOptionsLabel = nullptr;
+
+    QList<StyledComboBox *> previewDropdowns;
+    QLabel *previewQuestionLabel = nullptr;
+
+    void update();
+    void updatePreview();
 };
 
 /**
@@ -386,12 +447,12 @@ private slots:
 private:
     enum {timezone, schedule}; // questions in order
 
-    QComboBox *tz = nullptr;
+    StyledComboBox *tz = nullptr;
     QWidget *sc = nullptr;
     QGridLayout *scLayout = nullptr;
     QString scheduleQuestion;
     QLabel *busyOrFreeLabel = nullptr;
-    QComboBox *busyOrFreeComboBox = nullptr;
+    StyledComboBox *busyOrFreeComboBox = nullptr;
     QString baseTimezone = "";
     QLabel *baseTimezoneLabel = nullptr;
     QLineEdit *customBaseTimezone = nullptr;
@@ -402,15 +463,15 @@ private:
     QList<QCheckBox *> dayCheckBoxes;
     void checkDays();
     QLabel *timespanLabel = nullptr;
-    QComboBox *daysComboBox = nullptr;
+    StyledComboBox *daysComboBox = nullptr;
     QLabel *fromLabel = nullptr;
-    QComboBox *fromComboBox = nullptr;
+    StyledComboBox *fromComboBox = nullptr;
     QLabel *toLabel = nullptr;
-    QComboBox *toComboBox = nullptr;
+    StyledComboBox *toComboBox = nullptr;
     QLabel *resolutionLabel = nullptr;
-    QComboBox *resolutionComboBox = nullptr;
+    StyledComboBox *resolutionComboBox = nullptr;
     QLabel *formatLabel = nullptr;
-    QComboBox *formatComboBox = nullptr;
+    StyledComboBox *formatComboBox = nullptr;
     const int DEFAULTTIMEFORMAT = 7;
     const int DEFAULTSCHEDSTARTTIME = 10;  //10 am
     const int DEFAULTSCHEDENDTIME = 17;  //5 pm
@@ -509,9 +570,9 @@ private:
     QStringList sectionNames;
     int numSectionsEntered = 0;
     QPlainTextEdit *ww = nullptr;
-    QList<QComboBox *> wwc;
+    QList<StyledComboBox *> wwc;
     QPlainTextEdit *wa = nullptr;
-    QList<QComboBox *> wac;
+    QList<StyledComboBox *> wac;
     QLabel *numPrefTeammatesExplainer = nullptr;
     QSpinBox *numPrefTeammatesSpinBox = nullptr;
     int numPrefTeammates = 1;
@@ -526,6 +587,80 @@ private:
     void deleteASection(int sectionNum, bool pauseVisualUpdate = false);
     void addASection(bool pauseVisualUpdate = false);
     bool uploadRoster();
+};
+
+/**
+ * @brief The FreeResponsePage class is responsible for displaying the free response questions page portion of the survey maker part of Gruepr.
+ */
+class FreeResponsePage : public SurveyMakerPage
+{
+    Q_OBJECT
+    Q_PROPERTY(int numQuestions READ getNumQuestions WRITE setNumQuestions NOTIFY numQuestionsChanged)
+    Q_PROPERTY(QList<QString> questionTexts READ getQuestionTexts WRITE setQuestionTexts NOTIFY questionTextsChanged)
+
+public:
+    FreeResponsePage(QWidget *parent = nullptr);
+
+    /**
+     * @brief initializePage CURRENTLY AN EMPTY METHOD.
+     */
+    void initializePage() override;
+
+    /**
+     * @brief cleanupPage CURRENTLY AN EMPTY METHOD.
+     */
+    void cleanupPage() override;
+
+    /**
+     * @brief validatePage Makes sure that the user is aware of the current state of a free response page for their survey.
+     * @return True or false depending on what the user wants after double checking thanks to warning displayed by this method.
+     */
+    bool validatePage() override;
+
+    /**
+     * @brief setNumQuestions
+     * @param newNumQuestions
+     */
+    void setNumQuestions(const int newNumQuestions);
+
+    /**
+     * @brief getNumQuestions is a getter that returns the number of questions for the free response question page.
+     * @return The number of questions on the free response questions page.
+     */
+    int getNumQuestions() const;
+
+    /**
+     * @brief setQuestionTexts Adds question text boxes based on the nubmer of questions the user wants on the free response question page.
+     * @param newQuestionTexts A list of questions that the user wants on the free response question page.
+     */
+    void setQuestionTexts(const QList<QString> &newQuestionTexts);
+
+    /**
+     * @brief getQuestionTexts Returns the list of questions the user wants for the free response question page (getter for field of this class).
+     * @return The list of strings corresponding to questions the user wants on the free response question page.
+     */
+    QList<QString> getQuestionTexts() const;
+
+signals:
+    void numQuestionsChanged(int newNumQuestions);
+    void questionTextsChanged(const QList<QString> &newQuestionTexts);
+
+private:
+    QFrame *freeResponseInfoFrame = nullptr;
+    QHBoxLayout *freeResponseInfoLayout = nullptr;
+    LabelWithInstantTooltip *freeResponseInfoIcon = nullptr;
+    LabelWithInstantTooltip *freeResponseInfoLabel = nullptr;
+    QList<SurveyMakerFreeResponseQuestion *> freeResponseQuestions;
+    QList<QSpacerItem *> spacers;
+    QList<QFrame *> previewSeparators;
+    QFrame *addQuestionButtonFrame = nullptr;
+    QHBoxLayout *addQuestionButtonLayout = nullptr;
+    QPushButton *addQuestionButton = nullptr;
+    QStringList questionTexts;
+
+    int numQuestions = 0;
+    void addQuestion();
+    void deleteAQuestion(int questionNum);
 };
 
 /**
@@ -579,7 +714,6 @@ private:
     QRadioButton *destinationCanvas = nullptr;
     QRadioButton *destinationTextFiles = nullptr;
     QRadioButton *destinationGrueprFile = nullptr;
-    bool surveyHasBeenExported = false;
 };
 
 

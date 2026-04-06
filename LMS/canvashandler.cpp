@@ -350,6 +350,10 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
             query.addQueryItem("question[question_type]", "essay_question");
             query.addQueryItem("question[question_text]", question.text);
             break;
+        case Question::QuestionType::freeresponsenumber:
+            query.addQueryItem("question[question_type]", "numerical_question");
+            query.addQueryItem("question[question_text]", question.text);
+            break;
         case Question::QuestionType::dropdown: {
             query.addQueryItem("question[question_type]", "multiple_dropdowns_question");
             query.addQueryItem("question[question_text]", question.text + "  [options]");
@@ -372,6 +376,34 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                 optionNum++;
             }
             break;}
+        case Question::QuestionType::rankedchoice: {
+            for(int rank = 0; rank < question.numRankedChoices; rank++) {
+                if(rank > 0) {
+                    // Post the previous rank's question, then start a new one
+                    postData = query.toString(QUrl::FullyEncoded).toUtf8();
+                    postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams,
+                                                {"id"}, intParams, {}, stringInSubobjectParams);
+                    allGood = allGood && (!newQuestionText.constFirst().isEmpty());
+                    questionNum++;
+                    newQuestionText.clear();
+                    questionID.clear();
+                    query.clear();
+                    query.addQueryItem("question[question_name]", "Question " + QString::number(questionNum + 1));
+                    query.addQueryItem("question[position]", QString::number(questionNum + 1));
+                }
+                query.addQueryItem("question[question_type]", "multiple_dropdowns_question");
+                query.addQueryItem("question[question_text]",
+                                   question.text + " <strong> [" + (rank == 0? QString(RANKYOURFIRSTCHOICE) : (QString(RANKYOURCHOICE) + " "
+                                       + QString::number(rank + 1))) + "]</strong>  [options]");
+                int optionNum = 0;
+                for(const auto &option : question.options) {
+                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][blank_id]", "options");
+                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]", option);
+                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_weight]", "100");
+                    optionNum++;
+                }
+            }
+            break;}
         case Question::QuestionType::schedule: {
             if(survey->schedDayNames.size() == 1) {
                 //just one question, set it up to post
@@ -391,7 +423,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                 for(const auto &dayName : survey->schedDayNames) {
                     scheduleIntroStatement += " <u>[" + dayName + "]</u> ";
                 }
-                scheduleIntroStatement += "</strong>:";
+                scheduleIntroStatement += "</strong>. " + SCHEDULEQUESTIONINTRO3;
                 query.addQueryItem("question[question_text]", scheduleIntroStatement);
                 // post the question and then add a question for each day (final day will get posted outside of switch/case)
                 for(const auto &dayName : survey->schedDayNames) {
@@ -656,7 +688,9 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
     int numPages = 0;
 
     do {
-        reply = OAuthFlow->get(url);
+        QNetworkRequest request(url);
+        request.setRawHeader("Authorization", "Bearer " + OAuthFlow->token().toUtf8());
+        reply = manager->get(request);
 
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
@@ -888,8 +922,12 @@ void CanvasHandler::setBaseURL(const QString &baseAPIURL) {
     baseURL = baseAPIURL;
 }
 
-QString CanvasHandler::getScopes() const {
-    return SCOPES;
+QSet<QByteArray> CanvasHandler::getScopes() const {
+    QSet<QByteArray> result;
+    for (const auto &s : QString(SCOPES).split(' ', Qt::SkipEmptyParts)) {
+        result.insert(s.toUtf8());
+    }
+    return result;
 }
 
 QString CanvasHandler::getClientID() const {

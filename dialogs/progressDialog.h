@@ -1,9 +1,8 @@
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
-#include <QDialog>
-#include <QChartView>
 #include <QCheckBox>
+#include <QDialog>
 #include <QLabel>
 #include <QProgressBar>
 #include <QPushButton>
@@ -13,7 +12,7 @@ class progressDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit progressDialog(const QString &currSection = "", QChartView *chart = nullptr, QWidget *parent = nullptr);
+    explicit progressDialog(const QString &currSection = "", QWidget *chart = nullptr, QWidget *parent = nullptr);
     ~progressDialog() override;
     progressDialog(const progressDialog&) = delete;
     progressDialog operator= (const progressDialog&) = delete;
@@ -24,7 +23,7 @@ public:
     void highlightStopButton();
 
 private slots:
-    void statsButtonPushed(QChartView *chart);
+    void statsButtonPushed(QWidget *chart);
     void updateCountdown();
     void reject() override;
 
