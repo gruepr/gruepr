@@ -107,7 +107,7 @@ Function .onInit
     nsExec::ExecToStack 'cmd /c tasklist /NH 2>nul | findstr /B /I "gruepr.exe"'
     Pop $0  ; return value (findstr exit code: 0 = found, 1 = not found)
     Pop $1  ; output string (matched lines, if any)
-    StrCmp $0 "0" done
+    StrCmp $1 "" done
         MessageBox MB_OK|MB_ICONEXCLAMATION "gruepr is currently running. Please close it before installing."
         Abort
     done:
