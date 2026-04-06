@@ -1,5 +1,4 @@
 #include "gruepr_globals.h"
-#include "qjsonarray.h"
 #include <QEvent>
 #include <QGridLayout>
 #include <QMessageBox>

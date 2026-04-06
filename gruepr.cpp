@@ -1,6 +1,4 @@
 #include "gruepr.h"
-#include "dialogs/identityrulesdialog.h"
-#include "qlist.h"
 #include "ui_gruepr.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/scheduleCriterion.h"
@@ -1906,10 +1904,6 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
         grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
                                                         "Possible duplicates are indicated in the student table."), tr("OK"));
     }
-    refreshStudentDisplay();
-    ui->studentTable->resetTable();
-    changeIdealTeamSize();    // load new team sizes in selection box
-    chooseTeamSizes(0);
 
     if(progressDialog != nullptr) {
         progressDialog->setLabelText(tr("Loading student table..."));

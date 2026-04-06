@@ -1,300 +1,219 @@
-#include "identityrulesdialog.h"
-#include "qcombobox.h"
-#include "qheaderview.h"
-#include "qmessagebox.h"
-#include "qscrollarea.h"
-#include "qspinbox.h"
+#include "identityRulesDialog.h"
+#include "gruepr_globals.h"
+#include "widgets/checkableComboBox.h"
+#include "widgets/labelWithInstantTooltip.h"
+#include "widgets/styledComboBox.h"
+#include <QHeaderView>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QSpinBox>
 
-IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identity, TeamingOptions *teamingOptions, DataOptions *dataOptions)
-    : QDialog(parent), mainLayout(new QVBoxLayout(this))
+IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, QMap<QString, Criterion::IdentityRule> *identityRules,
+                                         const QStringList &identityOptions, const QString &title)
+    : QDialog(parent), mainLayout(new QVBoxLayout(this)), identityRules(identityRules), options(identityOptions)
+
 {
+    if(identityOptions.isEmpty()) {
+        return;
+    }
+
+    setWindowTitle(title);
     setMinimumSize(LG_DLG_SIZE, SM_DLG_SIZE);
-    this->teamingOptions = teamingOptions;
-    this->dataOptions = dataOptions;
-    this->identity = identity;
-    //number of each identity calculated where?
-    setWindowTitle("Edit Identity Rules");
-    //initialize labels
-    //QHBoxLayout* labelsLayout = new QHBoxLayout();
-    QLabel* identityTitleLabel = new QLabel("Identity Rules for: " + identity, this);
-    identityTitleLabel->setStyleSheet(QString(LABEL10PTSTYLE));
-    identityTitleLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(identityTitleLabel);
-    // Table Widget
+
+    auto *helpFrame = new QFrame(this);
+    helpFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: black;");
+    auto *helpLayout = new QHBoxLayout(helpFrame);
+    auto *helpIcon = new LabelWithInstantTooltip("", this);
+    helpIcon->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    helpIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    helpLayout->addWidget(helpIcon);
+    auto *explanation = new LabelWithInstantTooltip(tr("Help me understand these rules"), this);
+    explanation->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    helpLayout->addWidget(explanation);
+    const QString identityOne = options[0];
+    const QString identityTwo = options.size() > 1? options[1] : options[0];
+    const QString identityThree = options.size() > 2? options[2] : identityOne;
+    const QString identityFour = options.size() > 3? options[3] : identityOne;
+    const QString helpText = tr("<html><span style=\"color: black;\">Use this dialog to set the identity rules for forming teams. For example:"
+                                "<ul>") +
+                                "<li> <strong>" + identityOne + tr(" does not equal 0</strong><br>"
+                                            "means every team must have 1 or more ") + identityOne + " students.</li>"
+                                "<li> <strong>" + identityTwo + tr(" or ") + identityThree + tr(" does not equal 1</strong><br>"
+                                            "considers ") + identityTwo + tr(" and ") + identityThree + tr(" as interchangeable and prevents a "
+                                            "team from having exactly 1 student from either identity.</li>") +
+                                "<li> <strong>" + identityFour + tr(" is less than 3</strong><br>"
+                                            "means every team must have 0, 1, or 2 ") + identityFour + tr(" students.</li>") +
+                                "</ul>";
+    helpIcon->setToolTipText(helpText);
+    explanation->setToolTipText(helpText);
+    mainLayout->addWidget(helpFrame, 0, Qt::AlignLeft);
+
+
+    // Table
     rulesTable = new QTableWidget(this);
     rulesTable->verticalHeader()->setVisible(false);
     rulesTable->setColumnCount(4);
-    rulesTable->setHorizontalHeaderLabels({"Identity Type", "Operator", "No of Identity", "Actions"});
-    rulesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    rulesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    rulesTable->setHorizontalHeaderLabels({tr("Identity"), tr("Operator"), tr("Count"), ""});
+    rulesTable->setColumnWidth(3, 40);
+    rulesTable->setSelectionMode(QAbstractItemView::NoSelection);
+    rulesTable->setFocusPolicy(Qt::NoFocus);
     rulesTable->setEditTriggers(QAbstractItemView::AllEditTriggers);
     rulesTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    // Set up the table's header style
-    QHeaderView* header = rulesTable->horizontalHeader();
-    header->setStyleSheet("QHeaderView::section {"
-                          "background-color: " OPENWATERHEX";"
-                          "color: white;"
-                          "font-family: 'DM Sans'; font-size: 12pt;"
-                          "padding: 5px;"
-                          "border: 1px solid #ccc;"
-                          "}");
-
-    // Enable alternating row colors
+    QHeaderView *header = rulesTable->horizontalHeader();
+    header->setStyleSheet("QHeaderView::section {background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt; "
+                          "padding: 5px; border: 1px solid #ccc;}");
     rulesTable->setAlternatingRowColors(true);
-    rulesTable->setStyleSheet("QTableWidget {"
-                              "alternate-background-color: #f0f0f0;"
-                              "background-color: white;"
-                              "font-family: 'DM Sans'; font-size: 12pt;"
-                              "border: none;"
-                              "}");
-
+    rulesTable->setStyleSheet("QTableWidget {alternate-background-color: #f0f0f0; background-color: white; "
+                              "font-family: 'DM Sans'; font-size: 12pt; border: none;}");
     populateTable();
+    rulesTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    rulesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    rulesTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    rulesTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
 
     scrollArea = new QScrollArea(this);
-    scrollContentWidget = new QWidget(this);
-    rulesLayout = new QVBoxLayout(this);
-
     scrollArea->setWidget(rulesTable);
     scrollArea->setWidgetResizable(true);
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mainLayout->addWidget(scrollArea);
 
-    QPushButton* addNewIdentityRuleButton = new QPushButton(this);
-    addNewIdentityRuleButton->setText("Add New Identity Rule");
-    connect(addNewIdentityRuleButton, &QPushButton::clicked, this, &IdentityRulesDialog::addNewIdentityRule);
+    // Buttons
+    auto *addButton = new QPushButton(tr("Add New Rule"), this);
+    addButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    connect(addButton, &QPushButton::clicked, this, &IdentityRulesDialog::addNewIdentityRule);
 
-    QPushButton* okayButton = new QPushButton(this);
-    okayButton->setText("Save and Close");
-    connect(okayButton, &QPushButton::clicked, this, [teamingOptions, identity, this](){
-        QList<int> rowValues;
-        bool hasDuplicates = false;
-        bool hasPlaceholder = false;
-        QSet<int> uniqueNumbers;
-        QList<int> uniqueNumbersList;
-        // Get the 3rd row (index 2) of the rulesTable and iterate over the spinbox values
-        for (int row = 0; row < rulesTable->rowCount(); ++row) {
-            QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));  // 3rd row, index 2
-            if (spinBox) {
-                int value = spinBox->value();
-                qDebug() << "Checking each spinBox, row:" << row << "value:" << value;
-                rowValues.append(value);
-
-                // Check for duplicates and placeholders
-                if (uniqueNumbers.contains(value)) {
-                    hasDuplicates = true;
-                    break;  // No need to continue once a duplicate is found
-                }
-                if (value == -1) {
-                    hasPlaceholder = true;
-                    break;  // No need to continue once a placeholder is found
-                }
-                uniqueNumbers.insert(value);
-                uniqueNumbersList.append(value);
-            }
-        }
-        qDebug() << "Has Duplicates:" << hasDuplicates;
-        qDebug() << "Has Placeholder:" << hasPlaceholder;
-        if (hasDuplicates) {
-            QMessageBox msgBox;
-            msgBox.setText("Duplicate Error: There are duplicate entries in the identity rules.");
-            msgBox.exec();
-        }
-        if (hasPlaceholder) {
-            QMessageBox msgBox;
-            msgBox.setText(" Placeholder Error: Please input a valid number in the no of Identity boxes.");
-            msgBox.exec();
-        }
-        if (!hasDuplicates && !hasPlaceholder) {
-            teamingOptions->identityRules[identity]["!="] = {};
-            for (int num : uniqueNumbersList) {
-                teamingOptions->identityRules[identity]["!="].append(num);
-            }
-            this->accept();  // Close the dialog
-        }
+    auto *okButton = new QPushButton(tr("Save and Close"), this);
+    okButton->setStyleSheet(SMALLBUTTONSTYLE);
+    connect(okButton, &QPushButton::clicked, this, [this]() {
+        saveRules();
     });
-    QHBoxLayout* buttonsLayout = new QHBoxLayout(this);
-    buttonsLayout->addWidget(addNewIdentityRuleButton);
-    buttonsLayout->addWidget(okayButton);
-    //to do: cancel button
+
+    auto *cancelButton = new QPushButton(tr("Cancel"), this);
+    cancelButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+
+    auto *buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addWidget(addButton);
+    buttonsLayout->addStretch();
+    buttonsLayout->addWidget(cancelButton);
+    buttonsLayout->addWidget(okButton);
     mainLayout->addLayout(buttonsLayout);
-    addNewIdentityRuleButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    okayButton->setStyleSheet(SMALLBUTTONSTYLE);
 
-    //okay button does validation check
     setLayout(mainLayout);
+
 }
 
-void IdentityRulesDialog::addNewIdentityRule() {
-    int row = rulesTable->rowCount();
-    rulesTable->insertRow(row);
-    // QLabel* identityLabel = new QLabel("No. " + identity);
-    // QLabel* operatorLabel = new QLabel("!=", this);
-
-    QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
-    noOfIdentitySpinBox->setMinimum(-1);
-    noOfIdentitySpinBox->setValue(-1);
-    noOfIdentitySpinBox->setSpecialValueText("...");
-    noOfIdentitySpinBox->setStyleSheet(SPINBOXSTYLE);
-
-    // QHBoxLayout* newIdentityRuleLayout = new QHBoxLayout();
-    // newIdentityRuleLayout->addWidget(identityLabel);
-    // newIdentityRuleLayout->addWidget(operatorLabel);
-    // newIdentityRuleLayout->addWidget(noOfIdentitySpinBox);
-
-    QPushButton* removeRuleButton = new QPushButton(this);
-    removeRuleButton->setIcon(QIcon(":/icons_new/trashButton.png"));
-    connect(removeRuleButton, &QPushButton::clicked, this, [this, row, noOfIdentitySpinBox]() mutable {
-        removeIdentityRule("!=", noOfIdentitySpinBox->value());
-        rulesTable->removeRow(row);
-    });
-
-    QTableWidgetItem* identityItem = new QTableWidgetItem(identity);
-    identityItem->setFlags(identityItem->flags() & ~Qt::ItemIsEditable);
-
-    QTableWidgetItem* operatorItem = new QTableWidgetItem("!=");
-    operatorItem->setFlags(operatorItem->flags() & ~Qt::ItemIsEditable);
-
-    rulesTable->setItem(row, 0, identityItem);
-    rulesTable->setItem(row, 1, operatorItem);
-
-    rulesTable->setCellWidget(row, 2, noOfIdentitySpinBox);  // Default value
-    rulesTable->setCellWidget(row, 3, removeRuleButton);
-}
-
-void IdentityRulesDialog::removeIdentityRule(const QString &operatorString, int noOfIdentity) {
-    teamingOptions->identityRules[identity]["!="].removeOne(noOfIdentity);
-    if (teamingOptions->identityRules[identity]["!="].isEmpty()){
-        teamingOptions->identityRules[identity].remove("!=");
-    }
+void IdentityRulesDialog::addNewIdentityRule()
+{
+    const QString defaultIdentity = options.isEmpty() ? "" : options.first();
+    addRow(defaultIdentity, "!=", 0);
 }
 
 void IdentityRulesDialog::populateTable() {
-    rulesTable->setRowCount(0);  // Clear table first
-    for (const QString &operatorString : teamingOptions->identityRules[identity].keys()) {
-        const QList<int> &noInRule = teamingOptions->identityRules[identity].value(operatorString);
-        for (int noOfIdentity : noInRule) {
-            int row = rulesTable->rowCount();
-            rulesTable->insertRow(row);
-
-            QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
-            noOfIdentitySpinBox->setMinimum(0);
-            noOfIdentitySpinBox->setValue(noOfIdentity);
-            noOfIdentitySpinBox->setStyleSheet(SPINBOXSTYLE);
-
-            QPushButton* removeRuleButton = new QPushButton(this);
-            removeRuleButton->setIcon(QIcon(":/icons_new/trashButton.png"));
-            connect(removeRuleButton, &QPushButton::clicked, this, [this, row, noOfIdentitySpinBox]() mutable {
-                removeIdentityRule("!=", noOfIdentitySpinBox->value());
-                rulesTable->removeRow(row);
-            });
-
-            QTableWidgetItem* identityItem = new QTableWidgetItem(identity);
-            identityItem->setFlags(identityItem->flags() & ~Qt::ItemIsEditable);
-
-            QTableWidgetItem* operatorItem = new QTableWidgetItem("!=");
-            operatorItem->setFlags(operatorItem->flags() & ~Qt::ItemIsEditable);
-
-            rulesTable->setItem(row, 0, identityItem);
-            rulesTable->setItem(row, 1, operatorItem);
-
-            rulesTable->setCellWidget(row, 2, noOfIdentitySpinBox);  // Default value
-            rulesTable->setCellWidget(row, 3, removeRuleButton);
-        }
-    }
-}
-
-void IdentityRulesDialog::updateDialog(){
-
-    //delete everything from rules layout
-    while (rulesLayout->count() > 1) {
-        rulesLayout->removeItem(rulesLayout->itemAt(1));
-    }
-
-    //recreate the rulesLayout
-    for (const QString &operatorString : teamingOptions->identityRules[identity].keys()) {
-        QList<int> noInRule = teamingOptions->identityRules[identity].value(operatorString);
-        for (int noOfIdentity : std::as_const(noInRule)){
-
-            QLabel* identityLabel = new QLabel("No. " + identity);
-            QLabel* operatorLabel = new QLabel(operatorString, this);
-
-            QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
-            noOfIdentitySpinBox->setMinimum(0);
-            noOfIdentitySpinBox->setValue(noOfIdentity);
-
-            QHBoxLayout* newIdentityRuleLayout = new QHBoxLayout();
-            newIdentityRuleLayout->addWidget(identityLabel);
-            newIdentityRuleLayout->addWidget(operatorLabel);
-            newIdentityRuleLayout->addWidget(noOfIdentitySpinBox);
-
-            QPushButton* removeRuleButton = new QPushButton(this);
-            removeRuleButton->setIcon(QIcon(":/icons_new/trashButton.png"));
-            connect(removeRuleButton, &QPushButton::clicked, this, [this, operatorString, noOfIdentity]() mutable {
-                teamingOptions->identityRules[identity][operatorString].removeOne(noOfIdentity);
-                if (teamingOptions->identityRules[identity][operatorString].isEmpty()){
-                    teamingOptions->identityRules[identity].remove(operatorString);
-                }
-                updateDialog();
-            });
-            newIdentityRuleLayout->addWidget(removeRuleButton);
-            rulesLayout->addLayout(newIdentityRuleLayout);
-        }
-    }
-    // scrollContentWidget->setLayout(rulesLayout);
-    // scrollArea->setWidget(scrollContentWidget);
-    // mainLayout->addWidget(scrollArea);
-}
-
-QHBoxLayout* IdentityRulesDialog::createIdentityOperatorRule(QString identity, QString operatorString, int noOfIdentity){
-    QHBoxLayout* eachIdentityRuleLayout = new QHBoxLayout();
-    QLabel* currentIdentityLabel = new QLabel(identity);
-    QComboBox* operatorComboBox = new QComboBox(this);
-    //operatorComboBox->addItem(">");    // Greater than
-    operatorComboBox->addItem("=");    // Equal to
-    //operatorComboBox->addItem(">=");   // Greater than or equal to
-    //operatorComboBox->addItem("<=");   // Less than or equal to
-    //operatorComboBox->addItem("<");    // Less than
-    operatorComboBox->addItem("!=");   // Not equal to
-
-    int operatorIndex = operatorComboBox->findText(operatorString);
-    if (operatorIndex != -1) {
-        operatorComboBox->setCurrentIndex(operatorIndex);
-    }
-
-    QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
-    noOfIdentitySpinBox->setMinimum(0);
-    noOfIdentitySpinBox->setValue(noOfIdentity); //initialize to passed parameter
-    // Connect combobox to update identityRules
-
-    connect(operatorComboBox, &QComboBox::currentTextChanged, this, [this, operatorComboBox, identity, noOfIdentitySpinBox](const QString &newOperator) {
-        if (teamingOptions->identityRules.contains(identity)) {
-            int currentValue = noOfIdentitySpinBox->value(); //how is this initialized?
-            //remove the old value
-            teamingOptions->identityRules[identity][operatorComboBox->currentText()].remove(currentValue);
-            //remove the old operator if it is now empty
-            if (teamingOptions->identityRules[identity].isEmpty()){
-                teamingOptions->identityRules[identity].remove(operatorComboBox->currentText());  // Remove old operator
+    rulesTable->setRowCount(0);
+    for (const auto [identityKey, valMap] : identityRules->asKeyValueRange()) {
+        for (const auto [operation, values] : valMap.asKeyValueRange()) {
+            for (const int val : std::as_const(values)) {
+                addRow(identityKey, operation, val);
             }
-            //add the new operator and value
-            teamingOptions->identityRules[identity][newOperator].append(currentValue);
         }
-    });
-
-    // Connect spinbox to update identityRules
-    connect(noOfIdentitySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, identity, operatorComboBox, noOfIdentitySpinBox](int newValue) {
-        if (teamingOptions->identityRules.contains(identity)) {
-            int currentValue = noOfIdentitySpinBox->value();
-            QString currentOperator = operatorComboBox->currentText();
-            teamingOptions->identityRules[identity][currentOperator].remove(currentValue);
-            teamingOptions->identityRules[identity][currentOperator].append(newValue);
-        }
-    });
-    eachIdentityRuleLayout->addWidget(currentIdentityLabel);
-    eachIdentityRuleLayout->addWidget(operatorComboBox);
-    eachIdentityRuleLayout->addWidget(noOfIdentitySpinBox);
-
-    return eachIdentityRuleLayout;
+    }
 }
 
+QString IdentityRulesDialog::identityKeyFromRow(int row) const
+{
+    const auto *combo = qobject_cast<CheckableComboBox *>(rulesTable->cellWidget(row, 0));
+    if (!combo) {
+        return {};
+    }
+    QStringList checked = combo->checkedItems();
+    checked.sort();
+    return checked.join('|');
+}
 
+void IdentityRulesDialog::saveRules()
+{
+    // Validate: check for placeholders and duplicates
+    QSet<QString> seen;
+    for (int row = 0; row < rulesTable->rowCount(); ++row) {
+        const QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
+        const auto *opCombo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 1));
+        if (spinBox == nullptr || opCombo == nullptr) {
+            continue;
+        }
+        const QString identityKey = identityKeyFromRow(row);
+        if (identityKey.isEmpty()) {
+            grueprGlobal::errorMessage(this, tr("Invalid Rule"),
+                                 tr("Each rule must have at least one identity selected."));
+            return;
+        }
+        const QString operation = opCombo->currentData().toString();
+        const QString uniqueKey = identityKey + "|" + operation + "|" + QString::number(spinBox->value());
+        if (seen.contains(uniqueKey)) {
+            grueprGlobal::errorMessage(this, tr("Duplicate Rule"),
+                                 tr("There are duplicate rules. Each identity + operator + count combination must be unique."));
+            return;
+        }
+        seen.insert(uniqueKey);
+    }
+
+    // Rebuild the rules map from the table
+    identityRules->clear();
+    for (int row = 0; row < rulesTable->rowCount(); ++row) {
+        const QString identityKey = identityKeyFromRow(row);
+        const QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));
+        const auto *opCombo = qobject_cast<QComboBox *>(rulesTable->cellWidget(row, 1));
+        if (identityKey.isEmpty() || spinBox == nullptr || opCombo == nullptr) {
+            continue;
+        }
+        (*identityRules)[identityKey][opCombo->currentData().toString()].append(spinBox->value());
+    }
+
+    accept();
+}
+
+void IdentityRulesDialog::addRow(const QString &identityKey, const QString &operation, int value)
+{
+    const int row = rulesTable->rowCount();
+    rulesTable->insertRow(row);
+
+    // Column 0: identity combo box
+    auto *identityCombo = new CheckableComboBox(this);
+    identityCombo->addItems(options);
+    const QStringList checkedIdentities = identityKey.split('|');
+    identityCombo->setCheckedItems(checkedIdentities);
+    rulesTable->setCellWidget(row, 0, identityCombo);
+
+    // Column 1: operator
+    auto *operatorCombo = new StyledComboBox(this);
+    operatorCombo->addItem(tr("does not equal"), "!=");
+    operatorCombo->addItem(tr("is less than"), "<");
+    operatorCombo->addItem(tr("is greater than"), ">");
+    const int opIndex = operatorCombo->findData(operation);
+    operatorCombo->setCurrentIndex(opIndex >= 0 ? opIndex : 0);
+    rulesTable->setCellWidget(row, 1, operatorCombo);
+
+    // Column 2: count spinbox
+    auto *spinBox = new QSpinBox(this);
+    spinBox->setMinimum(0);
+    spinBox->setValue(value);
+    spinBox->setStyleSheet(SPINBOXSTYLE);
+    rulesTable->setCellWidget(row, 2, spinBox);
+
+    // Column 3: remove button
+    auto *removeButton = new QPushButton(this);
+    removeButton->setIcon(QIcon(":/icons_new/trashButton.png"));
+    removeButton->setStyleSheet("QPushButton {background-color: " TRANSPARENT "; border: none;}"
+                                "QPushButton:hover {background-color: #f0f0f0;}");
+    removeButton->setCursor(Qt::PointingHandCursor);
+    rulesTable->setCellWidget(row, 3, removeButton);
+    connect(removeButton, &QPushButton::clicked, this, [this, removeButton]() {
+        for (int r = 0; r < rulesTable->rowCount(); ++r) {
+            if (rulesTable->cellWidget(r, 3) == removeButton) {
+                rulesTable->removeRow(r);
+                return;
+            }
+        }
+    });
+    rulesTable->resizeColumnToContents(1);
+}

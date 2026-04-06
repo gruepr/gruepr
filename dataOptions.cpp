@@ -151,9 +151,6 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         }
     }
 
-    const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
-    Genders = grueprGlobal::jsonArrayToGenderList(GendersArray);
-
     const QJsonArray URMResponsesArray = jsonDataOptions["URMResponses"].toArray();
     URMResponses.reserve(URMResponsesArray.size());
     for(const auto &item : URMResponsesArray) {

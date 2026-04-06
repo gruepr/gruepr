@@ -2,7 +2,6 @@
 #define ATTRIBUTEWIDGET_H
 
 #include "dataOptions.h"
-#include "qradiobutton.h"
 #include "teamingOptions.h"
 #include <widgets/frameThatForwardsMouseClicks.h>
 #include <QDoubleSpinBox>

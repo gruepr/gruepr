@@ -9,11 +9,6 @@ SPONSORS:
      Free code signing on Windows provided by SignPath.io, certificate by SignPath Foundation.
 
 ---------------
-SPONSORS:
-
-     Free code signing on Windows provided by SignPath.io, certificate by SignPath Foundation.
-
----------------
 Description of gruepr:
 
      Gruepr is a program for splitting a section of 4-1000 students into optimized teams.
