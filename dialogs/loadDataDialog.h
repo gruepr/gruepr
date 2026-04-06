@@ -8,6 +8,7 @@
 #include <memory>
 #include <QButtonGroup>
 #include <QDialog>
+#include <QProgressDialog>
 
 namespace Ui {
 class loadDataDialog;
@@ -19,6 +20,8 @@ class loadDataDialog : public QDialog
 public:
     explicit loadDataDialog(StartDialog *parent = nullptr);
     ~loadDataDialog() override;
+
+    QProgressDialog *loadingProgressDialog = nullptr;
 
     std::unique_ptr<DataOptions> dataOptions;
     QList<StudentRecord> students;

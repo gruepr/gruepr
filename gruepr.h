@@ -16,6 +16,7 @@
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QPrinter>
+#include <QProgressDialog>
 #include <QSpinBox>
 
 
@@ -29,7 +30,7 @@ class gruepr : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit gruepr(DataOptions &dataOptions, QList<StudentRecord> &students);
+    explicit gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QProgressDialog *progressDialog = nullptr);
     ~gruepr() override;
     gruepr(const gruepr&) = delete;
     gruepr operator= (const gruepr&) = delete;
@@ -88,7 +89,7 @@ private slots:
 private:
         // setup
     Ui::gruepr *ui;
-    void loadUI();
+    void loadUI(QProgressDialog *progressDialog);
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
     inline void setTeamSizes(const QList<int> &teamSizes);
@@ -99,7 +100,7 @@ private:
     long long numActiveStudents = MAX_STUDENTS;
     inline StudentRecord* findStudentFromID(const long long ID);
     bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks names and emails against roster
-    void refreshStudentDisplay();
+    void refreshStudentDisplay(QProgressDialog *progressDialog = nullptr, int progressStart = 0, int progressEnd = 0);
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
 

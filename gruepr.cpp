@@ -33,7 +33,7 @@
 #include <QTextBrowser>
 
 
-gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
+gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProgressDialog *progressDialog) :
     QMainWindow(),
     students(std::move(_students)),
     dataOptions(new DataOptions(std::move(_dataOptions))),
@@ -212,7 +212,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     ui->compareRosterPushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
 
-    loadUI();
+    loadUI(progressDialog);
     // Restore additional criteria cards from previous work (savedCriteriaCards is empty if not loading from prevWork)
     for (const auto &cardJsonVal : std::as_const(savedCriteriaCards)) {
         const QJsonObject cardJson = cardJsonVal.toObject();
@@ -1831,7 +1831,7 @@ void gruepr::editDataDisplayTabName(int tabIndex)
 //////////////////
 //Enable the appropriate UI settings when loading a set of students
 //////////////////
-void gruepr::loadUI()
+void gruepr::loadUI(QProgressDialog *progressDialog)
 {
     //Restore window geometry
     adjustSize();
@@ -1891,21 +1891,32 @@ void gruepr::loadUI()
     for (int attribute = 0; attribute < dataOptions->numAttributes; attribute++){
         const QString title = "Attribute: "+ dataOptions->attributeQuestionText.at(attribute);
         initializedAttributeCriteriaCards << new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, dataOptions,
-                                                                       teamingOptions, this, title, true, attribute);
+                                                                      teamingOptions, this, title, true, attribute);
         auto *currentAttributeCard = initializedAttributeCriteriaCards.last();
         const auto &currentAttributeCriterion = qobject_cast<AttributeCriterion*>(currentAttributeCard->criterion);
         attributeWidgets << currentAttributeCriterion->attributeWidget;
         currentAttributeCriterion->attributeWidget->setValues();
-        currentAttributeCard->setVisible(false); //just initialize, don't show yet
+        currentAttributeCard->setVisible(false);
     }
 
-    //Remove duplicates
+    //Warn about duplicates
     if(std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;})) {
-        grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions."), tr("OK"));
+        grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
+                                                        "Possible duplicates are indicated in the student table."), tr("OK"));
     }
-    refreshStudentDisplay();
+
+    if(progressDialog != nullptr) {
+        progressDialog->setLabelText(tr("Loading student table..."));
+    }
+
+    refreshStudentDisplay(progressDialog, 50, 100);
+
+    if(progressDialog != nullptr) {
+        progressDialog->setValue(100);
+    }
+
     ui->studentTable->resetTable();
-    changeIdealTeamSize();    // load new team sizes in selection box
+    changeIdealTeamSize();
     chooseTeamSizes(0);
 }
 
@@ -2083,14 +2094,14 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
 //////////////////
 // Update current student info in table
 //////////////////
-void gruepr::refreshStudentDisplay()
+void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progressStart, int progressEnd)
 {
     ui->studentTable->setUpdatesEnabled(false);
     ui->dataDisplayTabWidget->setCurrentIndex(0);
     // delete all the widgets and clear the table
     for(int row = ui->studentTable->rowCount() - 1; row >= 0; row--) {
         for(int col = ui->studentTable->columnCount() - 1; col >= 0; col--) {
-            QWidget *w = ui->studentTable->cellWidget(row, col);
+            const QWidget *const w = ui->studentTable->cellWidget(row, col);
             if(w != nullptr) {
                 ui->studentTable->removeCellWidget(row, col);
                 delete w;
@@ -2237,11 +2248,16 @@ void gruepr::refreshStudentDisplay()
             ui->studentTable->setCellWidget(numActiveStudents, column, removerButton);
 
             numActiveStudents++;
+
+            if(progressDialog != nullptr) {
+                progressDialog->setValue(progressStart + (numActiveStudents * (progressEnd - progressStart)) / students.size());
+            }
         }
     }
     ui->studentTable->setRowCount(std::min(students.size(), numActiveStudents));
 
     ui->studentTable->setUpdatesEnabled(true);
+    ui->studentTable->horizontalHeader()->setResizeContentsPrecision(20);
     ui->studentTable->resizeColumnsToContents();
     ui->studentTable->setSortingEnabled(true);
 }

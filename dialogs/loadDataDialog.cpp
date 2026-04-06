@@ -591,7 +591,7 @@ bool loadDataDialog::getFromPrevWork()
         return false;
     }
 
-    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, 100, this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, 100, this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     loadingProgressDialog->setWindowModality(Qt::ApplicationModal);
     loadingProgressDialog->setAutoReset(false);
     connect(parent, &StartDialog::closeDataDialogProgressBar, loadingProgressDialog, &QProgressDialog::reset);
@@ -623,8 +623,9 @@ bool loadDataDialog::getFromPrevWork()
         student.reconcileScheduleDimensions(numDays, numTimes);     // backwards compat. - old files had fixed sized arrays
     }
 
-    loadingProgressDialog->setValue(loadingProgressDialog->maximum());
-    loadingProgressDialog->setLabelText("Opening gruepr window...");
+    loadingProgressDialog->setValue(50);
+    loadingProgressDialog->setMaximum(100);
+    loadingProgressDialog->setLabelText(tr("Preparing gruepr window..."));
 
     return true;
 }
@@ -674,7 +675,7 @@ void loadDataDialog::finalizeAccept(bool showCategorizingDialog)
 //reads data from csv file and assigns dataOption variables accordingly, dataOptions are fields that characterize the information from the data file and categorizing stage.
 bool loadDataDialog::readData()
 {
-    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), tr("Cancel"), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
+    loadingProgressDialog = new QProgressDialog(tr("Loading data..."), tr("Cancel"), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
                                                       this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     loadingProgressDialog->setAutoReset(false);
     connect(parent, &StartDialog::closeDataDialogProgressBar, loadingProgressDialog, &QProgressDialog::reset);
@@ -1240,8 +1241,12 @@ bool loadDataDialog::readData()
         student.createTooltip(*dataOptions);
     }
     loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + dataOptions->numAttributes);
+
     surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
-    loadingProgressDialog->setValue(loadingProgressDialog->maximum());
-    loadingProgressDialog->setLabelText("Opening gruepr window...");
+
+    loadingProgressDialog->setValue(50);
+    loadingProgressDialog->setMaximum(100);
+    loadingProgressDialog->setLabelText(tr("Preparing gruepr window..."));
+
     return true;
 }

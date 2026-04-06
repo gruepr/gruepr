@@ -4,6 +4,7 @@
 #include "gruepr.h"
 #include "gruepr_globals.h"
 #include "surveyMakerWizard.h"
+#include <memory>
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QDesktopServices>
@@ -154,14 +155,14 @@ StartDialog::StartDialog(QWidget *parent)
 
 void StartDialog::openSurveyMaker() {
     QApplication::setOverrideCursor(Qt::BusyCursor);
-    const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard());
+    const auto surveyMakerWizard = std::make_unique<SurveyMakerWizard>();
     surveyMakerWizard->show();
     this->hide();
     QApplication::processEvents();          // force the intro page to paint
     surveyMakerWizard->addSecondaryPages(); // then construct the other 6 pages
     QApplication::restoreOverrideCursor();
     QEventLoop loop;
-    connect(surveyMakerWizard.data(), &QWizard::finished, &loop, &QEventLoop::quit);
+    connect(surveyMakerWizard.get(), &QWizard::finished, &loop, &QEventLoop::quit);
     loop.exec();
     this->show();
 }
@@ -169,20 +170,20 @@ void StartDialog::openSurveyMaker() {
 
 void StartDialog::openGruepr() {
     QApplication::setOverrideCursor(Qt::BusyCursor);
-    const QScopedPointer<loadDataDialog> getDataDialog(new loadDataDialog(this));
+    const auto getDataDialog = std::make_unique<loadDataDialog>(this);
     this->hide();
     QApplication::restoreOverrideCursor();
     auto result = getDataDialog->exec();
     if(result == QDialog::Accepted) {
         QApplication::setOverrideCursor(Qt::BusyCursor);
-        const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
+        const auto grueprWindow = std::make_unique<gruepr>(*getDataDialog->dataOptions, getDataDialog->students, getDataDialog->loadingProgressDialog);
         grueprWindow->show();
         emit closeDataDialogProgressBar();
         QApplication::processEvents();      // force the main window to paint
         grueprWindow->addSavedTeamsTabs();  //then do the time-consuming constructors of any saved teams tabs
         QApplication::restoreOverrideCursor();
         QEventLoop loop;
-        connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
+        connect(grueprWindow.get(), &gruepr::closed, &loop, &QEventLoop::quit);
         loop.exec();
     }
     else {

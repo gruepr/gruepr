@@ -55,6 +55,7 @@
 //  - added nicer timeout function to handle LMS connection issue
 //  - fixed errors with Google connection and authorization related to IPv6 networking and PKCE authorization
 //  - fixed several memory leaks and thread race conditions
+//  - improved loading speed for surveymaker and gruepr
 //  - C++ code modernization throughout, using RAII architecture and reducing fixed size arrays
 //  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //  - added to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
