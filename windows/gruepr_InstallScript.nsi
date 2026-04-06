@@ -104,10 +104,10 @@
 ; Check if gruepr is currently running
 
 Function .onInit
-    nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq gruepr.exe" 2>nul | find /c "gruepr.exe"'
-    Pop $0  ; return value
-    Pop $1  ; output string (the count)
-    StrCmp $1 "0" done
+    nsExec::ExecToStack 'cmd /c tasklist /NH 2>nul | findstr /B /I "gruepr.exe"'
+    Pop $0  ; return value (findstr exit code: 0 = found, 1 = not found)
+    Pop $1  ; output string (matched lines, if any)
+    StrCmp $0 "0" done
         MessageBox MB_OK|MB_ICONEXCLAMATION "gruepr is currently running. Please close it before installing."
         Abort
     done:
