@@ -82,11 +82,13 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
         }
     });
 
-    //--- Populate the previous work combobox from QSettings ---
+    //--- Populate and enable the google and previous work options from QSettings ---
+    const int numGoogleSurveys = savedSettings.beginReadArray("GoogleForm");
+    ui->googleSourceButton->setEnabled(numGoogleSurveys > 0);
+    savedSettings.endArray();
     const int numPrevWorks = savedSettings.beginReadArray("prevWorks");
     ui->prevWorkComboBox->setVisible(numPrevWorks > 0);
-    // Hide the previous work source button if there are no saved sessions
-    ui->prevWorkSourceButton->setVisible(numPrevWorks > 0);
+    ui->prevWorkSourceButton->setEnabled(numPrevWorks > 0);
     if(numPrevWorks > 0) {
         QList<std::tuple<QDateTime, QString, QString, QString>> prevWorkInfos;   //lastModifiedDate, displayName, lastModifiedDateString, fileName
         prevWorkInfos.reserve(numPrevWorks);
