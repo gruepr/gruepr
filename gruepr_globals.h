@@ -422,6 +422,7 @@ inline static const char STUDENTTABLEWIDGETSTYLE[] =
 
 inline static const char TEAMTREEWIDGETSTYLE[] =
                                    "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
+                                   "QTreeView::item { border-bottom: 1px solid lightGray;}"
                                    "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
                                    "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
                                    "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"

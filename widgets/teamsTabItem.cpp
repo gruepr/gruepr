@@ -62,7 +62,11 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
         savedCriteriaJson = jsonTeamsTab["criteria"].toArray();
     } else {
         savedCriteriaJson = jsonTeamsTab["criterionMap"].toArray(); // previous name, for backwards compatibility
-    }    sectionNames = incomingSectionNames;
+    }
+    if(savedCriteriaJson.isEmpty()) {
+        criteriaWereMissing = true;
+    }
+    sectionNames = incomingSectionNames;
     numStudents = jsonTeamsTab["numStudents"].toInt();
     const QJsonArray studentsArray = jsonTeamsTab["students"].toArray();
     students.reserve(studentsArray.size());

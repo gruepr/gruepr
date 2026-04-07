@@ -150,6 +150,10 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
             attributeVals_continuous << vals;
         }
     }
+    // Backward compat: ensure attributeVals_continuous is the same size as the other attribute arrays
+    while(attributeVals_continuous.size() < attributeVals_discrete.size()) {
+        attributeVals_continuous << std::set<float>{};
+    }
 
     const QJsonArray URMResponsesArray = jsonDataOptions["URMResponses"].toArray();
     URMResponses.reserve(URMResponsesArray.size());

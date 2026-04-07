@@ -280,12 +280,22 @@ void gruepr::addSavedTeamsTabs()
             QJsonObject content = doc.object();
             const QJsonArray teamsetjsons = content["teamsets"].toArray();
             TeamsTabItem *teamTab = nullptr;
+            QStringList tabsWithMissingCriteria;
             for(const auto &teamsetjson : teamsetjsons) {
                 teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, students, dataOptions->sectionNames, letsDoItButton, this);
                 ui->dataDisplayTabWidget->addTab(teamTab, teamTab->tabName);
                 numTeams = int(teams.size());
                 connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
                 connect(teamTab, &TeamsTabItem::addCriterionRequested, this, static_cast<void (gruepr::*)(Criterion::CriteriaType)>(&gruepr::addCriteriaCard));
+                if(teamTab->criteriaWereMissing) {
+                    tabsWithMissingCriteria << teamTab->tabName;
+                }
+            }
+            if(!tabsWithMissingCriteria.isEmpty()) {
+                grueprGlobal::errorMessage(this, tr("Previous Version"),
+                                           tr("This file appears to have been saved by a previous version of gruepr. "
+                                              "Team data has been loaded, but the teaming criteria will not be displayed") +
+                                               (tabsWithMissingCriteria.size() == 1? "." : tr(" for:\n") + tabsWithMissingCriteria.join('\n')));
             }
         }
     }

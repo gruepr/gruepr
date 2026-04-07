@@ -36,6 +36,7 @@ public:
 
     QJsonObject toJson() const;
     void restoreCriteria(const DataOptions *dataOptions);
+    bool criteriaWereMissing = false;
 
     QString tabName;
     const TeamSet& getTeams() const { return teams; }

@@ -20,7 +20,6 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     setHeaderHidden(false);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDropIndicatorShown(false);
-    setAlternatingRowColors(true);
     setAutoScroll(true);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
