@@ -20,6 +20,12 @@
 class TeamTreeHeaderView;
 class TeamTreeWidgetItem;
 
+// data with these roles are stored in columns of the team info display tree,
+inline static const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // shown as the team's data value for each column
+inline static const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // used when sorting the columns
+inline static const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // column 0 of the team info display tree, used when swapping teams or teammates
+inline static const int SORT_TO_END = MAX_TEAMS + 100;                // flag to indicate moving this team to the end in the display table
+
 class TeamTreeWidget : public QTreeWidget
 {
     Q_OBJECT
@@ -62,6 +68,14 @@ private:
     TeamTreeWidgetItem *draggedItem = nullptr;
     TeamTreeWidgetItem *droppedItem = nullptr;
     QLabel *dragDropEventLabel = nullptr;
+    inline static const char TEAMTREEWIDGETSTYLE[] =
+        "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
+        "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
+        "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
+        "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
+            "border-image: none; image: url(:/icons_new/smallRightButton.png);}"
+        "QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {"
+            "border-image: none; image: url(:/icons_new/smallDownButton.png);}";
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -98,6 +112,17 @@ private:
     int m_lineCount;
     QSize m_iconSize;
     static const int ICONSIZE = 16;
+    inline static const char TEAMTREEWIDGETHEADERSTYLE[] =
+        "QHeaderView {border-top: none; border-left: none; border-right: 1px solid lightGray;"
+                     "border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                     "font-size: 12pt; color: white; text-align:left;}"
+        "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; "
+                              "border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                              "font-size: 12pt; color: white; text-align:left;}"
+        "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 12px;"
+                                 "subcontrol-origin: padding; subcontrol-position: bottom left;}"
+        "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 12px;"
+                              "subcontrol-origin: padding; subcontrol-position: top left;}";
 };
 
 ///////////////////////////////////////////////////////////////////////
