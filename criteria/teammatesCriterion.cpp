@@ -70,6 +70,7 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
             }
         }
         count /= 2; // undo double-count of Student A -> Student B and then again Student B -> Student A
+        haveAnyTeammates = (count > 0);
         pairingCountLabel->setText(count == 0 ? tr("No pairings set")
                                               : QString::number(count) + (count == 1 ? tr(" pairing set") : tr(" pairings set")));
     };
