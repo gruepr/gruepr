@@ -16,28 +16,22 @@ Description of gruepr:
      [ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ].
 
      Data about the students are collected and the students are split into teams of any desired size(s). A
-     good distribution of students into teams is determined by a numerical score. The score can be based on:
+     good distribution of students into teams can be based on:
         1) preventing isolated women, isolated men, isolated nonbinary persons, and/or single-gender teams;
-        2) preventing isolated URM students;
+        2) preventing isolated racial/ethnic minority students;
         3) achieving within each team either homogeneity or heterogeneity of up to 15 "attributes", which 
-           could be skills assessments, work preferences, attitudes, major, topic preference(s), or any 
-           other question that is answered by selecting one or more values from a limited set of 
-           possibilities;
-        4) requiring each team to have at least one student with a particular attribute;
-        5) preventing students with incompatible attributes from being on the same team;
-        6) achieving a high degree of overlap in schedule freetime (with timezone awareness);
-        7) preventing any particular students from being on the same team;
-        8) requiring any particular students to be on the same team; and/or
-        9) requiring at least a certain number of students from a particular list to be on the same team.
-
+           could be skills self-assessments, work preferences, attitudes, major, age, GPA, or any 
+           other question that is answered with a single numerical value or by selecting one or more 
+           options from a limited set of possibilities;
+        4) unique project preference,
+        5) achieving a high degree of overlap in schedule freetime (with timezone awareness);
+        6) separating particular students onto different teams;
+        7) requiring particular students to be on the same team; and / or
+        8) several more complicated applications of the above criteria.
+        
      After the optimization process runs for some time, the best set of teams found is shown on the screen.
-     The teams are displayed showing the students names, emails, gender, URM status, and attribute values.
-     Each team's score is also shown along with a table of student availability at each time slot throughout
-     the week. You can choose whether to save this teamset, adjust this teamset by rearranging teams or
-     students, or to change the teaming options and try again. If you save the teamset, three files can be
-     saved: 1) an instructor's file containing all the team and student information; 2) a student's file
-     showing the same but without listing team scores or student demographics/attributes; and 3) the
-     section, team, and student names in a spreadsheet format.
+     You can choose whether to save this teamset, adjust this teamset by rearranging teams or students, or 
+     change the teaming options and try again. The teamset can be saved in text, pdf, or spreadsheet format.
 
      The student data are typically collected using a survey that the students fill out. Gruepr will help
      the instructor create this survey, outputting the survey as either text files, a Canvas quiz, or, more
@@ -62,7 +56,8 @@ Details on how the teams are optimized:
      generation, a small number of the highest scoring "elite" genomes are directly copied (cloned) into the
      next generation, and the rest are created by mating tournament-selected parents using ordered crossover.
      Once the next generation's genepool is created, each genome has 1 or more potential mutations, which is
-     a swapping of two random locations on the genome.
+     a swapping of two random locations on the genome. Mutations occur preferentially in the lowest scoring 
+     team in the genome.
 
      A genome's net score is the harmonic mean of the score for each team. Harmonic mean is used so that low
      scoring teams have more weight. Evolution proceeds for at least minGenerations and at most
