@@ -32,34 +32,6 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - Pulling in ***incredible*** dissertation work by Nikhen:
-//     - Turned teaming criteria into individual 'cards' that are added, removed, and rearranged to make team formation goals
-//     - Added visualization to show how well each team meets each team formation goal
-//     - UI modernizations and simplifications in start dialog and data loading process
-//     - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
-//  - unified "required" and "requested" teammates
-//  - enabled a 'load from teamsTab' action in the "required" and "prevented" teammates in order to re-create or split apart an existing set of teams
-//  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
-//  - penalty points now scale with the criterion weight so that higher-priority penalties are more impactful
-//  - now correctly resizes columns in the team display tree whenever expanding an individual team
-//  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
-//  - now shows bar graphs indicating how many students selected each multiple choice response
-//  - multiple choice response counts now correctly account for added / removed / edited students
-//  - several bugfixes related to resorting teams
-//  - added numerical attribute, ranked options, and free text response questions
-//  - significantly expanded the ability to make teaming rules based on gender or racial/ethnic identity
-//  - removed dark mode in windows
-//  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
-//  - now preferentially performs GA::mutate on the lowest scoring team within a genome
-//  - added motion to the LMS busy dialog so that it doesn't appear frozen while connecting / downloading data
-//  - added nicer timeout function to handle LMS connection issue
-//  - fixed errors with Google connection and authorization related to IPv6 networking and PKCE authorization
-//  - fixed several memory leaks and thread race conditions
-//  - improved loading speed for surveymaker and gruepr
-//  - C++ code modernization throughout, using RAII architecture and reducing fixed size arrays
-//  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
-//  - added to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
-//  - added a linux build (untested!)
 //
 // TO DO:
 //    NEW FEATURES:
