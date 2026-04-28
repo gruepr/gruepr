@@ -6,7 +6,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4

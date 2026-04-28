@@ -14,14 +14,13 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
         version: '6.9.1'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2022_64'
         modules: 'qtnetworkauth'
     - uses: ilammy/msvc-dev-cmd@v1
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     
     - name: Install jom
       run: choco install jom
@@ -127,7 +126,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -270,7 +269,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
   # --- Install dependencies ---
 
