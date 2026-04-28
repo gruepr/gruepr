@@ -1,4 +1,4 @@
-name: Build Windows
+name: Build Windows-Nosign
  
 on: workflow_dispatch # when to trigger this. Here, manually
 jobs:
