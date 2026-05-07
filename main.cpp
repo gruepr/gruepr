@@ -34,6 +34,9 @@
 // DONE:
 //
 // TO DO:
+//
+//  - adding Microsoft Store availability
+//
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)

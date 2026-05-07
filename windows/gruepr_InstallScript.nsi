@@ -2,7 +2,7 @@
 ;
 ; This installer will install gruepr into a directory that the user selects.
 ; It remembers the directory in the registry, has uninstall support, and
-; (optionally) installs start menu and desktop shortcuts.
+; installs start menu and (optionally) desktop shortcuts.
 ;--------------------------------
 
   !define APPNAME "gruepr"
@@ -79,8 +79,6 @@
   !define MUI_FINISHPAGE_LINK "Click here to visit the gruepr homepage at gruepr.com."
   !define MUI_FINISHPAGE_LINK_LOCATION https://www.gruepr.com/
   !define MUI_FINISHPAGE_RUN ""
-  !define MUI_FINISHPAGE_RUN_TEXT "Add Shortcuts to Start Menu"
-  !define MUI_FINISHPAGE_RUN_FUNCTION StartMenuShortcuts
   ;!define MUI_FINISHPAGE_RUN_NOTCHECKED
   !define MUI_FINISHPAGE_SHOWREADME ""
   !define MUI_FINISHPAGE_SHOWREADME_TEXT "Add Shortcuts to Desktop"
@@ -144,21 +142,22 @@ FunctionEnd
     WriteRegStr HKCU "${UN_REG_LOC}" "DisplayName" "${APPNAME}"
     WriteRegStr HKCU "${UN_REG_LOC}" "DisplayIcon" "${APPLOCATION}\icons_new\icons.ico"
     WriteRegStr HKCU "${UN_REG_LOC}" "UninstallString" '"$INSTDIR\uninstall.exe"'
-    WriteRegStr HKCU "${UN_REG_LOC}" "URLInfoAbout" "http://gruepr.com"
+    WriteRegStr HKCU "${UN_REG_LOC}" "URLInfoAbout" "https://gruepr.com"
+    WriteRegStr HKCU "${UN_REG_LOC}" "Publisher" "gruepr"
+    WriteRegStr HKCU "${UN_REG_LOC}" "DisplayVersion" "${VERSION}"
     WriteRegDWORD HKCU "${UN_REG_LOC}" "NoModify" 1
     WriteRegDWORD HKCU "${UN_REG_LOC}" "NoRepair" 1
     WriteUninstaller "$INSTDIR\uninstall.exe"
+
+    ; Create Start Menu shortcut
+    CreateDirectory "$SMPROGRAMS\${APPNAME}"
+    CreateShortcut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\gruepr.exe"
+    CreateShortcut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe"
 
   SectionEnd
 
 ;------------------------------
 ; Optional Shortcuts
-
-  Function StartMenuShortcuts
-    CreateDirectory "$SMPROGRAMS\${APPNAME}"
-    CreateShortcut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe"
-    CreateShortcut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\gruepr.exe"
-  FunctionEnd
 
   Function DesktopShortcut
     CreateShortcut "$DESKTOP\${APPNAME}.lnk" "$INSTDIR\gruepr.exe"

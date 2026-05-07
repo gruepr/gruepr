@@ -295,8 +295,10 @@ void StartDialog::openRegisterDialog() {
             data["email"] = registerWin->email;
 #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
             data["os"] = QString("Windows");
-#else
+#elif (defined (Q_OS_MACOS))
             data["os"] = QString("macOS");
+#else
+            data["os"] = QString("linux");
 #endif
             const QJsonDocument doc(data);
             const QByteArray postData = doc.toJson();
