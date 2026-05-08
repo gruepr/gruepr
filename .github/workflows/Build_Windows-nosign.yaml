@@ -47,6 +47,25 @@ jobs:
     - name: Clean
       run: jom clean
 
+    - name: Extract gruepr.exe manifest
+      run: |
+           $mt = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\10.0.*\x64\mt.exe" |
+                 Sort-Object Name -Descending | Select-Object -First 1
+           try {
+             & $mt.FullName "-inputresource:release\gruepr.exe;#1" "-out:gruepr.manifest"
+             Write-Host "=== Manifest contents ==="
+             Get-Content gruepr.manifest
+           } catch {
+             Write-Host "No manifest found in resource #1, trying alternates..."
+             & $mt.FullName "-inputresource:release\gruepr.exe;1" "-out:gruepr.manifest" 2>&1
+             if (Test-Path gruepr.manifest) {
+               Write-Host "=== Manifest contents ==="
+               Get-Content gruepr.manifest
+             } else {
+               Write-Host "No manifest embedded in gruepr.exe"
+             }
+           }
+
     - name: Upload unsigned exe
       id: upload-unsigned-exe
       uses: actions/upload-artifact@v6
