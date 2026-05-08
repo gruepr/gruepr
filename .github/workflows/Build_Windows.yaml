@@ -76,7 +76,15 @@ jobs:
 
     - name: Deploy
       run: |
-           windeployqt --compiler-runtime release\gruepr.exe
+        windeployqt release\gruepr.exe
+        $crtDir = "$env:VCToolsRedistDir\x64\Microsoft.VC143.CRT"
+        Copy-Item "$crtDir\msvcp140.dll" release\
+        Copy-Item "$crtDir\msvcp140_1.dll" release\
+        Copy-Item "$crtDir\msvcp140_2.dll" release\
+        Copy-Item "$crtDir\vcruntime140.dll" release\
+        Copy-Item "$crtDir\vcruntime140_1.dll" release\
+        Copy-Item "$crtDir\concrt140.dll" release\ -ErrorAction SilentlyContinue
+        Remove-Item release\vc_redist.x64.exe -ErrorAction SilentlyContinue
 
     - name: Make installer
       run: |
