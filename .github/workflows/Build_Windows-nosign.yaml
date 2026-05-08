@@ -61,16 +61,21 @@ jobs:
       run: |
            windeployqt release\gruepr.exe
            $crtDir = "$env:VCToolsRedistDir\x64\Microsoft.VC143.CRT"
+           $ompDir = "$env:VCToolsRedistDir\x64\Microsoft.VC143.OpenMP"
            Copy-Item "$crtDir\msvcp140.dll" release\
            Copy-Item "$crtDir\msvcp140_1.dll" release\
            Copy-Item "$crtDir\msvcp140_2.dll" release\
            Copy-Item "$crtDir\vcruntime140.dll" release\
            Copy-Item "$crtDir\vcruntime140_1.dll" release\
            Copy-Item "$crtDir\concrt140.dll" release\ -ErrorAction SilentlyContinue
+           Copy-Item "$ompDir\vcomp140.dll" release\
            Remove-Item release\vc_redist.x64.exe -ErrorAction SilentlyContinue
 
     - name: List release directory
       run: Get-ChildItem -Recurse release | Select-Object FullName, Length | Format-Table -AutoSize
+
+    - name: Show gruepr.exe dependencies
+      run: dumpbin /dependents release\gruepr.exe
 
     - name: Make installer
       run: |
