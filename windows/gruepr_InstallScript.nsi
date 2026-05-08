@@ -15,7 +15,6 @@
     !define BUILDDIR "${BASELOCATION}\gruepr"
   !endif
   !define BUILDLOCATION "${BUILDDIR}\release"
-  !define VCREDIST "vc_redist.x64.exe"
 
 ;--------------------------------
   !getdllversion "${BUILDLOCATION}\gruepr.exe" expv_
@@ -44,11 +43,10 @@
   !else
     OutFile "install_${APPNAME}V${VERSION}.exe"
   !endif
-  InstallDir "$PROGRAMFILES\${APPNAME}"
-  InstallDirRegKey HKCU "Software\${APPNAME}" "Install_Dir"
+  InstallDir "$LOCALAPPDATA\Programs\${APPNAME}"
 
   SetCompressor /solid lzma
-  RequestExecutionLevel admin
+  RequestExecutionLevel user
   ShowInstDetails show
   ShowUninstDetails show
   Unicode True
@@ -114,16 +112,6 @@ FunctionEnd
 ;--------------------------------
 ; Installation
 
-  Section "Visual Studio Runtime"
-
-    ; Set output path to the installation directory.
-    SetOutPath $INSTDIR
-    File "${BUILDLOCATION}\vc_redist.x64.exe"
-    ExecWait "$INSTDIR\${VCREDIST} /install /passive"
-    Delete "$INSTDIR\${VCREDIST}"
-
-  SectionEnd
-;
   Section "gruepr (required)"
 
     SectionIn RO
@@ -173,28 +161,7 @@ FunctionEnd
     DeleteRegKey HKCU "Software\${APPNAME}"
 
     ; Remove files
-    RMDir /r "$INSTDIR\bearer"
-    RMDir /r "$INSTDIR\generic"
-    RMDir /r "$INSTDIR\iconengines"
-    RMDir /r "$INSTDIR\imageformats"
-    RMDir /r "$INSTDIR\networkinformation"
-    RMDir /r "$INSTDIR\platforms"
-    RMDir /r "$INSTDIR\position"
-    RMDir /r "$INSTDIR\printsupport"
-    RMDir /r "$INSTDIR\resources"
-    RMDir /r "$INSTDIR\sample survey results"
-    RMDir /r "$INSTDIR\sample surveys"
-    RMDir /r "$INSTDIR\styles"
-    RMDir /r "$INSTDIR\tls"
-    RMDir /r "$INSTDIR\translations"
-    Delete "$INSTDIR\gruepr.exe"
-    Delete "$INSTDIR\uninstall.exe"
-    Delete "$INSTDIR\D3D*.dll"
-    Delete "$INSTDIR\lib*.dll"
-    Delete "$INSTDIR\opengl*.dll"
-    Delete "$INSTDIR\Qt*.dll"
-    Delete "$INSTDIR\Qt*.exe"
-    Delete "$INSTDIR\vc_*.exe"
+    RMDir /r "$INSTDIR"
 
     ; Remove shortcuts, if any
     Delete "$SMPROGRAMS\${APPNAME}\*.lnk"

@@ -80,11 +80,7 @@ jobs:
 
     - name: Deploy
       run: |
-           windeployqt release\gruepr.exe
-
-    - name: Download VC++ Redistributable
-      run: |
-        Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile vc_redist.x64.exe
+           windeployqt --compiler-runtime release\gruepr.exe
 
     - name: Make installer
       run: |
