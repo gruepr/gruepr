@@ -402,6 +402,6 @@ jobs:
       with:
         draft: true
         tag_name: v${{ steps.ver.outputs.version }}
-        name: gruepr v${{ steps.ver.outputs.version }}
+        name: v${{ steps.ver.outputs.version }}
         body_path: release_notes.md
         files: release-assets/*
