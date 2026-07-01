@@ -94,7 +94,8 @@ jobs:
 
     - name: Make installer
       run: |
-           & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR="$pwd" /DBASELOCATION="$pwd\.." /DCI windows\gruepr_InstallScript.nsi
+           $year = ((Select-String -Path gruepr.pro -Pattern '^copyright_year' | Select-Object -First 1).Line -split '=')[1].Trim()
+           & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR="$pwd" /DBASELOCATION="$pwd\.." /DCOPYRIGHT_YEAR="$year" /DCI windows\gruepr_InstallScript.nsi
 
     # --- Sign the installer ---
 
@@ -360,3 +361,47 @@ jobs:
         name: gruepr-linux-appimage
         path: gruepr-linux-x86_64.AppImage
         compression-level: 0
+
+# ==================== DRAFT RELEASE ====================
+
+  draft-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v6
+      with:
+        path: artifacts
+        pattern: gruepr-*
+
+    - name: Read and normalize version from gruepr.pro
+      id: ver
+      run: |
+        RAW=$(grep -m1 'gruepr_version' gruepr.pro | sed 's/.*=//' | tr -d '[:space:]')
+        VERSION=$(echo "$RAW" | awk -F. '{ if (NF==1) print $1".0.0"; else if (NF==2) print $1"."$2".0"; else print $0 }')
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Build release notes from DONE items
+      run: |
+        python3 .github/workflows/changelog.py extract-done --main main.cpp > release_notes.md
+        test -s release_notes.md || { echo "::error::No DONE items found in main.cpp"; exit 1; }
+
+    - name: Stage assets with stable names
+      run: |
+        mkdir release-assets
+        cp "artifacts/gruepr-signed-windows-installer/install_gruepr.exe" "release-assets/install_gruepr.exe"
+        cp "artifacts/gruepr-macos-universal/Install gruepr.dmg"          "release-assets/gruepr.dmg"
+        cp "artifacts/gruepr-linux-appimage/gruepr-linux-x86_64.AppImage" "release-assets/gruepr.AppImage"
+
+    - name: Create draft release
+      uses: softprops/action-gh-release@v2
+      with:
+        draft: true
+        tag_name: v${{ steps.ver.outputs.version }}
+        name: gruepr v${{ steps.ver.outputs.version }}
+        body_path: release_notes.md
+        files: release-assets/*
