@@ -1,3 +1,9 @@
+## v13.0.2 — 2026-07-01
+
+- bugfix: crash when directly loading Canvas survey results with 1+ students w/o a submission and survey has 1+ attribute question
+- bugfix: crash when the teamsize means only one team will be in the teamset and optimization begins
+- several other pointer or array de-referencing bugs caught
+
 ## v13.0.0 — 2026-04-17 — Major Update
 - Pulling in incredible dissertation work by Nikhen Nyo to improve the user interface:
   - added visualization to show how well each team meets each team formation goal
