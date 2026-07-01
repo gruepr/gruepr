@@ -301,7 +301,7 @@ QJsonObject TeamsTabItem::toJson() const
         entry["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(criterion->criteriaType));
         entry["settings"] = criterion->settingsToJson();
         if (criterion->criteriaType == Criterion::CriteriaType::attributeQuestion) {
-            auto attrCrit = qobject_cast<const AttributeCriterion *const>(criterion);
+            const auto *attrCrit = qobject_cast<const AttributeCriterion *const>(criterion);
             entry["attributeIndex"] = attrCrit->attributeIndex;
         }
         criteriaArray.append(entry);
@@ -522,8 +522,13 @@ void TeamsTabItem::changeTeamNames(const int index)
     if((addSectionToTeamnamesCheckBox != nullptr) && addSectionToTeamnamesCheckBox->isChecked()) {
         for(const auto teamNum : teamDisplayNums) {
             auto &team = teams[teamNum];
+            if(team.studentIDs.empty()) {
+                continue;
+            }
             const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
-            team.name.prepend(firstStudent->section + "-");
+            if(firstStudent != nullptr) {
+                team.name.prepend(firstStudent->section + "-");
+            }
         }
     }
 
@@ -1235,7 +1240,10 @@ void TeamsTabItem::postTeamsToCanvas()
         teamRoster.clear();
         //loop through each teammate in the team
         for(const auto studentID : std::as_const(team.studentIDs)) {
-            teamRoster << *findStudentFromID(studentID);
+            const StudentRecord *const student = findStudentFromID(studentID);
+            if(student != nullptr) {
+                teamRoster << *student;
+            }
         }
         teamRosters << teamRoster;
     }

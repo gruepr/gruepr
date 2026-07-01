@@ -1752,9 +1752,10 @@ void gruepr::optimizationComplete()
         //sort teammates within a team alphabetically by lastname,firstname
         std::sort(IDList.begin(), IDList.end(), [this] (const int a, const int b)
                   { const StudentRecord *const studentA = findStudentFromID(a);
-                      const StudentRecord *const studentB = findStudentFromID(b);
-                      return ((studentA->lastname + studentA->firstname) <
-                              (studentB->lastname + studentB->firstname));
+                    const StudentRecord *const studentB = findStudentFromID(b);
+                    const QString keyA = (studentA != nullptr) ? (studentA->lastname + studentA->firstname) : QString();
+                    const QString keyB = (studentB != nullptr) ? (studentB->lastname + studentB->firstname) : QString();
+                    return (keyA < keyB);
                   });
     }
 
@@ -1770,10 +1771,11 @@ void gruepr::optimizationComplete()
 
     // Sort teams by 1st student's name
     std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
-              { const StudentRecord *const firstStudentOnTeamA = findStudentFromID(a.studentIDs.at(0));
-                const StudentRecord *const firstStudentOnTeamB = findStudentFromID(b.studentIDs.at(0));
-                return ((firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) <
-                        (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname));
+              { const StudentRecord *const firstStudentOnTeamA = a.studentIDs.isEmpty() ? nullptr : findStudentFromID(a.studentIDs.at(0));
+                const StudentRecord *const firstStudentOnTeamB = b.studentIDs.isEmpty() ? nullptr : findStudentFromID(b.studentIDs.at(0));
+                const QString keyA = (firstStudentOnTeamA != nullptr) ? (firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) : QString();
+                const QString keyB = (firstStudentOnTeamB != nullptr) ? (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname) : QString();
+                return (keyA < keyB);
               });
 
     // Display the results in a new tab

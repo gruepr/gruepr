@@ -979,6 +979,9 @@ bool loadDataDialog::readData()
                 currStudent.lastname = studentOnRoster.lastname;
                 currStudent.email = studentOnRoster.email;
                 currStudent.section = studentOnRoster.section;
+                currStudent.attributeResponse.resize(dataOptions->numAttributes);
+                currStudent.attributeVals_discrete.resize(dataOptions->numAttributes);
+                currStudent.attributeVals_continuous.resize(dataOptions->numAttributes);
                 const int numDays = dataOptions->dayNames.size();
                 const int numTimes = dataOptions->timeNames.size();
                 currStudent.unavailable.fill(false, numDays * numTimes);

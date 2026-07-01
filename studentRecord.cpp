@@ -11,8 +11,8 @@ StudentRecord::StudentRecord()
 StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
 {
     deleted = jsonStudentRecord["deleted"].toBool();
-    ID = jsonStudentRecord["ID"].toInt();
-    LMSID = jsonStudentRecord["LMSID"].toInt();
+    ID = jsonStudentRecord["ID"].toInteger();
+    LMSID = jsonStudentRecord["LMSID"].toInteger();
     duplicateRecord = jsonStudentRecord["duplicateRecord"].toBool();
     if(jsonStudentRecord["genders"].type() != QJsonValue::Undefined) {
         const QJsonArray gendersArray = jsonStudentRecord["genders"].toArray();
@@ -252,7 +252,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // LMSID
     fieldnum = dataOptions.LMSIDField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        LMSID = fields.at(fieldnum).trimmed().remove(QChar(0x00A0)).toInt();
+        LMSID = fields.at(fieldnum).trimmed().remove(QChar(0x00A0)).toLongLong();
     }
 
     // First name

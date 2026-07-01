@@ -98,9 +98,8 @@ void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*
     cachedNumAttributeLevels = ((isNumerical || isTimezone) ? 0 : static_cast<int>(dataOptions->attributeVals_discrete[attributeIndex].size()));
 
     if (isNumerical) {
-        cachedRangeAttributeLevels =
-            *dataOptions->attributeVals_continuous[attributeIndex].crbegin()
-            - *dataOptions->attributeVals_continuous[attributeIndex].cbegin();
+        const auto &contVals = dataOptions->attributeVals_continuous[attributeIndex];
+        cachedRangeAttributeLevels = contVals.empty() ? 0 : (*contVals.crbegin() - *contVals.cbegin());
     }
     else if (isTimezone || dataOptions->attributeVals_discrete[attributeIndex].empty()) {
         cachedRangeAttributeLevels = 0;

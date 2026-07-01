@@ -193,6 +193,11 @@ void GA::mutateWorstTeam(int genome[], const int teamStartPositions[], const int
     const int worstTeamEnd = teamStartPositions[worstTeam + 1];
     const int worstTeamSize = worstTeamEnd - worstTeamStart;
 
+    // If the worst team is the only team, there is no other team to swap in to
+    if(worstTeamSize >= genomeSize) {
+        return;
+    }
+
     // pick a random student in the worst team
     std::uniform_int_distribution<int> randWorstSite(worstTeamStart, worstTeamEnd - 1);
     const int siteA = randWorstSite(pRNG);

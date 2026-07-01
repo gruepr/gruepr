@@ -6,7 +6,7 @@ jobs:
 # ==================== WINDOWS ====================
 
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022  # Pinned: windows-latest moves to VS 2026 between Jun 8-15 2026; bundled VC runtime paths assume VS 2022
     steps:
 
     # --- Get all the tools ---

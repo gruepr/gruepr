@@ -276,12 +276,18 @@ void AttributeWidget::updateResponses(const std::map<QString, int> &responseCoun
     responseRows.clear();
 
     if(attributeType == DataOptions::AttributeType::numerical) {
-        const auto minVal = *dataOptions->attributeVals_continuous[attribute].cbegin();
-        const auto maxVal = *dataOptions->attributeVals_continuous[attribute].crbegin();
-        const auto meanVal = std::accumulate(dataOptions->attributeVals_continuous[attribute].cbegin(),
-                                             dataOptions->attributeVals_continuous[attribute].cend(), 0.0) /
-                             dataOptions->attributeVals_continuous[attribute].size();
-        auto *responseLabel = new QLabel(QString("Minimum: %1<br>Average: %2<br>Maximum: %3").arg(minVal).arg(meanVal, 0, 'f', 2).arg(maxVal));
+        const auto &continuousVals = dataOptions->attributeVals_continuous[attribute];
+        QString responseText;
+        if(continuousVals.empty()) {
+            responseText = QString(tr("No responses"));
+        }
+        else {
+            const auto minVal = *continuousVals.cbegin();
+            const auto maxVal = *continuousVals.crbegin();
+            const auto meanVal = std::accumulate(continuousVals.cbegin(), continuousVals.cend(), 0.0) / continuousVals.size();
+            responseText = QString(tr("Minimum: %1<br>Average: %2<br>Maximum: %3")).arg(minVal).arg(meanVal, 0, 'f', 2).arg(maxVal);
+        }
+        auto *responseLabel = new QLabel(responseText);
         responseLabel->setStyleSheet(LABEL10PTSTYLE);
         responseLabel->setWordWrap(true);
         responsesLayout->addWidget(responseLabel);

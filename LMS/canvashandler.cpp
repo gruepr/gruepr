@@ -383,7 +383,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                     postData = query.toString(QUrl::FullyEncoded).toUtf8();
                     postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams,
                                                 {"id"}, intParams, {}, stringInSubobjectParams);
-                    allGood = allGood && (!newQuestionText.constFirst().isEmpty());
+                    allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
                     questionNum++;
                     newQuestionText.clear();
                     questionID.clear();
@@ -429,7 +429,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                 for(const auto &dayName : survey->schedDayNames) {
                     postData = query.toString(QUrl::FullyEncoded).toUtf8();
                     postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
-                    allGood = allGood && (!newQuestionText.constFirst().isEmpty());
+                    allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
                     questionNum++;
                     newQuestionText.clear();
                     questionID.clear();
@@ -489,7 +489,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
         }
         postData = query.toString(QUrl::FullyEncoded).toUtf8();
         postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
-        allGood = allGood && (!newQuestionText.constFirst().isEmpty());
+        allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
         questionNum++;
     }
 
@@ -560,7 +560,7 @@ QString CanvasHandler::downloadQuizResult(const QString &courseName, const QStri
                                   {"id"}, intParams,
                                   {"file/filename"}, stringInSubobjectParams,
                                   {}, intInSubArrayParams);
-    } while(filename.first().isEmpty());
+    } while(filename.isEmpty() || filename.first().isEmpty());
     const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_') + ".csv");
     // sometimes still a delay, so attempt to download every two seconds
     while(!downloadFile(URL, filepath.absoluteFilePath())) {
@@ -578,6 +578,8 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
         return false;
     }
 
+    bool allGood = true;
+
     //create the teamset
     QString url = "/api/v1/courses/" + QString::number(courseID) + "/group_categories";
     QUrlQuery query;
@@ -591,8 +593,12 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
     QList<QStringList*> stringInSubobjectParams = {&x};
     postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
 
+    if(groupCategoryID.empty()) {
+        allGood = false;
+        return allGood;
+    }
+
     //create the teams
-    bool allGood = true;
     QStringList groupName;
     QList<int> groupID;
     QStringList workflowState;
@@ -608,6 +614,11 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
         intParams = {&groupID};
         postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
 
+        if(groupID.empty()) {
+            allGood = false;
+            continue;
+        }
+
         //add each student on the team
         for(const auto &student : teams.at(i)) {
             url = "/api/v1/groups/" + QString::number(groupID[0]) + "/memberships";
@@ -619,7 +630,8 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
             stringParams = {&workflowState};
             intParams = {&membershipID, &newUserID};
             postToCanvasGetSingleResult(url, postData, {"workflow_state"}, stringParams, {"id", "user_id"}, intParams, {}, stringInSubobjectParams);
-            allGood = allGood && (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == student.LMSID);
+            allGood = allGood && !workflowState.empty() && !newUserID.empty() &&
+                      (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == student.LMSID);
         }
     }
 
@@ -660,7 +672,7 @@ QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID) {
     QList<QList<int>*> intParams = {&quizReportID};
     QList<QStringList*> stringInSubobjectParams = {&quizReportFileURL};
     QEventLoop loop;
-    // check every two seconds--a file object (including a download URL) is added to the json results when it is
+    // check every RELOAD_DELAY_TIME (i.e., 2 seconds)--a file object (including a download URL) is added to the json results when it is
     do {
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
@@ -670,7 +682,7 @@ QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID) {
                                     {}, {stringParams},
                                     {"id"}, intParams,
                                     {"file/url"}, stringInSubobjectParams);
-    } while(quizReportFileURL.first().isEmpty());
+    } while(quizReportFileURL.isEmpty() || quizReportFileURL.first().isEmpty());
 
     return {quizReportFileURL.first()};
 }

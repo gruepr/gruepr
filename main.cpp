@@ -33,14 +33,16 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //
-// TO DO:
+//  - bugfix: crash when directly loading Canvas survey results with 1+ students w/o a submission and survey has 1+ attribute question
+//  - several other pointer or array de-referencing bugs caught
 //
-//  - adding Microsoft Store availability
+// TO DO:
 //
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
-//  - add integration with Qualtrics, Microsoft Forms (Azure/Entra, whenever their API is published)
+//  - add integration with Qualtrics, moodle, SurveyMonkey, possibly by outputting an xml survey (check QTI) and inputting csv
+//  - add integration with Microsoft Forms (Azure/Entra, whenever their API is published)
 //
 //    INTERNAL:
 //  - compile for webassembly, turn into a webapp

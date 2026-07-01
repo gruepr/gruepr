@@ -301,7 +301,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 for(int i = 0; i < prefixes.size(); i++) {
                     const QStringList resValAndText({QString::number(*attributeValIter), *attributeResIter});
                     attributeCombobox.last()->insertItem(i+2, prefixes[i], resValAndText);
-                    if(!student.attributeResponse[attribute].isEmpty() && (student.attributeVals_discrete[attribute].first() == *attributeValIter)) {
+                    if(!student.attributeVals_discrete[attribute].isEmpty() && (student.attributeVals_discrete[attribute].first() == *attributeValIter)) {
                         indexOfStudentValue = i+2;
                     }
                     attributeValIter++;
