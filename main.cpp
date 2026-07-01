@@ -34,6 +34,7 @@
 // DONE:
 //
 //  - bugfix: crash when directly loading Canvas survey results with 1+ students w/o a submission and survey has 1+ attribute question
+//  - bugfix: crash when the teamsize means only one team will be in the teamset and optimization begins
 //  - several other pointer or array de-referencing bugs caught
 //
 // TO DO:

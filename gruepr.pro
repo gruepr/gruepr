@@ -220,6 +220,8 @@ DISTFILES += \
         .github/workflows/Build_Windows.yaml \
         .github/workflows/Build_linux.yaml \
         .github/workflows/Build_macOS.yaml \
+        .github/workflows/Release.yaml \
+        .github/workflows/changelog.py \
         .signpath/policies/gruepr/release-signing.yml \
         .signpath/policies/gruepr/test-signing.yml \
         macOS/DMG_background.png \

@@ -2,7 +2,7 @@
 ;
 ; This installer will install gruepr into a directory that the user selects.
 ; It remembers the directory in the registry, has uninstall support, and
-; installs start menu and (optionally) desktop shortcuts.
+; installs start menu shortcuts and (optionally) a desktop shortcut.
 ;--------------------------------
 
   !define APPNAME "gruepr"
@@ -24,6 +24,15 @@
     !define VERSION ${expv_1}.${expv_2}.${expv_3}
   !endif
   !define LONGVERSION ${expv_1}.${expv_2}.${expv_3}.${expv_4}
+
+;--------------------------------
+; Copyright year — single-sourced from gruepr.pro (the "copyright_year = ..." line).
+; In CI, Build.yaml passes /DCOPYRIGHT_YEAR with the trimmed value. For local builds,
+; read it straight out of gruepr.pro
+
+  !ifndef COPYRIGHT_YEAR
+    !searchparse /file "${BUILDDIR}\gruepr.pro" `copyright_year = ` COPYRIGHT_YEAR
+  !endif
 
 ;--------------------------------
 ; Modern User Interface 2 Graphics
@@ -56,7 +65,7 @@
 
   VIProductVersion "${LONGVERSION}"
   VIAddVersionKey "ProductName" "${APPNAME}"
-  VIAddVersionKey "LegalCopyright" "(c) 2019-2026"
+  VIAddVersionKey "LegalCopyright" "(c) ${COPYRIGHT_YEAR}"
   VIAddVersionKey "FileDescription" "${APPNAME} Installer"
   VIAddVersionKey "FileVersion" "${VERSION}"
   VIAddVersionKey "ProductVersion" "${VERSION}"

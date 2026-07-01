@@ -1,0 +1,89 @@
+# Lives in the gruepr-webapp repo (e.g. .github/workflows/deploy.yaml).
+#
+# Triggered by the Release workflow in gruepr/gruepr after it publishes a release.
+# It refreshes the version/date text in content.js, downloads the freshly published
+# Windows installer and stores it under public/downloads/vX.Y/ (the URL the Microsoft
+# Store pulls from), commits those, and deploys the site with `npm run deploy`.
+#
+# Can also be run by hand (workflow_dispatch) if you need to re-deploy.
+
+name: Deploy gruepr.com on release
+
+on:
+  repository_dispatch:
+    types: [gruepr-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Display version, e.g. 13.1"
+        required: true
+      date:
+        description: "Release date, ISO (YYYY-MM-DD)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Resolve inputs (dispatch or manual)
+        id: in
+        run: |
+          VERSION="${{ github.event.client_payload.version || inputs.version }}"
+          DATE_ISO="${{ github.event.client_payload.date || inputs.date }}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "date_human=$(date -u -d "$DATE_ISO" +'%-d %B %Y')" >> "$GITHUB_OUTPUT"
+
+      - name: Update the version line in content.js
+        env:
+          V: ${{ steps.in.outputs.version }}
+          D: ${{ steps.in.outputs.date_human }}
+        run: |
+          python3 - "$V" "$D" <<'PY'
+          import re, sys
+          v, d = sys.argv[1], sys.argv[2]
+          path = "src/content/content.js"
+          text = open(path, encoding="utf-8").read()
+          new = re.sub(r'(version:\s*")[^"]*(")',
+                       r'\g<1>The most recent version is %s, dated %s. \g<2>' % (v, d),
+                       text, count=1)
+          open(path, "w", encoding="utf-8").write(new)
+          PY
+
+      - name: Download the published installer for the Microsoft Store
+        env:
+          V: ${{ steps.in.outputs.version }}
+        run: |
+          mkdir -p "public/downloads/v${V}"
+          curl -fL -o "public/downloads/v${V}/install_gruepr.exe" \
+            https://github.com/gruepr/gruepr/releases/latest/download/install_gruepr.exe
+
+      - name: Commit content + installer
+        env:
+          V: ${{ steps.in.outputs.version }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/content/content.js "public/downloads/v${V}"
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "release: gruepr v${V} site update"
+            git push
+          fi
+
+      - name: Build and deploy to gh-pages
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm ci
+          npm run deploy

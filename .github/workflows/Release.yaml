@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WEBAPP_TOKEN: ${{ secrets.WEBAPP_DISPATCH_TOKEN }}   # for the cross-repo deploy trigger
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: master
+
+      - name: Read and normalize version
+        id: ver
+        run: |
+          RAW=$(grep -m1 'gruepr_version' gruepr.pro | sed 's/.*=//' | tr -d '[:space:]')
+          VERSION=$(echo "$RAW" | awk -F. '{ if (NF==1) print $1".0.0"; else if (NF==2) print $1"."$2".0"; else print $0 }')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"   # 3-part, for the tag and CHANGELOG heading
+          echo "tag=v$VERSION"   >> "$GITHUB_OUTPUT"
+          echo "display=$RAW"    >> "$GITHUB_OUTPUT"     # as typed, for the gruepr.com text and folder
+
+      - name: Publish the reviewed draft and capture its notes
+        id: pub
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          ID=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+                --jq "[.[] | select(.tag_name==\"$TAG\" and .draft==true)][0].id")
+          if [ -z "$ID" ] || [ "$ID" = "null" ]; then
+            echo "::error::No draft release found for $TAG. Run the Build workflow first."
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/releases/$ID" --jq .body > notes.md
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$ID" -F draft=false -f make_latest=true >/dev/null
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Update CHANGELOG.md and clear DONE in main.cpp
+        run: |
+          python3 .github/workflows/changelog.py prepend \
+            --version "${{ steps.ver.outputs.version }}" \
+            --date "${{ steps.pub.outputs.date }}" \
+            --notes-file notes.md \
+            --changelog CHANGELOG.md
+          python3 .github/workflows/changelog.py clear-done --main main.cpp
+          rm -f notes.md
+
+      - name: Commit changelog and cleared DONE
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md main.cpp
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "docs: changelog for ${{ steps.ver.outputs.tag }} [skip ci]"
+            git push
+          fi
+
+      # Trigger the gruepr.com deploy (deploy.yaml in gruepr-webapp). 
+      # The webapp workflow downloads the installer, updates content.js,
+      # copies it under public/downloads/, and deploys the site.
+      - name: Trigger gruepr.com deploy
+        if: ${{ env.WEBAPP_TOKEN != '' }}
+        env:
+          GH_TOKEN: ${{ env.WEBAPP_TOKEN }}
+        run: |
+          gh api repos/gruepr/gruepr-webapp/dispatches \
+            -f event_type=gruepr-release \
+            -F "client_payload[version]=${{ steps.ver.outputs.display }}" \
+            -F "client_payload[date]=${{ steps.pub.outputs.date }}"
