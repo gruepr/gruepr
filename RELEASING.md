@@ -1,8 +1,8 @@
 # Releasing a new version of gruepr
 
-End-to-end checklist for cutting a release. The recurring steps come first (start at
-**Part A**). The **One-time setup** at the end describes the automation those steps
-assume — build that first if it isn't in place yet.
+End-to-end checklist for cutting a release — start at **Part A**. The pipeline that
+powers these steps is already built; the only thing that needs occasional attention is
+covered in **Ongoing maintenance** at the end.
 
 The release runs as **two workflows**:
 
@@ -123,12 +123,12 @@ open a pull request instead of committing directly — say the word and I'll swi
 
 ## Part D — gruepr.com update (`gruepr-webapp` repo)
 
-Once the `WEBAPP_DISPATCH_TOKEN` secret is set (One-time setup #6), **this whole part
-is automatic** — the Release workflow dispatches to `deploy.yaml` in `gruepr-webapp`,
-which updates the version/date in `content.js`, publishes the new installer under
-`public/downloads/vX.Y/`, and deploys the site (the changelog page re-renders from
-`CHANGELOG.md` on its own). You don't do anything here; just confirm the deploy run
-went green and spot-check gruepr.com.
+**This whole part is automatic** — the Release workflow dispatches to `deploy.yaml` in
+`gruepr-webapp`, which updates the version/date in `content.js`, publishes the new
+installer under `public/downloads/vX.Y/`, and deploys the site (the changelog page
+re-renders from `CHANGELOG.md` on its own). You don't do anything here; just confirm the
+deploy run went green and spot-check gruepr.com. (It relies on the
+`WEBAPP_DISPATCH_TOKEN` — if it ever stops firing, see Ongoing maintenance.)
 
 **If you ever need to do it by hand** (the secret isn't set, or a deploy failed),
 the manual steps are below (conventions: edit in `src/`, GitHub Desktop for git,
@@ -146,8 +146,8 @@ checkout):
     short two-part form (e.g. `v13.2`), matching your existing `v13.0` folder — only
     the Git tag and changelog headings use three parts.
 
-13. The changelog page renders straight from `CHANGELOG.md` (One-time setup #5), so
-    there's nothing to edit for the changelog itself.
+13. The changelog page renders straight from `CHANGELOG.md` (via react-markdown in
+    `ChangeLog.js`), so there's nothing to edit for the changelog itself.
 
 14. Preview with `npm start`; confirm the changelog shows `vX.Y.Z` and links resolve.
 
@@ -205,150 +205,45 @@ new year.
 
 ---
 
-## One-time setup
+## Ongoing maintenance
 
-Implement and test these **one at a time** — the order below works. Items 1–4 are the
-`gruepr` repo (no special credentials). Items 5–6 are the gruepr.com automation.
+Almost everything runs itself. The few things that will need attention over time are
+credentials that expire — most importantly the token that lets a release deploy the
+website.
 
-### 1. `CHANGELOG.md` — done
+### The `WEBAPP_DISPATCH_TOKEN` (expires — plan to re-create it)
 
-Already generated from your live gruepr.com changelog: 57 entries, newest first,
-three-part `## vX.Y.Z` headings, dates for v10.8.0–v13.0.0 (older versions predate
-GitHub releases). Place it at the repo root. From here on it's maintained
-automatically by the Release workflow.
+This is the fine-grained PAT that lets the Release workflow (in `gruepr`) trigger the
+deploy workflow (in `gruepr-webapp`). Fine-grained tokens can't be permanent, so when
+it lapses the release itself still works, but the final "Trigger gruepr.com deploy"
+step stops firing and the site won't update (a manual API call would return
+`403 Resource not accessible`). When that happens — or before it does — re-create it:
 
-### 2. `changelog.py` — done
+1. GitHub → your avatar → **Settings** → **Developer settings** → **Personal access
+   tokens** → **Fine-grained tokens** → **Generate new token**.
+2. Name it, set an expiration, **Resource owner:** `gruepr`.
+3. **Repository access:** Only select repositories → **`gruepr-webapp`**.
+4. **Repository permissions:** **Contents → Read and write** (Metadata: Read is added
+   automatically). Nothing else is needed.
+5. **Generate token** and copy the `github_pat_...` value (shown once).
+6. In the **`gruepr`** repo → **Settings** → **Secrets and variables** → **Actions** →
+   open **`WEBAPP_DISPATCH_TOKEN`** → **Update secret**, paste the new value.
 
-Commit the provided script to the **gruepr** repo at `.github/workflows/changelog.py`.
-GitHub only runs `.yml`/`.yaml` files in that folder as workflows, so the script just
-sits there as a regular file. It runs **only on the GitHub Actions runner**, during the
-Build and Release workflows — you never run it locally. The Build workflow calls
-`extract-done` (main.cpp DONE block → Markdown bullets); the Release workflow calls
-`prepend` (add a dated section to `CHANGELOG.md`) and `clear-done` (empty the DONE
-block). GitHub's Ubuntu runners have `python3` preinstalled, so there's nothing else to
-set up.
+The token grants access to `gruepr-webapp`, but the secret lives in `gruepr` — that
+crossing is the part that's easy to get backwards. If `gruepr` is an organization, its
+"Allow access via fine-grained personal access tokens" setting must be on, or the
+dispatch returns a 403 regardless of the token's permissions.
 
-### 3. `draft-release` job in `Build.yaml` (Workflow 1)
+### Other expiring credentials
 
-Append this job. It builds the notes from `// DONE:`, names assets to match the
-stable download URLs, and leaves the release as a draft:
+If a build (rather than the deploy) suddenly fails, suspect an expired signing
+credential: the Apple Developer certificate used for the macOS notarization
+(`APPLE_CERTIFICATE` and friends) renews annually, and the SignPath token/certificate
+behind the two Windows signing approvals can lapse too. These predate this pipeline and
+live in the same repo secrets; renew them the same way you originally set them up.
 
-```yaml
-  draft-release:
-    needs: [build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v6
+### The copyright year
 
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v6
-        with:
-          path: artifacts
-
-      - name: Read and normalize version from gruepr.pro
-        id: ver
-        run: |
-          RAW=$(grep -m1 'gruepr_version' gruepr.pro | sed 's/.*=//' | tr -d '[:space:]')
-          VERSION=$(echo "$RAW" | awk -F. '{ if (NF==1) print $1".0.0"; else if (NF==2) print $1"."$2".0"; else print $0 }')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Build release notes from DONE items
-        run: |
-          python3 .github/workflows/changelog.py extract-done --main main.cpp > release_notes.md
-          test -s release_notes.md || { echo "::error::No DONE items found in main.cpp"; exit 1; }
-
-      - name: Stage assets with stable names
-        run: |
-          mkdir release-assets
-          cp "artifacts/gruepr-signed-windows-installer/install_gruepr.exe" "release-assets/install_gruepr.exe"
-          cp "artifacts/gruepr-macos-universal/Install gruepr.dmg"          "release-assets/gruepr.dmg"
-          cp "artifacts/gruepr-linux-appimage/gruepr-linux-x86_64.AppImage" "release-assets/gruepr.AppImage"
-
-      - name: Create draft release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          tag_name: v${{ steps.ver.outputs.version }}
-          name: gruepr v${{ steps.ver.outputs.version }}
-          body_path: release_notes.md
-          files: release-assets/*
-```
-
-Verify on the first run: (a) the three `cp` source paths match how
-`download-artifact` lays out the folders, (b) `extract-done` produces the bullets you
-expect from your DONE block, (c) the normalized version yields the right three-part
-tag, and (d) the asset names match what the gruepr.com download buttons link to. (The
-Linux button has historically linked to `gruepr.AppImage`, which is why it's renamed.)
-
-### 4. `Release.yaml` (Workflow 2 — Release)
-
-Add the provided `Release.yaml` as a new workflow. It's manually triggered
-(`workflow_dispatch`). When you run it, it finds the draft release for the version in
-`gruepr.pro`, publishes it, captures the (reviewed) notes, prepends them to
-`CHANGELOG.md`, clears the DONE block in `main.cpp`, and commits both to `master`. It
-needs no special credentials for those steps. Its final step dispatches the gruepr.com
-deploy and is **guarded** — it skips cleanly until the `WEBAPP_DISPATCH_TOKEN` secret
-exists (#6), so you can add this workflow now and the deploy trigger lights up later.
-
-### 5. Render `CHANGELOG.md` on gruepr.com — replace `ChangeLog.js`
-
-Replace the changelog page component with the provided `ChangeLog.js`. It drops the
-`change-log-content.js` import and instead fetches `CHANGELOG.md` from the gruepr repo
-at runtime and renders it with `react-markdown`, styled to match the site (it maps
-headings/lists onto your `heading3` / `body list-disc` classes and hides the duplicate
-top title). One install in the webapp repo:
-
-```
-npm install react-markdown
-```
-
-After this, `change-log-content.js` is no longer used and can be deleted. The Download
-page's buttons already point at `releases/latest/download/...`, so none of them need
-per-release edits.
-
-### 6. Webapp auto-deploy — add `deploy.yaml`, set one secret
-
-This makes Part D fully automatic. Add the provided `webapp-deploy.yaml` to the
-`gruepr-webapp` repo as `.github/workflows/deploy.yaml`. On the `gruepr-release`
-dispatch from the Release workflow it: updates the `downloadPage.version` line in
-`content.js` (new version + date), downloads the just-published `install_gruepr.exe`
-and writes it to `public/downloads/vX.Y/` (the URL the Microsoft Store pulls from),
-commits both, then runs `npm ci && npm run deploy` to publish the site. It can also be
-run by hand (`workflow_dispatch`) with a version and date if you need to re-deploy.
-
-**The one thing you must set up:** a **fine-grained PAT** with `contents: write` (and
-"Read and write" on Actions, so the dispatch is allowed) on `gruepr-webapp`, saved in
-the **gruepr** repo as the `WEBAPP_DISPATCH_TOKEN` secret. That's the only credential
-the chain needs — `GITHUB_TOKEN` can't reach another repo, but once this secret exists
-the Release workflow's guarded final step activates and the whole publish→deploy chain
-runs end to end. (A GitHub App is the longer-lived alternative if you'd rather not
-rotate a PAT.)
-
-Worth knowing: `deploy.yaml` commits the signed `install_gruepr.exe` into the webapp
-repo each release (matching your existing `v13.0` folder), which grows the repo over
-time. That's by design — the Microsoft Store submission needs a stable, direct
-download URL, and Partner Center will not accept the GitHub `releases/latest/...`
-link because that's a redirect rather than a real endpoint. So the versioned
-`public/downloads/vX.Y/` hosting is the supported path.
-
-### 7. Single-source the NSIS copyright year (main `gruepr` repo)
-
-Replace `gruepr_InstallScript.nsi` with the provided version. Instead of a hardcoded
-`(c) 2019-2026`, it now defines `COPYRIGHT_YEAR` from `gruepr.pro` and uses it in the
-`LegalCopyright` version key. In CI the value is passed in (trimmed) so there's no
-chance of a stray carriage return; local builds read it directly from `gruepr.pro`.
-
-That requires one small change to the existing **`Make installer`** step in
-`Build.yaml`'s `build-windows` job — read the year and pass it as `/DCOPYRIGHT_YEAR`:
-
-```powershell
-- name: Make installer
-  run: |
-       $year = ((Select-String -Path gruepr.pro -Pattern '^copyright_year').Line -split '=')[1].Trim()
-       & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR="$pwd" /DBASELOCATION="$pwd\.." /DCOPYRIGHT_YEAR="$year" /DCI windows\gruepr_InstallScript.nsi
-```
-
-After this, the year you set in `gruepr.pro` line 8 flows to the app *and* the
-installer — nothing else to edit at the new year.
+Handled in the release flow (Part A, step 2): bump `copyright_year` in `gruepr.pro`
+line 8 at the new year and it flows to both the app and the installer. No separate
+action needed.
