@@ -32,6 +32,10 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - SIGNIFICANT speed-up in the optimization process
+//      - improved scoring code in the attribute, gender, race/ethnicity, and schedule criteria
+//      - multi-threaded the mating process to create the next generation
+//  - Fixed a bug in autoscrolling when reordering the criteria cards
 //
 // TO DO:
 //

@@ -74,6 +74,7 @@ public:
     void dragEnterEvent(QDragEnterEvent *event) override;
     QPoint mapToViewport(const QPointF &local);
     void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     int getPriorityOrder() const;
     void setPriorityOrder(int newPriorityOrder);

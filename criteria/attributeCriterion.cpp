@@ -4,6 +4,9 @@
 #include <QJsonArray>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
 Criterion* AttributeCriterion::clone() const {
     auto *copy = new AttributeCriterion(dataOptions, criteriaType, weight, penaltyStatus, nullptr, attributeIndex);
@@ -130,6 +133,16 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
 
     const bool doPenalty = penaltyStatus || haveAnyRequired || haveAnyIncompatible;
 
+    // thread_local because scoring runs inside an OpenMP parallel region, so the buffers must be per-thread
+    thread_local std::vector<int> discreteLevels;
+    thread_local std::vector<float> continuousLevels;
+
+    // number of elements equal to value, over the sorted gathered values
+    const auto countOfDiscrete = [](const int value) {
+        const auto range = std::equal_range(discreteLevels.cbegin(), discreteLevels.cend(), value);
+        return int(range.second - range.first);
+    };
+
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
         if(diversity == Criterion::AttributeDiversity::ignored) {
@@ -138,53 +151,57 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
         }
 
         // Gather values for this team
-        std::multiset<int>   discreteLevels;
-        std::multiset<float> continuousLevels;
+        discreteLevels.clear();
+        continuousLevels.clear();
 
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
             const auto &student = students[teammates[studentNum]];
             if(thisIsTimezone) {
                 // discrete sentinel still used for unknown-detection
-                discreteLevels.insert(student.attributeVals_discrete[attributeIndex].constBegin(),
-                                      student.attributeVals_discrete[attributeIndex].constEnd());
-                continuousLevels.insert(student.timezone);
+                const auto &studentDiscreteVals = student.attributeVals_discrete[attributeIndex];
+                discreteLevels.insert(discreteLevels.end(), studentDiscreteVals.constBegin(), studentDiscreteVals.constEnd());
+                continuousLevels.push_back(student.timezone);
             }
             else if(thisIsNumerical) {
-                continuousLevels.insert(student.attributeVals_continuous[attributeIndex].constBegin(),
-                                        student.attributeVals_continuous[attributeIndex].constEnd());
+                const auto &studentContinuousVals = student.attributeVals_continuous[attributeIndex];
+                continuousLevels.insert(continuousLevels.end(), studentContinuousVals.constBegin(), studentContinuousVals.constEnd());
             }
             else {
-                discreteLevels.insert(student.attributeVals_discrete[attributeIndex].constBegin(),
-                                      student.attributeVals_discrete[attributeIndex].constEnd());
+                const auto &studentDiscreteVals = student.attributeVals_discrete[attributeIndex];
+                discreteLevels.insert(discreteLevels.end(), studentDiscreteVals.constBegin(), studentDiscreteVals.constEnd());
             }
             studentNum++;
         }
+        // sorted from here on, which is what the multisets provided
+        std::sort(discreteLevels.begin(), discreteLevels.end());
+        std::sort(continuousLevels.begin(), continuousLevels.end());
 
         // ── Penalties ──────────────────────────────────────────────────────
         if(doPenalty && !thisIsNumerical) {
             if(haveAnyIncompatible) {
                 for(const auto &pair : std::as_const(incompatibleValues)) {
-                    const int n = static_cast<int>(discreteLevels.count(pair.first));
+                    const int n = countOfDiscrete(pair.first);
                     if(pair.first == pair.second) {
                         penaltyPoints[team] += (n * (n - 1)) / 2.0f;
                     }
                     else {
-                        const int m = static_cast<int>(discreteLevels.count(pair.second));
+                        const int m = countOfDiscrete(pair.second);
                         penaltyPoints[team] += n * m;
                     }
                 }
             }
             if(haveAnyRequired) {
                 for(const auto value : std::as_const(requiredValues)) {
-                    if(discreteLevels.count(value) == 0) {
+                    if(countOfDiscrete(value) == 0) {
                         penaltyPoints[team] += 1.0f;
                     }
                 }
             }
         }
 
-        // Remove the unknown sentinel before scoring
-        discreteLevels.erase(-1);
+        // Remove the unknown sentinel before scoring (values are sorted, so these are contiguous)
+        const auto unknownSentinels = std::equal_range(discreteLevels.begin(), discreteLevels.end(), -1);
+        discreteLevels.erase(unknownSentinels.first, unknownSentinels.second);
 
         // ── Scoring ────────────────────────────────────────────────────────
         if(thisIsNumerical) {
@@ -223,14 +240,15 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                     }
                     else {
                         // spread: fraction of population range covered by the sample
-                        const float spread = (*continuousLevels.crbegin() - *continuousLevels.cbegin()) / cachedRangeAttributeLevels;
+                        const float spread = (continuousLevels.back() - continuousLevels.front()) / cachedRangeAttributeLevels;
                         if(continuousLevels.size() == 2) {
                             criteriaScores[team] = spread;
                         }
                         else {
                             // uniformity: 1 - Gini coefficient of gaps between consecutive sorted values
-                            // compute the gaps (sample is already sorted via multiset)
-                            QList<float> gaps;
+                            // compute the gaps (sample was sorted above)
+                            thread_local std::vector<float> gaps;
+                            gaps.clear();
                             gaps.reserve(continuousLevels.size() - 1);
                             auto prev = continuousLevels.cbegin();
                             for(auto it = std::next(prev); it != continuousLevels.cend(); ++it) {
@@ -272,7 +290,7 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
         }
         else if(thisIsTimezone) {
             if((weight > 0) && !continuousLevels.empty()) {
-                const float tzRange = *continuousLevels.crbegin() - *continuousLevels.cbegin();
+                const float tzRange = continuousLevels.back() - continuousLevels.front();
                 // totRangeAttributeLevels is 0 for timezone — use the actual observed tz span
                 // (kept consistent with pre-refactor behaviour: score = range / totRange)
                 const float totTzRange = dataOptions->attributeVals_continuous[attributeIndex].size() >= 2
@@ -295,7 +313,7 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                 if((type == DataOptions::AttributeType::ordered) ||
                     (type == DataOptions::AttributeType::multiordered)) {
                     // Score weighted toward range, with a lesser contribution from unique-value count
-                    const int rangeOfVals = *discreteLevels.crbegin() - *discreteLevels.cbegin();
+                    const int rangeOfVals = discreteLevels.back() - discreteLevels.front();
                     int numUniqueVals = 0, prevVal = -1;
                     for(const auto v : discreteLevels) {
                         if(v != prevVal) {

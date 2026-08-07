@@ -2343,18 +2343,20 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     const auto &sharedNumTeams = numTeams;
     const auto *const sharedTeamingOptions = teamingOptions;
     const auto *const sharedDataOptions = dataOptions;
+    const int sharedNumActiveStudents = int(numActiveStudents);
+    const GA *const sharedGA = &ga;
 
     //parallel initialization of needed variables.
 #pragma omp parallel \
         default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions) \
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA) \
         reduction(||:unpenalizedGenomePresent)
     {
         QList<float> teamScores(sharedNumTeams);
         QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
         QList<float> penaltyPoints(sharedNumTeams);
 #pragma omp for
-        for(int genome = 0; genome < ga.populationsize; genome++) {
+        for(int genome = 0; genome < sharedGA->populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                             sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                             criteriaScores, penaltyPoints);
@@ -2367,7 +2369,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
               [&scores](const int i, const int j){return (scores[i] > scores[j]);});
     emit generationComplete(scores.get(), orderedIndex.get(), 0, 0, unpenalizedGenomePresent);
 
-    const int *mom=nullptr, *dad=nullptr;               // pointer to genome of mom and dad
     float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
     int generation = 0;
@@ -2376,39 +2377,50 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // now optimize
     do {        // allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
         do {        // keep optimizing until reach stability or maxGenerations
-            // clone the elites in genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
+
+            // 1. Clone the elites from genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
             for(int genome = 0; genome < GA::NUM_ELITES; genome++) {
                 ga.clone(genePool[orderedIndex[genome]], ancestors[orderedIndex[genome]], orderedIndex[genome],
                          nextGenGenePool[genome], nextGenAncestors[genome], numActiveStudents);
             }
 
-            // create rest of population in nextGenGenePool by mating
-            for(int genome = GA::NUM_ELITES; genome < ga.populationsize; genome++) {
-                //get a couple of parents
-                ga.tournamentSelectParents(genePool.data(), orderedIndex.get(), ancestors.data(), mom, dad, nextGenAncestors[genome], pRNG);
+            // 2. Create the rest of population in nextGenGenePool by mating (multi-threaded using OpenMP).
+#pragma omp parallel \
+            default(none) \
+            shared(genePool, nextGenGenePool, ancestors, nextGenAncestors, orderedIndex, \
+                   teamStartPositions, sharedNumTeams, sharedNumActiveStudents, sharedGA)
+            {
+                const int *threadMom = nullptr, *threadDad = nullptr;
+#pragma omp for
+                for(int genome = GA::NUM_ELITES; genome < sharedGA->populationsize; genome++) {
+                    //get a couple of parents
+                    sharedGA->tournamentSelectParents(genePool.data(), orderedIndex.get(), ancestors.data(),
+                                                      threadMom, threadDad, nextGenAncestors[genome]);
 
-                //mate them and put child in nextGenGenePool
-                ga.mate(mom, dad, teamStartPositions.get(), sharedNumTeams, nextGenGenePool[genome], numActiveStudents, pRNG);
+                    //mate them and put child in nextGenGenePool
+                    sharedGA->mate(threadMom, threadDad, teamStartPositions.get(), sharedNumTeams,
+                                   nextGenGenePool[genome], sharedNumActiveStudents);
+                }
             }
 
-            // swap pointers to make nextGen's genePool and ancestors into this generation's
+            // 3. Swap pointers to make nextGen's genePool and ancestors into this generation's
             swap(genePool, nextGenGenePool);
             swap(ancestors, nextGenAncestors);
 
             generation++;
 
-            // calculate this generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
+            // 4. Calculate this generation's scores (multi-threaded using OpenMP)
             unpenalizedGenomePresent = false;
 #pragma omp parallel \
             default(none) \
-                shared(scores, worstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions) \
-                reduction(||:unpenalizedGenomePresent)
+            shared(scores, worstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA) \
+            reduction(||:unpenalizedGenomePresent)
             {
                 QList<float> teamScores(sharedNumTeams);
                 QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
                 QList<float> penaltyPoints(sharedNumTeams);
 #pragma omp for
-                for(int genome = 0; genome < ga.populationsize; genome++) {
+                for(int genome = 0; genome < sharedGA->populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                                     sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                                     criteriaScores, penaltyPoints);
@@ -2425,22 +2437,22 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 }
             }
 
-            // get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize,
-                      [&scores](const int i, const int j){return (scores[i] > scores[j]);});
+            // 5. Get genome indexes in order of score, largest to smallest
+            std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&scores](const int i, const int j)
+                {return (scores[i] > scores[j]);});
 
-            // mutate all but the single top-scoring genome with some probability
+            // 6. Mutate all but the single top-scoring genome with some probability
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
             for(int genome = 0; genome < ga.populationsize; genome++) {
                 if(genome == orderedIndex[0]) {
                     continue;
                 }
                 while(randProbability(pRNG) < ga.mutationlikelihood) {
-                    ga.mutateWorstTeam(genePool[genome], teamStartPositions.get(), worstTeam[genome], numActiveStudents, pRNG);
+                    ga.mutateWorstTeam(genePool[genome], teamStartPositions.get(), worstTeam[genome], numActiveStudents);
                 }
             }
 
-            // determine best score, save in historical record, and calculate score stability
+            // 7. Determine the best score, save in historical record, and calculate score stability
             const float maxScoreInThisGeneration = scores[orderedIndex[0]];
             const float maxScoreFromGenerationsAgo = bestScores[(generation+1) % (GA::GENERATIONS_OF_STABILITY)];
             bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location

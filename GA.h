@@ -3,25 +3,24 @@
 
 // Code related to the Genetic Algorithm used in gruepr
 
-#include <random>
-#include <utility>
-
 class GA
 {
 public:
     void setGAParameters(int numRecords);
 
     void clone(const int *const parent, const int *const ancestors, const int parentsIndex,
-               int child[], int parentage[], const int genomeSize);
+               int child[], int parentage[], const int genomeSize) const;
 
     void tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
-                                 const int *&mom, const int *&dad, int parentage[], std::mt19937 &pRNG);
+                                 const int *&mom, const int *&dad, int parentage[]) const;
 
     void mate(const int *const mom, const int *const dad, const int teamStartPositions[],
-              const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG);
+              const int numTeams, int child[], const long long genomeSize) const;
+    void crossover(const int *const mom, const int *const dad, const unsigned int start, const unsigned int end,
+                   int child[], const long long genomeSize) const;
 
-    void mutate(int genome[], const long long genomeSize, std::mt19937 &pRNG);
-    void mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize, std::mt19937 &pRNG);
+    void mutate(int genome[], const long long genomeSize) const;
+    void mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize) const;
 
     class GenePool {
     public:

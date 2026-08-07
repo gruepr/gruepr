@@ -9,6 +9,7 @@
 #include "dialogs/customTeamnamesDialog.h"
 #include "LMS/canvashandler.h"
 #include "widgets/labelWithInstantTooltip.h"
+#include <random>
 #include <QApplication>
 #include <QFileDialog>
 #include <QFont>

@@ -4,6 +4,7 @@
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <vector>
 
 Criterion* ScheduleCriterion::clone() const
 {
@@ -132,12 +133,15 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
     const int numTimes = int(dataOptions->timeNames.size());
 
     // Allocated once per thread; subsequent calls just reuse the memory.
-    // Using vector<uint8_t> rather than vector<bool> to avoid bit-packing overhead.
-    thread_local QList<uint8_t> availabilityChart;
+    // One extra slot is kept past the end and held at zero -- when numBlocksForOneMeeting > 1 the
+    // run-counting loop below can read one position past the final day, and this makes that defined.
+    thread_local std::vector<uint8_t> availabilityChart;
     const int chartSize = numDays * numTimes;
-    if (int(availabilityChart.size()) < chartSize) {
-        availabilityChart.resize(chartSize);
+    if (int(availabilityChart.size()) < chartSize + 1) {
+        availabilityChart.assign(chartSize + 1, 0);
     }
+    uint8_t *const chart = availabilityChart.data();
+    chart[chartSize] = 0;
 
     // combine each student's schedule array into a team schedule array
     int studentNum = 0;
@@ -152,19 +156,15 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
         const auto &firstStudentOnTeam = students[teammates[studentNum]];
         if(!firstStudentOnTeam.ambiguousSchedule && firstStudentOnTeam.unavailable.size() >= chartSize) {
             const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
-            for(int day = 0; day < numDays; day++) {
-                for(int time = 0; time < numTimes; time++) {
-                    availabilityChart[day * numTimes + time] = !firstStudentUnavailability[day * numTimes + time];
-                }
+            for(int i = 0; i < chartSize; i++) {
+                chart[i] = !firstStudentUnavailability[i];
             }
         }
         else {
             // ambiguous schedule, so note it and start with all timeslots available
             numStudentsWithAmbiguousSchedules++;
-            for(int day = 0; day < numDays; day++) {
-                for(int time = 0; time < numTimes; time++) {
-                    availabilityChart[day * numTimes + time] = true;
-                }
+            for(int i = 0; i < chartSize; i++) {
+                chart[i] = true;
             }
         }
         studentNum++;
@@ -178,10 +178,8 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
                 continue;
             }
             const auto &currStudentUnavailability = currStudent.unavailable;
-            for(int day = 0; day < numDays; day++) {
-                for(int time = 0; time < numTimes; time++) {
-                    availabilityChart[day * numTimes + time] = availabilityChart[day * numTimes + time] && !currStudentUnavailability[day * numTimes + time];
-                }
+            for(int i = 0; i < chartSize; i++) {
+                chart[i] = chart[i] && !currStudentUnavailability[i];
             }
             studentNum++;
         }
@@ -194,9 +192,10 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
 
         //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
         for(int day = 0; day < numDays; day++) {
+            const uint8_t *const dayChart = chart + (day * numTimes);
             for(int time = 0; time < numTimes; time++) {
                 int block = 0;
-                while(availabilityChart[day * numTimes + time] && (block < numBlocksForOneMeeting) && (time < numTimes)) {
+                while(dayChart[time] && (block < numBlocksForOneMeeting) && (time < numTimes)) {
                     block++;
                     if(block < numBlocksForOneMeeting) {
                         time++;

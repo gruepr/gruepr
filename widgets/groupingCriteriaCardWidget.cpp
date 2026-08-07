@@ -31,6 +31,7 @@
 #include <QAbstractScrollArea>
 #include <QDrag>
 #include <QDragEnterEvent>
+#include <QDragLeaveEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QMimeData>
@@ -462,6 +463,11 @@ void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event)
 void GroupingCriteriaCard::dragMoveEvent(QDragMoveEvent *e)
 {
     m_lastPos = mapToViewport(e->position()); // just refresh the cached pos
+}
+
+void GroupingCriteriaCard::dragLeaveEvent(QDragLeaveEvent* /*event*/)
+{
+    m_dragTimer.stop();
 }
 
 void GroupingCriteriaCard::dropEvent(QDropEvent *event)

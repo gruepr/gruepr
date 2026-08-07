@@ -101,6 +101,56 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
                                           const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
                                           QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
+    // Translate the rules into integer form once per call. Only the responses actually named by a
+    // rule need counting (the rest were never read), so each is given an index and the per-team loop
+    // below works on a small array of counts. Rules can be edited between calls, so this is derived
+    // fresh each call.
+    enum RuleOp {opNotEqual, opLessThan, opGreaterThan};
+    struct RuleGroup {
+        qsizetype firstIdentity;    // into groupIdentities
+        qsizetype numIdentities;
+        RuleOp op;
+        qsizetype firstValue;       // into ruleValues
+        qsizetype numValues;
+    };
+    QHash<QString, int> identityIndex;
+    QList<int> groupIdentities;
+    QList<RuleGroup> ruleGroups;
+    QList<int> ruleValues;
+    for(auto rule = identityRules.cbegin(); rule != identityRules.cend(); ++rule) {
+        const qsizetype firstIdentity = groupIdentities.size();
+        const QStringList identities = rule.key().split('|');
+        for(const auto &identity : identities) {
+            auto existing = identityIndex.constFind(identity);
+            if(existing == identityIndex.cend()) {
+                existing = identityIndex.insert(identity, int(identityIndex.size()));
+            }
+            groupIdentities.append(existing.value());
+        }
+        const qsizetype numIdentities = groupIdentities.size() - firstIdentity;
+
+        const auto &valMap = rule.value();
+        for(auto operation = valMap.cbegin(); operation != valMap.cend(); ++operation) {
+            RuleOp op;
+            if(operation.key() == "!=") {
+                op = opNotEqual;
+            }
+            else if(operation.key() == "<") {
+                op = opLessThan;
+            }
+            else if(operation.key() == ">") {
+                op = opGreaterThan;
+            }
+            else {
+                continue;
+            }
+            const qsizetype firstValue = ruleValues.size();
+            ruleValues << operation.value();
+            ruleGroups.append({firstIdentity, numIdentities, op, firstValue, ruleValues.size() - firstValue});
+        }
+    }
+    QList<int> responseCounts(identityIndex.size(), 0);   // allocated once, refilled per team
+
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
         criteriaScores[team] = 1;
@@ -112,42 +162,37 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
 
         bool penaltyApplied = false;
 
-        // Count how many URM students on the team
-        QMap<QString, int> urmResponseCounts;
+        // Count how many students on the team gave each of the responses named by a rule
+        responseCounts.fill(0);
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
             const QString &response = students[teammates[studentNum]].URMResponse;
             if (!response.isEmpty() && response != "--") {
-                urmResponseCounts[response]++;
+                const auto identity = identityIndex.constFind(response);
+                if(identity != identityIndex.cend()) {
+                    responseCounts[identity.value()]++;
+                }
             }
             studentNum++;
         }
 
-        // Apply per-response identity rules from urmIdentityRules
-        // First check responses that are present on the team.
-        auto applyRule = [&](const QString &ruleKey) {
-            const QStringList identities = ruleKey.split('|');
+        // each rule group may contribute one penalty point
+        for (const auto &group : std::as_const(ruleGroups)) {
             int count = 0;
-            for (const QString &identity : identities) {
-                count += urmResponseCounts.value(identity, 0);
+            for(qsizetype i = 0; i < group.numIdentities; i++) {
+                count += responseCounts.at(groupIdentities.at(group.firstIdentity + i));
             }
-            const auto &valMap = identityRules.value(ruleKey);
-            for (const auto [operation, values] : valMap.asKeyValueRange()) {
-                for (const int val : values) {
-                    if ((operation == "!=" && count == val) ||
-                        (operation == "<"  && count >= val) ||
-                        (operation == ">"  && count <= val)) {
-                        penaltyApplied = true;
-                        if (penaltyStatus) {
-                            penaltyPoints[team] += 1.0f;
-                        }
-                        break;
+            for(qsizetype i = 0; i < group.numValues; i++) {
+                const int val = ruleValues.at(group.firstValue + i);
+                if ((group.op == opNotEqual    && count == val) ||
+                    (group.op == opLessThan    && count >= val) ||
+                    (group.op == opGreaterThan && count <= val)) {
+                    penaltyApplied = true;
+                    if (penaltyStatus) {
+                        penaltyPoints[team] += 1.0f;
                     }
+                    break;
                 }
             }
-        };
-
-        for (const auto &ruleKey : identityRules.keys()) {
-            applyRule(ruleKey);
         }
 
         if (penaltyApplied) {

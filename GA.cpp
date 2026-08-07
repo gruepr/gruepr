@@ -1,5 +1,16 @@
 #include "GA.h"
 #include <algorithm>
+#include <limits>
+#include <random>
+#include <vector>
+
+namespace {
+// One generator per thread, seeded on first use. std::mt19937 is not thread-safe, so a shared one
+// would race; thread_local removes the sharing entirely and keeps the call sites free of any
+// per-thread bookkeeping. Seeded from random_device, so the streams are not reproducible -- see the
+// note in GA.h.
+thread_local std::mt19937 threadRNG{std::random_device{}()};
+}
 
 void GA::setGAParameters(int numRecords)
 {
@@ -20,7 +31,7 @@ void GA::setGAParameters(int numRecords)
 //////////////////
 // Clone one parent from the genepool into new genepool
 //////////////////
-void GA::clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize)
+void GA::clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize) const
 {
     for(int ID = 0; ID < genomeSize; ID++) {
         child[ID] = parent[ID];
@@ -48,15 +59,18 @@ void GA::clone(const int *const parent, const int *const ancestors, const int pa
 // Select two parents from the genepool using tournament selection
 //////////////////
 void GA::tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
-                                 const int *&mom, const int *&dad, int parentage[], std::mt19937 &pRNG)
+                                 const int *&mom, const int *&dad, int parentage[]) const
 {
+    std::mt19937 &pRNG = threadRNG;
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
     std::uniform_int_distribution<unsigned int> randGenome(0, populationsize-1);
 
-    int momsindex = 0, dadsindex = 0;
+    int momsindex, dadsindex;
     bool failedTournament;  // tournament fails when can't find unrelated mom and dad
     do {
         failedTournament = false;
+        momsindex = 0;
+        dadsindex = 0;
         //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
         //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
         unsigned int tourneyPick[TOURNAMENTSIZE];
@@ -140,15 +154,14 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
 // Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
 //////////////////
 void GA::mate(const int *const mom, const int *const dad, const int teamStartPositions[],
-              const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG)
+              const int numTeams, int child[], const long long genomeSize) const
 {
-
     //randomly choose two team boundaries in the genome from which to cut an allele
     std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
-    unsigned int startTeam = randTeam(pRNG);
+    unsigned int startTeam = randTeam(threadRNG);
     unsigned int endTeam;
     do {
-        endTeam = randTeam(pRNG);
+        endTeam = randTeam(threadRNG);
     }
     while(endTeam == startTeam);
     if(startTeam > endTeam) {
@@ -156,39 +169,76 @@ void GA::mate(const int *const mom, const int *const dad, const int teamStartPos
     }
 
     //Now, need to find positions in genome to start and end allele--the "breaks" before startTeam and endTeam
-    const unsigned int start = teamStartPositions[startTeam];
-    const unsigned int end = teamStartPositions[endTeam];
+    crossover(mom, dad, teamStartPositions[startTeam], teamStartPositions[endTeam], child, genomeSize);
+}
 
-    //copy all of dad into child
-    std::copy(dad, dad + genomeSize, child);
 
-    //remove from the child each value in mom's allele
-    for(unsigned int i = 0; i < (end-start); i++) {
-        (void)std::remove(child, child + genomeSize, mom[start+i]);
+//////////////////
+// Ordered crossover with the cut points already chosen
+//////////////////
+void GA::crossover(const int *const mom, const int *const dad, const unsigned int start, const unsigned int end,
+                   int child[], const long long genomeSize) const
+{
+    //copy mom's allele directly into the child at the same positions
+    std::copy(mom + start, mom + end, child + start);
+
+    //Mark every value in mom's allele in a lookup indexed by the value itself, so that testing one of
+    //dad's values for membership below is a single array read.
+    //Genome values are indices into the students array, which is sparse whenever students are deleted
+    //or only one section is being teamed, so the lookup grows to the largest value actually present;
+    //any value past the end is by definition not in the allele. The stamp increments once per call, so
+    //the lookup never has to be cleared -- only reset in the (practically unreachable) overflow case.
+    thread_local std::vector<int> valueIsInMomsAllele;
+    thread_local int momsAlleleStamp = 0;
+    if(momsAlleleStamp == std::numeric_limits<int>::max()) {
+        std::fill(valueIsInMomsAllele.begin(), valueIsInMomsAllele.end(), 0);
+        momsAlleleStamp = 0;
+    }
+    momsAlleleStamp++;
+    for(unsigned int i = start; i < end; i++) {
+        const int value = mom[i];
+        if(value < 0) {
+            continue;   //cannot happen for a well-formed genome, but must not be used as an index
+        }
+        if(value >= int(valueIsInMomsAllele.size())) {
+            valueIsInMomsAllele.resize(size_t(value) + 1, 0);
+        }
+        valueIsInMomsAllele[value] = momsAlleleStamp;
     }
 
-    //make room for mom's allele
-    std::move_backward(child + start, child + start + genomeSize - end, child + genomeSize);
-
-    //copy mom's allele into child
-    std::copy(mom + start, mom + end, child + start);
+    //fill the rest of the child with dad's values, in dad's relative order, skipping over
+    //mom's allele (already placed above) and any value dad has that's already in mom's allele
+    long long writePos = 0;
+    for(long long i = 0; i < genomeSize; i++) {
+        if(writePos == start) {
+            writePos = end;
+        }
+        const int value = dad[i];
+        const bool inMomsAllele = (value >= 0) && (value < int(valueIsInMomsAllele.size())) &&
+                                  (valueIsInMomsAllele[value] == momsAlleleStamp);
+        if(!inMomsAllele) {
+            child[writePos] = value;
+            writePos++;
+        }
+    }
 }
 
 
 //////////////////
 // Randomly swap two sites in given genome
 //////////////////
-void GA::mutate(int genome[], const long long genomeSize, std::mt19937 &pRNG)
+void GA::mutate(int genome[], const long long genomeSize) const
 {
     std::uniform_int_distribution<unsigned long long> randSite(0, genomeSize-1);
-    std::swap(genome[randSite(pRNG)], genome[randSite(pRNG)]);
+    std::swap(genome[randSite(threadRNG)], genome[randSite(threadRNG)]);
 }
 
 //////////////////
 // Swap a random student from the worst-scoring team with a random student from any other team
 //////////////////
-void GA::mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize, std::mt19937 &pRNG)
+void GA::mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize) const
 {
+    std::mt19937 &pRNG = threadRNG;
     const int worstTeamStart = teamStartPositions[worstTeam];
     const int worstTeamEnd = teamStartPositions[worstTeam + 1];
     const int worstTeamSize = worstTeamEnd - worstTeamStart;

@@ -5,6 +5,12 @@
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QJsonArray>
 
+namespace {
+// One bit per Gender, derived from the enum itself so the bits can't drift out of sync with it.
+// Used to fold a rule key like "Woman|Nonbinary" into a single integer for scoring.
+constexpr int genderBit(Gender gender) { return 1 << static_cast<int>(gender); }
+}
+
 Criterion* GenderCriterion::clone() const {
     auto *copy = new GenderCriterion(dataOptions, criteriaType, weight, penaltyStatus);
     copy->identityRules = identityRules;
@@ -174,6 +180,53 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
                                      const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
                                      QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
+    // Translate the rules into integer form once per call. The per-team loop below then needs only
+    // integer counts. Rules can be edited between calls, so this is derived fresh each call.
+    enum RuleOp {opNotEqual, opLessThan, opGreaterThan};
+    struct RuleGroup {
+        int identityMask;           // one bit per Gender, via genderBit()
+        RuleOp op;
+        qsizetype firstValue;       // into ruleValues
+        qsizetype numValues;
+    };
+    QList<RuleGroup> ruleGroups;
+    QList<int> ruleValues;
+    for(auto rule = identityRules.cbegin(); rule != identityRules.cend(); ++rule) {
+        int identityMask = 0;
+        const QStringList identities = rule.key().split('|');
+        for(const auto &identity : identities) {
+            if(identity == womanKey) {
+                identityMask |= genderBit(Gender::woman);
+            }
+            else if(identity == manKey) {
+                identityMask |= genderBit(Gender::man);
+            }
+            else if(identity == nonbinaryKey) {
+                identityMask |= genderBit(Gender::nonbinary);
+            }
+            // any other identity contributes 0 to the count, as it did before
+        }
+        const auto &valMap = rule.value();
+        for(auto operation = valMap.cbegin(); operation != valMap.cend(); ++operation) {
+            RuleOp op;
+            if(operation.key() == "!=") {
+                op = opNotEqual;
+            }
+            else if(operation.key() == "<") {
+                op = opLessThan;
+            }
+            else if(operation.key() == ">") {
+                op = opGreaterThan;
+            }
+            else {
+                continue;
+            }
+            const qsizetype firstValue = ruleValues.size();
+            ruleValues << operation.value();
+            ruleGroups.append({identityMask, op, firstValue, ruleValues.size() - firstValue});
+        }
+    }
+
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
         criteriaScores[team] = 1;
@@ -185,45 +238,45 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
         }
 
         // Count how many of each gender on the team
-        QMap<QString, int> genderCounts;
+        int numWomen = 0, numMen = 0, numNonbinary = 0;
         for (int teammate = 0; teammate < teamSizes[team]; teammate++) {
             const auto &student = students[teammates[studentNum]];
             if (student.gender.contains(Gender::woman)) {
-                genderCounts[womanKey]++;
+                numWomen++;
             }
             if (student.gender.contains(Gender::man)) {
-                genderCounts[manKey]++;
+                numMen++;
             }
             if (student.gender.contains(Gender::nonbinary)) {
-                genderCounts[nonbinaryKey]++;
+                numNonbinary++;
             }
             studentNum++;
         }
 
-        auto applyRule = [&](const QString &ruleKey) {
-            const QStringList identities = ruleKey.split('|');
+        // each rule group may contribute one penalty point
+        for (const auto &group : std::as_const(ruleGroups)) {
             int count = 0;
-            for (const QString &identity : identities) {
-                count += genderCounts.value(identity, 0);
+            if(group.identityMask & genderBit(Gender::woman)) {
+                count += numWomen;
             }
-            const auto &valMap = identityRules.value(ruleKey);
-            for (const auto [operation, values] : valMap.asKeyValueRange()) {
-                for (const int val : values) {
-                    if ((operation == "!=" && count == val) ||
-                        (operation == "<"  && count >= val) ||
-                        (operation == ">"  && count <= val)) {
-                        penaltyApplied = true;
-                        if (penaltyStatus) {
-                            penaltyPoints[team] += 1.0f;
-                        }
-                        break;
+            if(group.identityMask & genderBit(Gender::man)) {
+                count += numMen;
+            }
+            if(group.identityMask & genderBit(Gender::nonbinary)) {
+                count += numNonbinary;
+            }
+            for(qsizetype i = 0; i < group.numValues; i++) {
+                const int val = ruleValues.at(group.firstValue + i);
+                if ((group.op == opNotEqual    && count == val) ||
+                    (group.op == opLessThan    && count >= val) ||
+                    (group.op == opGreaterThan && count <= val)) {
+                    penaltyApplied = true;
+                    if (penaltyStatus) {
+                        penaltyPoints[team] += 1.0f;
                     }
+                    break;
                 }
             }
-        };
-
-        for (const auto &ruleKey : identityRules.keys()) {
-            applyRule(ruleKey);
         }
 
         if (penaltyApplied) {
