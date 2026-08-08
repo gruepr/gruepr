@@ -4,6 +4,8 @@
 #include "dialogs/teammatesRulesDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QVBoxLayout>
+#include <algorithm>
+#include <limits>
 
 Criterion* TeammatesCriterion::clone() const {
     auto *copy = new TeammatesCriterion(criteriaType, weight, penaltyStatus);
@@ -103,37 +105,61 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 
 
 void TeammatesCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                        const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
+                                        const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
                                         QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {
+    // thread_local because scoring runs inside an OpenMP parallel region, so the buffers must be per-thread.
+    // Generation-stamped membership sets for student IDs (dense, assigned in load order): stamp[id] ==
+    // generation means "member of this round" -- O(1) array indexing, rebuilt fresh every call/team.
+    thread_local std::vector<uint32_t> beingTeamedStamp;
+    thread_local uint32_t beingTeamedGeneration = 0;
+    thread_local std::vector<uint32_t> onTeamStamp;
+    thread_local uint32_t onTeamGeneration = 0;
+
+    // Starts a new round for one of the stamp arrays above. If the next increment would wrap back to 0
+    // -- the value every never-yet-inserted slot already holds -- untouched slots would start looking
+    // like members again, so guard explicitly: clear the array once and restart the counter at 1.
+    auto beginNewRound = [](std::vector<uint32_t> &stamp, uint32_t &generation) {
+        if (generation == std::numeric_limits<uint32_t>::max()) {
+            std::fill(stamp.begin(), stamp.end(), 0);
+            generation = 0;
+        }
+        generation++;
+    };
+
+    auto markID = [](std::vector<uint32_t> &stamp, uint32_t generation, long long id) {
+        if (id < 0) { return; }
+        if (static_cast<long long>(stamp.size()) <= id) { stamp.resize(static_cast<size_t>(id) + 1, 0); }
+        stamp[static_cast<size_t>(id)] = generation;
+    };
+
     // Get all IDs being teamed (so that we can make sure we only check the groupTogethers/splitAparts that are actually within this teamset)
-    QSet<long long> IDsBeingTeamed;
+    beginNewRound(beingTeamedStamp, beingTeamedGeneration);
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
-            IDsBeingTeamed.insert(students[teammates[studentNum]].ID);
+            markID(beingTeamedStamp, beingTeamedGeneration, students[teammates[studentNum]].ID);
             studentNum++;
         }
     }
 
     // Loop through each team
     studentNum = 0;
-    QSet<long long> IDsOnTeam;
     QList<const StudentRecord *> teamMembers;
 
     for(int team = 0; team < numTeams; team++) {
-        IDsOnTeam.clear();
+        beginNewRound(onTeamStamp, onTeamGeneration);
         teamMembers.clear();
         teamMembers.reserve(teamSizes[team]);
 
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
             const auto &currStudent = students[teammates[studentNum]];
-            IDsOnTeam.insert(currStudent.ID);
+            markID(onTeamStamp, onTeamGeneration, currStudent.ID);
             teamMembers.append(&currStudent);
             studentNum++;
         }
 
-        const int penalties = scoreOneTeam(teamMembers, IDsOnTeam, IDsBeingTeamed, teamingOptions);
+        const int penalties = scoreOneTeam(teamMembers, onTeamStamp, onTeamGeneration, beingTeamedStamp, beingTeamedGeneration);
         if (penalties > 0 && penaltyStatus) {
             penaltyPoints[team] += penalties;
         }
@@ -143,10 +169,25 @@ void TeammatesCriterion::calculateScore(const StudentRecord *const students, con
     }
 }
 
-float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
-                                                   const DataOptions *, const QSet<long long> &allIDsBeingTeamed)
+float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions* /*teamingOptions*/,
+                                                   const DataOptions* /*dataOptions*/, const QSet<long long> &allIDsBeingTeamed)
 {
-    const QSet<long long> IDsOnTeam(team.studentIDs.begin(), team.studentIDs.end());
+    auto markID = [](std::vector<uint32_t> &stamp, long long id) {
+        if (id < 0) { return; }
+        if (static_cast<long long>(stamp.size()) <= id) { stamp.resize(static_cast<size_t>(id) + 1, 0); }
+        // "generation" is just a fixed 1 since each call starts empty and this function is called with local variables
+        stamp[static_cast<size_t>(id)] = 1;
+    };
+
+    std::vector<uint32_t> beingTeamedStamp;
+    for (const auto id : allIDsBeingTeamed) {
+        markID(beingTeamedStamp, id);
+    }
+
+    std::vector<uint32_t> IDsOnTeam;
+    for (const auto id : team.studentIDs) {
+        markID(IDsOnTeam, id);
+    }
 
     QList<const StudentRecord *> teamMembers;
     teamMembers.reserve(team.size);
@@ -170,7 +211,8 @@ float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &a
         return Criterion::NO_SCORE;
     }
 
-    const int penalties = scoreOneTeam(teamMembers, IDsOnTeam, allIDsBeingTeamed, teamingOptions);
+    // "generation" is just a fixed 1 since each call starts empty.
+    const int penalties = scoreOneTeam(teamMembers, IDsOnTeam, 1, beingTeamedStamp, 1);
     return (penalties == 0) ? 1 : 0;
 }
 
@@ -184,19 +226,27 @@ TeammatesCriterion* TeammatesCriterion::findInCriteria(const TeamingOptions *tea
     return nullptr;
 }
 
-int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMembers, const QSet<long long> &idsOnTeam,
-                                     const QSet<long long> &idsBeingTeamed, const TeamingOptions *const /*teamingOptions*/) const
+int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMembers,
+                                     const std::vector<uint32_t> &idsOnTeamStamp, uint32_t idsOnTeamGeneration,
+                                     const std::vector<uint32_t> &idsBeingTeamedStamp, uint32_t idsBeingTeamedGeneration) const
 {
     int penalties = 0;
+
+    auto isOnTeam = [&](long long id) {
+        return id >= 0 && id < static_cast<long long>(idsOnTeamStamp.size()) && idsOnTeamStamp[static_cast<size_t>(id)] == idsOnTeamGeneration;
+    };
+    auto isBeingTeamed = [&](long long id) {
+        return id >= 0 && id < static_cast<long long>(idsBeingTeamedStamp.size()) && idsBeingTeamedStamp[static_cast<size_t>(id)] == idsBeingTeamedGeneration;
+    };
 
     if (criteriaType == CriteriaType::groupTogether && haveAnyTeammates) {
         for (const auto *const student : teamMembers) {
             int found = 0;
             int needed = 0;
             for (const auto id : student->groupTogether) {
-                if (idsBeingTeamed.contains(id)) {
+                if (isBeingTeamed(id)) {
                     needed++;
-                    if (idsOnTeam.contains(id)) {
+                    if (isOnTeam(id)) {
                         found++;
                     }
                 }
@@ -209,7 +259,7 @@ int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMem
     else if (criteriaType == CriteriaType::splitApart && haveAnyTeammates) {
         for (const auto *student : teamMembers) {
             for (const auto id : student->splitApart) {
-                if (idsBeingTeamed.contains(id) && idsOnTeam.contains(id)) {
+                if (isBeingTeamed(id) && isOnTeam(id)) {
                     penalties++;
                 }
             }

@@ -34,7 +34,7 @@ private:
     QList<StyledComboBox*> attributeCombobox;
     QList<QGroupBox*> attributeMultibox;
     QList<QDoubleSpinBox*> attributeSpinBox;
-    QList<bool> tempUnavailability;
+    ScheduleAvailabilityTable tempUnavailability;
 };
 
 #endif // EDITORADDSTUDENTDIALOG_H

@@ -163,7 +163,7 @@ void StudentRecord::reconcileScheduleDimensions(qsizetype numDays, qsizetype num
         return;
     }
 
-    QList<bool> resized(numDays * numTimesPerDay, true);
+    ScheduleAvailabilityTable resized(numDays * numTimesPerDay, true);
     const int daysToCopy = std::min(numDays, numScheduleDays);
     const int timesToCopy = std::min(numTimesPerDay, numScheduleTimesPerDay);
     for(int day = 0; day < daysToCopy; day++) {
@@ -410,15 +410,15 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                     continue;   // something went wrong in figuring out where to put this value in the array!
                 }
 
-                bool &unavailabilitySpot = unavailable[actualday * numScheduleTimesPerDay + timeindex];
+                const int unavailabilitySpot = actualday * numScheduleTimesPerDay + timeindex;
 
                 if(dataOptions.scheduleDataIsFreetime) {
-                    unavailabilitySpot = !timenameRegEx.match(field).hasMatch();
+                    unavailable[unavailabilitySpot] = !timenameRegEx.match(field).hasMatch();
                 }
                 else {
                     // since we asked when they're unavailable, ignore any times that we didn't actually ask about
                     if((time >= dataOptions.earlyTimeAsked) && (time <= dataOptions.lateTimeAsked)) {
-                        unavailabilitySpot = timenameRegEx.match(field).hasMatch();
+                        unavailable[unavailabilitySpot] = timenameRegEx.match(field).hasMatch();
                     }
                 }
             }

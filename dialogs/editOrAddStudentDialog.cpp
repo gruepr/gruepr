@@ -626,7 +626,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     //connect the clicking of any checkbox to updating the corresponding element in the window copy of the array
     const int numDays = dataOptions->dayNames.size();
     const int numTimes = dataOptions->timeNames.size();
-    QList<bool> windowUnavailability = tempUnavailability;
+    ScheduleAvailabilityTable windowUnavailability = tempUnavailability;
     QList<QCheckBox*> checkBox(numDays * numTimes, nullptr);
     gridcolumn = 1;
     for(const auto &dayName : dataOptions->dayNames) {

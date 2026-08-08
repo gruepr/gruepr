@@ -4,6 +4,8 @@
 #include "criterion.h"
 #include <QLabel>
 #include <QPushButton>
+#include <cstdint>
+#include <vector>
 
 class TeammatesCriterion : public Criterion {
     Q_OBJECT
@@ -41,8 +43,12 @@ public:
     int numberGiven = REQUESTED_TEAMMATES_ALL;  // For groupTogether: at least how many of the requested teammates should we place on a student's team
 
 private:
-    int scoreOneTeam(const QList<const StudentRecord *> &teamMembers, const QSet<long long> &idsOnTeam,
-                     const QSet<long long> &idsBeingTeamed, const TeamingOptions *const teamingOptions) const;
+    // idsOnTeam/idsBeingTeamed are generation-stamped membership sets for student IDs (dense, assigned
+    // in load order): idsOnTeamStamp[id] == idsOnTeamGeneration means "on this team," and analogously
+    // for idsBeingTeamed -- O(1) array indexing instead of QSet<long long> hashing. See calculateScore().
+    int scoreOneTeam(const QList<const StudentRecord *> &teamMembers,
+                     const std::vector<uint32_t> &idsOnTeamStamp, uint32_t idsOnTeamGeneration,
+                     const std::vector<uint32_t> &idsBeingTeamedStamp, uint32_t idsBeingTeamedGeneration) const;
 };
 
 #endif // TEAMMATESCRITERION_H

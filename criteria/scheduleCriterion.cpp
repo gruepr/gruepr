@@ -4,6 +4,9 @@
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <array>
+#include <cstdint>
+#include <cstring>
 #include <vector>
 
 Criterion* ScheduleCriterion::clone() const
@@ -131,17 +134,42 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
 {
     const int numDays = int(dataOptions->dayNames.size());
     const int numTimes = int(dataOptions->timeNames.size());
+    const int chartSize = numDays * numTimes;
+    const int wordCount = (chartSize + 63) / 64;
 
     // Allocated once per thread; subsequent calls just reuse the memory.
     // One extra slot is kept past the end and held at zero -- when numBlocksForOneMeeting > 1 the
     // run-counting loop below can read one position past the final day, and this makes that defined.
     thread_local std::vector<uint8_t> availabilityChart;
-    const int chartSize = numDays * numTimes;
     if (int(availabilityChart.size()) < chartSize + 1) {
         availabilityChart.assign(chartSize + 1, 0);
     }
     uint8_t *const chart = availabilityChart.data();
     chart[chartSize] = 0;
+
+    // Packed scratch buffer for merging teammates' availability: collapses chartSize (~98) byte-wide
+    // ANDs per teammate into wordCount (~2) word-wide ANDs. Unpacked into the byte-array chart above,
+    // once per team, right before the run-counting loop.
+    thread_local std::vector<uint64_t> packedChart;
+    if (int(packedChart.size()) < wordCount) {
+        packedChart.resize(wordCount);
+    }
+
+    // bitExpandTable[b] is the 8-byte expansion of byte b: byte k of the result is 1 if bit k of b is
+    // set, else 0. Lets the unpack below turn 8 bits into one table lookup + one 8-byte memcpy instead
+    // of 8 individual shift-mask-store operations. Computed at compile time and baked into the binary
+    // -- no runtime construction, no per-call initialization-guard check.
+    static constexpr std::array<uint64_t, 256> bitExpandTable = [] {
+        std::array<uint64_t, 256> table{};
+        for(int b = 0; b < 256; b++) {
+            uint64_t expanded = 0;
+            for(int bit = 0; bit < 8; bit++) {
+                if(b & (1 << bit)) { expanded |= (uint64_t(1) << (8 * bit)); }
+            }
+            table[b] = expanded;
+        }
+        return table;
+    }();
 
     // combine each student's schedule array into a team schedule array
     int studentNum = 0;
@@ -155,16 +183,16 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
         int numStudentsWithAmbiguousSchedules = 0;
         const auto &firstStudentOnTeam = students[teammates[studentNum]];
         if(!firstStudentOnTeam.ambiguousSchedule && firstStudentOnTeam.unavailable.size() >= chartSize) {
-            const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
-            for(int i = 0; i < chartSize; i++) {
-                chart[i] = !firstStudentUnavailability[i];
+            const auto *const firstWords = firstStudentOnTeam.unavailable.data();
+            for(int w = 0; w < wordCount; w++) {
+                packedChart[w] = ~firstWords[w];
             }
         }
         else {
             // ambiguous schedule, so note it and start with all timeslots available
             numStudentsWithAmbiguousSchedules++;
-            for(int i = 0; i < chartSize; i++) {
-                chart[i] = true;
+            for(int w = 0; w < wordCount; w++) {
+                packedChart[w] = ~uint64_t(0);
             }
         }
         studentNum++;
@@ -177,9 +205,9 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
                 studentNum++;
                 continue;
             }
-            const auto &currStudentUnavailability = currStudent.unavailable;
-            for(int i = 0; i < chartSize; i++) {
-                chart[i] = chart[i] && !currStudentUnavailability[i];
+            const auto *const currWords = currStudent.unavailable.data();
+            for(int w = 0; w < wordCount; w++) {
+                packedChart[w] &= ~currWords[w];
             }
             studentNum++;
         }
@@ -190,9 +218,22 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
             continue;
         }
 
+        // Unpack the merged bits into the byte-array chart for the counting loop below. 8-bit-aligned
+        // chunks never straddle a 64-bit word boundary (64 is a multiple of 8), so the fast path just
+        // pulls one byte out of the current word via shift+truncate and expands it via table
+        // lookup; only the final, less-than-8-bit remainder falls back to one bit at a time.
+        int i = 0;
+        for(; i + 8 <= chartSize; i += 8) {
+            const auto byteVal = uint8_t(packedChart[i / 64] >> (i % 64));
+            std::memcpy(chart + i, &bitExpandTable[byteVal], 8);
+        }
+        for(; i < chartSize; i++) {
+            chart[i] = uint8_t((packedChart[i / 64] >> (i % 64)) & 1ULL);
+        }
+
         //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
         for(int day = 0; day < numDays; day++) {
-            const uint8_t *const dayChart = chart + (day * numTimes);
+            const auto *const dayChart = chart + (day * numTimes);
             for(int time = 0; time < numTimes; time++) {
                 int block = 0;
                 while(dayChart[time] && (block < numBlocksForOneMeeting) && (time < numTimes)) {

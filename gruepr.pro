@@ -47,6 +47,9 @@ DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060500
 
 CONFIG += c++20
 
+# Link-time optimization for release builds (maps to /GL+/LTCG on MSVC, -flto on GCC/Clang)
+CONFIG += ltcg
+
 # remove possible other optimization flags
 QMAKE_CXXFLAGS -= -O
 QMAKE_CXXFLAGS -= -O1
