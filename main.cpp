@@ -42,16 +42,18 @@
 //  - Better UI associated with the "Duplicate" marker in student list
 //  - Now alphabetizes the students / teams by last name on first display of a team set
 //  - Changed the progress graph from box and whisker plots to a simpler line graph tracking max. score in each generation
+//  - Fixed project assignment fallback when there are fewer projects than teams: options now repeat as needed instead of
+//    leaving some teams with no assigned project
 //
 // TO DO:
 //  - Allow excel file import alongside csv
-//  - Fix project assignment display (unique topic not shown across sections), clarify fallback for fewer projects than teams
 //
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Qualtrics, moodle, SurveyMonkey, possibly by outputting an xml survey (check QTI) and inputting csv
 //  - add integration with Microsoft Forms (Azure/Entra, whenever their API is published)
+//  - add a peer review system
 //
 //    INTERNAL:
 //  - compile for webassembly, turn into a webapp

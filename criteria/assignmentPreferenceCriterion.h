@@ -30,7 +30,7 @@ public:
 
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;
-    void prepareForDisplay(const QList<StudentRecord> &students, const TeamSet &teams) override;
+    void prepareForDisplay(const QList<StudentRecord> &students, const TeamSet &teams, const TeamingOptions *teamingOptions) override;
     QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &students) const override;
     Qt::AlignmentFlag teamTextAlignment() const override;
     QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &students) const override;
@@ -46,8 +46,9 @@ public:
 
     QLabel *infoLabel = nullptr;
 
-    // Solved in prepareForDisplay, read in scoreForOneTeamInDisplay and teamDisplayText
+    // Solved in prepareForDisplay, read in scoreForOneTeamInDisplay, teamDisplayText, and teamSortValue
     QMap<long long, QString> displayAssignment;   // team first-student-ID -> assigned option name
+    QMap<long long, int> displayOptionIndex;      // team first-student-ID -> assigned option's index in allOptionNames (sort key)
     QMap<long long, float> displayScore;          // team first-student-ID -> normalized score (0-1)
     QMap<long long, QString> displayStudentAssignment;  // student ID -> option name assigned to their team
 
@@ -68,6 +69,10 @@ private:
     // Also fills teamScores with the per-team normalized score
     QList<int> solveAssignment(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                      QList<float> &teamScores) const;
+
+    // Solve the assignment for one independent pool of teams (e.g., one section when sections were teamed
+    // separately) and merge the results into displayAssignment/displayScore/displayStudentAssignment
+    void solveAndCacheDisplayForTeams(const QList<StudentRecord> &students, const QList<TeamRecord> &teams);
 
     // Cache for display: last solved assignment (team studentIDs hash -> option name)
     // Mutable because scoreForOneTeamInDisplay needs to cache results from a const-like context

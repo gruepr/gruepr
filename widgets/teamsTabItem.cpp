@@ -699,7 +699,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             studentBTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
             studentBTeam.createTooltip(students);
             for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
-                criterion->prepareForDisplay(students, teams);
+                criterion->prepareForDisplay(students, teams, teamingOptions);
             }
             // Populate each team's assignedOption from the assignment preference criterion's display cache
             for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
@@ -834,7 +834,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         newTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
         newTeam.createTooltip(students);
         for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
-            criterion->prepareForDisplay(students, teams);
+            criterion->prepareForDisplay(students, teams, teamingOptions);
         }
         // Populate each team's assignedOption from the assignment preference criterion's display cache
         for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
@@ -1289,7 +1289,7 @@ void TeamsTabItem::refreshTeamDisplay()
 
     // Let criteria that need cross-team context prepare (e.g., assignment preferences)
     for(auto *const criterion : std::as_const(teamingOptions->criteria)) {
-        criterion->prepareForDisplay(students, teams);
+        criterion->prepareForDisplay(students, teams, teamingOptions);
     }
     // Populate each team's assignedOption from the assignment preference criterion's display cache
     for(auto *const criterion : std::as_const(teamingOptions->criteria)) {

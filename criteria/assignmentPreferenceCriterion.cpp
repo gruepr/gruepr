@@ -20,6 +20,7 @@ Criterion* AssignmentPreferenceCriterion::clone() const
     copy->numOptions = numOptions;
     copy->numRankedChoices = numRankedChoices;
     copy->displayAssignment = displayAssignment;
+    copy->displayOptionIndex = displayOptionIndex;
     copy->displayScore = displayScore;
     copy->displayStudentAssignment = displayStudentAssignment;
     return copy;
@@ -218,30 +219,36 @@ QList<int> AssignmentPreferenceCriterion::solveAssignment(const StudentRecord *c
 {
     if(numOptions == 0 || numRankedChoices == 0) {
         teamScores.assign(numTeams, 0.0f);
-        return {numTeams, -1};
+        return QList<int>(numTeams, -1);
     }
 
-    // Build square matrix of size max(numTeams, numOptions)
-    // We maximize utility, but Hungarian minimizes cost, so we use cost = maxUtility - utility
-    const int dim = std::max(numTeams, numOptions);
+    // If there are fewer options than teams, repeat each option's column ceil(numTeams/numOptions) times so
+    // every team can still be assigned a real option (which options get repeated, and how often, falls out
+    // of maximizing total utility). Column j always maps back to real option (j % numOptions).
+    const int multiplicity = (numTeams + numOptions - 1) / numOptions;
+    const int dim = std::max(numTeams, numOptions * multiplicity);
 
-    // First pass: compute utility matrix and find max utility for cost conversion
+    // We maximize utility, but Hungarian minimizes cost, so we use cost = maxUtility - utility
     QList<QList<float>> utilityMatrix(dim, QList<float>(dim, 0.0f));
 
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
+        QList<float> optionUtility(numOptions, 0.0f);
         for(int m = 0; m < teamSizes[team]; m++) {
             const auto &prefs = students[teammates[studentNum]].assignmentPreferences;
             for(int r = 0; r < prefs.size() && r < numRankedChoices; r++) {
                 auto it = optionNameToIndex.find(prefs[r]);
                 if(it != optionNameToIndex.end()) {
-                    utilityMatrix[team][it.value()] += static_cast<float>(numRankedChoices - r);
+                    optionUtility[it.value()] += static_cast<float>(numRankedChoices - r);
                 }
             }
             studentNum++;
         }
+        for(int col = 0; col < dim; col++) {
+            utilityMatrix[team][col] = optionUtility[col % numOptions];
+        }
     }
-    // Dummy rows (teams beyond numTeams) and dummy columns (options beyond numOptions) stay at 0 utility
+    // Dummy rows (teams beyond numTeams) stay at 0 utility
 
     float maxUtility = 0.0f;
     for(int i = 0; i < dim; i++) {
@@ -259,15 +266,17 @@ QList<int> AssignmentPreferenceCriterion::solveAssignment(const StudentRecord *c
     }
 
     // Solve
-    const QList<int> assignment = hungarianAlgorithm(costMatrix);
+    const QList<int> rawAssignment = hungarianAlgorithm(costMatrix);
 
-    // Extract per-team scores
+    // Extract per-team scores, mapping each team's assigned column back to its real option index
     teamScores.resize(numTeams);
+    QList<int> assignment(numTeams);
     for(int team = 0; team < numTeams; team++) {
-        const int assignedOption = assignment[team];
-        const float utility = utilityMatrix[team][assignedOption];
+        const int assignedColumn = rawAssignment[team];
+        const float utility = utilityMatrix[team][assignedColumn];
         const auto maxPossible = static_cast<float>(teamSizes[team] * numRankedChoices);
         teamScores[team] = (maxPossible > 0.0f) ? (utility / maxPossible) : 0.0f;
+        assignment[team] = assignedColumn % numOptions;
     }
 
     return assignment;
@@ -322,9 +331,10 @@ void AssignmentPreferenceCriterion::calculateScore(const StudentRecord *const st
 // prepareForDisplay — solve the full assignment for all teams
 /////////////////////////////////////////////////////////////////////
 
-void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord> &students, const TeamSet &teams)
+void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord> &students, const TeamSet &teams, const TeamingOptions *const teamingOptions)
 {
     displayAssignment.clear();
+    displayOptionIndex.clear();
     displayScore.clear();
     displayStudentAssignment.clear();
 
@@ -332,14 +342,47 @@ void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord>
         return;
     }
 
+    if((teamingOptions != nullptr) && (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately)) {
+        // Each section was optimized (and its options assigned) independently of every other section, so each
+        // section should independently draw from the full set of options here too, rather than have its teams
+        // compete with every other section's teams for the same pool. Teams are guaranteed section-homogeneous
+        // in this mode, so group by each team's own section and solve/cache each group separately.
+        QMap<QString, QList<TeamRecord>> teamsBySection;
+        for(const auto &team : teams) {
+            QString section;
+            if(!team.studentIDs.isEmpty()) {
+                for(const auto &student : students) {
+                    if(student.ID == team.studentIDs.first()) {
+                        section = student.section;
+                        break;
+                    }
+                }
+            }
+            teamsBySection[section] << team;
+        }
+        for(auto it = teamsBySection.constBegin(); it != teamsBySection.constEnd(); ++it) {
+            solveAndCacheDisplayForTeams(students, it.value());
+        }
+        return;
+    }
+
+    solveAndCacheDisplayForTeams(students, teams);
+}
+
+void AssignmentPreferenceCriterion::solveAndCacheDisplayForTeams(const QList<StudentRecord> &students, const QList<TeamRecord> &teams)
+{
     const int numTeams = teams.size();
-    const int dim = std::max(numTeams, numOptions);
+    // If there are fewer options than teams, repeat each option's column ceil(numTeams/numOptions) times so
+    // every team can still be assigned a real option. Column j always maps back to real option (j % numOptions).
+    const int multiplicity = (numTeams + numOptions - 1) / numOptions;
+    const int dim = std::max(numTeams, numOptions * multiplicity);
 
     // Build utility matrix
     QList<QList<float>> utilityMatrix(dim, QList<float>(dim, 0.0f));
 
     for(int t = 0; t < numTeams; t++) {
         const auto &team = teams[t];
+        QList<float> optionUtility(numOptions, 0.0f);
         for(const auto studentID : team.studentIDs) {
             for(const auto &student : students) {
                 if(student.ID == studentID) {
@@ -347,12 +390,15 @@ void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord>
                     for(int r = 0; r < prefs.size() && r < numRankedChoices; r++) {
                         auto it = optionNameToIndex.find(prefs[r]);
                         if(it != optionNameToIndex.end()) {
-                            utilityMatrix[t][it.value()] += static_cast<float>(numRankedChoices - r);
+                            optionUtility[it.value()] += static_cast<float>(numRankedChoices - r);
                         }
                     }
                     break;
                 }
             }
+        }
+        for(int col = 0; col < dim; col++) {
+            utilityMatrix[t][col] = optionUtility[col % numOptions];
         }
     }
 
@@ -371,7 +417,7 @@ void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord>
     }
 
     // Solve
-    const QList<int> assignment = hungarianAlgorithm(costMatrix);
+    const QList<int> rawAssignment = hungarianAlgorithm(costMatrix);
 
     // Cache results for every team
     for(int t = 0; t < numTeams; t++) {
@@ -380,8 +426,8 @@ void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord>
             continue;
         }
         const long long teamKey = team.studentIDs.first();
-        const int assignedOption = assignment[t];
-        const float utility = utilityMatrix[t][assignedOption];
+        const int assignedOption = rawAssignment[t] % numOptions;
+        const float utility = utilityMatrix[t][rawAssignment[t]];
         const auto maxPossible = static_cast<float>(team.size * numRankedChoices);
         float score = (maxPossible > 0.0f) ? (utility / maxPossible) : 0.0f;
 
@@ -414,14 +460,14 @@ void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord>
         displayScore[teamKey] = score;
         if(assignedOption >= 0 && assignedOption < numOptions) {
             displayAssignment[teamKey] = allOptionNames[assignedOption];
+            displayOptionIndex[teamKey] = assignedOption;
         }
     }
 
     // Also cache the assignment for each student (so studentDisplayText can look it up)
-    displayStudentAssignment.clear();
     for(int t = 0; t < numTeams; t++) {
         const auto &team = teams[t];
-        const int assignedOption = assignment[t];
+        const int assignedOption = rawAssignment[t] % numOptions;
         const QString optionName = (assignedOption >= 0 && assignedOption < numOptions) ? allOptionNames[assignedOption] : QString();
         for(const auto studentID : team.studentIDs) {
             displayStudentAssignment[studentID] = optionName;
@@ -483,12 +529,14 @@ QString AssignmentPreferenceCriterion::teamDisplayText(const TeamRecord &team, c
 }
 
 QVariant AssignmentPreferenceCriterion::teamSortValue(const TeamRecord &team, const DataOptions */*dataOptions*/,
-                                                      float criterionScore, const QList<StudentRecord> &/*students*/) const
+                                                      float /*criterionScore*/, const QList<StudentRecord> &/*students*/) const
 {
+    // Sort alphanumerically by the assigned option's name:
+    // allOptionNames is sorted alphabetically in prepareForOptimization, so its cached index is already the right sort key
     if(team.studentIDs.isEmpty()) {
-        return 0.0f;
+        return -1;
     }
-    return criterionScore;
+    return displayOptionIndex.value(team.studentIDs.first(), -1);
 }
 
 QString AssignmentPreferenceCriterion::studentDisplayText(const StudentRecord &student, const DataOptions */*dataOptions*/) const

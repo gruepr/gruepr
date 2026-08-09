@@ -67,7 +67,7 @@ public:
     // functions for displaying the criterion results in the TeamTree data display
     virtual QString headerLabel(const DataOptions *dataOptions) const = 0;
     virtual Qt::TextElideMode headerElideMode() const = 0;
-    virtual void prepareForDisplay(const QList<StudentRecord> &/*students*/, const TeamSet &/*teams*/) {}
+    virtual void prepareForDisplay(const QList<StudentRecord> &/*students*/, const TeamSet &/*teams*/, const TeamingOptions */*teamingOptions*/) {}
     virtual QString teamDisplayText(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const = 0;
     virtual QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const = 0;
     virtual Qt::AlignmentFlag teamTextAlignment() const { return Qt::AlignCenter; }
