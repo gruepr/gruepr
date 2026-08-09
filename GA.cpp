@@ -14,17 +14,7 @@ thread_local std::mt19937 threadRNG{std::random_device{}()};
 
 void GA::setGAParameters(int numRecords)
 {
-    int threshold = 0;
-    for(const auto val : GENOMESIZETHRESHOLD) {
-        if(numRecords < val) {
-            populationsize = POPULATIONSIZE[threshold];
-            topgenomelikelihood = TOPGENOMELIKELIHOOD[threshold];
-            numgenerationsofancestors = NUMGENERATIONSOFANCESTORS[threshold];
-            mutationlikelihood = MUTATIONLIKELIHOOD[threshold];
-            break;
-        }
-        threshold++;
-    }
+    populationsize = (numRecords <= GENOMESIZETHRESHOLD) ? POPULATIONSIZE[0] : POPULATIONSIZE[1];
 }
 
 
@@ -40,7 +30,7 @@ void GA::clone(const int *const parent, const int *const ancestors, const int pa
     const auto &thisGenAncestor = ancestors;
     nextGenAncestor[0] = nextGenAncestor[1] = parentsIndex;   // both parents are this genome
     int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
-    for(int generation = 1; generation < numgenerationsofancestors; generation++) {
+    for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++) {
         //all four grandparents are this genome's parents, etc. for increasing generations
         for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
             nextGenAncestor[ancestor] = thisGenAncestor[ancestor-startAncestor+prevStartAncestor];
@@ -82,12 +72,12 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
         //pick first genome from tournament, most likely from the beginning so that best genomes are more likely have offspring
         //for now, index represent which ordinal genome from the tournament is selected (i.e., 0 = top scoring genome in tournament, 1 = 2nd highest scoring, etc.)
         //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on
-        while(randProbability(pRNG) > topgenomelikelihood) {
+        while(randProbability(pRNG) > TOPGENOMELIKELIHOOD) {
             momsindex++;
         }
 
         //pick second genome from tournament in same way, but make sure to not pick the same genome
-        while((randProbability(pRNG) > topgenomelikelihood) || (dadsindex == momsindex)) {
+        while((randProbability(pRNG) > TOPGENOMELIKELIHOOD) || (dadsindex == momsindex)) {
             dadsindex++;
         }
 
@@ -96,13 +86,13 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
         momsindex = orderedIndex[tourneyPick[momsindex % TOURNAMENTSIZE]];
         const auto &momsancestors = ancestors[momsindex];
 
-        //now make sure partners do not have any common ancestors going back numgenerationsofancestors generations
+        //now make sure partners do not have any common ancestors going back NUMGENERATIONSOFANCESTORS generations
         bool potentialMatesAreRelated;
         do {
             const auto &dadsancestors = ancestors[orderedIndex[tourneyPick[dadsindex % TOURNAMENTSIZE]]];
             potentialMatesAreRelated = false;
             int startAncestor = 0, endAncestor = 2;
-            for(int generation = 0; generation < numgenerationsofancestors && !potentialMatesAreRelated; generation++) {
+            for(int generation = 0; generation < NUMGENERATIONSOFANCESTORS && !potentialMatesAreRelated; generation++) {
                 for(int momsAncestorIndex = startAncestor; momsAncestorIndex < endAncestor && !potentialMatesAreRelated; momsAncestorIndex++) {
                     const auto &momsAncestor = momsancestors[momsAncestorIndex];
                     for(int dadsAncestorIndex = startAncestor; dadsAncestorIndex < endAncestor && !potentialMatesAreRelated; dadsAncestorIndex++) {
@@ -135,7 +125,7 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
     auto &momsAncestors = ancestors[momsindex];
     auto &dadsAncestors = ancestors[dadsindex];
     int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 and 1, so grandparents are 2, 3, 4, 5
-    for(int generation = 1; generation < numgenerationsofancestors; generation++) {
+    for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++) {
         //for each generation, put mom's ancestors then dad's ancestors into the parentage array one generation up
         for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
             parentage[ancestor] = momsAncestors[ancestor-startAncestor+prevStartAncestor];
@@ -234,32 +224,21 @@ void GA::mutate(int genome[], const long long genomeSize) const
 }
 
 //////////////////
-// Swap a random student from the worst-scoring team with a random student from any other team
+// Swap a random student from the worst-scoring team with a random student from the second-worst-scoring team
 //////////////////
-void GA::mutateWorstTeam(int genome[], const int teamStartPositions[], const int worstTeam, const long long genomeSize) const
+void GA::mutateWorstTeams(int genome[], const int teamStartPositions[], const int worstTeam, const int secondWorstTeam) const
 {
-    std::mt19937 &pRNG = threadRNG;
-    const int worstTeamStart = teamStartPositions[worstTeam];
-    const int worstTeamEnd = teamStartPositions[worstTeam + 1];
-    const int worstTeamSize = worstTeamEnd - worstTeamStart;
-
-    // If the worst team is the only team, there is no other team to swap in to
-    if(worstTeamSize >= genomeSize) {
+    // If there is no distinct second-worst team (e.g., only one team total), there is nothing to swap with
+    if(worstTeam == secondWorstTeam) {
         return;
     }
 
-    // pick a random student in the worst team
-    std::uniform_int_distribution<int> randWorstSite(worstTeamStart, worstTeamEnd - 1);
-    const int siteA = randWorstSite(pRNG);
+    std::mt19937 &pRNG = threadRNG;
 
-    // pick a random student NOT in the worst team
-    std::uniform_int_distribution<long long> randOtherSite(0, genomeSize - worstTeamSize - 1);
-    long long siteB = randOtherSite(pRNG);
-    if(siteB >= worstTeamStart) {
-        siteB += worstTeamSize;
-    }
+    std::uniform_int_distribution<int> randWorstSite(teamStartPositions[worstTeam], teamStartPositions[worstTeam + 1] - 1);
+    std::uniform_int_distribution<int> randSecondWorstSite(teamStartPositions[secondWorstTeam], teamStartPositions[secondWorstTeam + 1] - 1);
 
-    std::swap(genome[siteA], genome[siteB]);
+    std::swap(genome[randWorstSite(pRNG)], genome[randSecondWorstSite(pRNG)]);
 }
 
 
@@ -331,7 +310,7 @@ GA::AncestorPool::AncestorPool(const GA &ga)
     : popSize(ga.populationsize), numAncest(2)   // always track mom & dad
     , dataVals(nullptr), rows(nullptr)
 {
-    for(int generation = 0; generation < ga.numgenerationsofancestors; ++generation) {
+    for(int generation = 0; generation < GA::NUMGENERATIONSOFANCESTORS; ++generation) {
         numAncest += (4 << generation);   // add 2^(n+1) for each level of (great)grandparents
     }
     dataVals = new int[static_cast<size_t>(popSize) * numAncest];

@@ -2329,6 +2329,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     }
 
     auto worstTeam = std::make_unique<int[]>(ga.populationsize);
+    auto secondWorstTeam = std::make_unique<int[]>(ga.populationsize);
     auto teamStartPositions = std::make_unique<int[]>(numTeams + 1);
     teamStartPositions[0] = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -2413,7 +2414,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             unpenalizedGenomePresent = false;
 #pragma omp parallel \
             default(none) \
-            shared(scores, worstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA) \
+            shared(scores, worstTeam, secondWorstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA) \
             reduction(||:unpenalizedGenomePresent)
             {
                 QList<float> teamScores(sharedNumTeams);
@@ -2424,14 +2425,23 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                                     sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                                     criteriaScores, penaltyPoints);
-                    // find this genome's worst team
+                    // find this genome's worst- and second-worst-scoring teams
                     int worst = 0;
-                    for(int team = 1; team < sharedNumTeams; team++) {
+                    int secondWorst = (sharedNumTeams > 1) ? 1 : 0;
+                    if(sharedNumTeams > 1 && teamScores[secondWorst] < teamScores[worst]) {
+                        std::swap(worst, secondWorst);
+                    }
+                    for(int team = 2; team < sharedNumTeams; team++) {
                         if(teamScores[team] < teamScores[worst]) {
+                            secondWorst = worst;
                             worst = team;
+                        }
+                        else if(teamScores[team] < teamScores[secondWorst]) {
+                            secondWorst = team;
                         }
                     }
                     worstTeam[genome] = worst;
+                    secondWorstTeam[genome] = secondWorst;
                     unpenalizedGenomePresent = unpenalizedGenomePresent ||
                                                std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
                 }
@@ -2441,14 +2451,15 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&scores](const int i, const int j)
                 {return (scores[i] > scores[j]);});
 
-            // 6. Mutate all but the single top-scoring genome with some probability
+            // 6. Mutate all but the single top-scoring genome, each with a GA::MUTATIONLIKELIHOOD% chance.
+            //    If mutation happens, it occurs by swapping one site between each genome's worst- and second-worst-scoring teams
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
             for(int genome = 0; genome < ga.populationsize; genome++) {
                 if(genome == orderedIndex[0]) {
                     continue;
                 }
-                while(randProbability(pRNG) < ga.mutationlikelihood) {
-                    ga.mutateWorstTeam(genePool[genome], teamStartPositions.get(), worstTeam[genome], numActiveStudents);
+                if(randProbability(pRNG) <= GA::MUTATIONLIKELIHOOD) {
+                    ga.mutateWorstTeams(genePool[genome], teamStartPositions.get(), worstTeam[genome], secondWorstTeam[genome]);
                 }
             }
 

@@ -37,8 +37,15 @@
 //      - multi-threaded the mating process to create the next generation
 //      - added link time optimization during compiling
 //  - Fixed a bug in autoscrolling when drag/drop reordering the criteria cards
+//  - Added a 2nd set of sample survey results: testdata_largeclass.csv
 //
 // TO DO:
+//  - Better UI with "Duplicate" marker in student list
+//  - Alphabetize the students / teams by last name on first display
+//  - Remove box and whisker plot, replace with line graph tracking maximum score from each generation
+//  - Allow excel file import alongside csv
+//  - Fix project assignment display (unique topic not shown across sections)
+//  - Tweak elite/superelite settings
 //
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
