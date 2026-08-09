@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>LICENSE.txt</file>
-        <file>README.md</file>
         <file>fonts/OxygenMono-Regular.otf</file>
         <file>icons_new/splash_new.png</file>
         <file>fonts/DMSans-Regular.ttf</file>
@@ -73,7 +71,5 @@
         <file>icons_new/left-collapse.png</file>
         <file>icons_new/right-collapse.png</file>
         <file>icons_new/average.png</file>
-        <file>RELEASING.md</file>
-        <file>CHANGELOG.md</file>
     </qresource>
 </RCC>

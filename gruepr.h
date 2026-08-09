@@ -9,8 +9,8 @@
 #include "teamingOptions.h"
 #include "dialogs/progressDialog.h"
 #include "widgets/attributeWidget.h"
-#include "widgets/boxwhiskerplot.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include "widgets/scoreLineGraph.h"
 #include "widgets/styledComboBox.h"
 #include <QFuture>
 #include <QFutureWatcher>
@@ -49,8 +49,7 @@ public:
 
 signals:
     void closed();
-    void generationComplete(const float *const allScores, const int *const orderedIndex,
-                            const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
+    void generationComplete(float maxScore, int generation, float scoreStability);
     void sectionOptimizationFullyComplete();
     void turnOffBusyCursor();
 
@@ -80,8 +79,7 @@ private slots:
     void changeIdealTeamSize();
     void chooseTeamSizes(int index);
     void startOptimization();
-    void updateOptimizationProgress(const float *const allScores, const int *const orderedIndex,
-                                    const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
+    void updateOptimizationProgress(float maxScore, int generation, float scoreStability);
     void optimizationComplete();
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
@@ -110,7 +108,7 @@ private:
     QList<int> optimizeTeams(const QList<int> studentIndexes);    // return value is a single permutation-of-indexes
     QFuture< QList<int> > future;                                 // needed so that optimization can happen in a separate thread
     QFutureWatcher< QList<int> > futureWatcher;                   // used for signaling of optimization completion
-    BoxWhiskerPlot *progressChart = nullptr;
+    ScoreLineGraph *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],

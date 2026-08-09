@@ -119,7 +119,6 @@ SOURCES += \
         LMS/canvashandler.cpp \
         LMS/googlehandler.cpp \
         widgets/attributeWidget.cpp \
-        widgets/boxwhiskerplot.cpp \
         widgets/checkableComboBox.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/dropcsvframe.cpp \
@@ -127,6 +126,7 @@ SOURCES += \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
+        widgets/scoreLineGraph.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
         widgets/surveyMakerQuestion.cpp \
@@ -179,7 +179,6 @@ HEADERS += \
         LMS/canvashandler.h \
         LMS/googlehandler.h \
         widgets/attributeWidget.h \
-        widgets/boxwhiskerplot.h \
         widgets/checkableComboBox.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/dropcsvframe.h \
@@ -187,6 +186,7 @@ HEADERS += \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
+        widgets/scoreLineGraph.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
         widgets/styledComboBox.h \
@@ -219,6 +219,10 @@ RESOURCES += \
         gruepr.qrc
 
 DISTFILES += \
+        LICENSE.txt \
+        README.md \
+        CHANGELOG.md \
+        RELEASING.md \
         .github/workflows/Build.yaml \
         .github/workflows/Build_Windows.yaml \
         .github/workflows/Build_linux.yaml \

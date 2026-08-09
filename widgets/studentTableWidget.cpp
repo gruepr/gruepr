@@ -1,6 +1,8 @@
 #include "studentTableWidget.h"
 #include "gruepr_globals.h"
 #include <QHeaderView>
+#include <QPersistentModelIndex>
+#include <QVariant>
 
 
 StudentTableWidget::StudentTableWidget(QWidget *parent)
@@ -18,13 +20,13 @@ StudentTableWidget::StudentTableWidget(QWidget *parent)
 }
 
 
-void StudentTableWidget::resetTable()
+void StudentTableWidget::resetTable(int sortColumn)
 {
-    QTableWidget::sortByColumn(0, Qt::AscendingOrder);
+    QTableWidget::sortByColumn(sortColumn, Qt::AscendingOrder);
     horizontalHeader()->setSortIndicatorShown(true);
-    horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
-    horizontalHeaderItem(0)->setIcon(QIcon(":/icons_new/blank_arrow.png"));
-    prevSortColumn = 0;
+    horizontalHeader()->setSortIndicator(sortColumn, Qt::AscendingOrder);
+    horizontalHeaderItem(sortColumn)->setIcon(QIcon(":/icons_new/blank_arrow.png"));
+    prevSortColumn = sortColumn;
     prevSortOrder = Qt::AscendingOrder;
 }
 
@@ -63,8 +65,43 @@ void StudentTableWidget::leaveEvent(QEvent *event)
 }
 
 
+void StudentTableWidget::trackHoverFor(QWidget *cellWidget, int row)
+{
+    // cell widgets (buttons, icon labels) sit on top of the viewport and swallow mouse-move events, so
+    // QAbstractItemView::entered() never fires for them; watch for the widget's own Enter event instead.
+    // Store a persistent index (not a plain row number) since sorting the table afterward moves rows
+    // around, and a persistent index automatically tracks its row across that reordering.
+    const QPersistentModelIndex anchor(model()->index(row, 0));
+    cellWidget->setProperty("hoverAnchor", QVariant::fromValue(anchor));
+    cellWidget->installEventFilter(this);
+}
+
+
+bool StudentTableWidget::eventFilter(QObject *watched, QEvent *event)
+{
+    if(event->type() == QEvent::Enter) {
+        auto *widget = qobject_cast<QWidget*>(watched);
+        const QVariant anchor = (widget != nullptr) ? widget->property("hoverAnchor") : QVariant();
+        if(anchor.isValid()) {
+            const auto index = anchor.value<QPersistentModelIndex>();
+            if(index.isValid()) {
+                hoverRow(index.row());
+            }
+        }
+    }
+    return QTableWidget::eventFilter(watched, event);
+}
+
+
+void StudentTableWidget::hoverRow(int row)
+{
+    const QModelIndex index = model()->index(row, 0);
+    setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    selectRow(row);
+}
+
+
 void StudentTableWidget::itemEntered(const QModelIndex &index)
 {
-    setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-    selectRow(index.row());
+    hoverRow(index.row());
 }

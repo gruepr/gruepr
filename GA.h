@@ -78,8 +78,6 @@ public:
 
     inline static const int MAX_RECORDS = 1000;             // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow as value gets bigger)
 
-    inline static const int NUM_ELITES = 3;                 // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite stabilizes the high score to end optimization
-    inline static const int TOURNAMENTSIZE = 100;           // most of the next generation is created by mating pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
     inline static const int MIN_GENERATIONS = 40;           // will keep optimizing for at least minGenerations
     inline static const int MAX_GENERATIONS = 800;          // will keep optimizing for at most maxGenerations
     inline static const int GENERATIONS_OF_STABILITY = 25;  // after minGenerations, if score has not improved for generationsOfStability, stop optimizing
@@ -92,12 +90,16 @@ public:
                                                                 //      3 = prevent if any parent, grandparent, or greatgrandparent is same (no siblings, 1st or 2nd cousins); etc.
     inline static const int MUTATIONLIKELIHOOD = 50;           // percent likelihood that a genome is mutated once in a given generation
 
+    inline static const int NUM_ELITES = 3;                 // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite stabilizes the high score to end optimization
+    inline static const int NUM_SUPER_ELITES = 1;            // of those NUM_ELITES clones, this many (the highest scoring) are also exempted from mutation, so the current best genome(s) can never be lost to a bad mutation
+
     // working value of the one algorithm constant that varies with class size, set when beginning an optimization and the genome size is known
     int populationsize = POPULATIONSIZE[1];
 
 private:
     static constexpr int POPULATIONSIZE[] = {45000, 30000};  // the number of genomes in each generation--larger size is slower, but each generation is more likely to have optimal result
     static constexpr int GENOMESIZETHRESHOLD = 200;           // numRecords at or below this threshold use the larger population size; above it, the smaller one
+    static constexpr int TOURNAMENTSIZE = 30;                 // most of the next generation is created by mating pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
 };
 
 

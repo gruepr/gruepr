@@ -34,18 +34,18 @@
 // DONE:
 //  - SIGNIFICANT speed-up in the optimization process
 //      - faster data structures in the attribute, gender, race/ethnicity, required/prevented teammates, and schedule criteria
-//      - multi-threaded the mating process to create the next generation
+//      - multi-threaded the mating process that creates most of the next generation
+//      - tweaked the genetic algorithm parameters and processes through benchmark testing
 //      - added link time optimization during compiling
 //  - Fixed a bug in autoscrolling when drag/drop reordering the criteria cards
 //  - Added a 2nd set of sample survey results: testdata_largeclass.csv
+//  - Better UI associated with the "Duplicate" marker in student list
+//  - Now alphabetizes the students / teams by last name on first display of a team set
+//  - Changed the progress graph from box and whisker plots to a simpler line graph tracking max. score in each generation
 //
 // TO DO:
-//  - Better UI with "Duplicate" marker in student list
-//  - Alphabetize the students / teams by last name on first display
-//  - Remove box and whisker plot, replace with line graph tracking maximum score from each generation
 //  - Allow excel file import alongside csv
-//  - Fix project assignment display (unique topic not shown across sections)
-//  - Tweak elite/superelite settings
+//  - Fix project assignment display (unique topic not shown across sections), clarify fallback for fewer projects than teams
 //
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
@@ -61,12 +61,6 @@
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
 //      - Form options: don't collect email, don't limit one response per user, don't show link to respond again
 //      - Question options: req'd question, answer validity checks (for email & numerical input questions)
-//
-//    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
-//  - use multiple genepools with limited cross-breeding
-//  - to get around the redundancy-of-genome issue, sort indexes w/in each team  and then each teams w/in the genome
-//      - alternatively, store each genome as std::set< std::set< int > >, but that adds to data overhead
-//      - could also store genepool as std::set < genome >, sorted by score
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"

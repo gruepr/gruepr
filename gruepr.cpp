@@ -18,6 +18,7 @@
 #include <QFileDialog>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QLabel>
 #include <QList>
 #include <QMenu>
 #include <QMessageBox>
@@ -1654,7 +1655,7 @@ void gruepr::startOptimization()
         }
 
         // Create progress display plot
-        progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
+        progressChart = new ScoreLineGraph("", "Generation", "Score");
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
         const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " +
@@ -1696,24 +1697,21 @@ void gruepr::startOptimization()
 }
 
 
-void gruepr::updateOptimizationProgress(const float *const allScores, const int *const orderedIndex,
-                                        const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
+void gruepr::updateOptimizationProgress(const float maxScore, const int generation, const float scoreStability)
 {
-    if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0) {
-        progressChart->loadNextVals(allScores, orderedIndex, ga.populationsize, unpenalizedGenomePresent);
-    }
+    progressChart->addScore(maxScore);
 
     if(generation > GA::MAX_GENERATIONS) {
         progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
-                                generation, *std::max_element(allScores, allScores+ga.populationsize), true);
+                                generation, maxScore, true);
         progressWindow->highlightStopButton();
     }
     else if((generation >= GA::MIN_GENERATIONS) && (scoreStability > GA::MIN_SCORE_STABILITY)) {
-        progressWindow->setText(tr("Score appears to be stable!"), generation, *std::max_element(allScores, allScores+ga.populationsize), true);
+        progressWindow->setText(tr("Score appears to be stable!"), generation, maxScore, true);
         progressWindow->highlightStopButton();
     }
     else {
-        progressWindow->setText(tr("Please wait while your grueps are created!"), generation, *std::max_element(allScores, allScores+ga.populationsize), false);
+        progressWindow->setText(tr("Please wait while your grueps are created!"), generation, maxScore, false);
     }
 }
 
@@ -1765,10 +1763,6 @@ void gruepr::optimizationComplete()
         team.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
     }
 
-    for(int team = 0; team < teams.size(); team++) {
-        teams[team].name = QString::number(team+1);
-    }
-
     // Sort teams by 1st student's name
     std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
               { const StudentRecord *const firstStudentOnTeamA = a.studentIDs.isEmpty() ? nullptr : findStudentFromID(a.studentIDs.at(0));
@@ -1777,6 +1771,12 @@ void gruepr::optimizationComplete()
                 const QString keyB = (firstStudentOnTeamB != nullptr) ? (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname) : QString();
                 return (keyA < keyB);
               });
+
+    // Name teams sequentially now that they're in their final (alphabetical) order, so the team-tab's
+    // default sort-by-name view matches this order instead of reverting to GA output order
+    for(int team = 0; team < teams.size(); team++) {
+        teams[team].name = QString::number(team+1);
+    }
 
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
@@ -1912,7 +1912,8 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
     }
 
     //Warn about duplicates
-    if(std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;})) {
+    const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;});
+    if(anyDuplicates) {
         grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
                                                         "Possible duplicates are indicated in the student table."), tr("OK"));
     }
@@ -1927,7 +1928,7 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
         progressDialog->setValue(100);
     }
 
-    ui->studentTable->resetTable();
+    ui->studentTable->resetTable(anyDuplicates ? 1 : 0);   // skip the "Dup?" column so the default sort is by the first real data column
     changeIdealTeamSize();
     chooseTeamSizes(0);
 }
@@ -2169,7 +2170,9 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
     const QIcon unsortedIcon(":/icons_new/upDownButton_white.png");
     int column = 0;
     if(anyDuplicates) {
-        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Duplicate?  ")));
+        auto *duplicateHeader = new QTableWidgetItem(unsortedIcon, tr("  Dup?  "));
+        duplicateHeader->setToolTip(tr("Flags possible duplicate submissions"));
+        ui->studentTable->setHorizontalHeaderItem(column++, duplicateHeader);
     }
     if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Survey  \n  Timestamp  ")));
@@ -2201,12 +2204,22 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
             QList<QTableWidgetItem*> items;
 
             if(anyDuplicates) {
+                // this item exists purely to hold the sort key; the marker icon below is a cell widget so it can be centered
+                // (QStyledItemDelegate always left-aligns an item's decoration regardless of its text alignment)
                 auto *statusItem = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::alphanumeric, "");
+                const int duplicateColumn = column;
                 if(student.duplicateRecord) {
                     statusItem->setSortKey("0_" + duplicateSortKeys.value(student.ID) + "_" +
                                            student.surveyTimestamp.toString(Qt::ISODate));
-                    statusItem->setIcon(duplicateIcon);
                     statusItem->setToolTip(tr("Possible duplicate submission"));
+
+                    auto *duplicateMarker = new QLabel(ui->studentTable);
+                    duplicateMarker->setAlignment(Qt::AlignCenter);
+                    duplicateMarker->setPixmap(duplicateIcon.pixmap(24, 24));
+                    duplicateMarker->setToolTip(tr("Possible duplicate submission"));
+                    duplicateMarker->setStyleSheet("QLabel{background: transparent;}");
+                    ui->studentTable->setCellWidget(numActiveStudents, duplicateColumn, duplicateMarker);
+                    ui->studentTable->trackHoverFor(duplicateMarker, numActiveStudents);
                 }
                 else {
                     statusItem->setSortKey("1");    // putting non-duplicates strictly after the duplicates
@@ -2244,20 +2257,24 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
 
             auto *editButton = new QPushButton(QIcon(":/icons_new/edit.png"), "", ui->studentTable);
             editButton->setFlat(true);
+            editButton->setStyleSheet("QPushButton{background-color: transparent; border: none;}");
             editButton->setIconSize(QSize(20, 20));
             editButton->setToolTip("<html>" + tr("Edit") + " " + student.firstname + " " + student.lastname + tr("'s data.") + "</html>");
             editButton->setProperty("StudentID", student.ID);
             connect(editButton, &QPushButton::clicked, this, &gruepr::editAStudent);
             ui->studentTable->setCellWidget(numActiveStudents, column++, editButton);
+            ui->studentTable->trackHoverFor(editButton, numActiveStudents);
 
             auto *removerButton = new QPushButton(QIcon(":/icons_new/trashButton.png"), "", ui->studentTable);
             removerButton->setFlat(true);
+            removerButton->setStyleSheet("QPushButton{background-color: transparent; border: none;}");
             removerButton->setIconSize(QSize(20, 20));
             removerButton->setToolTip("<html>" + tr("Remove") + " " + student.firstname + " " + student.lastname + " " +
                                       tr("from the student roster.") + "</html>");
             removerButton->setProperty("StudentID", student.ID);
             connect(removerButton, &QPushButton::clicked, ui->studentTable, [this, ID = student.ID, removerButton]{removerButton->disconnect(); removeAStudent(ID);});
             ui->studentTable->setCellWidget(numActiveStudents, column, removerButton);
+            ui->studentTable->trackHoverFor(removerButton, numActiveStudents);
 
             numActiveStudents++;
 
@@ -2330,6 +2347,11 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
     auto worstTeam = std::make_unique<int[]>(ga.populationsize);
     auto secondWorstTeam = std::make_unique<int[]>(ga.populationsize);
+    // sparse marker: at most numSuperElites entries are ever true. make_unique value-initializes this
+    // to all-false, and each generation below marks its numSuperElites entries true, uses them, then
+    // resets just those same entries back to false -- so it is always all-false on entry here, at
+    // O(numSuperElites) cost instead of an O(populationsize) fill every generation.
+    auto isSuperEliteGenome = std::make_unique<bool[]>(ga.populationsize);
     auto teamStartPositions = std::make_unique<int[]>(numTeams + 1);
     teamStartPositions[0] = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -2338,7 +2360,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto scores = std::make_unique<float[]>(ga.populationsize);
-    bool unpenalizedGenomePresent = false;
     // make local copies of member variables to satisfy openMP's needs
     const auto &sharedStudents = students;
     const auto &sharedNumTeams = numTeams;
@@ -2350,8 +2371,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     //parallel initialization of needed variables.
 #pragma omp parallel \
         default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA) \
-        reduction(||:unpenalizedGenomePresent)
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA)
     {
         QList<float> teamScores(sharedNumTeams);
         QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
@@ -2361,14 +2381,13 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                             sharedTeamingOptions, sharedDataOptions, teamScores.data(),
                                             criteriaScores, penaltyPoints);
-            unpenalizedGenomePresent = unpenalizedGenomePresent || std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
         }
     }
 
     // get genome indexes in order of score, largest to smallest
     std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize,
               [&scores](const int i, const int j){return (scores[i] > scores[j]);});
-    emit generationComplete(scores.get(), orderedIndex.get(), 0, 0, unpenalizedGenomePresent);
+    emit generationComplete(scores[orderedIndex[0]], 0, 0);
 
     float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
@@ -2411,11 +2430,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             generation++;
 
             // 4. Calculate this generation's scores (multi-threaded using OpenMP)
-            unpenalizedGenomePresent = false;
 #pragma omp parallel \
             default(none) \
-            shared(scores, worstTeam, secondWorstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA) \
-            reduction(||:unpenalizedGenomePresent)
+            shared(scores, worstTeam, secondWorstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA)
             {
                 QList<float> teamScores(sharedNumTeams);
                 QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
@@ -2442,8 +2459,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                     }
                     worstTeam[genome] = worst;
                     secondWorstTeam[genome] = secondWorst;
-                    unpenalizedGenomePresent = unpenalizedGenomePresent ||
-                                               std::all_of(penaltyPoints.cbegin(), penaltyPoints.cend(), [](const int p){return p == 0;});
                 }
             }
 
@@ -2451,16 +2466,23 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&scores](const int i, const int j)
                 {return (scores[i] > scores[j]);});
 
-            // 6. Mutate all but the single top-scoring genome, each with a GA::MUTATIONLIKELIHOOD% chance.
+            // 6. Mutate all but the top numSuperElites-ranked genomes, each with a GA::MUTATIONLIKELIHOOD% chance.
             //    If mutation happens, it occurs by swapping one site between each genome's worst- and second-worst-scoring teams
+            for(int rank = 0; rank < GA::NUM_SUPER_ELITES && rank < ga.populationsize; rank++) {
+                isSuperEliteGenome[orderedIndex[rank]] = true;
+            }
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
             for(int genome = 0; genome < ga.populationsize; genome++) {
-                if(genome == orderedIndex[0]) {
+                if(isSuperEliteGenome[genome]) {
                     continue;
                 }
                 if(randProbability(pRNG) <= GA::MUTATIONLIKELIHOOD) {
                     ga.mutateWorstTeams(genePool[genome], teamStartPositions.get(), worstTeam[genome], secondWorstTeam[genome]);
                 }
+            }
+            // reset just the sparse set of entries just marked, so the array is all-false again on entry next time
+            for(int rank = 0; rank < GA::NUM_SUPER_ELITES && rank < ga.populationsize; rank++) {
+                isSuperEliteGenome[orderedIndex[rank]] = false;
             }
 
             // 7. Determine the best score, save in historical record, and calculate score stability
@@ -2474,7 +2496,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             else {
                 scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
             }
-            emit generationComplete(scores.get(), orderedIndex.get(), generation, scoreStability, unpenalizedGenomePresent);
+            emit generationComplete(maxScoreInThisGeneration, generation, scoreStability);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;

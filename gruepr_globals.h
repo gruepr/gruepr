@@ -162,18 +162,11 @@ inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(2
                                                              "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold; "
                                                              "border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px;}";
 
-inline static const char EDITREMOVEBUTTONSELECTEDSTYLE[] = "QPushButton {background-color: " BUBBLYHEX "; border: none;}";
-
-inline static const char EDITREMOVEBUTTONDUPLICATESTYLE[] = "QPushButton {background-color: " STARFISHHEX "; border: none;}";
-
 inline static const char LABEL10PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 
 inline static const char LABEL10PTFIXEDSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: " TROPICALHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
-
-inline static const char LABEL10PTWHITEBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: white; font-size: 10pt; font-family: 'DM Sans'; border-style: none;}"
-                                                   "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 
 inline static const char LABEL10PTBUBBLYBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none; background-color: " BUBBLYHEX "}"
                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
@@ -204,11 +197,6 @@ inline static const char PLAINTEXTEDITSTYLE[] = "QPlainTextEdit {background-colo
                                                                  "font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QPlainTextEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
                                                                            "font-family: 'DM Sans'; font-size: 12pt;}";
-
-inline static const char TEXTEDITSTYLE[] = "QTextEdit {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
-                                                      "font-family: 'DM Sans'; font-size: 12pt;}"
-                                            "QTextEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
-                                                                "font-family: 'DM Sans'; font-size: 12pt;}";
 
 inline static const char LINEEDITERRORSTYLE[] = "QLineEdit {background-color: white; color: red; border-style: solid; border-color: black; border-width: 1px; "
                                                             "font-family: 'DM Sans'; font-size: 12pt;}"
@@ -270,13 +258,6 @@ inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANS
                                              "QCheckBox::indicator:disabled {background-color: lightGray; width: 12px; height: 12px; border: 2px solid darkGray;}"
                                              "QCheckBox::indicator:checked {background-color: white; image: url(:/icons_new/Checkmark.png);}";
 
-inline static const char MANDATORYCHECKBOXSTYLE[] = "QCheckBox { background-color: transparent; font-family: 'DM Sans'; font-size: 10pt; border: none; }"
-                                                "QCheckBox:hover { background-color: rgba(200, 200, 200, 0.5); }"
-                                                "QCheckBox::disabled { color: darkGray; font-family: 'DM Sans'; font-size: 10pt; }"
-                                                "QCheckBox::indicator { background-color: white; width: 12px; height: 12px; image: url(:/icons_new/important_black.png); border: none;}"
-                                                "QCheckBox::indicator:disabled { background-color: lightGray; width: 12px; height: 12px; image: url(:/icons_new/important_gray.png); }"
-                                                "QCheckBox::indicator:checked { background-color: white; image: url(:/icons_new/important_yellow.png); }";
-
 inline static const char RADIOBUTTONSTYLE[] = "QRadioButton {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
                                                 "QRadioButton::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
                                                 "QRadioButton::indicator {width: 16px; height: 16px;}"
@@ -326,11 +307,6 @@ inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX ";
                                                 "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
                                                 "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
 
-inline static const char LEGENDFRAME[] =
-                                    "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
-                                            "border-top: 1px solid " DEEPWATERHEX "; border-right: 1px solid " DEEPWATERHEX "; "
-                                            "border-bottom: 1px solid " DEEPWATERHEX "; border-left: 1px solid " DEEPWATERHEX "; border-radius:5px;}";
-
 inline static const char DROPFRAME[] =
                                     "QFrame { background-color: rgba(0, 0, 0, 0); border: 2px dotted rgba(128, 128, 128, 150);"
                                             " border-radius: 10px;}";
@@ -346,10 +322,6 @@ inline static const char FIXEDCRITERIAFRAME[] =
                                     "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
                                             "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
                                             "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
-
-inline static const char BORDERLESSBLUEFRAME[] =
-                                    "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
-                                    "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
 
 inline static const char DATASOURCEFRAMESTYLE[] =
                                     "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
@@ -379,9 +351,6 @@ inline static const char STANDARDBUTTON[] =
 
 inline static const char LABELONLYBUTTON[] =
                                     "QPushButton { background-color: none;  border: none; font-family:'DM Sans'; font-size: 10pt;}";
-
-inline static const char ATTRIBUTESTACKWIDGETSTYLE[] =
-                                    "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
 
 inline static const char FAKETABLEHEADERWIDGETSTYLE[] =
                                     "QWidget{border-top: none; border-left: none; border-right: 1px solid lightGray; "

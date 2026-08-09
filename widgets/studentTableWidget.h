@@ -10,19 +10,23 @@ class StudentTableWidget : public QTableWidget
 
 public:
     StudentTableWidget(QWidget *parent = nullptr);
-    void resetTable();
+    void resetTable(int sortColumn = 0);
     void clearSortIndicator();
+    void trackHoverFor(QWidget *cellWidget, int row);    // let a cell widget (edit/remove buttons, duplicate marker) join the row-hover highlight
 
 public slots:
     void sortByColumn(int column);
 
 protected:
     void leaveEvent(QEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it
 
 private:
+    void hoverRow(int row);
+
     int prevSortColumn = 0;
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;
 

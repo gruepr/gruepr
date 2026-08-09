@@ -61,7 +61,7 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
         failedTournament = false;
         momsindex = 0;
         dadsindex = 0;
-        //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
+        //get TOURNAMENTSIZE random values in the range 0 -> populationSize-1 and then sort them
         //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
         unsigned int tourneyPick[TOURNAMENTSIZE];
         for(auto &player : tourneyPick) {
@@ -82,7 +82,7 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
         }
 
         //convert momsindex from ordinal value within tournament to index within the genepool
-        //using '%tournamentSize' to wrap around from end of tournament back to the beginning, just in case
+        //using '%TOURNAMENTSIZE' to wrap around from end of tournament back to the beginning, just in case
         momsindex = orderedIndex[tourneyPick[momsindex % TOURNAMENTSIZE]];
         const auto &momsancestors = ancestors[momsindex];
 
