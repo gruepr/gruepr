@@ -9,6 +9,7 @@
 #include "dialogs/customTeamnamesDialog.h"
 #include "LMS/canvashandler.h"
 #include "widgets/labelWithInstantTooltip.h"
+#include "xlsxdocument.h"
 #include <random>
 #include <QApplication>
 #include <QFileDialog>
@@ -23,8 +24,10 @@
 #include <QPainter>
 #include <QPrintDialog>
 #include <QStyleFactory>
+#include <QTextCursor>
 #include <QTextDocument>
 #include <QTextStream>
+#include <QTextTable>
 #include <QTimer>
 #include <QtConcurrentRun>
 #include <QVBoxLayout>
@@ -1096,48 +1099,68 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
 
 void TeamsTabItem::saveTeams()
 {
-    QStringList fileContents = createStdFileContents();
+    QStringList fileContents(NUMEXPORTFILES);
+    fileContents[studentFile] = createProseFileContents(studentFilePreset());
+    fileContents[instructorFile] = createProseFileContents(instructorFilePreset());
     const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "\n...",
                                   fileContents[instructorFile].left(FILEPREVIEWLENGTH/2) + "\n...\n" +
                                       fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH/2) + "\n...",
-                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  spreadsheetPreviewText().left(FILEPREVIEWLENGTH) + "\n...",
                                   tr("(Custom contents)")};
 
     //Open specialized dialog box to choose which file(s) to save
     auto *window = new WhichFilesDialog(WhichFilesDialog::Action::save, &teams.dataOptions, teamingOptions->sectionType, previews, this);
     if(window->exec() == QDialog::Accepted) {
         if(window->fileType == WhichFilesDialog::FileType::custom) {
-            fileContents[customFile] = createCustomFileContents(window->customFileOptions);
+            fileContents[customFile] = createProseFileContents(window->customFileOptions);
         }
-        if(window->pdf) {
+        QList<QStringList> spreadsheetContents;
+        if(window->fileType == WhichFilesDialog::FileType::spreadsheet) {
+            spreadsheetContents = createSpreadsheetFileContents(window->customFileOptions);
+        }
+
+        if(window->saveFormat == WhichFilesDialog::SaveFormat::pdf) {
             //save as formatted pdf files
-            printFiles(fileContents, window->fileType, PrintType::printToPDF);
+            printFiles(fileContents, spreadsheetContents, window->fileType, PrintType::printToPDF);
         }
         else {
-            //save to text files
+            //save to text/csv/xlsx files
+            QString filter = tr("Text File (*.txt)");
+            if(window->fileType == WhichFilesDialog::FileType::spreadsheet) {
+                if(window->saveFormat == WhichFilesDialog::SaveFormat::csv) {
+                    filter = tr("CSV File (*.csv)");
+                }
+                else if(window->saveFormat == WhichFilesDialog::SaveFormat::xlsx) {
+                    filter = tr("Excel File (*.xlsx)");
+                }
+            }
             const QString fileName = QFileDialog::getSaveFileName(this, tr("Choose a location and filename"), "",
-                                                                  tr("Text File (*.txt);;All Files (*)"));
+                                                                  filter + ";;" + tr("All Files (*)"));
             if (!fileName.isEmpty()) {
                 bool problemSaving = false;
-                QFile saveFile(fileName);
-                if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                    QTextStream out(&saveFile);
-                    if(window->fileType == WhichFilesDialog::FileType::instructor) {
-                        out << fileContents[instructorFile];
-                    }
-                    else if(window->fileType == WhichFilesDialog::FileType::student) {
-                        out << fileContents[studentFile];
-                    }
-                    else if(window->fileType == WhichFilesDialog::FileType::spreadsheet) {
-                        out << fileContents[spreadsheetFile];
-                    }
-                    else if(window->fileType == WhichFilesDialog::FileType::custom) {
-                        out << fileContents[customFile];
-                    }
-                    saveFile.close();
+                if(window->fileType == WhichFilesDialog::FileType::spreadsheet) {
+                    problemSaving = !writeTabularFile(spreadsheetContents, window->saveFormat, fileName);
                 }
                 else {
-                    problemSaving = true;
+                    QString content;
+                    if(window->fileType == WhichFilesDialog::FileType::instructor) {
+                        content = fileContents[instructorFile];
+                    }
+                    else if(window->fileType == WhichFilesDialog::FileType::student) {
+                        content = fileContents[studentFile];
+                    }
+                    else if(window->fileType == WhichFilesDialog::FileType::custom) {
+                        content = fileContents[customFile];
+                    }
+                    QFile saveFile(fileName);
+                    if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                        QTextStream out(&saveFile);
+                        out << content;
+                        saveFile.close();
+                    }
+                    else {
+                        problemSaving = true;
+                    }
                 }
 
                 if(problemSaving) {
@@ -1152,20 +1175,26 @@ void TeamsTabItem::saveTeams()
 
 void TeamsTabItem::printTeams()
 {
-    QStringList fileContents = createStdFileContents();
+    QStringList fileContents(NUMEXPORTFILES);
+    fileContents[studentFile] = createProseFileContents(studentFilePreset());
+    fileContents[instructorFile] = createProseFileContents(instructorFilePreset());
     const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "\n...",
                                   fileContents[instructorFile].left(FILEPREVIEWLENGTH/2) + "\n...\n" +
                                       fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH/2) + "\n...",
-                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  spreadsheetPreviewText().left(FILEPREVIEWLENGTH) + "\n...",
                                   tr("(Custom contents)")};
 
     //Open specialized dialog box to choose which file(s) to print
     auto *window = new WhichFilesDialog(WhichFilesDialog::Action::print, &teams.dataOptions, teamingOptions->sectionType, previews, this);
     if(window->exec() == QDialog::Accepted) {
         if(window->fileType == WhichFilesDialog::FileType::custom) {
-            fileContents[customFile] = createCustomFileContents(window->customFileOptions);
+            fileContents[customFile] = createProseFileContents(window->customFileOptions);
         }
-        printFiles(fileContents, window->fileType, PrintType::printer);
+        QList<QStringList> spreadsheetContents;
+        if(window->fileType == WhichFilesDialog::FileType::spreadsheet) {
+            spreadsheetContents = createSpreadsheetFileContents(window->customFileOptions);
+        }
+        printFiles(fileContents, spreadsheetContents, window->fileType, PrintType::printer);
     }
     delete window;
 }
@@ -1450,102 +1479,63 @@ inline StudentRecord* TeamsTabItem::findStudentFromID(const long long ID)
 }
 
 
-QStringList TeamsTabItem::createStdFileContents()
+WhichFilesDialog::CustomFileOptions TeamsTabItem::studentFilePreset()
 {
-    QStringList fileContents(NUMEXPORTFILES);
-    QString &studentsFileContents = fileContents[studentFile];
-    QString &instructorsFileContents = fileContents[instructorFile];
-    QString &spreadsheetFileContents = fileContents[spreadsheetFile];
-
-    spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
-
-    instructorsFileContents = tr("Source: ") + teams.dataOptions.dataSourceName;
-    if(teams.dataOptions.sectionIncluded) {
-        instructorsFileContents += "\n" + tr("Section: ") + teamingOptions->sectionName;
-    }
-
-    instructorsFileContents += "\n\n" + tr("Teaming Options") + ":";
-    for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
-        instructorsFileContents += criterion->exportTeamingOptionText(teamingOptions, &teams.dataOptions);
-    }
-    instructorsFileContents += "\n\n\n";
-
-    // get team numbers in the order that they are currently displayed/sorted
-    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
-
-    //loop through every team
-    for(const auto teamNum : teamDisplayNums) {
-        const auto &team = teams[teamNum];
-        instructorsFileContents += tr("Team ") + team.name;
-        if(!team.assignedOption.isEmpty()) {
-            instructorsFileContents += "  -  " + team.assignedOption;
-        }
-        instructorsFileContents += "  -  " + tr("Score = ") + QString::number(double(team.score), 'f', 1) + "\n\n";
-        studentsFileContents += tr("Team ") + team.name;
-        if(!team.assignedOption.isEmpty()) {
-            studentsFileContents += "  -  " + team.assignedOption;
-        }
-        studentsFileContents += "\n\n";
-
-        //loop through each teammate in the team
-        for(const auto studentID : team.studentIDs) {
-            const auto *const student = findStudentFromID(studentID);
-            if(student == nullptr) {
-                continue;
-            }
-            for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
-                instructorsFileContents += criterion->exportStudentText(*student, &teams.dataOptions);
-            }
-            const int nameSize = int((student->firstname + " " + student->lastname).size());
-            instructorsFileContents += "\t" + student->firstname + " " + student->lastname +
-                                        QString(std::max(2,30-nameSize), ' ') + student->email + "\n";
-            studentsFileContents += student->firstname + " " + student->lastname +
-                                    QString(std::max(2,30-nameSize), ' ') + student->email + "\n";
-            spreadsheetFileContents += student->section + "\t" + team.name + "\t" + student->firstname +
-                                       " " + student->lastname + "\t" + student->email + "\n";
-        }
-        if(!teams.dataOptions.dayNames.isEmpty()) {
-            instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
-            studentsFileContents += "\n" + tr("Availability:") + "\n            ";
-
-            for(const auto &dayName : std::as_const(teams.dataOptions.dayNames)) {
-                // using first 3 characters in day name as abbreviation
-                instructorsFileContents += "  " + dayName.left(3) + "  ";
-                studentsFileContents += "  " + dayName.left(3) + "  ";
-            }
-            instructorsFileContents += "\n";
-            studentsFileContents += "\n";
-
-            const qsizetype numTimes = teams.dataOptions.timeNames.size();
-            const qsizetype numDays = teams.dataOptions.dayNames.size();
-            for(int time = 0; time < numTimes; time++) {
-                instructorsFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
-                studentsFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
-                for(int day = 0; day < numDays; day++) {
-                    QString percentage;
-                    if(team.size > team.numStudentsWithAmbiguousSchedules) {
-                        percentage = QString::number((100 * team.numStudentsAvailable[day * numTimes + time]) /
-                                                     (team.size-team.numStudentsWithAmbiguousSchedules)) + "% ";
-                    }
-                    else {
-                        percentage = "?";
-                    }
-                    const QStringView left3 = QStringView{teams.dataOptions.dayNames.at(day).left(3)};
-                    instructorsFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
-                    studentsFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
-                }
-                instructorsFileContents += "\n";
-                studentsFileContents += "\n";
-            }
-        }
-        instructorsFileContents += "\n\n";
-        studentsFileContents += "\n\n";
-    }
-    return fileContents;
+    WhichFilesDialog::CustomFileOptions options;
+    options.includeTeamAssignment = true;
+    options.includeFirstName = true;
+    options.includeLastName = true;
+    options.includeEmail = true;
+    options.includeSchedule = true;
+    return options;
 }
 
 
-QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptions customFileOptions)
+WhichFilesDialog::CustomFileOptions TeamsTabItem::instructorFilePreset() const
+{
+    WhichFilesDialog::CustomFileOptions options;
+    options.includeFileData = true;
+    options.includeTeamingData = true;
+    options.includeTeamScore = true;
+    options.includeTeamAssignment = true;
+    options.includeAssignmentPreferences = true;
+    options.includeFirstName = true;
+    options.includeLastName = true;
+    options.includeEmail = true;
+    options.includeGender = true;
+    options.includeURMIdentity = true;
+    options.includeAttribute = QList<bool>(teams.dataOptions.numAttributes, true);
+    options.includeSchedule = true;
+    return options;
+}
+
+
+WhichFilesDialog::CustomFileOptions TeamsTabItem::spreadsheetPreviewPreset()
+{
+    // A sensible illustrative default -- Section/Team/Name/Email -- just to show the tabular shape
+    // in the hover tooltip. The user's actual checkbox choices (made after opening the dialog) can
+    // differ; this preview is not meant to track them live.
+    WhichFilesDialog::CustomFileOptions options;
+    options.includeSect = true;
+    options.includeFirstName = true;
+    options.includeLastName = true;
+    options.includeEmail = true;
+    return options;
+}
+
+
+QString TeamsTabItem::spreadsheetPreviewText()
+{
+    const QList<QStringList> rows = createSpreadsheetFileContents(spreadsheetPreviewPreset());
+    QString text;
+    for(const auto &row : rows) {
+        text += row.join('\t') + "\n";
+    }
+    return text;
+}
+
+
+QString TeamsTabItem::createProseFileContents(WhichFilesDialog::CustomFileOptions customFileOptions)
 {
     QString customFileContents = "";
 
@@ -1576,7 +1566,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
             customFileContents += "  -  " + team.assignedOption;
         }
         if(customFileOptions.includeTeamScore) {
-            customFileContents += "  -  " + tr("Score = ") + QString::number(double(team.score), 'f', 2);
+            customFileContents += "  -  " + tr("Score = ") + QString::number(double(team.score), 'f', 1);
         }
         customFileContents += "\n\n";
 
@@ -1587,30 +1577,21 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                 continue;
             }
 
-            // Per-student criterion data, filtered by custom options
-            for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
-                // Check whether this criterion's data should be included
-                bool include = false;
-                switch (criterion->criteriaType) {
-                case Criterion::CriteriaType::genderIdentity:
-                    include = teams.dataOptions.genderIncluded && customFileOptions.includeGender;
-                    break;
-                case Criterion::CriteriaType::urmIdentity:
-                    include = teams.dataOptions.URMIncluded && customFileOptions.includeURM;
-                    break;
-                case Criterion::CriteriaType::attributeQuestion: {
-                    const auto *const attrCrit = qobject_cast<const AttributeCriterion*>(criterion);
-                    if (attrCrit != nullptr && attrCrit->attributeIndex < customFileOptions.includeAttribute.size()) {
-                        include = customFileOptions.includeAttribute.at(attrCrit->attributeIndex);
-                    }
-                    break;
-                }
-                default:
-                    break;
-                }
-
-                if (include) {
-                    customFileContents += criterion->exportStudentText(*student, &teams.dataOptions);
+            // Per-student data. Independent of teamingOptions->criteria on purpose: whether this
+            // shows up in an export should depend only on the checkbox and on whether the data exists
+            // in the survey, not on whether a matching scoring criterion happens to have been added.
+            if(teams.dataOptions.genderIncluded && customFileOptions.includeGender) {
+                customFileContents += GenderCriterion::exportStudentText(*student, &teams.dataOptions);
+            }
+            if(teams.dataOptions.URMIdentityIncluded && customFileOptions.includeURMIdentity) {
+                customFileContents += URMIdentityCriterion::exportStudentText(*student);
+            }
+            if(customFileOptions.includeAssignmentPreferences) {
+                customFileContents += AssignmentPreferenceCriterion::exportStudentText(*student);
+            }
+            for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
+                if(attrib < customFileOptions.includeAttribute.size() && customFileOptions.includeAttribute.at(attrib)) {
+                    customFileContents += AttributeCriterion::exportStudentText(attrib, *student, &teams.dataOptions);
                 }
             }
 
@@ -1680,7 +1661,144 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
 }
 
 
-void TeamsTabItem::printFiles(const QStringList &fileContents, WhichFilesDialog::FileType filetype, PrintType printType)
+QList<QStringList> TeamsTabItem::createSpreadsheetFileContents(WhichFilesDialog::CustomFileOptions customFileOptions)
+{
+    const bool includeSection = teams.dataOptions.sectionIncluded && customFileOptions.includeSect;
+    const bool includeAssignment = customFileOptions.includeTeamAssignment && !teams.dataOptions.assignmentPreferenceFields.empty();
+    const bool includeFirst = teams.dataOptions.firstNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeFirstName;
+    const bool includeLast = teams.dataOptions.lastNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeLastName;
+    const bool includeEmail = teams.dataOptions.emailField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeEmail;
+    const bool includeGender = teams.dataOptions.genderIncluded && customFileOptions.includeGender;
+    const bool includeIdentity = teams.dataOptions.URMIdentityIncluded && customFileOptions.includeURMIdentity;
+
+    // Which attribute questions are checked, in question order. Deliberately independent of
+    // teamingOptions->criteria -- whether a column shows up here shouldn't depend on whether a
+    // matching scoring criterion was ever added, only on the checkbox and the data existing.
+    QList<int> attributeIndices;
+    for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
+        if(attrib < customFileOptions.includeAttribute.size() && customFileOptions.includeAttribute.at(attrib)) {
+            attributeIndices << attrib;
+        }
+    }
+
+    QStringList header;
+    if(includeSection) {
+        header << tr("Section");
+    }
+    header << tr("Team");
+    if(includeAssignment) {
+        header << tr("Assignment");
+    }
+    if(includeFirst) {
+        header << tr("First Name");
+    }
+    if(includeLast) {
+        header << tr("Last Name");
+    }
+    if(includeEmail) {
+        header << tr("Email");
+    }
+    if(includeGender) {
+        header << tr("Gender");
+    }
+    if(includeIdentity) {
+        header << tr("Racial/Ethnic Identity");
+    }
+    for(const auto attrib : std::as_const(attributeIndices)) {
+        header << teams.dataOptions.attributeQuestionText.at(attrib);
+    }
+
+    QList<QStringList> rows;
+    rows << header;
+
+    // get team numbers in the order that they are currently displayed/sorted
+    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
+
+    //loop through every team, then every teammate, building one flat row per student
+    for(const auto teamNum : teamDisplayNums) {
+        const auto &team = teams[teamNum];
+        for(const auto studentID : team.studentIDs) {
+            const auto *const student = findStudentFromID(studentID);
+            if(student == nullptr) {
+                continue;
+            }
+            QStringList row;
+            if(includeSection) {
+                row << student->section;
+            }
+            row << team.name;
+            if(includeAssignment) {
+                row << team.assignedOption;
+            }
+            if(includeFirst) {
+                row << student->firstname;
+            }
+            if(includeLast) {
+                row << student->lastname;
+            }
+            if(includeEmail) {
+                row << student->email;
+            }
+            if(includeGender) {
+                row << GenderCriterion::exportStudentText(*student, &teams.dataOptions).trimmed();
+            }
+            if(includeIdentity) {
+                row << URMIdentityCriterion::exportStudentText(*student).trimmed();
+            }
+            for(const auto attrib : std::as_const(attributeIndices)) {
+                row << AttributeCriterion::exportStudentText(attrib, *student, &teams.dataOptions).trimmed();
+            }
+            rows << row;
+        }
+    }
+    return rows;
+}
+
+
+bool TeamsTabItem::writeTabularFile(const QList<QStringList> &rows, WhichFilesDialog::SaveFormat format, const QString &fileName)
+{
+    if(format == WhichFilesDialog::SaveFormat::xlsx) {
+        QXlsx::Document xlsx;
+        for(int row = 0; row < rows.size(); row++) {
+            const QStringList &rowValues = rows.at(row);
+            for(int col = 0; col < rowValues.size(); col++) {
+                xlsx.write(row + 1, col + 1, rowValues.at(col));   // QXlsx rows/columns are 1-indexed
+            }
+        }
+        return xlsx.saveAs(fileName);
+    }
+
+    QFile saveFile(fileName);
+    if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
+    QTextStream out(&saveFile);
+    const QChar delimiter = (format == WhichFilesDialog::SaveFormat::csv) ? QChar(',') : QChar('\t');
+    for(const auto &rowValues : rows) {
+        QStringList outRow;
+        outRow.reserve(rowValues.size());
+        for(const auto &value : rowValues) {
+            // CSV requires quoting (and doubling any embedded quotes) for any field containing the
+            // delimiter, a quote, or a newline -- this matters in practice for multicategorical/
+            // multiordered attribute responses, which are themselves comma-joined lists (e.g. "A,C").
+            if(format == WhichFilesDialog::SaveFormat::csv && (value.contains(',') || value.contains('"') || value.contains('\n'))) {
+                QString escaped = value;
+                escaped.replace('"', "\"\"");
+                outRow << ('"' + escaped + '"');
+            }
+            else {
+                outRow << value;
+            }
+        }
+        out << outRow.join(delimiter) << "\n";
+    }
+    saveFile.close();
+    return true;
+}
+
+
+void TeamsTabItem::printFiles(const QStringList &fileContents, const QList<QStringList> &spreadsheetContents,
+                               WhichFilesDialog::FileType filetype, PrintType printType)
 {
     // connecting to the printer is spun off into a separate thread because sometimes it causes ~30 second hang
     // message box explains what's happening
@@ -1731,20 +1849,43 @@ void TeamsTabItem::printFiles(const QStringList &fileContents, WhichFilesDialog:
         else if(filetype == WhichFilesDialog::FileType::spreadsheet) {
             printFont.setPointSize(PRINTOUT_FONTSIZE);
             printer->setPageOrientation(QPageLayout::Landscape);
-            if(printType == PrintType::printToPDF) {
-                printOneFile(fileContents[spreadsheetFile], "\n\n\n", printFont, printer);
-            }
-            else {
-                QTextDocument textDocument(fileContents[spreadsheetFile], this);
-                textDocument.setDefaultFont(printFont);
-                textDocument.print(printer);
-            }
+            printSpreadsheetTable(spreadsheetContents, printFont, printer);
         }
         else if(filetype == WhichFilesDialog::FileType::custom) {
             printOneFile(fileContents[customFile], "\n\n\n", printFont, printer);
         }
     }
     delete printer;
+}
+
+
+void TeamsTabItem::printSpreadsheetTable(const QList<QStringList> &rows, QFont &font, QPrinter *printer)
+{
+    QTextDocument textDocument;
+    textDocument.setDefaultFont(font);
+
+    if(!rows.isEmpty()) {
+        QTextCursor cursor(&textDocument);
+        QTextTableFormat tableFormat;
+        tableFormat.setCellPadding(4);
+        tableFormat.setCellSpacing(0);
+        tableFormat.setBorder(1);
+        tableFormat.setBorderStyle(QTextFrameFormat::BorderStyle_Solid);
+        QTextTable *table = cursor.insertTable(rows.size(), rows.constFirst().size(), tableFormat);
+
+        QTextCharFormat headerFormat;
+        headerFormat.setFontWeight(QFont::Bold);
+
+        for(int row = 0; row < rows.size(); row++) {
+            const QStringList &rowValues = rows.at(row);
+            for(int col = 0; col < rowValues.size(); col++) {
+                QTextCursor cellCursor = table->cellAt(row, col).firstCursorPosition();
+                cellCursor.insertText(rowValues.at(col), row == 0 ? headerFormat : QTextCharFormat());
+            }
+        }
+    }
+
+    textDocument.print(printer);
 }
 
 

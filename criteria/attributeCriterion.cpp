@@ -629,8 +629,8 @@ QString AttributeCriterion::exportTeamingOptionText(const TeamingOptions * /*tea
     return text;
 }
 
-QString AttributeCriterion::exportStudentText(const StudentRecord &student,
-                                              const DataOptions *dataOptions) const
+QString AttributeCriterion::exportStudentText(int attributeIndex, const StudentRecord &student,
+                                              const DataOptions *dataOptions)
 {
     const auto type = dataOptions->attributeType[attributeIndex];
 

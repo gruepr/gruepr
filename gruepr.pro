@@ -9,6 +9,9 @@ copyright_year = 2019-2026
 
 QT += core gui widgets concurrent network printsupport networkauth designer
 
+# Vendored third-party library for xlsx (Excel) read/write -- see third_party/QXlsx/LICENSE (MIT)
+include(third_party/QXlsx/QXlsx.pri)
+
 TARGET = gruepr
 TEMPLATE = app
 macx: QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0

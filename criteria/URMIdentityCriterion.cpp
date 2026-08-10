@@ -51,7 +51,7 @@ void URMIdentityCriterion::settingsFromJson(const QJsonObject &json) {
 
 QStringList URMIdentityCriterion::identityOptions() const {
     QStringList options;
-    for (const QString &resp : std::as_const(dataOptions->URMResponses)) {
+    for (const QString &resp : std::as_const(dataOptions->URMIdentityResponses)) {
         if (resp != "--") {
             options << resp;
         }
@@ -165,7 +165,7 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
         // Count how many students on the team gave each of the responses named by a rule
         responseCounts.fill(0);
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
-            const QString &response = students[teammates[studentNum]].URMResponse;
+            const QString &response = students[teammates[studentNum]].URMIdentityResponse;
             if (!response.isEmpty() && response != "--") {
                 const auto identity = identityIndex.constFind(response);
                 if(identity != identityIndex.cend()) {
@@ -246,7 +246,7 @@ QVariant URMIdentityCriterion::teamSortValue(const TeamRecord &, const DataOptio
 }
 
 QString URMIdentityCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const {
-    return student.URMResponse;
+    return student.URMIdentityResponse;
 }
 
 QString URMIdentityCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions *) const {
@@ -263,6 +263,6 @@ QString URMIdentityCriterion::exportTeamingOptionText(const TeamingOptions */*te
     return text;
 }
 
-QString URMIdentityCriterion::exportStudentText(const StudentRecord &student, const DataOptions *) const {
-    return " " + student.URMResponse + " ";
+QString URMIdentityCriterion::exportStudentText(const StudentRecord &student) {
+    return " " + student.URMIdentityResponse + " ";
 }

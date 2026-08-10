@@ -398,7 +398,7 @@ inline static const char LASTNAMEQUESTION[] = "What is your last name?";
 inline static const char EMAILQUESTION[] = "What is your email address?";
 inline static const char GENDERQUESTION[] = "With which gender do you identify most closely?";
 inline static const char PRONOUNQUESTION[] = "What are your pronouns?";
-inline static const char URMQUESTION[] = "How do you identify your race, ethnicity, or cultural heritage?";
+inline static const char URMIDENTITYQUESTION[] = "How do you identify your race, ethnicity, or cultural heritage?";
 inline static const char TIMEZONEQUESTION[] = "What time zone will you be based in during this class?";
 enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
 inline static const char SCHEDULEQUESTION1[] = "Select the times that you are ";

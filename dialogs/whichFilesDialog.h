@@ -8,6 +8,7 @@
 namespace Ui {
 class WhichFilesDialog;
 }
+class QMenu;
 
 
 class WhichFilesDialog : public QDialog
@@ -26,17 +27,18 @@ public:
     WhichFilesDialog& operator= (WhichFilesDialog&&) = delete;
 
     enum class FileType {student, instructor, spreadsheet, custom} fileType = FileType::student;
-    bool pdf = false;
+    enum class SaveFormat {pdf, text, csv, xlsx} saveFormat = SaveFormat::text;
     struct CustomFileOptions {
         bool includeFileData = false;
         bool includeTeamingData = false;
         bool includeTeamScore = false;
         bool includeTeamAssignment = false;
+        bool includeAssignmentPreferences = false;
         bool includeFirstName = false;
         bool includeLastName = false;
         bool includeEmail = false;
         bool includeGender = false;
-        bool includeURM = false;
+        bool includeURMIdentity = false;
         bool includeSect = false;
         QList<bool> includeAttribute;
         bool includeSchedule = false;
@@ -44,6 +46,9 @@ public:
 
 private:
     Ui::WhichFilesDialog *ui;
+    QMenu *saveFormatMenu = nullptr;
+    Action action;
+    void rebuildSaveFormatMenu();
 };
 
 

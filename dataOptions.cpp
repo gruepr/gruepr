@@ -12,8 +12,8 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     genderIncluded = jsonDataOptions["genderIncluded"].toBool();
     genderType = static_cast<GenderType>(jsonDataOptions["genderType"].toInt());
     genderField = jsonDataOptions["genderField"].toInt();
-    URMIncluded = jsonDataOptions["URMIncluded"].toBool();
-    URMField = jsonDataOptions["URMField"].toInt();
+    URMIdentityIncluded = jsonDataOptions["URMIncluded"].toBool();
+    URMIdentityField = jsonDataOptions["URMField"].toInt();
     sectionIncluded = jsonDataOptions["sectionIncluded"].toBool();
     sectionField = jsonDataOptions["sectionField"].toInt();
     scheduleDataIsFreetime = jsonDataOptions["scheduleDataIsFreetime"].toBool();
@@ -156,9 +156,9 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     }
 
     const QJsonArray URMResponsesArray = jsonDataOptions["URMResponses"].toArray();
-    URMResponses.reserve(URMResponsesArray.size());
+    URMIdentityResponses.reserve(URMResponsesArray.size());
     for(const auto &item : URMResponsesArray) {
-        URMResponses << item.toString();
+        URMIdentityResponses << item.toString();
     }
 
     const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
@@ -284,8 +284,8 @@ QJsonObject DataOptions::toJson() const
         {"genderIncluded", genderIncluded},
         {"genderType", static_cast<int>(genderType)},
         {"genderField", genderField},
-        {"URMIncluded", URMIncluded},
-        {"URMField", URMField},
+        {"URMIncluded", URMIdentityIncluded},
+        {"URMField", URMIdentityField},
         {"sectionIncluded", sectionIncluded},
         {"sectionField", sectionField},
         {"notesField", notesFieldArray},
@@ -310,7 +310,7 @@ QJsonObject DataOptions::toJson() const
         {"attributeQuestionResponseCounts", attributeQuestionResponseCountsArray},
         {"discreteVals", discreteValsArray},
         {"continuousVals", continuousValsArray},
-        {"URMResponses", QJsonArray::fromStringList(URMResponses)},
+        {"URMResponses", QJsonArray::fromStringList(URMIdentityResponses)},
         {"Genders", gendersArray},
         {"GenderIdentitiesCount", GenderIdentitiesCountObj},
         {"URMIdentitiesCount", URMIdentitiesCountObj},

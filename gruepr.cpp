@@ -157,7 +157,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProg
         connect(genderMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
             gruepr::addCriteriaCard(Criterion::CriteriaType::genderIdentity);});
     }
-    if (dataOptions->URMIncluded){
+    if (dataOptions->URMIdentityIncluded){
         urmMenuAction = addNewCriteriaMenu->addAction(tr("Racial/Ethnic/Cultural Identity"));
         connect(urmMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
             gruepr::addCriteriaCard(Criterion::CriteriaType::urmIdentity);});
@@ -828,7 +828,7 @@ void gruepr::editSectionNames()
             student.section = mapOfOldToNewSectionNames[student.section];
         }
         //replace section names in section selection box and dataOptions
-        rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+        rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
 
         saveState();
     }
@@ -882,7 +882,7 @@ void gruepr::editAStudent()
     const int reply = win->exec();
     if(reply == QDialog::Accepted) {
         studentBeingEdited->createTooltip(*dataOptions);
-        rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+        rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
     }
 
     // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
@@ -989,7 +989,7 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
         return;
     }
 
-    rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+    rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
     saveState();
 }
 
@@ -1038,7 +1038,7 @@ void gruepr::addAStudent()
                 }
                 attributeWidgets[attribute]->setValues();
             }
-            rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+            rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
         }
         delete win;
     }
@@ -1247,7 +1247,7 @@ void gruepr::compareStudentsToRoster()
         }
 
         if(dataHasChanged) {
-            rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+            rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
             saveState();
         }
     }
@@ -1255,7 +1255,7 @@ void gruepr::compareStudentsToRoster()
 }
 
 
-void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
+void gruepr::rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable()
 {
     // go back through all records to see if any are duplicates; assume each isn't and then check
     // First pass: reset all duplicate flags
@@ -1298,22 +1298,22 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
         student.createTooltip(*dataOptions);
     }
 
-    // Re-build the URM info
-    if(dataOptions->URMIncluded) {
-        dataOptions->URMResponses.clear();
+    // Re-build the racial/ethnic identity info
+    if(dataOptions->URMIdentityIncluded) {
+        dataOptions->URMIdentityResponses.clear();
         for(const auto &student : std::as_const(students)) {
-            if(!dataOptions->URMResponses.contains(student.URMResponse, Qt::CaseInsensitive)) {
-                dataOptions->URMResponses << student.URMResponse;
+            if(!dataOptions->URMIdentityResponses.contains(student.URMIdentityResponse, Qt::CaseInsensitive)) {
+                dataOptions->URMIdentityResponses << student.URMIdentityResponse;
             }
         }
         QCollator sortAlphanumerically;
         sortAlphanumerically.setNumericMode(true);
         sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-        std::sort(dataOptions->URMResponses.begin(), dataOptions->URMResponses.end(), sortAlphanumerically);
-        if(dataOptions->URMResponses.contains("--")) {
+        std::sort(dataOptions->URMIdentityResponses.begin(), dataOptions->URMIdentityResponses.end(), sortAlphanumerically);
+        if(dataOptions->URMIdentityResponses.contains("--")) {
             // put the blank response option at the end of the list
-            dataOptions->URMResponses.removeAll("--");
-            dataOptions->URMResponses << "--";
+            dataOptions->URMIdentityResponses.removeAll("--");
+            dataOptions->URMIdentityResponses << "--";
         }
     }
 

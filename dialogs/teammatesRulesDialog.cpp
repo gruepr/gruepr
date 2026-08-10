@@ -5,7 +5,10 @@
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "dialogs/findMatchingNameDialog.h"
+#include <algorithm>
 #include <QCompleter>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QMenu>
@@ -688,55 +691,102 @@ bool TeammatesRulesDialog::loadStudentPrefs()
     return true;
 }
 
-bool TeammatesRulesDialog::loadSpreadsheetFile()
+TeammatesRulesDialog::ParsedSpreadsheetTeams TeammatesRulesDialog::parseTeamsFromSpreadsheetFile(const QString &fileName)
 {
-    CsvFile spreadsheetFile(CsvFile::Delimiter::tab);
-    if(!spreadsheetFile.open(this, CsvFile::Operation::read, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File"))) {
-        return false;
+    ParsedSpreadsheetTeams result;
+
+    // Delimiter picked from the extension -- .csv is comma-delimited, .txt is tab-delimited, matching
+    // what gruepr's own Spreadsheet export can produce. (xlsx import isn't supported yet; add a branch
+    // here once it is.)
+    const bool isCsv = (QFileInfo(fileName).suffix().compare("csv", Qt::CaseInsensitive) == 0);
+    CsvFile spreadsheetFile(isCsv ? CsvFile::Delimiter::comma : CsvFile::Delimiter::tab);
+    if(!spreadsheetFile.openExistingFile(fileName)) {
+        return result;
     }
 
-    // Read the header row and make sure file format is correct. If so, read next line to make sure it has data
-    bool formattedCorrectly = true;
-    int numFields = 0;
+    // Read the header row and find the columns we need by name, rather than fixed position -- tolerant
+    // of a combined "Name" column (older exports) or separate "First Name"/"Last Name" columns (current
+    // Spreadsheet export), and of "Section"/"Email"/other columns being absent, reordered, or additional.
+    int teamCol = -1, nameCol = -1, firstNameCol = -1, lastNameCol = -1;
     if(spreadsheetFile.readHeader()) {
-        numFields = int(spreadsheetFile.headerValues.size());
-    }
-    if(numFields < 4) {     // should be section, team, name, email
-        formattedCorrectly = false;
-    }
-    else {
-        if((spreadsheetFile.headerValues.at(0).toLower() != tr("section")) || (spreadsheetFile.headerValues.at(1).toLower() != tr("team"))
-            || (spreadsheetFile.headerValues.at(2).toLower() != tr("name")) || (spreadsheetFile.headerValues.at(3).toLower() != tr("email"))) {
-            formattedCorrectly = false;
+        for(int field = 0; field < spreadsheetFile.headerValues.size(); field++) {
+            const QString header = spreadsheetFile.headerValues.at(field).trimmed().toLower();
+            if(header == tr("team").toLower()) {
+                teamCol = field;
+            }
+            else if(header == tr("name").toLower()) {
+                nameCol = field;
+            }
+            else if(header == tr("first name").toLower()) {
+                firstNameCol = field;
+            }
+            else if(header == tr("last name").toLower()) {
+                lastNameCol = field;
+            }
         }
+    }
+
+    bool formattedCorrectly = (teamCol != -1) && ((nameCol != -1) || ((firstNameCol != -1) && (lastNameCol != -1)));
+    const int lastNeededCol = std::max({teamCol, nameCol, firstNameCol, lastNameCol});
+    if(formattedCorrectly) {
         spreadsheetFile.readDataRow();
-        if(spreadsheetFile.fieldValues.size() < 4) {
+        if(spreadsheetFile.fieldValues.size() <= lastNeededCol) {
             formattedCorrectly = false;
         }
     }
     if(!formattedCorrectly) {
-        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         spreadsheetFile.close();
-        return false;
+        return result;
     }
 
-    // Having read the header row and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
+    const auto nameFromRow = [nameCol, firstNameCol, lastNameCol](const QStringList &fields) -> QString {
+        if(nameCol != -1) {
+            return fields.at(nameCol).trimmed();
+        }
+        return (fields.at(firstNameCol).trimmed() + " " + fields.at(lastNameCol).trimmed()).trimmed();
+    };
+
+    // Having found the header columns and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
     // Process each row by loading unique team strings into teams and new/matching names into corresponding teammates list
-    QStringList teamnames;
-    QList<QStringList> teammateLists;
+    QStringList &teamnames = result.teamNames;
+    QList<QStringList> &teammateLists = result.teammateNames;
     spreadsheetFile.readHeader();
     while(spreadsheetFile.readDataRow()) {
-        const int pos = int(teamnames.indexOf(spreadsheetFile.fieldValues.at(1).trimmed())); // get index of this team
+        if(spreadsheetFile.fieldValues.size() <= lastNeededCol) {
+            continue;   // skip any short/malformed row
+        }
+        const QString name = nameFromRow(spreadsheetFile.fieldValues);
+        const int pos = int(teamnames.indexOf(spreadsheetFile.fieldValues.at(teamCol).trimmed())); // get index of this team
 
         if(pos == -1) {     // team is not yet found in teams list
-            teamnames << spreadsheetFile.fieldValues.at(1).trimmed();
-            teammateLists.append(QStringList(spreadsheetFile.fieldValues.at(2).trimmed()));
+            teamnames << spreadsheetFile.fieldValues.at(teamCol).trimmed();
+            teammateLists.append(QStringList(name));
         }
         else {
-            teammateLists[pos].append(spreadsheetFile.fieldValues.at(2).trimmed());
+            teammateLists[pos].append(name);
         }
     }
     spreadsheetFile.close();
+
+    result.success = true;
+    return result;
+}
+
+bool TeammatesRulesDialog::loadSpreadsheetFile()
+{
+    const QString fileName = QFileDialog::getOpenFileName(this, tr("Open Spreadsheet File of Previous Teammates"), "",
+                                                          tr("Spreadsheet File (*.csv *.txt);;All Files (*)"));
+    if(fileName.isEmpty()) {
+        return false;
+    }
+
+    const ParsedSpreadsheetTeams parsed = parseTeamsFromSpreadsheetFile(fileName);
+    if(!parsed.success) {
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        return false;
+    }
+    const QStringList &teamnames = parsed.teamNames;
+    const QList<QStringList> &teammateLists = parsed.teammateNames;
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings

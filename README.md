@@ -128,6 +128,9 @@ DISCLAIMER:
      This software incorporates code from the open source Qt libraries, using version 6.9. These can be
      freely downloaded from < http://qt.io/download >.
 
+     This software incorporates code from the open source QXlsx library (MIT License), used for reading
+     and writing Excel (.xlsx) files. It can be freely downloaded from < https://github.com/QtExcel/QXlsx >.
+
      Icons and graphics are original creations for the gruepr project by
      Scout < https://scout.camd.northeastern.edu/ >.
 

@@ -34,6 +34,20 @@ public:
     bool teammatesSpecified = false;
     int numberGroupTogethersGiven = REQUESTED_TEAMMATES_ALL;
 
+    // Result of parsing a "spreadsheet file of previous teammates" -- teamNames[i] pairs with
+    // teammateNames[i] (that team's teammates, by name, in file order). Deliberately UI-free (no
+    // QFileDialog, no error QMessageBox) so it's directly testable; see parseTeamsFromSpreadsheetFile.
+    struct ParsedSpreadsheetTeams {
+        bool success = false;
+        QStringList teamNames;
+        QList<QStringList> teammateNames;
+    };
+    // Reads fileName (delimiter picked from its extension: .csv -> comma, else tab) and finds the
+    // Team/Name (or First Name + Last Name) columns by header text rather than fixed position --
+    // tolerant of a combined "Name" column (older exports), reordered/extra columns, or a missing
+    // Section/Email. Static and UI-free on purpose: callable from a test without any dialog involved.
+    static ParsedSpreadsheetTeams parseTeamsFromSpreadsheetFile(const QString &fileName);
+
     // Header widgets (public so layout can be managed)
     QHBoxLayout *headerLayout = nullptr;
     QWidget *headerWidget = nullptr;

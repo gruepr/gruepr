@@ -694,8 +694,8 @@ bool loadDataDialog::readData()
     dataOptions->emailField = int(surveyFile->fieldMeanings.indexOf("Email Address"));
     dataOptions->genderField = int(surveyFile->fieldMeanings.indexOf("Gender"));
     dataOptions->genderIncluded = (dataOptions->genderField != DataOptions::FIELDNOTPRESENT);
-    dataOptions->URMField = int(surveyFile->fieldMeanings.indexOf("Racial/ethnic identity"));
-    dataOptions->URMIncluded = (dataOptions->URMField != DataOptions::FIELDNOTPRESENT);
+    dataOptions->URMIdentityField = int(surveyFile->fieldMeanings.indexOf("Racial/ethnic identity"));
+    dataOptions->URMIdentityIncluded = (dataOptions->URMIdentityField != DataOptions::FIELDNOTPRESENT);
     dataOptions->sectionField = int(surveyFile->fieldMeanings.indexOf("Section"));
     dataOptions->sectionIncluded = (dataOptions->sectionField != DataOptions::FIELDNOTPRESENT);
     dataOptions->timezoneField = int(surveyFile->fieldMeanings.indexOf("Timezone"));
@@ -1197,10 +1197,10 @@ bool loadDataDialog::readData()
         loadingProgressDialog->setValue(2 + numStudents + attribute);
     }
     loadingProgressDialog->setValue(2 + numStudents + dataOptions->numAttributes);
-    // gather all unique URM and section question responses and sort
+    // gather all unique racial/ethnic identity and section question responses and sort
     for(const auto &student : std::as_const(students)) {
-        if(!dataOptions->URMResponses.contains(student.URMResponse, Qt::CaseInsensitive)) {
-            dataOptions->URMResponses << student.URMResponse;
+        if(!dataOptions->URMIdentityResponses.contains(student.URMIdentityResponse, Qt::CaseInsensitive)) {
+            dataOptions->URMIdentityResponses << student.URMIdentityResponse;
         }
         if(!(dataOptions->sectionNames.contains(student.section, Qt::CaseInsensitive))) {
             dataOptions->sectionNames << student.section;
@@ -1220,22 +1220,22 @@ bool loadDataDialog::readData()
             dataOptions->countOfGenderIdentities[studentFirstGender] = 0;
         }
 
-        if (dataOptions->countOfURMIdentities.contains(student.URMResponse)){
-            dataOptions->countOfURMIdentities[student.URMResponse]++;
+        if (dataOptions->countOfURMIdentities.contains(student.URMIdentityResponse)){
+            dataOptions->countOfURMIdentities[student.URMIdentityResponse]++;
         }
         else {
-            dataOptions->countOfURMIdentities[student.URMResponse] = 0;
+            dataOptions->countOfURMIdentities[student.URMIdentityResponse] = 0;
         }
     }
 
     QCollator sortAlphanumerically;
     sortAlphanumerically.setNumericMode(true);
     sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-    std::sort(dataOptions->URMResponses.begin(), dataOptions->URMResponses.end(), sortAlphanumerically);
-    if(dataOptions->URMResponses.contains("--")) {
+    std::sort(dataOptions->URMIdentityResponses.begin(), dataOptions->URMIdentityResponses.end(), sortAlphanumerically);
+    if(dataOptions->URMIdentityResponses.contains("--")) {
         // put the blank response option at the end of the list
-        dataOptions->URMResponses.removeAll("--");
-        dataOptions->URMResponses << "--";
+        dataOptions->URMIdentityResponses.removeAll("--");
+        dataOptions->URMIdentityResponses << "--";
     }
     std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
 

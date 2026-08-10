@@ -33,8 +33,8 @@ public:
     bool genderIncluded = false;                    // is gender data included in the survey?
     GenderType genderType = GenderType::adult;
     int genderField = FIELDNOTPRESENT;              // which field in surveyFile has the gender info?
-    bool URMIncluded = false;                       // is URM data included in the survey?
-    int URMField = FIELDNOTPRESENT;                 // which field in surveyFile has the ethnicity info?
+    bool URMIdentityIncluded = false;               // is racial/ethnic identity data included in the survey?
+    int URMIdentityField = FIELDNOTPRESENT;         // which field in surveyFile has the ethnicity info?
     bool sectionIncluded = false;                   // is section data included in the survey?
     int sectionField = FIELDNOTPRESENT;             // which field in surveyFile has the section info?
     QList<int> notesFields;                         // which field(s) in surveyFile has additional notes?
@@ -60,7 +60,7 @@ public:
     QList<std::map<QString, int>> attributeQuestionResponseCounts;  // a count of how many students gave each response
     QList<std::set<int>> attributeVals_discrete;           // what values can the ordered or categorical attributes have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
     QList<std::set<float>> attributeVals_continuous;       // what values do the timezone and numerical attributes have?
-    QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
+    QStringList URMIdentityResponses;                // the list of responses to the race/ethnicity/culture question
     QList<Gender> genderValues;
     std::map<Gender, int> countOfGenderIdentities;      //Identity : Number in Population
     std::map<QString, int> countOfURMIdentities;        //Identity : Number in Population

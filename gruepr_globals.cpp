@@ -184,7 +184,7 @@ void grueprGlobal::helpWindow(QWidget *parent) {
                                              "numerical \"compatibility score\". The instructor uses gruepr to determine how this score is calculated. Options include:</p>"
                                              "<ul style=\"margin-top: 2px; margin-bottom: 0px; margin-left: 15px; margin-right: 0px; -qt-list-indent: 0;\">"
                                              "<li>Preventing isolated women, isolated men, and/or isolated nonbinary persons;</li>"
-                                             "<li>Preventing isolated students from underrepresented racial/ethnic groups</li>"
+                                             "<li>Preventing isolated students from selected racial/ethnic/cultural identity groups</li>"
                                              "<li>Achieving within each team either homogeneity or heterogeneity of the student's responses to up to 15 \"attribute\" questions. "
                                              "These questions might represent skills assessments, work preferences, attitudes, major, GPA, or any other question with a "
                                              "multiple choice or numerical value response</li>"

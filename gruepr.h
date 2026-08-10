@@ -75,7 +75,7 @@ private slots:
     void removeAStudent(const long long ID, const bool delayVisualUpdate = false);
     void addAStudent();
     void compareStudentsToRoster();
-    void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+    void rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
     void changeIdealTeamSize();
     void chooseTeamSizes(int index);
     void startOptimization();

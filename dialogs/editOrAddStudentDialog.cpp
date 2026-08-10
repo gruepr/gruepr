@@ -131,20 +131,20 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(databox.last(), 0, Qt::AlignLeft);
     }
 
-    if(dataOptions->URMIncluded) {
+    if(dataOptions->URMIdentityIncluded) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Racial/ethnic/cultural identity"));
-        auto *urmbox = new StyledComboBox(this);
-        databox << urmbox;
-        urmbox->installEventFilter(new MouseWheelBlocker(urmbox));
-        urmbox->setFocusPolicy(Qt::StrongFocus);
-        urmbox->addItems(dataOptions->URMResponses);
-        urmbox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-        urmbox->setEditable(true);
-        urmbox->setCurrentText(student.URMResponse);
+        auto *urmIdentityBox = new StyledComboBox(this);
+        databox << urmIdentityBox;
+        urmIdentityBox->installEventFilter(new MouseWheelBlocker(urmIdentityBox));
+        urmIdentityBox->setFocusPolicy(Qt::StrongFocus);
+        urmIdentityBox->addItems(dataOptions->URMIdentityResponses);
+        urmIdentityBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+        urmIdentityBox->setEditable(true);
+        urmIdentityBox->setCurrentText(student.URMIdentityResponse);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
-        fieldAreaLayout->addWidget(urmbox, 0, Qt::AlignLeft);
+        fieldAreaLayout->addWidget(urmIdentityBox, 0, Qt::AlignLeft);
     }
 
     if(dataOptions->sectionIncluded) {
@@ -509,9 +509,9 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
             }
         }
     }
-    if(dataOptions->URMIncluded) {
-        auto *urmbox = qobject_cast<StyledComboBox *>(databox[boxfield++]);
-        student.URMResponse = urmbox->currentText();
+    if(dataOptions->URMIdentityIncluded) {
+        auto *urmIdentityBox = qobject_cast<StyledComboBox *>(databox[boxfield++]);
+        student.URMIdentityResponse = urmIdentityBox->currentText();
     }
     if(dataOptions->sectionIncluded) {
         auto *sectbox = qobject_cast<StyledComboBox *>(databox[boxfield++]);

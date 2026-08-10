@@ -586,7 +586,7 @@ QString AssignmentPreferenceCriterion::exportTeamingOptionText(const TeamingOpti
     }    return text;
 }
 
-QString AssignmentPreferenceCriterion::exportStudentText(const StudentRecord &student, const DataOptions */*dataOptions*/) const
+QString AssignmentPreferenceCriterion::exportStudentText(const StudentRecord &student)
 {
     if(student.assignmentPreferences.isEmpty()) {
         return QObject::tr("  No preferences");

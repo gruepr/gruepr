@@ -40,7 +40,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     prefTeammates = jsonStudentRecord["prefTeammates"].toString();
     prefNonTeammates = jsonStudentRecord["prefNonTeammates"].toString();
     notes = jsonStudentRecord["notes"].toString();
-    URMResponse = jsonStudentRecord["URMResponse"].toString();
+    URMIdentityResponse = jsonStudentRecord["URMResponse"].toString();
     availabilityChart = jsonStudentRecord["availabilityChart"].toString();
     tooltip = jsonStudentRecord["tooltip"].toString();
     const QJsonArray assignmentPreferencesArray = jsonStudentRecord["assignmentPreferences"].toArray();
@@ -200,7 +200,7 @@ void StudentRecord::clear() {
     prefTeammates.clear();
     prefNonTeammates.clear();
     notes.clear();
-    URMResponse.clear();
+    URMIdentityResponse.clear();
     availabilityChart.clear();
     tooltip.clear();
 }
@@ -314,14 +314,14 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // racial/ethnic heritage
-    if(dataOptions.URMIncluded) {
-        fieldnum = dataOptions.URMField;
+    if(dataOptions.URMIdentityIncluded) {
+        fieldnum = dataOptions.URMIdentityField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString field = fields.at(fieldnum).toLower().simplified();
             if(field == "") {
                 field = "--";
             }
-            URMResponse = field.replace('|', '-');  // need to sanitize out the delimiter that might be used for identity rules later
+            URMIdentityResponse = field.replace('|', '-');  // need to sanitize out the delimiter that might be used for identity rules later
         }
     }
 
@@ -541,9 +541,9 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
             firstGender = false;
         }
     }
-    if(dataOptions.URMIncluded) {
+    if(dataOptions.URMIdentityIncluded) {
         toolTip += "<br>" + QObject::tr("Identity") + ":  ";
-        toolTip += URMResponse;
+        toolTip += URMIdentityResponse;
     }
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
         if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
@@ -708,7 +708,7 @@ QJsonObject StudentRecord::toJson() const
         {"prefNonTeammates", prefNonTeammates},
         {"notes", notes},
         {"attributeResponse", attributeResponseArray},
-        {"URMResponse", URMResponse},
+        {"URMResponse", URMIdentityResponse},
         {"availabilityChart", availabilityChart},
         {"tooltip", tooltip}
     };

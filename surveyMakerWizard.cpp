@@ -630,18 +630,18 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     registerField("genderOptions", genderResponsesComboBox);
     registerField("GenderAllowMulti", genderResponsesAllowMulti);
 
-    questions[urm]->setLabel(tr("Race / ethnicity"));
-    questionPreviewTopLabels[urm]->setText(URMQUESTION);
-    questionPreviewLayouts[urm]->addWidget(questionPreviewTopLabels[urm]);
+    questions[urmIdentity]->setLabel(tr("Race / ethnicity"));
+    questionPreviewTopLabels[urmIdentity]->setText(URMIDENTITYQUESTION);
+    questionPreviewLayouts[urmIdentity]->addWidget(questionPreviewTopLabels[urmIdentity]);
     re = new QLineEdit;
-    re->setPlaceholderText(tr("Race / ethnicity / cultural heritage"));
+    re->setPlaceholderText(tr("Racial / ethnic / cultural identity"));
     re->setCursorPosition(0);
     re->setStyleSheet(LINEEDITSTYLE);
-    questionPreviewLayouts[urm]->addWidget(re);
-    questionPreviewBottomLabels[urm]->hide();
-    questionPreviewLayouts[urm]->addWidget(questionPreviewBottomLabels[urm]);
-    questionPreviews[urm]->hide();
-    registerField("RaceEthnicity", questions[urm], "value", "valueChanged");
+    questionPreviewLayouts[urmIdentity]->addWidget(re);
+    questionPreviewBottomLabels[urmIdentity]->hide();
+    questionPreviewLayouts[urmIdentity]->addWidget(questionPreviewBottomLabels[urmIdentity]);
+    questionPreviews[urmIdentity]->hide();
+    registerField("RaceEthnicity", questions[urmIdentity], "value", "valueChanged");
 
     update();
 
@@ -2450,7 +2450,7 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     section[SurveyMakerWizard::demographics]->questionLabel[2]->setText(EMAILQUESTION);
     section[SurveyMakerWizard::demographics]->questionLineEdit[2]->setPlaceholderText(tr("Email"));
     section[SurveyMakerWizard::demographics]->questionLabel[3]->setText(tr("Gender"));
-    section[SurveyMakerWizard::demographics]->questionLabel[4]->setText(URMQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLabel[4]->setText(URMIDENTITYQUESTION);
     section[SurveyMakerWizard::demographics]->questionLineEdit[4]->setPlaceholderText(tr("Race / ethnicity / cultural heritage"));
 
     section[SurveyMakerWizard::schedule]->questionLabel[0]->setText(TIMEZONEQUESTION);
@@ -2517,7 +2517,7 @@ void PreviewAndExportPage::initializePage()
     const bool lastname = field("LastName").toBool();
     const bool email = field("Email").toBool();
     const bool gender = field("Gender").toBool();
-    const bool urm = field("RaceEthnicity").toBool();
+    const bool urmIdentity = field("RaceEthnicity").toBool();
 
     if(firstname) {
         section[SurveyMakerWizard::demographics]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2603,11 +2603,11 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::demographics]->questionGroupBox[3]->hide();
     }
 
-    if(urm) {
+    if(urmIdentity) {
         section[SurveyMakerWizard::demographics]->preQuestionSpacer[4]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::demographics]->questionLabel[4]->show();
         section[SurveyMakerWizard::demographics]->questionLineEdit[4]->show();
-        survey->questions << Question(URMQUESTION, Question::QuestionType::shorttext);
+        survey->questions << Question(URMIDENTITYQUESTION, Question::QuestionType::shorttext);
     }
     else {
         section[SurveyMakerWizard::demographics]->preQuestionSpacer[4]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2615,7 +2615,7 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::demographics]->questionLineEdit[4]->hide();
     }
 
-    if(firstname || lastname || email || gender || urm) {
+    if(firstname || lastname || email || gender || urmIdentity) {
         preSectionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::demographics]->show();
     }

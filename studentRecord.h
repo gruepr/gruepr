@@ -84,7 +84,7 @@ public:
     QString lastname;
     QString email;
     QSet<Gender> gender = {Gender::unknown};
-    QString URMResponse;                                // the text of the response the the race/ethnicity/culture question
+    QString URMIdentityResponse;                        // the text of the response the the race/ethnicity/culture question
     QList<QList<int>>   attributeVals_discrete;         // categorical index or discrete integer value for multiple choice attributes; -1 = unknown
     QList<QList<float>> attributeVals_continuous;       // float value for timezone and numerical attributes; empty = unknown
     QStringList assignmentPreferences;                  // ranked assignment preference option names, index 0 = 1st choice

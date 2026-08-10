@@ -426,7 +426,7 @@ QString GenderCriterion::exportTeamingOptionText(const TeamingOptions */*teaming
     return text;
 }
 
-QString GenderCriterion::exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const {
+QString GenderCriterion::exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) {
     QStringList genderOptions;
     if (dataOptions->genderType == GenderType::biol) {
         genderOptions = QString(BIOLGENDERS7CHAR).split('/');

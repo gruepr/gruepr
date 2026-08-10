@@ -332,8 +332,3 @@ QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions */*team
 
     return {};
 }
-
-QString TeammatesCriterion::exportStudentText(const StudentRecord &, const DataOptions *) const
-{
-    return {};
-}

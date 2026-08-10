@@ -156,7 +156,7 @@ public:
     void cleanupPage() override;
 
 private:
-    enum {firstname, lastname, email, gender, urm}; // questions in order
+    enum {firstname, lastname, email, gender, urmIdentity}; // questions in order
 
     QLineEdit *fn = nullptr;
     QLineEdit *ln = nullptr;

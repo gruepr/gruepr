@@ -56,9 +56,6 @@ public:
     // Description of this criterion's settings for the teaming options summary in exports
     virtual QString exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions */*dataOptions*/) const { return {}; }
 
-    // Per-student data for this criterion in export files (fixed-width formatted)
-    virtual QString exportStudentText(const StudentRecord &/*student*/, const DataOptions */*dataOptions*/) const { return {}; }
-
     float weight;
     enum class Precedence {fixed, need, want} precedence = Precedence::want;
     bool penaltyStatus;
@@ -95,8 +92,13 @@ protected:
     teamSortValue — sort key for the column
     studentDisplayText — what to show in the student row
     exportTeamingOptionText — text for the instructor export header
-    exportStudentText — per-student text for the instructor export
     Optionally override: teamTextAlignment, studentTextAlignment, teamDisplayColor, scoreForOneTeamInDisplay, settingsToJson, settingsFromJson
+
+    If this criterion's per-student data should be exportable (Custom/Instructor/Spreadsheet files),
+    add a static `exportStudentText(...)` function to the subclass (see GenderCriterion, URMIdentityCriterion,
+    AttributeCriterion, AssignmentPreferenceCriterion). Deliberately not a virtual on Criterion: export
+    shouldn't depend on whether an instance of this criterion happens to exist in teamingOptions->criteria,
+    only on the checkbox and whether the data exists -- callers (teamsTabItem.cpp) call it directly by class.
 
 3. gruepr.cpp — add menu action in the constructor, add case in addCriteriaCard, add case in deleteCriteriaCard
 4. teamsTabItem.cpp — add #include for the new subclass, add case in restoreCriteria's switch

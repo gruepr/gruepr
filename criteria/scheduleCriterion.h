@@ -31,7 +31,6 @@ public:
     QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const override;
     QString studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const override;
     QString exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions *dataOptions) const override;
-    QString exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const override;
 
     int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less)
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap

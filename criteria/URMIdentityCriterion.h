@@ -32,7 +32,7 @@ public:
     QVariant teamSortValue(const TeamRecord &team, const DataOptions *dataOptions, float criterionScore, const QList<StudentRecord> &allStudents) const override;
     QString studentDisplayText(const StudentRecord &student, const DataOptions *dataOptions) const override;
     QString exportTeamingOptionText(const TeamingOptions *teamingOptions, const DataOptions *dataOptions) const override;
-    QString exportStudentText(const StudentRecord &student, const DataOptions *dataOptions) const override;
+    static QString exportStudentText(const StudentRecord &student);
 
     const DataOptions *const dataOptions;
     QPushButton *editRulesButton = nullptr;

@@ -45,8 +45,11 @@
 //  - Fixed project assignment fallback when there are fewer projects than teams: options now repeat as needed instead of
 //    leaving some teams with no assigned project
 //
+// INPROG:
+//  - Allow export of teams as Excel (xlsx) file; made team export generally more flexible
+//
 // TO DO:
-//  - Allow excel file import alongside csv
+//  - Allow import of student data as Excel (xlsx) file
 //
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
@@ -85,6 +88,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName("gruepr");
     QApplication::setApplicationName("gruepr");
     QApplication::setApplicationVersion(GRUEPR_VERSION_NUMBER);
+
     QFontDatabase::addApplicationFont(":/fonts/OxygenMono-Regular.otf");
     QFontDatabase::addApplicationFont(":/fonts/PaytoneOne-Regular.ttf");
     QFontDatabase::addApplicationFont(":/fonts/DMSans-Regular.ttf");

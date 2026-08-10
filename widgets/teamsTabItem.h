@@ -101,14 +101,21 @@ private:
     QList<StudentRecord> *externalStudents = nullptr;
     QPushButton *externalDoItButton = nullptr;
 
-    enum files{studentFile = 0, instructorFile = 1, spreadsheetFile = 2, customFile = 3};
-    inline static const int NUMEXPORTFILES = 4; // must line up with number of values in line above
-    QStringList createStdFileContents();   // {studentsFileContents, instructorsFileContents, spreadsheetFileContents, ""}
-    QString createCustomFileContents(WhichFilesDialog::CustomFileOptions customFileOptions);
+    enum files{studentFile = 0, instructorFile = 1, customFile = 2};
+    inline static const int NUMEXPORTFILES = 3; // must line up with number of values in line above
+    QString createProseFileContents(WhichFilesDialog::CustomFileOptions customFileOptions);
+    static WhichFilesDialog::CustomFileOptions studentFilePreset();
+    WhichFilesDialog::CustomFileOptions instructorFilePreset() const;
+    QList<QStringList> createSpreadsheetFileContents(WhichFilesDialog::CustomFileOptions customFileOptions);
+    static WhichFilesDialog::CustomFileOptions spreadsheetPreviewPreset();
+    QString spreadsheetPreviewText();   // illustrative tabular preview shown in the hover tooltip, independent of the user's actual checkbox choices
+    bool writeTabularFile(const QList<QStringList> &rows, WhichFilesDialog::SaveFormat format, const QString &fileName);
     enum class PrintType{printer, printToPDF};
-    void printFiles(const QStringList &fileContents, WhichFilesDialog::FileType filetype, PrintType printType);
+    void printFiles(const QStringList &fileContents, const QList<QStringList> &spreadsheetContents,
+                     WhichFilesDialog::FileType filetype, PrintType printType);
     QPrinter *setupPrinter();
     void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
+    void printSpreadsheetTable(const QList<QStringList> &rows, QFont &font, QPrinter *printer);
 
     inline static const QSize SAVEPRINTICONSIZE = QSize(STD_ICON_SIZE, STD_ICON_SIZE);
     inline static const int FILEPREVIEWLENGTH = 1000;   // number of characters in each file preview, shown as tooltips in WhichFilesDialog

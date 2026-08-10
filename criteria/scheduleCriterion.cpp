@@ -312,7 +312,3 @@ QString ScheduleCriterion::exportTeamingOptionText(const TeamingOptions */*teami
     text += "\n" + tr("Schedule weight = ") + QString::number(double(weight));
     return text;
 }
-
-QString ScheduleCriterion::exportStudentText(const StudentRecord &, const DataOptions *) const {
-    return {};
-}
