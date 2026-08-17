@@ -1,140 +1,76 @@
-#include "csvfile.h"
+#include "dataFile.h"
 #include "gruepr_globals.h"
 #include "widgets/styledComboBox.h"
 #include <QCheckBox>
+#include <QFile>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QLabel>
+#include <QRegularExpression>
 #include <QStandardItemModel>
 #include <QString>
+#include <map>
+#include <numeric>
 
-CsvFile::CsvFile(Delimiter dlmtr)
+DataFile::~DataFile()
 {
-    if(dlmtr == Delimiter::tab) {
-        delimiter = '\t';
-    }
-}
-
-CsvFile::~CsvFile()
-{
-    close();
     delete window;
 }
 
 
 //////////////////
-// Open a CSV file for reading from Dialog Box, returning QFile (blank if unsuccessful)
+// Open a file for reading via Dialog Box, delegating the actual open to the subclass
 //////////////////
-bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption, const QString &filepath, const QString &filetypeDescriptor)
+bool DataFile::open(QWidget *parent, const QString &caption, const QString &filepath, const QString &filetypeDescriptor)
 {
-    file.reset();
-    stream.reset();
-
-    if(operation == Operation::read) {
-        const QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath,
-                                                              filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
-        if (!fileName.isEmpty()) {
-            file = std::make_unique<QFile>(fileName);
-            if(file->open(QIODevice::ReadOnly)) {
-                stream = std::make_unique<QTextStream>(file.get());
-                estimatedNumberRows = stream->readAll().count('\n');
-                stream->seek(0);
-            }
-        }
-    }
-    else {
-        const QString fileName = QFileDialog::getSaveFileName(parent, caption, filepath,
-                                                              filetypeDescriptor + " File (*.csv);;Text File (*.txt);;All Files (*)");
-        if (!fileName.isEmpty()) {
-            file = std::make_unique<QFile>(fileName);
-            if(file->open(QIODevice::WriteOnly | QIODevice::Text)) {
-                stream = std::make_unique<QTextStream>(file.get());
-            }
-        }
-    }
-    return (stream != nullptr);
-}
-
-
-bool CsvFile::openExistingFile(const QString &filepath)
-{
-    file.reset();
-    stream.reset();
-    if (!filepath.isEmpty()) {
-        file = std::make_unique<QFile>(filepath);
-        if (file->open(QIODevice::ReadOnly)) {
-            stream = std::make_unique<QTextStream>(file.get());
-            estimatedNumberRows = stream->readAll().count('\n');
-            stream->seek(0);
-        }
-    }
-
-    return (stream != nullptr);
-}
-
-
-bool CsvFile::isOpen()
-{
-    if(file == nullptr) {
+    const QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath, fileDialogFilter(filetypeDescriptor));
+    if(fileName.isEmpty()) {
         return false;
     }
-    return file->isOpen();
-}
-
-
-bool CsvFile::atEnd()
-{
-    if(stream == nullptr) {
-        return true;
-    }
-    return stream->atEnd();
+    return openExistingFile(fileName);
 }
 
 
 //////////////////
 // Retrieve the fileInfo
 //////////////////
-QFileInfo CsvFile::fileInfo()
+QFileInfo DataFile::fileInfo()
 {
-    if(file == nullptr) {
+    if(openFilePath.isEmpty()) {
         return {};
     }
+    return QFileInfo(openFilePath);
+}
 
-    return QFileInfo(*file);
+
+bool DataFile::isOpen()
+{
+    return !openFilePath.isEmpty();
 }
 
 
 //////////////////
-// Close CSV file
+// Close the file, releasing the format-specific resource
 //////////////////
-void CsvFile::close(bool deleteFile)
+void DataFile::close(bool deleteFile)
 {
-    stream.reset();
-
-    if(file == nullptr) {
-        return;
+    releaseResource();
+    if(deleteFile && !openFilePath.isEmpty()) {
+        QFile::remove(openFilePath);
     }
-
-    if(isOpen()) {
-        file->close();
-    }
-
-    if(deleteFile) {
-        file->remove();
-    }
-    file.reset();
+    openFilePath.clear();
 }
 
 
 //////////////////
-// Read the first line of the file, splitting & saving field texts into headerValues, making room in fieldMeanings for each
+// Read the first row, splitting & saving field texts into headerValues, making room in fieldMeanings for each
 //////////////////
-bool CsvFile::readHeader()
+bool DataFile::readHeader()
 {
-    stream->seek(0);
-    headerValues = getLine();
+    resetToStart();
+    headerValues = readNextRawRow().value_or(QStringList());
     if (!headerValues.isEmpty() && headerValues[0].startsWith(QChar(0xFEFF))) {
-        // Strip BOM
+        // Strip BOM, in case the file was itself produced from a BOM-prefixed source
         headerValues[0] = headerValues[0].mid(1);
     }
     numFields = int(headerValues.size());
@@ -145,76 +81,36 @@ bool CsvFile::readHeader()
 
 
 //////////////////
-// Read a line from the file, splitting & saving field texts into fieldValues
+// Read a row, splitting & saving field texts into fieldValues. Blank rows are skipped.
 //////////////////
-bool CsvFile::readDataRow(ReadLocation readLocation)
+bool DataFile::readDataRow(ReadLocation readLocation)
 {
     if(readLocation == ReadLocation::beginningOfFile) {
-        stream->seek(0);
+        resetToStart();
     }
+
+    std::optional<QStringList> row;
     do {
-        fieldValues = getLine(numFields);
-    } while(fieldValues.isEmpty() && !stream->atEnd());
-    return !fieldValues.isEmpty();
-}
+        row = readNextRawRow();
+    } while(row.has_value() && row->isEmpty());
 
-
-//////////////////
-// Write the first line of the file
-//////////////////
-bool CsvFile::writeHeader()
-{
-    bool first = true;
-    if(stream->seek(0) && !headerValues.empty()) {
-        for(auto &value : headerValues) {
-            if(!first) {
-                *stream << delimiter;
-            }
-            first = false;
-            if(value.contains(delimiter)) {
-                *stream << "\"" << value << "\"";
-            }
-            else {
-                *stream << value;
-            }
-        }
-        *stream << Qt::endl;
-        numFields = int(headerValues.size());
-        return true;
+    if(!row.has_value()) {
+        fieldValues.clear();
+        return false;
     }
-    return false;
-}
 
-
-//////////////////
-// Read a line from the file, splitting & saving field texts into fieldValues
-//////////////////
-void CsvFile::writeDataRow()
-{
-    bool first = true;
-    for(auto &value : fieldValues) {
-        if(!first) {
-            *stream << delimiter;
-        }
-        first = false;
-        if(value.contains(delimiter)) {
-            *stream << "\"" << value << "\"";
-        }
-        else {
-            *stream << value;
-        }
+    fieldValues = *row;
+    while(fieldValues.size() < numFields) {
+        fieldValues << QString();
     }
-    for(int i = int(fieldValues.size()); i < numFields; i++) {
-        *stream << delimiter;
-    }
-    *stream << Qt::endl;
+    return true;
 }
 
 
 //////////////////
 // Open dialog box to let user choose which columns correspond to which fields
 //////////////////
-QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
+QDialog* DataFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
 {
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < numFields; i++) {
@@ -326,7 +222,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
 // Validate the selector boxes in the choose field meaning dialog:
 // one per field unless there's an asterisk in the name, in which case there are as many as the number after
 //////////////////
-void CsvFile::validateFieldSelectorBoxes(int callingRow)
+void DataFile::validateFieldSelectorBoxes(int callingRow)
 {
     // get list of rows in top-to-bottom order, but if this function is getting called by a selector box, then put its row at the front of the line
     QList<int> rows(numFields);
@@ -344,7 +240,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
         const auto *box = qobject_cast<StyledComboBox *>(window->theTable->cellWidget(row, 1));
         const QString selection = box->currentText();
 
-        // set it in the CsvFile's data
+        // set it in the DataFile's data
         fieldMeanings[row] = selection;
 
         // add this occurence in the takenValues mapping
@@ -432,118 +328,4 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
         }
         box->blockSignals(false);
     }
-}
-
-
-//////////////////
-// Read one line from the file
-//////////////////
-QStringList CsvFile::getLine(const int minFields)
-{
-    return getLine(*stream, minFields, delimiter);
-}
-
-
-//////////////////
-// Static function: Read one line from a textStream, smartly handling commas and newlines within fields that are enclosed by quotation marks; returns fields as list of strings
-//////////////////
-QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, const char delimiter)
-{
-    // read up to a newline
-    QString line = externalStream.readLine();
-    static const int MAX_LINES_TO_APPEND = 100;
-    int linesAppended = 0;
-    while(line.count('"')%2 == 1 && !externalStream.atEnd() && linesAppended < MAX_LINES_TO_APPEND) {
-        line.append('\n' + externalStream.readLine());
-        linesAppended++;
-    }
-    // if we hit the limit, the quote is unmatched — strip it so the parser doesn't stay in Quote state
-    if(line.count('"')%2 == 1) {
-        line.remove(line.lastIndexOf('"'), 1);
-    }
-
-    enum {Normal, Quote} state = Normal;
-    QStringList fields;
-    fields.reserve(std::max(minFields, int(line.count(delimiter))));
-    QString value;
-
-    for(int i = 0; i < line.size(); i++) {
-        const QChar current=line.at(i);
-
-        // Normal state
-        if (state == Normal) {
-            // Comma
-            if (current == delimiter) {
-                // Save field
-                fields.append(value.trimmed());
-                value.clear();
-            }
-
-            // Double-quote
-            else if (current == '"') {
-                state = Quote;
-                value += current;
-            }
-
-            // Other character
-            else {
-                value += current;
-            }
-        }
-
-        // In-quote state
-        else if (state == Quote) {
-            if (current == '"') {
-                // Another quotation mark
-                if (i < line.size()) {
-                    if (i+1 < line.size() && line.at(i+1) == '"') {
-                        // Skip a second quotation mark in a row as it is the escape sequence to represent a single quotation mark
-                        value += '"';
-                        i++;
-                    }
-                    else {
-                        state = Normal;
-                        value += '"';
-                    }
-                }
-            }
-            else {
-                // Other character
-                value += current;
-            }
-        }
-    }
-    if (!value.isEmpty()) {
-        fields.append(value.trimmed());
-    }
-
-    // Quotes are left in until here; so when fields are trimmed, only whitespace outside of
-    // quotes is removed.  The quotes are removed here.
-    for (auto &field : fields) {
-        if(field.length() >= 1) {
-            if(field.at(0) == '"') {
-                field = field.mid(1);
-                if(field.length() >= 1) {
-                    if(field.right(1) == '"') {
-                        field = field.left(field.length() - 1);
-                    }
-                }
-            }
-        }
-    }
-
-    if(minFields == -1) {     // default value of -1 means just return however many fields are found
-        return fields;
-    }
-
-    // no data found--just return empty QStringList
-    if(fields.isEmpty()) {
-        return fields;
-    }
-
-    // Append empty final field(s) to get up to minFields
-    while(fields.size() < minFields) {
-        fields.append("");
-    }
-    return fields;
 }

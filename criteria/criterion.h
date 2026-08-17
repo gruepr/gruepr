@@ -54,22 +54,6 @@ public:
     virtual float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
                                            const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed = {});
 
-    // Declares whether this criterion's score for one team is independent of how every OTHER team in
-    // the genome is currently arranged -- i.e., whether it can be correctly rescored alone. Default
-    // true, since most criteria (gender/URM/schedule/attribute balance) only ever look at their own
-    // team's students. Override to false only for criteria whose score is inherently a joint property
-    // of the whole team set (e.g. a cross-team assignment) -- see AssignmentPreferenceCriterion.
-    virtual bool supportsSingleTeamScoring() const { return true; }
-
-    // Scores exactly one team, for the optimizer's hill-climb mutation. Default implementation calls
-    // calculateScore with numTeams=1 over just this team's own roster -- correct for any criterion
-    // whose score only ever depends on its own team. Override when a criterion needs broader context
-    // (see TeammatesCriterion) or cannot be scored alone at all (return a fixed value and also
-    // override supportsSingleTeamScoring() -- see AssignmentPreferenceCriterion).
-    virtual float scoreForOneTeamInOptimization(const StudentRecord *const students, const int teamRoster[], const int teamSize,
-                                                const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                                                float &penaltyPoints) const;
-
     static constexpr float NO_SCORE = std::numeric_limits<float>::quiet_NaN();
     static inline bool IS_NO_SCORE(float score) { return std::isnan(score); }
 
@@ -112,9 +96,7 @@ protected:
     teamSortValue — sort key for the column
     studentDisplayText — what to show in the student row
     exportTeamingOptionText — text for the instructor export header
-    Optionally override: teamTextAlignment, studentTextAlignment, teamDisplayColor, scoreForOneTeamInDisplay, settingsToJson, settingsFromJson,
-    supportsSingleTeamScoring/scoreForOneTeamInOptimization (only if this criterion's score for one team depends on the whole team set --
-    see AssignmentPreferenceCriterion for "opt out" and TeammatesCriterion for "needs broader cached context")
+    Optionally override: teamTextAlignment, studentTextAlignment, teamDisplayColor, scoreForOneTeamInDisplay, settingsToJson, settingsFromJson
 
     If this criterion's per-student data should be exportable (Custom/Instructor/Spreadsheet files),
     add a static `exportStudentText(...)` function to the subclass (see GenderCriterion, URMIdentityCriterion,

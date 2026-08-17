@@ -136,8 +136,10 @@ SOURCES += \
         widgets/switchButton.cpp \
         widgets/teamsTabItem.cpp \
         widgets/teamTreeWidget.cpp \
-        csvfile.cpp \
+        dataFile.cpp \
         dataOptions.cpp \
+        delimitedTextFile.cpp \
+        excelFile.cpp \
         GA.cpp \
         gruepr.cpp \
         gruepr_globals.cpp \
@@ -198,8 +200,10 @@ HEADERS += \
         widgets/teamsTabItem.h \
         widgets/teamTreeWidget.h \
         widgets/verticalspinboxstyle.h \
-        csvfile.h \
+        dataFile.h \
         dataOptions.h \
+        delimitedTextFile.h \
+        excelFile.h \
         GA.h \
         gruepr.h \
         gruepr_globals.h \

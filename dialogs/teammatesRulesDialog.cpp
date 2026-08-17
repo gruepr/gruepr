@@ -1,6 +1,6 @@
 #include "teammatesRulesDialog.h"
 #include "ui_teammatesRulesDialog.h"
-#include "csvfile.h"
+#include "delimitedTextFile.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
@@ -473,32 +473,32 @@ void TeammatesRulesDialog::clearValues(bool verify)
 
 bool TeammatesRulesDialog::loadCSVFile()
 {
-    CsvFile csvFile;
-    if(!csvFile.open(this, CsvFile::Operation::read, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File"))) {
+    DelimitedTextFile delimitedTextFile;
+    if(!delimitedTextFile.open(this, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File"))) {
         return false;
     }
 
     // Read the header row and first data row to make sure file format is correct.
     bool formattedCorrectly = true;
     int numFields = 0;
-    if(csvFile.readHeader()) {
-        numFields = int(csvFile.headerValues.size());
+    if(delimitedTextFile.readHeader()) {
+        numFields = int(delimitedTextFile.headerValues.size());
     }
     if(numFields < 2) {     // should be basename, name1, name2, name3, ..., nameN
         formattedCorrectly = false;
     }
     else {
-        if((csvFile.headerValues.at(0).toLower() != tr("basename")) || (!csvFile.headerValues.at(1).toLower().startsWith(tr("name")))) {
+        if((delimitedTextFile.headerValues.at(0).toLower() != tr("basename")) || (!delimitedTextFile.headerValues.at(1).toLower().startsWith(tr("name")))) {
             formattedCorrectly = false;
         }
-        csvFile.readDataRow();
-        if(csvFile.fieldValues.size() < numFields) {
+        delimitedTextFile.readDataRow();
+        if(delimitedTextFile.fieldValues.size() < numFields) {
             formattedCorrectly = false;
         }
     }
     if(!formattedCorrectly) {
         grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        csvFile.close();
+        delimitedTextFile.close();
         return false;
     }
 
@@ -506,15 +506,15 @@ bool TeammatesRulesDialog::loadCSVFile()
     // Process each row by loading unique base names into basenames and other names in the row into corresponding teammates list
     QStringList basenames;
     QList<QStringList> teammates;
-    csvFile.readHeader();
-    while(csvFile.readDataRow()) {
-        const int pos = int(basenames.indexOf(csvFile.fieldValues.at(0).trimmed())); // get index of this name
+    delimitedTextFile.readHeader();
+    while(delimitedTextFile.readDataRow()) {
+        const int pos = int(basenames.indexOf(delimitedTextFile.fieldValues.at(0).trimmed())); // get index of this name
 
         if(pos == -1) { // basename is not yet found in basenames list
-            basenames << csvFile.fieldValues.at(0).trimmed();
+            basenames << delimitedTextFile.fieldValues.at(0).trimmed();
             teammates.append(QStringList());
             for(int i = 1; i < numFields; i++) {
-                const QString teammate = csvFile.fieldValues.at(i).trimmed();
+                const QString teammate = delimitedTextFile.fieldValues.at(i).trimmed();
                 if(!teammate.isEmpty()) {
                     teammates.last() << teammate;
                 }
@@ -523,11 +523,11 @@ bool TeammatesRulesDialog::loadCSVFile()
         else {
             grueprGlobal::errorMessage(this, tr("File error."), tr("This file has an error in its format:\n"
                                                              "The same name appears more than once in the first column."));
-            csvFile.close();
+            delimitedTextFile.close();
             return false;
         }
     }
-    csvFile.close();
+    delimitedTextFile.close();
 
     // Now we have list of basenames and corresponding lists of teammates by name
     // Need to convert names to IDs and then add each teammate to the basename
@@ -699,7 +699,7 @@ TeammatesRulesDialog::ParsedSpreadsheetTeams TeammatesRulesDialog::parseTeamsFro
     // what gruepr's own Spreadsheet export can produce. (xlsx import isn't supported yet; add a branch
     // here once it is.)
     const bool isCsv = (QFileInfo(fileName).suffix().compare("csv", Qt::CaseInsensitive) == 0);
-    CsvFile spreadsheetFile(isCsv ? CsvFile::Delimiter::comma : CsvFile::Delimiter::tab);
+    DelimitedTextFile spreadsheetFile(isCsv ? DelimitedTextFile::Delimiter::comma : DelimitedTextFile::Delimiter::tab);
     if(!spreadsheetFile.openExistingFile(fileName)) {
         return result;
     }

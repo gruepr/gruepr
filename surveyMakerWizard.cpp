@@ -1,6 +1,6 @@
 #include "surveyMakerWizard.h"
 #include "gruepr_globals.h"
-#include "csvfile.h"
+#include "delimitedTextFile.h"
 #include "LMS/googlehandler.h"
 #include "LMS/canvashandler.h"
 #include <QApplication>
@@ -2098,9 +2098,9 @@ void CourseInfoPage::deleteASection(int sectionNum, bool pauseVisualUpdate)
 bool CourseInfoPage::uploadRoster()
 {
     // Open the roster file
-    CsvFile rosterFile;
+    DelimitedTextFile rosterFile;
     const QFileInfo *saveFilePath = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
-    if(!rosterFile.open(this, CsvFile::Operation::read, tr("Open Student Roster File"), saveFilePath->canonicalFilePath(), tr("Roster File"))) {
+    if(!rosterFile.open(this, tr("Open Student Roster File"), saveFilePath->canonicalFilePath(), tr("Roster File"))) {
         return false;
     }
 
@@ -2135,7 +2135,7 @@ bool CourseInfoPage::uploadRoster()
         rosterFile.readDataRow();
     }
     else {
-        rosterFile.readDataRow(CsvFile::ReadLocation::beginningOfFile);
+        rosterFile.readDataRow(DelimitedTextFile::ReadLocation::beginningOfFile);
     }
     do {
         QString name;

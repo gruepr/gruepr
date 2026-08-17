@@ -186,7 +186,7 @@
           <item alignment="Qt::AlignmentFlag::AlignHCenter">
            <widget class="QLabel" name="acceptedFormatsLabel">
             <property name="text">
-             <string>Accepted format: .csv</string>
+             <string>Accepted formats: .csv, .txt, .xlsx</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignCenter</set>

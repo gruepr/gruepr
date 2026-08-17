@@ -2,12 +2,15 @@
 #include "ui_loadDataDialog.h"
 #include "LMS/canvashandler.h"
 #include "LMS/googlehandler.h"
+#include "delimitedTextFile.h"
 #include "dialogs/baseTimeZoneDialog.h"
 #include "dialogs/categorizingDialog.h"
+#include "excelFile.h"
 #include "widgets/dropcsvframe.h"
 #include "widgets/styledComboBox.h"
 #include <QCollator>
 #include <QDir>
+#include <QFileDialog>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QSettings>
@@ -146,12 +149,21 @@ loadDataDialog::~loadDataDialog()
     delete ui;
 }
 
+std::unique_ptr<DataFile> loadDataDialog::makeDataFile(const QString &filepath)
+{
+    if(QFileInfo(filepath).suffix().compare("xlsx", Qt::CaseInsensitive) == 0) {
+        return std::make_unique<ExcelFile>();
+    }
+    return std::make_unique<DelimitedTextFile>();
+}
+
 bool loadDataDialog::getFromDropFile(QString filePathString)
 {
     const QPixmap icon(":/icons_new/file.png");
     const QFileInfo fileInfo(filePathString);
-    if (fileInfo.suffix().toLower() != "csv") {
-        //qDebug() << "Error: The dropped file is not a CSV file.";
+    const QString suffix = fileInfo.suffix().toLower();
+    if (suffix != "csv" && suffix != "txt" && suffix != "xlsx") {
+        //qDebug() << "Error: The dropped file is not a recognized data file type.";
         return false;
     }
 
@@ -159,6 +171,7 @@ bool loadDataDialog::getFromDropFile(QString filePathString)
     QFileInfo dataFileLocation;
     dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
+    surveyFile = makeDataFile(filePathString);
     try {
         if (!surveyFile->openExistingFile(filePathString)) {
             //qDebug() << "Error: Failed to open CSV file.";
@@ -190,22 +203,20 @@ void loadDataDialog::loadData(QString filePathString)
     switch(source) {
     case DataOptions::DataSource::fromUploadFile:
         dataOptions = std::make_unique<DataOptions>();
-        surveyFile = std::make_unique<CsvFile>();
         fileLoaded = getFromFile();
         break;
     case DataOptions::DataSource::fromDragDropFile:
         dataOptions = std::make_unique<DataOptions>();
-        surveyFile = std::make_unique<CsvFile>();
         fileLoaded = getFromDropFile(filePathString);
         break;
     case DataOptions::DataSource::fromGoogle:
         dataOptions = std::make_unique<DataOptions>();
-        surveyFile = std::make_unique<CsvFile>();
+        surveyFile = std::make_unique<DelimitedTextFile>();
         fileLoaded = getFromGoogle();
         break;
     case DataOptions::DataSource::fromCanvas:
         dataOptions = std::make_unique<DataOptions>();
-        surveyFile = std::make_unique<CsvFile>();
+        surveyFile = std::make_unique<DelimitedTextFile>();
         fileLoaded = getFromCanvas();
         break;
     case DataOptions::DataSource::fromPrevWork:
@@ -242,7 +253,7 @@ void loadDataDialog::loadData(QString filePathString)
     ui->reviewCategoriesButton->setEnabled(true);
 }
 
-CsvFile* loadDataDialog::getSurveyFile()
+DataFile* loadDataDialog::getSurveyFile()
 {
     return surveyFile.get();
 }
@@ -336,7 +347,14 @@ bool loadDataDialog::getFromFile()
     QFileInfo dataFileLocation;
     dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
-    if(!surveyFile->open(this, CsvFile::Operation::read, tr("Open Survey Data File"), dataFileLocation.canonicalPath(), tr("Survey Data"))) {
+    const QString fileName = QFileDialog::getOpenFileName(this, tr("Open Survey Data File"), dataFileLocation.canonicalPath(),
+                                                            tr("Survey Data File (*.csv *.txt *.xlsx);;All Files (*)"));
+    if(fileName.isEmpty()) {
+        return false;
+    }
+
+    surveyFile = makeDataFile(fileName);
+    if(!surveyFile->openExistingFile(fileName)) {
         return false;
     }
 
@@ -793,7 +811,7 @@ bool loadDataDialog::readData()
                 if (fieldNum >= 0 && fieldNum < surveyFile->fieldValues.size()) {
                     QString scheduleFieldText = (surveyFile->fieldValues.at(fieldNum)).toLower().split(';').join(',');
                     QTextStream scheduleFieldStream(&scheduleFieldText);
-                    allTimeNames << CsvFile::getLine(scheduleFieldStream);
+                    allTimeNames << DelimitedTextFile::getLine(scheduleFieldStream);
                 }
             }
         } while(surveyFile->readDataRow());
@@ -867,7 +885,7 @@ bool loadDataDialog::readData()
     loadingProgressDialog->setValue(2);
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
-    surveyFile->readDataRow(CsvFile::ReadLocation::beginningOfFile);    // put cursor back to beginning and read first row
+    surveyFile->readDataRow(DataFile::ReadLocation::beginningOfFile);    // put cursor back to beginning and read first row
     if(surveyFile->hasHeaderRow) {
         // that first row was headers, so get next row
         surveyFile->readDataRow();

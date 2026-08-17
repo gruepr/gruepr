@@ -73,7 +73,6 @@
 #include "gruepr_globals.h"
 #include "dialogs/startDialog.h"
 #include "widgets/verticalspinboxstyle.h"
-#include "bench/bench_mutation_sweep.h"
 #include <QApplication>
 #include <QFontDatabase>
 #include <QScreen>
@@ -82,8 +81,6 @@
 
 int main(int argc, char *argv[])
 {
-    benchMutationSweep::run(); return 0;
-
     // Set up application
     #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
         // remove darkmode on Windows (it is removed in the plist on macOS)

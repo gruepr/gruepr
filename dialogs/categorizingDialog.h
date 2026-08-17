@@ -1,7 +1,7 @@
 #ifndef CATEGORIZINGDIALOG_H
 #define CATEGORIZINGDIALOG_H
 
-#include "csvfile.h"
+#include "dataFile.h"
 #include "dataOptions.h"
 #include "widgets/styledComboBox.h"
 #include <QDialog>
@@ -11,10 +11,10 @@ class CategorizingDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit CategorizingDialog(QWidget* parent = nullptr, CsvFile* surveyFile = nullptr, DataOptions::DataSource dataSource = DataOptions::DataSource::fromUploadFile);
+    explicit CategorizingDialog(QWidget* parent = nullptr, DataFile* surveyFile = nullptr, DataOptions::DataSource dataSource = DataOptions::DataSource::fromUploadFile);
     QTableWidget* datasetTableWidget = nullptr;
     QHBoxLayout* datasetTableHeaderLayout = nullptr;
-    CsvFile* surveyFile = nullptr;
+    DataFile* surveyFile = nullptr;
     DataOptions::DataSource source;
     QList<StyledComboBox*> dataTypeComboBoxes;
     QList<QWidget*> columnWidgets;

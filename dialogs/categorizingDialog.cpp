@@ -1,6 +1,5 @@
 #include "categorizingDialog.h"
 #include "gruepr_globals.h"
-#include "csvfile.h"
 #include "dialogs/dataTypesTableDialog.h"
 #include <QBoxLayout>
 #include <QHeaderView>
@@ -10,7 +9,7 @@
 #include <QStandardItemModel>
 #include <QTableWidget>
 
-CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, DataOptions::DataSource dataSource): QDialog (parent) {
+CategorizingDialog::CategorizingDialog(QWidget* parent, DataFile* surveyFile, DataOptions::DataSource dataSource): QDialog (parent) {
     this->source = dataSource;
     auto *mainLayout = new QVBoxLayout();
     this->surveyFile = surveyFile;
@@ -109,7 +108,7 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
 
 void CategorizingDialog::populateTable(){
     datasetTableWidget->setColumnCount(surveyFile->numFields);
-    surveyFile->readDataRow(CsvFile::ReadLocation::beginningOfFile);
+    surveyFile->readDataRow(DataFile::ReadLocation::beginningOfFile);
     QList<int> columnWidths;
     for (const auto &columnName : std::as_const(surveyFile->fieldValues)){
         auto *columnWidget = new QWidget(this);
@@ -163,7 +162,7 @@ void CategorizingDialog::populateTable(){
         }
         row++;
     }
-    surveyFile->readDataRow(CsvFile::ReadLocation::beginningOfFile);
+    surveyFile->readDataRow(DataFile::ReadLocation::beginningOfFile);
 }
 
 bool CategorizingDialog::initializeComboBoxes()
@@ -294,7 +293,7 @@ void CategorizingDialog::validateFieldSelectorBoxes(int callingRow)
         }
         const QString selection = box->currentText();
 
-        // set it in the CsvFile's data
+        // set it in the DataFile's data
         surveyFile->fieldMeanings[row] = selection;
 
         // add this occurence in the takenValues mapping

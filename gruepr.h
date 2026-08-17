@@ -1,7 +1,7 @@
 #ifndef GRUEPR_H
 #define GRUEPR_H
 
-#include "csvfile.h"
+#include "delimitedTextFile.h"
 #include "dataOptions.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
@@ -115,7 +115,7 @@ private:
         // reading survey data
     long long numActiveStudents = MAX_STUDENTS;
     inline StudentRecord* findStudentFromID(const long long ID);
-    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks names and emails against roster
+    bool loadRosterData(DelimitedTextFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks names and emails against roster
     void refreshStudentDisplay(QProgressDialog *progressDialog = nullptr, int progressStart = 0, int progressEnd = 0);
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
@@ -133,24 +133,6 @@ private:
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
                                 QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
     static GenomeScore aggregateTeamScores(const float _teamScores[], const int _teamSizes[], const int _numTeams);
-
-    // Scores exactly one team by pointer offset into a live genome -- no mini-genome copy -- for the
-    // hill climb. Sums each active criterion's scoreForOneTeamInOptimization(), skipping any that
-    // don't support it (see Criterion::supportsSingleTeamScoring()); such criteria are expected to
-    // return a fixed value on their own, so no special-casing is needed here either way.
-    static float getTeamScore(const StudentRecord *const _students, const int _teamRoster[], const int _teamSize,
-                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
-
-    // Delta-scored first-improvement hill climb on the worst two teams, replacing blind random
-    // mutation (GA::mutate confined to just these two teams) wherever at least one active criterion
-    // supports single-team scoring. _worst/_secondWorst are this genome's already-known worst- and
-    // second-worst-scoring team indexes (the caller computes these once per genome during scoring
-    // anyway); the genome is mutated in place. Safe to call from an omp parallel for (GA::mutate has
-    // its own thread_local RNG).
-    static void hillClimbWorstTeams(int _genome[], const int _teamStartPositions[],
-                                    const StudentRecord *const _students, const int _teamSizes[], const int _numTeams,
-                                    const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                    const int _worst, const int _secondWorst, const int _maxHillClimbAttempts);
 
     float teamSetScore = 0;
     int finalGeneration = 1;

@@ -331,21 +331,6 @@ void AssignmentPreferenceCriterion::calculateScore(const StudentRecord *const st
 
 
 /////////////////////////////////////////////////////////////////////
-// scoreForOneTeamInOptimization — fixed value; see supportsSingleTeamScoring() in the header.
-// A constant contributes identically to every candidate the hill climb compares, so it cancels out
-// of the accept/reject decision rather than silently returning a wrong single-team assignment score.
-/////////////////////////////////////////////////////////////////////
-
-float AssignmentPreferenceCriterion::scoreForOneTeamInOptimization(const StudentRecord *const /*students*/, const int /*teamRoster*/[], const int /*teamSize*/,
-                                                                    const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
-                                                                    float &penaltyPoints) const
-{
-    penaltyPoints = 0.0f;
-    return 0.0f;
-}
-
-
-/////////////////////////////////////////////////////////////////////
 // prepareForDisplay — solve the full assignment for all teams
 /////////////////////////////////////////////////////////////////////
 

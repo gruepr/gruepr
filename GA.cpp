@@ -16,8 +16,6 @@ thread_local std::mt19937 threadRNG{std::random_device{}()};
 void GA::setGAParameters(int numRecords)
 {
     populationsize = (numRecords <= GENOMESIZETHRESHOLD) ? POPULATIONSIZE[0] : POPULATIONSIZE[1];
-    mutationLikelihood = 50;
-    maxHillClimbAttempts = 3;
 }
 
 
@@ -234,10 +232,8 @@ void GA::crossover(const int *const mom, const int *const dad, const unsigned in
 
 
 //////////////////
-// Swap a random position in [startA,endA) with a random position in [startB,endB); returns the two
-// swapped positions. A fully random, untargeted mutation is startA=startB=0, endA=endB=genomeSize;
-// confining (or splitting) the two regions to specific teams targets the mutation at just those
-// teams -- see the callers in gruepr.cpp for both uses.
+// Swap a random position within [startA,endA) with a random position within [startB,endB); returns
+// the two swapped positions so a caller that needs to undo it can just std::swap them back itself.
 //////////////////
 std::pair<int,int> GA::mutate(int genome[], const int startA, const int endA, const int startB, const int endB)
 {

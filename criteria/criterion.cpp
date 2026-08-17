@@ -59,22 +59,6 @@ float Criterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudent
     return score[0];
 }
 
-float Criterion::scoreForOneTeamInOptimization(const StudentRecord *const students, const int teamRoster[], const int teamSize,
-                                               const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                                               float &penaltyPoints) const
-{
-    // thread_local because this runs inside an OpenMP parallel region during the hill climb
-    thread_local QList<float> score(1, 0.0f);
-    thread_local QList<float> penalty(1, 0.0f);
-    score[0] = 0.0f;
-    penalty[0] = 0.0f;
-
-    calculateScore(students, teamRoster, 1, &teamSize, teamingOptions, dataOptions, score, penalty);
-
-    penaltyPoints = penalty[0];
-    return score[0];
-}
-
 QColor Criterion::teamDisplayColor(float criterionScore) const
 {
     if (IS_NO_SCORE(criterionScore)) {

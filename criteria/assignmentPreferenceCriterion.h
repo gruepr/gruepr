@@ -28,14 +28,6 @@ public:
     float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
                                    const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed) override;
 
-    // Assignment is a joint property of the whole team set (a swap anywhere can change the optimal
-    // assignment everywhere), so no per-team rescoring could ever be correct -- opt out of the hill
-    // climb's single-team scoring entirely rather than have a per-team score silently mean the wrong thing.
-    bool supportsSingleTeamScoring() const override { return false; }
-    float scoreForOneTeamInOptimization(const StudentRecord *const students, const int teamRoster[], const int teamSize,
-                                        const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
-                                        float &penaltyPoints) const override;
-
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;
     void prepareForDisplay(const QList<StudentRecord> &students, const TeamSet &teams, const TeamingOptions *teamingOptions) override;

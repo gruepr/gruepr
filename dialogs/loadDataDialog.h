@@ -1,7 +1,7 @@
 #ifndef LOADDATADIALOG_H
 #define LOADDATADIALOG_H
 
-#include "csvfile.h"
+#include "dataFile.h"
 #include "dataOptions.h"
 #include "dialogs/startDialog.h"
 #include "studentRecord.h"
@@ -25,7 +25,7 @@ public:
 
     std::unique_ptr<DataOptions> dataOptions;
     QList<StudentRecord> students;
-    CsvFile* getSurveyFile();
+    DataFile* getSurveyFile();
 
 public slots:
     void accept() override;
@@ -36,7 +36,8 @@ private:
     StartDialog *parent;
     void loadData(QString filePathString);
     void finalizeAccept(bool showCategorizingDialog);
-    std::unique_ptr<CsvFile> surveyFile;
+    std::unique_ptr<DataFile> surveyFile;
+    static std::unique_ptr<DataFile> makeDataFile(const QString &filepath);
     bool getFromFile();
     bool getFromGoogle();
     bool getFromCanvas();
