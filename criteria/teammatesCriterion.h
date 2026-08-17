@@ -18,6 +18,11 @@ public:
     void settingsFromJson(const QJsonObject &json) override;
 
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
+
+    // Caches the full-active-roster "being teamed" stamp once, so scoreForOneTeamInOptimization can
+    // see the whole roster without needing it rebuilt (or handed in) on every single-team call.
+    void prepareForOptimization(const StudentRecord *students, const int studentIndexes[], int numStudents, const DataOptions *dataOptions) override;
+
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
                         QList<float> &criteriaScores, QList<float> &penaltyPoints) const override;
@@ -25,6 +30,13 @@ public:
     // Need to override this one, because this criterion needs to see all teams for scoring any one team
     float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
                                    const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed) override;
+
+    // Safe to score one team at a time once the full-roster stamp is cached (see prepareForOptimization)
+    // -- reuses the same private scoreOneTeam() helper as calculateScore() and scoreForOneTeamInDisplay(),
+    // just fed the cached stamp instead of a freshly-built or externally-supplied one.
+    float scoreForOneTeamInOptimization(const StudentRecord *const students, const int teamRoster[], const int teamSize,
+                                        const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                        float &penaltyPoints) const override;
 
     static TeammatesCriterion* findInCriteria(const TeamingOptions *teamingOptions, CriteriaType type);
 
@@ -48,6 +60,13 @@ private:
     int scoreOneTeam(const QList<const StudentRecord *> &teamMembers,
                      const std::vector<uint32_t> &idsOnTeamStamp, uint32_t idsOnTeamGeneration,
                      const std::vector<uint32_t> &idsBeingTeamedStamp, uint32_t idsBeingTeamedGeneration) const;
+
+    // Cached once in prepareForOptimization: every active student's ID, generation-stamped the same
+    // way as calculateScore's per-call beingTeamedStamp. Fixed for the whole optimization run (the
+    // active roster doesn't change generation to generation), so scoreForOneTeamInOptimization can
+    // read it directly instead of needing the whole genome to rebuild it.
+    std::vector<uint32_t> cachedBeingTeamedStamp;
+    uint32_t cachedBeingTeamedGeneration = 0;
 };
 
 #endif // TEAMMATESCRITERION_H

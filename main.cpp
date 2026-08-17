@@ -33,20 +33,22 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - SIGNIFICANT speed-up in the optimization process
-//      - faster data structures in the attribute, gender, race/ethnicity, required/prevented teammates, and schedule criteria
+//      - using faster data structures in the attribute, gender, race/ethnicity, required/prevented teammates, and schedule criteria
 //      - multi-threaded the mating process that creates most of the next generation
+//      - modified the genetic algorithm's mating procedure (crossover) to better maintain teams from dad's allele
+//      - modified the mutation process from random to hill-climbing (meaning this is now technically a memetic, not genetic, algorithm)
 //      - tweaked the genetic algorithm parameters and processes through benchmark testing
+//      - modified the math for computing and sorting genome scores when they have >= 1 non-positive team score(s)
 //      - added link time optimization during compiling
-//  - Fixed a bug in autoscrolling when drag/drop reordering the criteria cards
-//  - Added a 2nd set of sample survey results: testdata_largeclass.csv
-//  - Better UI associated with the "Duplicate" marker in student list
+//  - Made export of teams more flexible, including export as Excel (xlsx) file
 //  - Now alphabetizes the students / teams by last name on first display of a team set
-//  - Changed the progress graph from box and whisker plots to a simpler line graph tracking max. score in each generation
-//  - Fixed project assignment fallback when there are fewer projects than teams: options now repeat as needed instead of
-//    leaving some teams with no assigned project
+//  - Changed the progress graph from box and whisker plots to a simpler line graph tracking the max. score
+//  - Better UI associated with the "Duplicate" marker in student list
+//  - Added a 2nd set of sample survey results: testdata_largeclass.csv
+//  - Bugfix: autoscroll issue when drag/drop reordering the criteria cards
+//  - Bugfix: project assignment criteria has a fallback when there are fewer projects than teams: options now repeat as needed
 //
 // INPROG:
-//  - Allow export of teams as Excel (xlsx) file; made team export generally more flexible
 //
 // TO DO:
 //  - Allow import of student data as Excel (xlsx) file
@@ -71,6 +73,7 @@
 #include "gruepr_globals.h"
 #include "dialogs/startDialog.h"
 #include "widgets/verticalspinboxstyle.h"
+#include "bench/bench_mutation_sweep.h"
 #include <QApplication>
 #include <QFontDatabase>
 #include <QScreen>
@@ -79,6 +82,8 @@
 
 int main(int argc, char *argv[])
 {
+    benchMutationSweep::run(); return 0;
+
     // Set up application
     #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
         // remove darkmode on Windows (it is removed in the plist on macOS)

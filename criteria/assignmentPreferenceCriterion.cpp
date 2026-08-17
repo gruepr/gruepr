@@ -97,13 +97,16 @@ void AssignmentPreferenceCriterion::generateCriteriaCard(TeamingOptions *const /
 // Prepare for optimization — cache option names and index map
 /////////////////////////////////////////////////////////////////////
 
-void AssignmentPreferenceCriterion::prepareForOptimization(const StudentRecord *students, int numStudents, const DataOptions */*dataOptions*/)
+void AssignmentPreferenceCriterion::prepareForOptimization(const StudentRecord *students, const int studentIndexes[], int numStudents, const DataOptions */*dataOptions*/)
 {
-    // Discover all option names from student preferences
+    // Discover all option names from student preferences -- scoped to the students actually active
+    // for this run (studentIndexes), not every entry in the full roster, since deleted students or
+    // students from a different section (when teaming sections separately) still occupy positions
+    // in students but shouldn't contribute option names to this run's discovery pass.
     QSet<QString> optionSet;
     int maxK = 0;
     for(int i = 0; i < numStudents; i++) {
-        const auto &prefs = students[i].assignmentPreferences;
+        const auto &prefs = students[studentIndexes[i]].assignmentPreferences;
         maxK = std::max(maxK, static_cast<int>(prefs.size()));
         for(const auto &pref : prefs) {
             if(!pref.isEmpty()) {
@@ -324,6 +327,21 @@ void AssignmentPreferenceCriterion::calculateScore(const StudentRecord *const st
         criteriaScores[team] = teamScores[team] * weight;
         penaltyPoints[team] *= weight;
     }
+}
+
+
+/////////////////////////////////////////////////////////////////////
+// scoreForOneTeamInOptimization — fixed value; see supportsSingleTeamScoring() in the header.
+// A constant contributes identically to every candidate the hill climb compares, so it cancels out
+// of the accept/reject decision rather than silently returning a wrong single-team assignment score.
+/////////////////////////////////////////////////////////////////////
+
+float AssignmentPreferenceCriterion::scoreForOneTeamInOptimization(const StudentRecord *const /*students*/, const int /*teamRoster*/[], const int /*teamSize*/,
+                                                                    const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
+                                                                    float &penaltyPoints) const
+{
+    penaltyPoints = 0.0f;
+    return 0.0f;
 }
 
 

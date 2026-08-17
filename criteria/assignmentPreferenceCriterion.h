@@ -19,7 +19,7 @@ public:
     void settingsFromJson(const QJsonObject &json) override;
 
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
-    void prepareForOptimization(const StudentRecord *students, int numStudents, const DataOptions *dataOptions) override;
+    void prepareForOptimization(const StudentRecord *students, const int studentIndexes[], int numStudents, const DataOptions *dataOptions) override;
     void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                         const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
                         QList<float> &criteriaScores, QList<float> &penaltyPoints) const override;
@@ -27,6 +27,14 @@ public:
     // Must override: assignment is inherently multi-team, so single-team display scoring needs the full assignment
     float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
                                    const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed) override;
+
+    // Assignment is a joint property of the whole team set (a swap anywhere can change the optimal
+    // assignment everywhere), so no per-team rescoring could ever be correct -- opt out of the hill
+    // climb's single-team scoring entirely rather than have a per-team score silently mean the wrong thing.
+    bool supportsSingleTeamScoring() const override { return false; }
+    float scoreForOneTeamInOptimization(const StudentRecord *const students, const int teamRoster[], const int teamSize,
+                                        const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                        float &penaltyPoints) const override;
 
     QString headerLabel(const DataOptions *dataOptions) const override;
     Qt::TextElideMode headerElideMode() const override;

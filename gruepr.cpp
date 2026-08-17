@@ -13,6 +13,7 @@
 #include "widgets/teamsTabItem.h"
 #include <memory>
 #include <random>
+#include <utility>
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -32,7 +33,6 @@
 #include <QSplitter>
 #include <QtConcurrentRun>
 #include <QTextBrowser>
-
 
 gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProgressDialog *progressDialog) :
     QMainWindow(),
@@ -1599,11 +1599,6 @@ void gruepr::startOptimization()
         criterion->weight *= normFactor;
     }
 
-    // prepare the criteria for the optimization process (mostly cache pre-determined values)
-    for (auto *criterion : std::as_const(teamingOptions->criteria)) {
-        criterion->prepareForOptimization(students.constData(), numActiveStudents, dataOptions);
-    }
-
     bestTeamSet.clear();
     finalTeams.clear();
     finalTeams.dataOptions = *dataOptions;
@@ -1633,6 +1628,15 @@ void gruepr::startOptimization()
         numActiveStudents = numStudentsInSection;
         if(numActiveStudents < 4) {
             continue;
+        }
+
+        // Prepare the criteria for this section's optimization run (mostly cache pre-determined
+        // values) -- done here, after studentIndexes is finalized for this specific section, rather
+        // than once upfront against the whole (possibly multi-section) roster, since students.data()
+        // is the ORIGINAL unfiltered array and studentIndexes is what actually scopes it to the
+        // students active in this run.
+        for (auto *criterion : std::as_const(teamingOptions->criteria)) {
+            criterion->prepareForOptimization(students.constData(), studentIndexes.constData(), numActiveStudents, dataOptions);
         }
 
         if(teamingMultipleSections) {
@@ -2358,8 +2362,24 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         teamStartPositions[team + 1] = teamStartPositions[team] + teamSizes[team];
     }
 
+    // Per-genome team scores, kept persistently (rather than as per-thread scratch discarded every
+    // generation) so the hill climb mutation can rescore just the two teams a candidate swap touches
+    // instead of the whole genome. numTeams * populationsize floats -- a few hundred KB.
+    auto teamScoresPool = std::make_unique<float[]>(size_t(ga.populationsize) * size_t(numTeams));
+
+    // Whether at least one active criterion can be correctly scored one team at a time (see
+    // Criterion::supportsSingleTeamScoring()). If none can, there's no signal for the hill climb to
+    // work with, so mutation falls back to the blind worst-vs-second-worst swap for the whole run.
+    bool anyCriteriaSupportSingleTeamScoring = false;
+    for(const auto *const criterion : std::as_const(teamingOptions->criteria)) {
+        if(criterion->supportsSingleTeamScoring()) {
+            anyCriteriaSupportSingleTeamScoring = true;
+            break;
+        }
+    }
+
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    auto scores = std::make_unique<float[]>(ga.populationsize);
+    auto genomeScores = std::make_unique<GenomeScore[]>(ga.populationsize);
     // make local copies of member variables to satisfy openMP's needs
     const auto &sharedStudents = students;
     const auto &sharedNumTeams = numTeams;
@@ -2371,23 +2391,23 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     //parallel initialization of needed variables.
 #pragma omp parallel \
         default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA)
+        shared(genomeScores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA, teamScoresPool)
     {
-        QList<float> teamScores(sharedNumTeams);
         QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
         QList<float> penaltyPoints(sharedNumTeams);
 #pragma omp for
         for(int genome = 0; genome < sharedGA->populationsize; genome++) {
-            scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
-                                            sharedTeamingOptions, sharedDataOptions, teamScores.data(),
-                                            criteriaScores, penaltyPoints);
+            genomeScores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
+                                                  sharedTeamingOptions, sharedDataOptions,
+                                                  teamScoresPool.get() + (size_t(genome) * size_t(sharedNumTeams)),
+                                                  criteriaScores, penaltyPoints);
         }
     }
 
     // get genome indexes in order of score, largest to smallest
-    std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize,
-              [&scores](const int i, const int j){return (scores[i] > scores[j]);});
-    emit generationComplete(scores[orderedIndex[0]], 0, 0);
+    std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&genomeScores](const int i, const int j)
+        {return (genomeScores[i] > genomeScores[j]);});
+    emit generationComplete(genomeScores[orderedIndex[0]].score, 0, 0);
 
     float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
@@ -2400,11 +2420,11 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
             // 1. Clone the elites from genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
             for(int genome = 0; genome < GA::NUM_ELITES; genome++) {
-                ga.clone(genePool[orderedIndex[genome]], ancestors[orderedIndex[genome]], orderedIndex[genome],
+                GA::clone(genePool[orderedIndex[genome]], ancestors[orderedIndex[genome]], orderedIndex[genome],
                          nextGenGenePool[genome], nextGenAncestors[genome], numActiveStudents);
             }
 
-            // 2. Create the rest of population in nextGenGenePool by mating (multi-threaded using OpenMP).
+            // 2. Create the rest of population in nextGenGenePool by mating (multi-threaded using OpenMP)
 #pragma omp parallel \
             default(none) \
             shared(genePool, nextGenGenePool, ancestors, nextGenAncestors, orderedIndex, \
@@ -2418,42 +2438,42 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                                                       threadMom, threadDad, nextGenAncestors[genome]);
 
                     //mate them and put child in nextGenGenePool
-                    sharedGA->mate(threadMom, threadDad, teamStartPositions.get(), sharedNumTeams,
-                                   nextGenGenePool[genome], sharedNumActiveStudents);
+                    GA::mate(threadMom, threadDad, teamStartPositions.get(), sharedNumTeams,
+                            nextGenGenePool[genome], sharedNumActiveStudents);
                 }
             }
 
-            // 3. Swap pointers to make nextGen's genePool and ancestors into this generation's
+            // 3. Swap pointers to make nextGen's genePool and ancestors into this gen's genePool and ancestors
             swap(genePool, nextGenGenePool);
             swap(ancestors, nextGenAncestors);
 
             generation++;
 
-            // 4. Calculate this generation's scores (multi-threaded using OpenMP)
+            // 4. Calculate the score for every genome in this generation (multi-threaded using OpenMP), and find each genome's worst two teams
 #pragma omp parallel \
             default(none) \
-            shared(scores, worstTeam, secondWorstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA)
+            shared(genomeScores, worstTeam, secondWorstTeam, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA, teamScoresPool)
             {
-                QList<float> teamScores(sharedNumTeams);
                 QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
                 QList<float> penaltyPoints(sharedNumTeams);
 #pragma omp for
                 for(int genome = 0; genome < sharedGA->populationsize; genome++) {
-                    scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
-                                                    sharedTeamingOptions, sharedDataOptions, teamScores.data(),
-                                                    criteriaScores, penaltyPoints);
-                    // find this genome's worst- and second-worst-scoring teams
+                    float *const thisGenomeTeamScores = teamScoresPool.get() + (size_t(genome) * size_t(sharedNumTeams));
+                    genomeScores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
+                                                          sharedTeamingOptions, sharedDataOptions, thisGenomeTeamScores,
+                                                          criteriaScores, penaltyPoints);
+                    // identify this genome's worst- and second-worst-scoring teams
                     int worst = 0;
                     int secondWorst = (sharedNumTeams > 1) ? 1 : 0;
-                    if(sharedNumTeams > 1 && teamScores[secondWorst] < teamScores[worst]) {
+                    if(sharedNumTeams > 1 && thisGenomeTeamScores[secondWorst] < thisGenomeTeamScores[worst]) {
                         std::swap(worst, secondWorst);
                     }
                     for(int team = 2; team < sharedNumTeams; team++) {
-                        if(teamScores[team] < teamScores[worst]) {
+                        if(thisGenomeTeamScores[team] < thisGenomeTeamScores[worst]) {
                             secondWorst = worst;
                             worst = team;
                         }
-                        else if(teamScores[team] < teamScores[secondWorst]) {
+                        else if(thisGenomeTeamScores[team] < thisGenomeTeamScores[secondWorst]) {
                             secondWorst = team;
                         }
                     }
@@ -2463,21 +2483,51 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             }
 
             // 5. Get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&scores](const int i, const int j)
-                {return (scores[i] > scores[j]);});
+            std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&genomeScores](const int i, const int j)
+                {return (genomeScores[i] > genomeScores[j]);});
 
-            // 6. Mutate all but the top numSuperElites-ranked genomes, each with a GA::MUTATIONLIKELIHOOD% chance.
-            //    If mutation happens, it occurs by swapping one site between each genome's worst- and second-worst-scoring teams
+            // 6. Mutate all but the top numSuperElites-ranked genomes, each with a mutationLikelihood% chance
+            //    (multi-threaded using OpenMP). If at least one active criterion supports single-team scoring,
+            //    mutation is the delta-scored hill climb on the worst two teams; otherwise it falls back to a
+            //    random swap between those teams
             for(int rank = 0; rank < GA::NUM_SUPER_ELITES && rank < ga.populationsize; rank++) {
                 isSuperEliteGenome[orderedIndex[rank]] = true;
             }
-            std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-            for(int genome = 0; genome < ga.populationsize; genome++) {
-                if(isSuperEliteGenome[genome]) {
-                    continue;
-                }
-                if(randProbability(pRNG) <= GA::MUTATIONLIKELIHOOD) {
-                    ga.mutateWorstTeams(genePool[genome], teamStartPositions.get(), worstTeam[genome], secondWorstTeam[genome]);
+#pragma omp parallel \
+            default(none) \
+            shared(isSuperEliteGenome, genePool, teamStartPositions, teamSizes, sharedNumTeams, sharedStudents, \
+                   sharedTeamingOptions, sharedDataOptions, worstTeam, secondWorstTeam, sharedGA, \
+                   anyCriteriaSupportSingleTeamScoring)
+            {
+                // seeded once per thread on first use (thread_local), then persists across every later
+                // generation on this thread -- not re-seeded every time this parallel region is entered
+                thread_local std::mt19937 threadRNG{std::random_device{}()};
+                std::uniform_int_distribution<unsigned int> randProbability(1, 100);
+#pragma omp for
+                for(int genome = 0; genome < sharedGA->populationsize; genome++) {
+                    if(isSuperEliteGenome[genome]) {
+                        continue;
+                    }
+                    if(randProbability(threadRNG) <= static_cast<unsigned int>(sharedGA->mutationLikelihood)) {
+                        if(anyCriteriaSupportSingleTeamScoring) {
+                            hillClimbWorstTeams(genePool[genome], teamStartPositions.get(),
+                                                sharedStudents.constData(), teamSizes.data(), sharedNumTeams,
+                                                sharedTeamingOptions, sharedDataOptions,
+                                                worstTeam[genome], secondWorstTeam[genome],
+                                                sharedGA->maxHillClimbAttempts);
+                        }
+                        else {
+                            // no criteria support single-team scoring here, so fall back to a blind
+                            // mutation between the two worst-scoring teams (no distinct second-worst
+                            // team -- e.g. only one team total -- means there's nothing to swap with)
+                            const int worst = worstTeam[genome];
+                            const int secondWorst = secondWorstTeam[genome];
+                            if(worst != secondWorst) {
+                                GA::mutate(genePool[genome], teamStartPositions[worst], teamStartPositions[worst + 1],
+                                          teamStartPositions[secondWorst], teamStartPositions[secondWorst + 1]);
+                            }
+                        }
+                    }
                 }
             }
             // reset just the sparse set of entries just marked, so the array is all-false again on entry next time
@@ -2486,15 +2536,16 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             }
 
             // 7. Determine the best score, save in historical record, and calculate score stability
-            const float maxScoreInThisGeneration = scores[orderedIndex[0]];
+            const float maxScoreInThisGeneration = genomeScores[orderedIndex[0]].score;
             const float maxScoreFromGenerationsAgo = bestScores[(generation+1) % (GA::GENERATIONS_OF_STABILITY)];
             bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
 
-            if(maxScoreInThisGeneration == maxScoreFromGenerationsAgo) {
-                scoreStability = maxScoreInThisGeneration / 0.0001F;
+            const float delta = maxScoreInThisGeneration - maxScoreFromGenerationsAgo;
+            if(delta <= 0.0001F) {
+                scoreStability = 2 * GA::MIN_SCORE_STABILITY;
             }
             else {
-                scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
+                scoreStability = std::abs(maxScoreInThisGeneration) / delta;
             }
             emit generationComplete(maxScoreInThisGeneration, generation, scoreStability);
 
@@ -2536,9 +2587,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 // Modifies the teamScores[] to give scores for each individual team in the genome, too
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 //////////////////
-float gruepr::getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                             const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                             QList<QList<float>> &_criteriaScores, QList<float> &_penaltyPoints)
+GenomeScore gruepr::getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                   const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
+                                   QList<QList<float>> &_criteriaScores, QList<float> &_penaltyPoints)
 {
     // Initialize each component and team score
     for(auto &penalty : _penaltyPoints) {
@@ -2580,11 +2631,26 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     }
 
     // Finally, bring all team scores together for a total genome score.
-    // Use the harmonic mean, the inverse of the average of the inverses, so score is skewed towards the smaller members.
-    // This makes it so we optimize for better values of the worse teams rather than run-away best teams.
-    // Very poor teams have 0 or negative scores, and this makes the harmonic mean impossible to calculate.
-    // Thus, if any teamScore is <= 0, we instead use the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean.
-    float harmonicSum = 0, regularSum = 0;
+    return aggregateTeamScores(_teamScores, _teamSizes, _numTeams);
+}
+
+
+//////////////////
+// Combine already-computed team scores into a genome score. Shared by getGenomeScore() (which just
+// computed _teamScores above) and the hill climb (which only ever touches two teams' scores, so it
+// recombines the whole cached array here rather than paying for a full rescore).
+//
+// Use the harmonic mean, the inverse of the average of the inverses, so score is skewed towards the smaller members.
+// This makes it so we optimize for better values of the worse teams rather than run-away best teams.
+// Very poor teams have 0 or negative scores, and this makes the harmonic mean impossible to calculate.
+// Thus, if any teamScore is <= 0, we instead use the average deficit: the sum of the non-positive teams'
+// scores, divided by the total number of teams. The denominator is deliberately the total count, not
+// just the count of non-positive teams -- dividing by the shrinking non-positive count would let a team's
+// repair (removing it from that sum) make the average deficit look worse instead of better.
+//////////////////
+GenomeScore gruepr::aggregateTeamScores(const float _teamScores[], const int _teamSizes[], const int _numTeams)
+{
+    float harmonicSum = 0, nonPositiveSum = 0;
     int numTeamsScored = 0;
     bool allTeamsPositive = true;
     for(int team = 0; team < _numTeams; team++) {
@@ -2593,22 +2659,114 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
             continue;
         }
         numTeamsScored++;
-        regularSum += _teamScores[team];
 
         if(_teamScores[team] <= 0) {
             allTeamsPositive = false;
+            nonPositiveSum += _teamScores[team];
         }
         else {
             harmonicSum += 1/_teamScores[team];
         }
     }
 
-    if(allTeamsPositive) {
-        return(float(numTeamsScored)/harmonicSum);      //harmonic mean
+    if(numTeamsScored == 0) {
+        return {};
     }
 
-    const float mean = regularSum / float(numTeamsScored);
-    return(mean - (std::abs(mean)/2));   //"punished" arithmetic mean
+    const float positiveTeamsHarmonicMean = (harmonicSum > 0) ? (float(numTeamsScored)/harmonicSum) : 0;
+    const float score = allTeamsPositive ? positiveTeamsHarmonicMean : (nonPositiveSum / float(numTeamsScored));
+    return {score, positiveTeamsHarmonicMean};
+}
+
+
+//////////////////
+// Score a single team. Teams occupy contiguous runs of the genome, so a team can be scored by
+// handing each criterion a pointer to the start of that run -- no mini-genome to build. Mirrors
+// getGenomeScore's per-team combination (extra credit stripped when any penalty applies, penalty
+// floored at MINIMUM_PENALTY), just driven by scoreForOneTeamInOptimization() instead of
+// calculateScore(), so criteria that can't be scored alone (see Criterion::supportsSingleTeamScoring())
+// can still be summed in uniformly here -- they're expected to return a fixed value regardless of
+// team composition, which cancels out of the hill climb's accept/reject comparison either way.
+//////////////////
+float gruepr::getTeamScore(const StudentRecord *const _students, const int _teamRoster[], const int _teamSize,
+                          const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions)
+{
+    const int numCriteria = int(_teamingOptions->criteria.size());
+
+    // thread_local because this runs inside an OpenMP parallel region
+    thread_local QList<float> criterionScore;
+    if(criterionScore.size() != numCriteria) {
+        criterionScore.resize(numCriteria);
+    }
+
+    float totalPenalty = 0;
+    for(int criterion = 0; criterion < numCriteria; criterion++) {
+        float penalty = 0;
+        criterionScore[criterion] = _teamingOptions->criteria[criterion]->scoreForOneTeamInOptimization(
+            _students, _teamRoster, _teamSize, _teamingOptions, _dataOptions, penalty);
+        totalPenalty += penalty;
+    }
+
+    float teamScore = 0;
+    for(int criterion = 0; criterion < numCriteria; criterion++) {
+        // remove any criterion's "extra credit" (score > weight) if **any** penalties are being applied,
+        // so that very high extra credit doesn't cancel out the penalty -- matches getGenomeScore's
+        // per-team combination exactly
+        if(criterionScore[criterion] > _teamingOptions->criteria[criterion]->weight && totalPenalty > 0) {
+            teamScore += _teamingOptions->criteria[criterion]->weight;
+        }
+        else {
+            teamScore += criterionScore[criterion];
+        }
+    }
+
+    if(totalPenalty > 0) {
+        totalPenalty = std::max(totalPenalty, MINIMUM_PENALTY);
+    }
+    return 100 * ((teamScore / float(numCriteria)) - totalPenalty);
+}
+
+
+//////////////////
+// Repeatedly swap one student from the worst-scoring team with one from the second-worst-scoring
+// team, keeping the first swap that improves the genome, until a round finds no improvement or
+// _maxHillClimbAttempts is reached.
+//////////////////
+void gruepr::hillClimbWorstTeams(int _genome[], const int _teamStartPositions[],
+                                 const StudentRecord *const _students, const int _teamSizes[], const int _numTeams,
+                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                                 const int _worst, const int _secondWorst, const int _maxHillClimbAttempts)
+{
+    if(_numTeams < 2) {
+        return;
+    }
+
+    const int teamSizes[] = {_teamSizes[_worst], _teamSizes[_secondWorst]};
+
+    const float currentTeamScores[] = {getTeamScore(_students, _genome + _teamStartPositions[_worst],
+                                                    _teamSizes[_worst], _teamingOptions, _dataOptions),
+                                       getTeamScore(_students, _genome + _teamStartPositions[_secondWorst],
+                                                    _teamSizes[_secondWorst], _teamingOptions, _dataOptions)};
+    const GenomeScore currentScore = aggregateTeamScores(currentTeamScores, teamSizes, 2);
+
+    for(int attempt = 0; attempt < _maxHillClimbAttempts; attempt++) {
+        // mutation confined to just the worst and second-worst teams
+        const auto [posA, posB] = GA::mutate(_genome, _teamStartPositions[_worst], _teamStartPositions[_worst + 1],
+                                             _teamStartPositions[_secondWorst], _teamStartPositions[_secondWorst + 1]);
+
+        const float newTeamScores[] = {getTeamScore(_students, _genome + _teamStartPositions[_worst],
+                                                    _teamSizes[_worst], _teamingOptions, _dataOptions),
+                                       getTeamScore(_students, _genome + _teamStartPositions[_secondWorst],
+                                                    _teamSizes[_secondWorst], _teamingOptions, _dataOptions)};
+        const GenomeScore candidateScore = aggregateTeamScores(newTeamScores, teamSizes, 2);
+
+        if(candidateScore > currentScore) {
+            break;
+        }
+
+        // reject: undo the swap
+        std::swap(_genome[posA], _genome[posB]);
+    }
 }
 
 void gruepr::closeEvent(QCloseEvent *event)

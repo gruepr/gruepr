@@ -123,7 +123,7 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOpti
     });
 }
 
-void ScheduleCriterion::prepareForOptimization(const StudentRecord *, int, const DataOptions *dataOptions)
+void ScheduleCriterion::prepareForOptimization(const StudentRecord */*students*/, const int /*studentIndexes*/[], int /*numStudents*/, const DataOptions *dataOptions)
 {
     numBlocksForOneMeeting = static_cast<int>(std::ceil(meetingBlockSize / dataOptions->scheduleResolution));
 }

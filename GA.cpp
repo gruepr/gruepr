@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <limits>
 #include <random>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -15,13 +16,15 @@ thread_local std::mt19937 threadRNG{std::random_device{}()};
 void GA::setGAParameters(int numRecords)
 {
     populationsize = (numRecords <= GENOMESIZETHRESHOLD) ? POPULATIONSIZE[0] : POPULATIONSIZE[1];
+    mutationLikelihood = 50;
+    maxHillClimbAttempts = 3;
 }
 
 
 //////////////////
 // Clone one parent from the genepool into new genepool
 //////////////////
-void GA::clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize) const
+void GA::clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize)
 {
     for(int ID = 0; ID < genomeSize; ID++) {
         child[ID] = parent[ID];
@@ -144,7 +147,7 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
 // Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
 //////////////////
 void GA::mate(const int *const mom, const int *const dad, const int teamStartPositions[],
-              const int numTeams, int child[], const long long genomeSize) const
+              const int numTeams, int child[], const long long genomeSize)
 {
     //randomly choose two team boundaries in the genome from which to cut an allele
     std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
@@ -153,7 +156,9 @@ void GA::mate(const int *const mom, const int *const dad, const int teamStartPos
     do {
         endTeam = randTeam(threadRNG);
     }
-    while(endTeam == startTeam);
+    //reject the empty allele, and also the whole-genome allele, which would just clone mom
+    while((endTeam == startTeam) ||
+          ((std::min(startTeam, endTeam) == 0) && (std::max(startTeam, endTeam) == (unsigned int)numTeams)));
     if(startTeam > endTeam) {
         std::swap(startTeam, endTeam);
     }
@@ -167,7 +172,7 @@ void GA::mate(const int *const mom, const int *const dad, const int teamStartPos
 // Ordered crossover with the cut points already chosen
 //////////////////
 void GA::crossover(const int *const mom, const int *const dad, const unsigned int start, const unsigned int end,
-                   int child[], const long long genomeSize) const
+                   int child[], const long long genomeSize)
 {
     //copy mom's allele directly into the child at the same positions
     std::copy(mom + start, mom + end, child + start);
@@ -196,49 +201,53 @@ void GA::crossover(const int *const mom, const int *const dad, const unsigned in
         valueIsInMomsAllele[value] = momsAlleleStamp;
     }
 
-    //fill the rest of the child with dad's values, in dad's relative order, skipping over
-    //mom's allele (already placed above) and any value dad has that's already in mom's allele
-    long long writePos = 0;
-    for(long long i = 0; i < genomeSize; i++) {
-        if(writePos == start) {
-            writePos = end;
-        }
+    //Dad's students sitting in the allele region who are not themselves in mom's allele have been
+    //displaced and need new homes.
+    thread_local std::vector<int> displaced;
+    displaced.clear();
+    for(unsigned int i = start; i < end; i++) {
         const int value = dad[i];
         const bool inMomsAllele = (value >= 0) && (value < int(valueIsInMomsAllele.size())) &&
                                   (valueIsInMomsAllele[value] == momsAlleleStamp);
         if(!inMomsAllele) {
-            child[writePos] = value;
-            writePos++;
+            displaced.push_back(value);
         }
     }
-}
 
-
-//////////////////
-// Randomly swap two sites in given genome
-//////////////////
-void GA::mutate(int genome[], const long long genomeSize) const
-{
-    std::uniform_int_distribution<unsigned long long> randSite(0, genomeSize-1);
-    std::swap(genome[randSite(threadRNG)], genome[randSite(threadRNG)]);
-}
-
-//////////////////
-// Swap a random student from the worst-scoring team with a random student from the second-worst-scoring team
-//////////////////
-void GA::mutateWorstTeams(int genome[], const int teamStartPositions[], const int worstTeam, const int secondWorstTeam) const
-{
-    // If there is no distinct second-worst team (e.g., only one team total), there is nothing to swap with
-    if(worstTeam == secondWorstTeam) {
-        return;
+    //Outside the allele, each of dad's students keeps his own position unless he is in mom's allele,
+    //in which case the hole is patched from the displaced pool. Nothing shifts, so every team of
+    //dad's outside the allele with no student in mom's allele arrives whole -- where compacting
+    //would have slid it off its boundary. The counts match exactly: the holes outside the allele
+    //and the students displaced from inside it are both the number of mom's allele students that
+    //dad happens to have positioned outside it.
+    size_t nextDisplaced = 0;
+    for(long long i = 0; i < genomeSize; i++) {
+        if((i >= (long long)start) && (i < (long long)end)) {
+            continue;
+        }
+        const int value = dad[i];
+        const bool inMomsAllele = (value >= 0) && (value < int(valueIsInMomsAllele.size())) &&
+                                  (valueIsInMomsAllele[value] == momsAlleleStamp);
+        child[i] = inMomsAllele ? displaced[nextDisplaced++] : value;
     }
+}
 
-    std::mt19937 &pRNG = threadRNG;
 
-    std::uniform_int_distribution<int> randWorstSite(teamStartPositions[worstTeam], teamStartPositions[worstTeam + 1] - 1);
-    std::uniform_int_distribution<int> randSecondWorstSite(teamStartPositions[secondWorstTeam], teamStartPositions[secondWorstTeam + 1] - 1);
+//////////////////
+// Swap a random position in [startA,endA) with a random position in [startB,endB); returns the two
+// swapped positions. A fully random, untargeted mutation is startA=startB=0, endA=endB=genomeSize;
+// confining (or splitting) the two regions to specific teams targets the mutation at just those
+// teams -- see the callers in gruepr.cpp for both uses.
+//////////////////
+std::pair<int,int> GA::mutate(int genome[], const int startA, const int endA, const int startB, const int endB)
+{
+    std::uniform_int_distribution<int> randA(startA, endA - 1);
+    std::uniform_int_distribution<int> randB(startB, endB - 1);
 
-    std::swap(genome[randWorstSite(pRNG)], genome[randSecondWorstSite(pRNG)]);
+    const int posA = randA(threadRNG);
+    const int posB = randB(threadRNG);
+    std::swap(genome[posA], genome[posB]);
+    return {posA, posB};
 }
 
 

@@ -1,6 +1,8 @@
 #ifndef GA_H
 #define GA_H
 
+#include <utility>
+
 // Code related to the Genetic Algorithm used in gruepr
 
 class GA
@@ -8,19 +10,28 @@ class GA
 public:
     void setGAParameters(int numRecords);
 
-    void clone(const int *const parent, const int *const ancestors, const int parentsIndex,
-               int child[], int parentage[], const int genomeSize) const;
+    // static: none of clone/mate/crossover touch any GA instance state (only parameters, static
+    // class constants, and GA.cpp's own thread_local RNG) -- callable without a GA instance.
+    static void clone(const int *const parent, const int *const ancestors, const int parentsIndex,
+                      int child[], int parentage[], const int genomeSize);
 
     void tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
                                  const int *&mom, const int *&dad, int parentage[]) const;
 
-    void mate(const int *const mom, const int *const dad, const int teamStartPositions[],
-              const int numTeams, int child[], const long long genomeSize) const;
-    void crossover(const int *const mom, const int *const dad, const unsigned int start, const unsigned int end,
-                   int child[], const long long genomeSize) const;
+    static void mate(const int *const mom, const int *const dad, const int teamStartPositions[],
+                     const int numTeams, int child[], const long long genomeSize);
+    static void crossover(const int *const mom, const int *const dad, const unsigned int start, const unsigned int end,
+                          int child[], const long long genomeSize);
 
-    void mutate(int genome[], const long long genomeSize) const;
-    void mutateWorstTeams(int genome[], const int teamStartPositions[], const int worstTeam, const int secondWorstTeam) const;
+    // Swaps a random position in [startA,endA) with a random position in [startB,endB) and returns
+    // the two genome positions swapped, so a caller that needs to undo it (e.g. a rejected hill-climb
+    // attempt) can just std::swap them back itself. A fully random, untargeted mutation is
+    // startA=startB=0, endA=endB=genomeSize; a mutation confined to (or between) specific teams is
+    // whatever [teamStartPositions[team], teamStartPositions[team+1]) region(s) the caller passes in
+    // -- e.g. the worst-two-teams fallback mutation in gruepr::optimizeTeams, or the delta-scored
+    // hill climb in gruepr::hillClimbWorstTeams. Static: doesn't touch any GA instance state, only
+    // its own thread_local RNG (see GA.cpp) -- callable without a GA instance.
+    static std::pair<int,int> mutate(int genome[], int startA, int endA, int startB, int endB);
 
     class GenePool {
     public:
@@ -88,10 +99,17 @@ public:
                                                                 //      1 = prevent if either parent is same (no siblings mating);
                                                                 //      2 = prevent if any parent or grandparent is same (no siblings or 1st cousins);
                                                                 //      3 = prevent if any parent, grandparent, or greatgrandparent is same (no siblings, 1st or 2nd cousins); etc.
-    inline static const int MUTATIONLIKELIHOOD = 50;           // percent likelihood that a genome is mutated once in a given generation
+    // TEMPORARY (2026-08-16): mutationLikelihood/maxHillClimbAttempts are instance members rather
+    // than static consts, set by setGAParameters(), specifically so a benchmark can override them
+    // post-construction for a sweep -- same pattern used earlier for tournamentSize/numElites/
+    // numSuperElites (see gruepr-ga-tuning-final-results memory). Revert to static consts once the
+    // sweep concludes, unless either turns out to actually vary by class size.
+    int mutationLikelihood = 50;         // percent likelihood that a genome is mutated once in a given generation
 
     inline static const int NUM_ELITES = 3;                 // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite stabilizes the high score to end optimization
     inline static const int NUM_SUPER_ELITES = 1;            // of those NUM_ELITES clones, this many (the highest scoring) are also exempted from mutation, so the current best genome(s) can never be lost to a bad mutation
+
+    int maxHillClimbAttempts = 3;        // bounds the delta-scored hill-climb mutation's rounds on the worst two teams; a genome at a local optimum would otherwise burn the whole neighborhood every round for nothing
 
     // working value of the one algorithm constant that varies with class size, set when beginning an optimization and the genome size is known
     int populationsize = POPULATIONSIZE[1];

@@ -92,7 +92,7 @@ void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
     parentCard->setContentAreaLayout(*contentLayout);
 }
 
-void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*/, int /*numStudents*/, const DataOptions *dataOptions)
+void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*/, const int /*studentIndexes*/[], int /*numStudents*/, const DataOptions *dataOptions)
 {
     const auto type = dataOptions->attributeType[attributeIndex];
     const bool isNumerical = (type == DataOptions::AttributeType::numerical);

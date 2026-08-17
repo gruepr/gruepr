@@ -785,7 +785,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile()
         grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         return false;
     }
-    const QStringList &teamnames = parsed.teamNames;
+    //const QStringList &teamnames = parsed.teamNames;
     const QList<QStringList> &teammateLists = parsed.teammateNames;
 
     // Now we have list of teams and corresponding lists of teammates by name

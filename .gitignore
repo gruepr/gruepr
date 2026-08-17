@@ -3,6 +3,7 @@
 gruepr.pro.user
 gruepr.pro.user*
 build/*
+bench/*
 test_surveys/*
 prev_versions/*
 macOS/*

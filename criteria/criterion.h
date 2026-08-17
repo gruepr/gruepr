@@ -38,8 +38,12 @@ public:
     // generate the UI for the criterion display in gruepr
     virtual void generateCriteriaCard(TeamingOptions *const teamingOptions) = 0;
 
-    // called once before optimization begins to cache any values derived from the student data
-    virtual void prepareForOptimization(const StudentRecord */*students*/, int /*numStudents*/, const DataOptions */*dataOptions*/) {}
+    // Called once before optimization begins to cache any values derived from the student data.
+    // students is the ORIGINAL, full, unfiltered roster -- studentIndexes[0..numStudents) are the
+    // indices of the students actually active for this run (mirrors calculateScore's teammates[]
+    // convention), since students who are deleted or in a different section (when teaming sections
+    // separately) still occupy positions in students but must not be treated as part of this run.
+    virtual void prepareForOptimization(const StudentRecord */*students*/, const int /*studentIndexes*/[], int /*numStudents*/, const DataOptions */*dataOptions*/) {}
 
     // calculate the score for the criterion for all the teams in a genome, used in the optimization algorithm
     virtual void calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
@@ -49,6 +53,22 @@ public:
     // a convenience wrapper around calculateScore to calculate for one team, used to color the TeamTree display
     virtual float scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions *teamingOptions,
                                            const DataOptions *dataOptions, const QSet<long long> &allIDsBeingTeamed = {});
+
+    // Declares whether this criterion's score for one team is independent of how every OTHER team in
+    // the genome is currently arranged -- i.e., whether it can be correctly rescored alone. Default
+    // true, since most criteria (gender/URM/schedule/attribute balance) only ever look at their own
+    // team's students. Override to false only for criteria whose score is inherently a joint property
+    // of the whole team set (e.g. a cross-team assignment) -- see AssignmentPreferenceCriterion.
+    virtual bool supportsSingleTeamScoring() const { return true; }
+
+    // Scores exactly one team, for the optimizer's hill-climb mutation. Default implementation calls
+    // calculateScore with numTeams=1 over just this team's own roster -- correct for any criterion
+    // whose score only ever depends on its own team. Override when a criterion needs broader context
+    // (see TeammatesCriterion) or cannot be scored alone at all (return a fixed value and also
+    // override supportsSingleTeamScoring() -- see AssignmentPreferenceCriterion).
+    virtual float scoreForOneTeamInOptimization(const StudentRecord *const students, const int teamRoster[], const int teamSize,
+                                                const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                                float &penaltyPoints) const;
 
     static constexpr float NO_SCORE = std::numeric_limits<float>::quiet_NaN();
     static inline bool IS_NO_SCORE(float score) { return std::isnan(score); }
@@ -92,7 +112,9 @@ protected:
     teamSortValue — sort key for the column
     studentDisplayText — what to show in the student row
     exportTeamingOptionText — text for the instructor export header
-    Optionally override: teamTextAlignment, studentTextAlignment, teamDisplayColor, scoreForOneTeamInDisplay, settingsToJson, settingsFromJson
+    Optionally override: teamTextAlignment, studentTextAlignment, teamDisplayColor, scoreForOneTeamInDisplay, settingsToJson, settingsFromJson,
+    supportsSingleTeamScoring/scoreForOneTeamInOptimization (only if this criterion's score for one team depends on the whole team set --
+    see AssignmentPreferenceCriterion for "opt out" and TeammatesCriterion for "needs broader cached context")
 
     If this criterion's per-student data should be exportable (Custom/Instructor/Spreadsheet files),
     add a static `exportStudentText(...)` function to the subclass (see GenderCriterion, URMIdentityCriterion,

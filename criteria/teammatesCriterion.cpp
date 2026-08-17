@@ -7,6 +7,26 @@
 #include <algorithm>
 #include <limits>
 
+namespace {
+// Starts a new round for one of the generation-stamped membership arrays used below (and in
+// prepareForOptimization/scoreForOneTeamInOptimization). If the next increment would wrap back to 0
+// -- the value every never-yet-inserted slot already holds -- untouched slots would start looking
+// like members again, so guard explicitly: clear the array once and restart the counter at 1.
+void beginNewRound(std::vector<uint32_t> &stamp, uint32_t &generation) {
+    if (generation == std::numeric_limits<uint32_t>::max()) {
+        std::fill(stamp.begin(), stamp.end(), 0);
+        generation = 0;
+    }
+    generation++;
+}
+
+void markID(std::vector<uint32_t> &stamp, uint32_t generation, long long id) {
+    if (id < 0) { return; }
+    if (static_cast<long long>(stamp.size()) <= id) { stamp.resize(static_cast<size_t>(id) + 1, 0); }
+    stamp[static_cast<size_t>(id)] = generation;
+}
+}
+
 Criterion* TeammatesCriterion::clone() const {
     auto *copy = new TeammatesCriterion(criteriaType, weight, penaltyStatus);
     copy->haveAnyTeammates = haveAnyTeammates;
@@ -116,23 +136,6 @@ void TeammatesCriterion::calculateScore(const StudentRecord *const students, con
     thread_local std::vector<uint32_t> onTeamStamp;
     thread_local uint32_t onTeamGeneration = 0;
 
-    // Starts a new round for one of the stamp arrays above. If the next increment would wrap back to 0
-    // -- the value every never-yet-inserted slot already holds -- untouched slots would start looking
-    // like members again, so guard explicitly: clear the array once and restart the counter at 1.
-    auto beginNewRound = [](std::vector<uint32_t> &stamp, uint32_t &generation) {
-        if (generation == std::numeric_limits<uint32_t>::max()) {
-            std::fill(stamp.begin(), stamp.end(), 0);
-            generation = 0;
-        }
-        generation++;
-    };
-
-    auto markID = [](std::vector<uint32_t> &stamp, uint32_t generation, long long id) {
-        if (id < 0) { return; }
-        if (static_cast<long long>(stamp.size()) <= id) { stamp.resize(static_cast<size_t>(id) + 1, 0); }
-        stamp[static_cast<size_t>(id)] = generation;
-    };
-
     // Get all IDs being teamed (so that we can make sure we only check the groupTogethers/splitAparts that are actually within this teamset)
     beginNewRound(beingTeamedStamp, beingTeamedGeneration);
     int studentNum = 0;
@@ -167,6 +170,51 @@ void TeammatesCriterion::calculateScore(const StudentRecord *const students, con
         criteriaScores[team] = (penalties == 0) ? weight : 0;
         penaltyPoints[team] *= weight;
     }
+}
+
+void TeammatesCriterion::prepareForOptimization(const StudentRecord *students, const int studentIndexes[], int numStudents, const DataOptions * /*dataOptions*/)
+{
+    // Every active student is, by definition, being teamed -- this is the same membership set
+    // calculateScore() rebuilds every call by scanning all numTeams teams passed to it, but it's fixed
+    // for the whole optimization run, so it's cheaper and simpler to just cache it once here.
+    // studentIndexes scopes this to the students actually active for this run -- deleted students, or
+    // students from a different section when teaming sections separately, still occupy positions in
+    // students but must not be counted as "being teamed" here.
+    beginNewRound(cachedBeingTeamedStamp, cachedBeingTeamedGeneration);
+    for(int i = 0; i < numStudents; i++) {
+        markID(cachedBeingTeamedStamp, cachedBeingTeamedGeneration, students[studentIndexes[i]].ID);
+    }
+}
+
+float TeammatesCriterion::scoreForOneTeamInOptimization(const StudentRecord *const students, const int teamRoster[], const int teamSize,
+                                                        const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
+                                                        float &penaltyPoints) const
+{
+    // thread_local because this runs inside an OpenMP parallel region during the hill climb
+    thread_local std::vector<uint32_t> onTeamStamp;
+    thread_local uint32_t onTeamGeneration = 0;
+    thread_local QList<const StudentRecord *> teamMembers;
+
+    beginNewRound(onTeamStamp, onTeamGeneration);
+    teamMembers.clear();
+    teamMembers.reserve(teamSize);
+    for(int teammate = 0; teammate < teamSize; teammate++) {
+        const auto &currStudent = students[teamRoster[teammate]];
+        markID(onTeamStamp, onTeamGeneration, currStudent.ID);
+        teamMembers.append(&currStudent);
+    }
+
+    // Uses the roster-wide stamp cached in prepareForOptimization instead of one rebuilt from only
+    // this call's teams -- see the header comment on cachedBeingTeamedStamp for why that matters.
+    const int penalties = scoreOneTeam(teamMembers, onTeamStamp, onTeamGeneration, cachedBeingTeamedStamp, cachedBeingTeamedGeneration);
+
+    penaltyPoints = 0.0f;
+    if (penalties > 0 && penaltyStatus) {
+        penaltyPoints += penalties;
+    }
+    penaltyPoints *= weight;
+
+    return (penalties == 0) ? weight : 0.0f;
 }
 
 float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions* /*teamingOptions*/,

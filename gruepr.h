@@ -18,9 +18,27 @@
 #include <QPrinter>
 #include <QProgressDialog>
 #include <QSpinBox>
+#include <compare>
+#include <random>
 
 
 namespace Ui {class gruepr;}
+
+// A genome's score paired with the harmonic mean of its positive teams, which breaks ties among
+// broken teamsets whose score alone (the average deficit over non-positive teams) is blind to how
+// good the healthy teams are.
+struct GenomeScore {
+    float score = 0;
+    float positiveTeamsHarmonicMean = 0;
+
+    friend std::partial_ordering operator<=>(const GenomeScore &a, const GenomeScore &b) {
+        if(const auto comparison = a.score <=> b.score; comparison != 0) {
+            return comparison;
+        }
+        return a.positiveTeamsHarmonicMean <=> b.positiveTeamsHarmonicMean;
+    }
+    friend bool operator==(const GenomeScore &a, const GenomeScore &b) = default;
+};
 
 /**
  * @brief Responsible for main Gruepr functionality
@@ -111,9 +129,28 @@ private:
     ScoreLineGraph *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
     GA ga;                                                        // class for genetic algorithm optimization
-    static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+    static GenomeScore getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
                                 QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
+    static GenomeScore aggregateTeamScores(const float _teamScores[], const int _teamSizes[], const int _numTeams);
+
+    // Scores exactly one team by pointer offset into a live genome -- no mini-genome copy -- for the
+    // hill climb. Sums each active criterion's scoreForOneTeamInOptimization(), skipping any that
+    // don't support it (see Criterion::supportsSingleTeamScoring()); such criteria are expected to
+    // return a fixed value on their own, so no special-casing is needed here either way.
+    static float getTeamScore(const StudentRecord *const _students, const int _teamRoster[], const int _teamSize,
+                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
+
+    // Delta-scored first-improvement hill climb on the worst two teams, replacing blind random
+    // mutation (GA::mutate confined to just these two teams) wherever at least one active criterion
+    // supports single-team scoring. _worst/_secondWorst are this genome's already-known worst- and
+    // second-worst-scoring team indexes (the caller computes these once per genome during scoring
+    // anyway); the genome is mutated in place. Safe to call from an omp parallel for (GA::mutate has
+    // its own thread_local RNG).
+    static void hillClimbWorstTeams(int _genome[], const int _teamStartPositions[],
+                                    const StudentRecord *const _students, const int _teamSizes[], const int _numTeams,
+                                    const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                                    const int _worst, const int _secondWorst, const int _maxHillClimbAttempts);
 
     float teamSetScore = 0;
     int finalGeneration = 1;
