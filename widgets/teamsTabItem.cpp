@@ -1079,7 +1079,9 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
                     if(student == nullptr) {
                         continue;
                     }
-                    student->splitApart << ID2;
+                    if(std::find(student->splitApart.begin(), student->splitApart.end(), ID2) == student->splitApart.end()) {
+                        student->splitApart.push_back(ID2);
+                    }
                 }
             }
         }

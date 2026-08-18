@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QList>
 #include <QMap>
+#include <vector>
 
 class AssignmentPreferenceCriterion : public Criterion {
     Q_OBJECT
@@ -60,9 +61,9 @@ private:
     int numOptions = 0;
     int numRankedChoices = 0;                        // k: how many choices each student ranked
 
-    // Hungarian algorithm: solves min-cost assignment on a square cost matrix
-    // Returns the column assigned to each row (result[row] = col)
-    static QList<int> hungarianAlgorithm(const QList<QList<float>> &costMatrix);
+    // Hungarian algorithm: solves min-cost assignment on a square cost matrix. costMatrix is flat,
+    // row-major (costMatrix[row*dim+col]). Returns the column assigned to each row (result[row] = col)
+    static QList<int> hungarianAlgorithm(const std::vector<float> &costMatrix, int dim);
 
     // Build utility matrix and solve assignment for a given set of teams
     // Returns a map from team index -> assigned option index

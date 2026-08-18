@@ -126,13 +126,10 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 
 void TeammatesCriterion::prepareForOptimization(const StudentRecord *students, const int studentIndexes[], int numStudents, const DataOptions * /*dataOptions*/)
 {
-    // Every active student is, by definition, being teamed -- this is the same membership set
-    // calculateScore() used to rebuild every call by scanning all numTeams teams passed to it, but
-    // it's fixed for the whole optimization run (or per-section, when teaming sections separately --
-    // this is called fresh for each section), so it's cheaper to cache it once here. studentIndexes
-    // scopes this to the students actually active for this run -- deleted students, or students from
-    // a different section, still occupy positions in students but must not be counted as "being
-    // teamed" here.
+    // Every active student is, by definition, being teamed. This is the membership set
+    // calculateScore() needs, but it's fixed for the whole optimization run (or per-section, when
+    // teaming sections separately so this is called fresh for each section), so it's cheaper to cache
+    // it once here. Deleted students and students from a different section, are not included.
     beginNewRound(cachedBeingTeamedStamp, cachedBeingTeamedGeneration);
     for(int i = 0; i < numStudents; i++) {
         markID(cachedBeingTeamedStamp, cachedBeingTeamedGeneration, students[studentIndexes[i]].ID);
@@ -180,21 +177,15 @@ void TeammatesCriterion::calculateScore(const StudentRecord *const students, con
 float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team, const TeamingOptions* /*teamingOptions*/,
                                                    const DataOptions* /*dataOptions*/, const QSet<long long> &allIDsBeingTeamed)
 {
-    auto markID = [](std::vector<uint32_t> &stamp, long long id) {
-        if (id < 0) { return; }
-        if (static_cast<long long>(stamp.size()) <= id) { stamp.resize(static_cast<size_t>(id) + 1, 0); }
-        // "generation" is just a fixed 1 since each call starts empty and this function is called with local variables
-        stamp[static_cast<size_t>(id)] = 1;
-    };
-
+    // "generation" is just a fixed 1 since these are fresh local vectors that start empty every call.
     std::vector<uint32_t> beingTeamedStamp;
     for (const auto id : allIDsBeingTeamed) {
-        markID(beingTeamedStamp, id);
+        markID(beingTeamedStamp, 1, id);
     }
 
     std::vector<uint32_t> IDsOnTeam;
     for (const auto id : team.studentIDs) {
-        markID(IDsOnTeam, id);
+        markID(IDsOnTeam, 1, id);
     }
 
     QList<const StudentRecord *> teamMembers;
@@ -207,8 +198,8 @@ float TeammatesCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &a
         }
         if (i < allStudents.size()) {
             teamMembers.append(&allStudents[i]);
-            thisTeamHasGroupTogethers = thisTeamHasGroupTogethers || !allStudents[i].groupTogether.isEmpty();
-            thisTeamHasSplitAparts = thisTeamHasSplitAparts || !allStudents[i].splitApart.isEmpty();
+            thisTeamHasGroupTogethers = thisTeamHasGroupTogethers || !allStudents[i].groupTogether.empty();
+            thisTeamHasSplitAparts = thisTeamHasSplitAparts || !allStudents[i].splitApart.empty();
         }
     }
 
@@ -251,7 +242,7 @@ int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMem
         for (const auto *const student : teamMembers) {
             int found = 0;
             int needed = 0;
-            for (const auto id : student->groupTogether) {
+            for (const auto id : std::as_const(student->groupTogether)) {
                 if (isBeingTeamed(id)) {
                     needed++;
                     if (isOnTeam(id)) {
@@ -265,8 +256,8 @@ int TeammatesCriterion::scoreOneTeam(const QList<const StudentRecord *> &teamMem
         }
     }
     else if (criteriaType == CriteriaType::splitApart && haveAnyTeammates) {
-        for (const auto *student : teamMembers) {
-            for (const auto id : student->splitApart) {
+        for (const auto *const student : teamMembers) {
+            for (const auto id : std::as_const(student->splitApart)) {
                 if (isBeingTeamed(id) && isOnTeam(id)) {
                     penalties++;
                 }
@@ -315,9 +306,9 @@ QVariant TeammatesCriterion::teamSortValue(const TeamRecord &, const DataOptions
 QString TeammatesCriterion::studentDisplayText(const StudentRecord &student, const DataOptions *) const
 {
     if (criteriaType == CriteriaType::groupTogether) {
-        return student.groupTogether.isEmpty() ? " " : QString(BULLET);
+        return student.groupTogether.empty() ? " " : QString(BULLET);
     }
-    return student.splitApart.isEmpty() ? " " : QString(BULLET);
+    return student.splitApart.empty() ? " " : QString(BULLET);
 }
 
 QString TeammatesCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions */*dataOptions*/) const

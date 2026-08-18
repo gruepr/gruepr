@@ -4,6 +4,7 @@
 #include "dialogs/identityRulesDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QJsonArray>
+#include <algorithm>
 
 Criterion* URMIdentityCriterion::clone() const {
     auto *copy = new URMIdentityCriterion(dataOptions, criteriaType, weight, penaltyStatus);
@@ -36,17 +37,7 @@ void URMIdentityCriterion::settingsFromJson(const QJsonObject &json) {
         }
     }
 
-    // display the settings on the criteria card
-    if (ruleCountLabel) {
-        int count = 0;
-        for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
-            for (const auto [operation, values] : valMap.asKeyValueRange()) {
-                count += values.size();
-            }
-        }
-        ruleCountLabel->setText(count == 0 ? tr("No rules set")
-                                           : QString::number(count) + (count == 1 ? tr(" rule set") : tr(" rules set")));
-    }
+    updateRuleCountLabel();
 }
 
 QStringList URMIdentityCriterion::identityOptions() const {
@@ -57,6 +48,22 @@ QStringList URMIdentityCriterion::identityOptions() const {
         }
     }
     return options;
+}
+
+void URMIdentityCriterion::updateRuleCountLabel() const
+{
+    if (!ruleCountLabel) {
+        return;
+    }
+
+    int count = 0;
+    for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
+        for (const auto [operation, values] : valMap.asKeyValueRange()) {
+            count += values.size();
+        }
+    }
+    ruleCountLabel->setText(count == 0 ? tr("No rules set")
+                                       : QString::number(count) + (count == 1 ? tr(" rule set") : tr(" rules set")));
 }
 
 void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
@@ -74,49 +81,23 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const /*teamingO
 
     parentCard->setContentAreaLayout(*urmContentLayout);
 
+    updateRuleCountLabel();
 
-    // Helper to update the rule count label
-    auto updateRuleCount = [this]() {
-        int count = 0;
-        for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
-            for (const auto [operation, values] : valMap.asKeyValueRange()) {
-                count += values.size();
-            }
-        }
-        ruleCountLabel->setText(count == 0 ? tr("No rules set")
-                                           : QString::number(count) + (count == 1 ? tr(" rule set") : tr(" rules set")));
-    };
-
-    updateRuleCount();
-
-    connect(editRulesButton, &QPushButton::clicked, this, [this, updateRuleCount]() {
+    connect(editRulesButton, &QPushButton::clicked, this, [this]() {
         auto *window = new IdentityRulesDialog(this->parentCard, &identityRules, identityOptions(), tr("Racial/Ethnic Identity Rules"));
         window->exec();
         delete window;
-        updateRuleCount();
+        updateRuleCountLabel();
     });
 }
 
-void URMIdentityCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                          const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
-                                          QList<float> &criteriaScores, QList<float> &penaltyPoints) const
+void URMIdentityCriterion::buildRuleTranslation(QHash<QString, int> &identityIndex, QList<int> &groupIdentities,
+                                                QList<RuleGroup> &ruleGroups, QList<int> &ruleValues) const
 {
-    // Translate the rules into integer form once per call. Only the responses actually named by a
-    // rule need counting (the rest were never read), so each is given an index and the per-team loop
-    // below works on a small array of counts. Rules can be edited between calls, so this is derived
-    // fresh each call.
-    enum RuleOp {opNotEqual, opLessThan, opGreaterThan};
-    struct RuleGroup {
-        qsizetype firstIdentity;    // into groupIdentities
-        qsizetype numIdentities;
-        RuleOp op;
-        qsizetype firstValue;       // into ruleValues
-        qsizetype numValues;
-    };
-    QHash<QString, int> identityIndex;
-    QList<int> groupIdentities;
-    QList<RuleGroup> ruleGroups;
-    QList<int> ruleValues;
+    identityIndex.clear();
+    groupIdentities.clear();
+    ruleGroups.clear();
+    ruleValues.clear();
     for(auto rule = identityRules.cbegin(); rule != identityRules.cend(); ++rule) {
         const qsizetype firstIdentity = groupIdentities.size();
         const QStringList identities = rule.key().split('|');
@@ -149,7 +130,63 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
             ruleGroups.append({firstIdentity, numIdentities, op, firstValue, ruleValues.size() - firstValue});
         }
     }
-    QList<int> responseCounts(identityIndex.size(), 0);   // allocated once, refilled per team
+}
+
+bool URMIdentityCriterion::anyRuleGroupTriggered(const QList<int> &responseCounts, const QList<int> &groupIdentities,
+                                                 const QList<RuleGroup> &ruleGroups, const QList<int> &ruleValues,
+                                                 bool applyPenalty, float &penaltyPointsForTeam)
+{
+    bool penaltyApplied = false;
+    // each rule group may contribute one penalty point
+    for (const auto &group : std::as_const(ruleGroups)) {
+        int count = 0;
+        for(qsizetype i = 0; i < group.numIdentities; i++) {
+            count += responseCounts.at(groupIdentities.at(group.firstIdentity + i));
+        }
+        for(qsizetype i = 0; i < group.numValues; i++) {
+            const int val = ruleValues.at(group.firstValue + i);
+            if ((group.op == opNotEqual    && count == val) ||
+                (group.op == opLessThan    && count >= val) ||
+                (group.op == opGreaterThan && count <= val)) {
+                penaltyApplied = true;
+                if (applyPenalty) {
+                    penaltyPointsForTeam += 1.0f;
+                }
+                break;
+            }
+        }
+    }
+    return penaltyApplied;
+}
+
+void URMIdentityCriterion::prepareForOptimization(const StudentRecord *students, const int studentIndexes[], int numStudents, const DataOptions * /*dataOptions*/)
+{
+    QHash<QString, int> identityIndex;
+    buildRuleTranslation(identityIndex, cachedGroupIdentities, cachedRuleGroups, cachedRuleValues);
+    cachedNumIdentitySlots = identityIndex.size();
+
+    int maxPosition = -1;
+    for(int i = 0; i < numStudents; i++) {
+        maxPosition = std::max(maxPosition, studentIndexes[i]);
+    }
+    cachedIdentitySlot.assign(static_cast<size_t>(maxPosition + 1), -1);
+    for(int i = 0; i < numStudents; i++) {
+        const int position = studentIndexes[i];
+        const QString &response = students[position].URMIdentityResponse;
+        if (!response.isEmpty() && response != "--") {
+            const auto identity = identityIndex.constFind(response);
+            if (identity != identityIndex.cend()) {
+                cachedIdentitySlot[static_cast<size_t>(position)] = identity.value();
+            }
+        }
+    }
+}
+
+void URMIdentityCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
+                                          const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
+                                          QList<float> &criteriaScores, QList<float> &penaltyPoints) const
+{
+    QList<int> responseCounts(cachedNumIdentitySlots, 0);   // allocated once, refilled per team
 
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
@@ -160,40 +197,23 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
             continue;
         }
 
-        bool penaltyApplied = false;
-
-        // Count how many students on the team gave each of the responses named by a rule
+        // Count how many students on the team gave each of the responses named by a rule -- reads
+        // the slot precomputed in prepareForOptimization instead of re-hashing URMIdentityResponse.
         responseCounts.fill(0);
         for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
-            const QString &response = students[teammates[studentNum]].URMIdentityResponse;
-            if (!response.isEmpty() && response != "--") {
-                const auto identity = identityIndex.constFind(response);
-                if(identity != identityIndex.cend()) {
-                    responseCounts[identity.value()]++;
-                }
+            const int position = teammates[studentNum];
+            const int slot = (position >= 0 && static_cast<size_t>(position) < cachedIdentitySlot.size())
+                                 ? cachedIdentitySlot[static_cast<size_t>(position)] : -1;
+            if (slot >= 0) {
+                responseCounts[slot]++;
             }
             studentNum++;
         }
 
-        // each rule group may contribute one penalty point
-        for (const auto &group : std::as_const(ruleGroups)) {
-            int count = 0;
-            for(qsizetype i = 0; i < group.numIdentities; i++) {
-                count += responseCounts.at(groupIdentities.at(group.firstIdentity + i));
-            }
-            for(qsizetype i = 0; i < group.numValues; i++) {
-                const int val = ruleValues.at(group.firstValue + i);
-                if ((group.op == opNotEqual    && count == val) ||
-                    (group.op == opLessThan    && count >= val) ||
-                    (group.op == opGreaterThan && count <= val)) {
-                    penaltyApplied = true;
-                    if (penaltyStatus) {
-                        penaltyPoints[team] += 1.0f;
-                    }
-                    break;
-                }
-            }
-        }
+        float penalty = 0.0f;
+        const bool penaltyApplied = anyRuleGroupTriggered(responseCounts, cachedGroupIdentities, cachedRuleGroups, cachedRuleValues,
+                                                          penaltyStatus, penalty);
+        penaltyPoints[team] += penalty;
 
         if (penaltyApplied) {
             criteriaScores[team] = 0;
@@ -205,16 +225,47 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
 }
 
 float URMIdentityCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allStudents, const TeamRecord &team,
-                                                     const TeamingOptions *teamingOptions, const DataOptions *dataOptions,
+                                                     const TeamingOptions * /*teamingOptions*/, const DataOptions * /*dataOptions*/,
                                                      const QSet<long long> &/*allIDsBeingTeamed*/)
 {
-    // If there are no URM rules at all, nothing is relevant
     if (identityRules.isEmpty()) {
         return Criterion::NO_SCORE;
     }
 
-    // Use the base class implementation to actually calculate the score
-    return Criterion::scoreForOneTeamInDisplay(allStudents, team, teamingOptions, dataOptions);
+    if (team.size == 1) {
+        return 1.0f;
+    }
+
+    // Self-contained -- deliberately does not touch the optimization-time cache above, since this
+    // can be called at any time to redisplay a single team's score, independent of whether/when
+    // prepareForOptimization last ran.
+    QHash<QString, int> identityIndex;
+    QList<int> groupIdentities;
+    QList<RuleGroup> ruleGroups;
+    QList<int> ruleValues;
+    buildRuleTranslation(identityIndex, groupIdentities, ruleGroups, ruleValues);
+
+    QList<int> responseCounts(identityIndex.size(), 0);
+    for (const auto studentID : team.studentIDs) {
+        int i = 0;
+        while (i < allStudents.size() && allStudents[i].ID != studentID) {
+            i++;
+        }
+        if (i >= allStudents.size()) {
+            continue;
+        }
+        const QString &response = allStudents[i].URMIdentityResponse;
+        if (!response.isEmpty() && response != "--") {
+            const auto identity = identityIndex.constFind(response);
+            if (identity != identityIndex.cend()) {
+                responseCounts[identity.value()]++;
+            }
+        }
+    }
+
+    float unusedPenalty = 0.0f;
+    const bool penaltyApplied = anyRuleGroupTriggered(responseCounts, groupIdentities, ruleGroups, ruleValues, false, unusedPenalty);
+    return penaltyApplied ? 0.0f : 1.0f;
 }
 
 QString URMIdentityCriterion::headerLabel(const DataOptions *) const {

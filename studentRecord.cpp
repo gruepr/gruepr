@@ -18,10 +18,10 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         const QJsonArray gendersArray = jsonStudentRecord["genders"].toArray();
         gender.clear();
         for (const auto &val : gendersArray) {
-            if(val.isDouble()) {
+            if(val.isDouble() && !gender.contains(static_cast<Gender>(val.toInt()))) {
                 gender << static_cast<Gender>(val.toInt());
             }
-            else if(val.isString()) {
+            else if(val.isString() && !gender.contains(grueprGlobal::stringToGender(val.toString()))) {
                 gender << grueprGlobal::stringToGender(val.toString());
             }
         }
@@ -61,14 +61,18 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     if (jsonStudentRecord.contains("splitApartIDs")) {
         const QJsonArray splitApartIDsArray = jsonStudentRecord["splitApartIDs"].toArray();
         for (const auto &val : splitApartIDsArray) {
-            splitApart << val.toInteger();
+            if(std::find(splitApart.begin(), splitApart.end(), val.toInteger()) == splitApart.end()) {
+                splitApart.push_back(val.toInteger());
+            }
         }
     }
     else if(jsonStudentRecord["preventedWithIDs"].type() != QJsonValue::Undefined) {
         // In order to use work saved from more recent prev. versions of gruepr with different terminology
         const QJsonArray preventedWithIDsArray = jsonStudentRecord["preventedWithIDs"].toArray();
         for (const auto &val : preventedWithIDsArray) {
-            splitApart << val.toInteger();
+            if(std::find(splitApart.begin(), splitApart.end(), val.toInteger()) == splitApart.end()) {
+                splitApart.push_back(val.toInteger());
+            }
         }
     }
     else {
@@ -78,15 +82,18 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
         for(int i = 0; i < MAX_IDS; i++) {
             if(preventedWithArray[i].toBool()) {
-                splitApart << i;
-            }
+                if(std::find(splitApart.begin(), splitApart.end(), i) == splitApart.end()) {
+                    splitApart.push_back(i);
+                }            }
         }
     }
 
     if (jsonStudentRecord.contains("groupTogetherIDs")) {
         const QJsonArray groupTogetherIDsArray = jsonStudentRecord["groupTogetherIDs"].toArray();
         for (const auto &val : groupTogetherIDsArray) {
-            groupTogether << val.toInteger();
+            if(std::find(groupTogether.begin(), groupTogether.end(), val.toInteger()) == groupTogether.end()) {
+                groupTogether.push_back(val.toInteger());
+            }
         }
     }
     else {
@@ -94,7 +101,9 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
             // In order to use work saved from more recent prev. versions of gruepr with different terminology
             const QJsonArray requiredWithIDsArray = jsonStudentRecord["requiredWithIDs"].toArray();
             for (const auto &val : requiredWithIDsArray) {
-                groupTogether << val.toInteger();
+                if(std::find(groupTogether.begin(), groupTogether.end(), val.toInteger()) == groupTogether.end()) {
+                    groupTogether.push_back(val.toInteger());
+                }
             }
         }
         else {
@@ -104,7 +113,9 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
             const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
             for(int i = 0; i < MAX_IDS; i++) {
                 if(requiredWithArray[i].toBool()) {
-                    groupTogether << i;
+                    if(std::find(groupTogether.begin(), groupTogether.end(), i) == groupTogether.end()) {
+                        groupTogether.push_back(i);
+                    }
                 }
             }
         }
@@ -112,7 +123,9 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
             // In order to use work saved from more recent prev. versions of gruepr with different terminology
             const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
             for (const auto &val : requestedWithIDsArray) {
-                groupTogether << val.toInteger();
+                if(std::find(groupTogether.begin(), groupTogether.end(), val.toInteger()) == groupTogether.end()) {
+                    groupTogether.push_back(val.toInteger());
+                }
             }
         }
         else {
@@ -122,7 +135,9 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
             const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
             for(int i = 0; i < MAX_IDS; i++) {
                 if(requestedWithArray[i].toBool()) {
-                    groupTogether << i;
+                    if(std::find(groupTogether.begin(), groupTogether.end(), i) == groupTogether.end()) {
+                        groupTogether.push_back(i);
+                    }
                 }
             }
         }

@@ -10,10 +10,11 @@
 #include <cstdint>
 #include <vector>
 
-// A compact bit array for weekly schedule availability, replacing QList<bool> so ScheduleCriterion's
+
+// A compact bit array for weekly schedule availability, used so that ScheduleCriterion's
 // per-team merge is O(1) words instead of O(N) bytes. Semantically still a flat array of
-// numDays*numTimesPerDay bools, indexed as (day*numTimesPerDay + time), but with physical storage
-// as packed 64-bit words instead of one byte per slot.
+// numDays*numTimesPerDay bools, indexed as (day*numTimesPerDay + time), but with physical
+// storage as packed 64-bit words instead of one byte per slot.
 class ScheduleAvailabilityTable
 {
 public:
@@ -83,7 +84,7 @@ public:
     QString firstname;
     QString lastname;
     QString email;
-    QSet<Gender> gender = {Gender::unknown};
+    QList<Gender> gender = {Gender::unknown};
     QString URMIdentityResponse;                        // the text of the response the the race/ethnicity/culture question
     QList<QList<int>>   attributeVals_discrete;         // categorical index or discrete integer value for multiple choice attributes; -1 = unknown
     QList<QList<float>> attributeVals_continuous;       // float value for timezone and numerical attributes; empty = unknown
@@ -91,14 +92,14 @@ public:
     QString section;									// section data stored as text
     qsizetype numScheduleDays = 0;
     qsizetype numScheduleTimesPerDay = 0;
-    ScheduleAvailabilityTable unavailable;                   // true if this is a busy block during week; stored flat: day * numTimesPerDay + time
+    ScheduleAvailabilityTable unavailable;              // true if this is a busy block during week; stored flat: day * numTimesPerDay + time
     QString availabilityChart;
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
     float timezone = 0;                                 // offset from GMT
     QString prefTeammates;
-    QSet<long long> groupTogether;                      // set of student IDs that this student should be placed on a team with
+    std::vector<long long> groupTogether;               // unique student IDs that this student should be placed on a team with
     QString prefNonTeammates;
-    QSet<long long> splitApart;                         // set of student IDs that this student should be prevented from being on a team with
+    std::vector<long long> splitApart;                  // unique student IDs that this student should be prevented from being on a team with
     QString notes;										// any special notes for this student
     QStringList attributeResponse;                      // the text of the response to each attribute question
     QString tooltip;

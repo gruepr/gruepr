@@ -502,7 +502,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         for(const auto &genderoption : genderOptions) {
             const auto *genderoptionCheckBox = qobject_cast<QCheckBox *>(genderoption);
             if(genderoptionCheckBox != nullptr) {
-                if(genderoptionCheckBox->isChecked()) {
+                if(genderoptionCheckBox->isChecked() && !student.gender.contains(static_cast<Gender>(optionNum))) {
                     student.gender << static_cast<Gender>(optionNum);
                 }
                 optionNum++;

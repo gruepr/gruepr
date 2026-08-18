@@ -255,10 +255,10 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
         for (const auto studentBID : std::as_const(allIDs)) {
             bool printStudent = false;
             if (m_type == TypeOfTeammates::groupTogether) {
-                printStudent = filteredStudent->groupTogether.contains(studentBID);
+                printStudent = std::find(filteredStudent->groupTogether.cbegin(), filteredStudent->groupTogether.cend(), studentBID) != filteredStudent->groupTogether.cend();
             }
             else {
-                printStudent = filteredStudent->splitApart.contains(studentBID);
+                printStudent = std::find(filteredStudent->splitApart.cbegin(), filteredStudent->splitApart.cend(), studentBID) != filteredStudent->splitApart.cend();
             }
 
             if (printStudent) {
@@ -292,12 +292,12 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                             const int vPos = tableWidget->verticalScrollBar()->value();
                             const int hPos = tableWidget->horizontalScrollBar()->value();
                             if (m_type == TypeOfTeammates::groupTogether)  {
-                                filteredStudent->groupTogether.remove(studentB->ID);
-                                studentB->groupTogether.remove(filteredStudent->ID);
+                                std::erase(filteredStudent->groupTogether, studentB->ID);
+                                std::erase(studentB->groupTogether, filteredStudent->ID);
                             }
                             else {
-                                filteredStudent->splitApart.remove(studentB->ID);
-                                studentB->splitApart.remove(filteredStudent->ID);
+                                std::erase(filteredStudent->splitApart, studentB->ID);
+                                std::erase(studentB->splitApart, filteredStudent->ID);
                             }
                             refreshDisplay(vPos, hPos, searchBarText);
                             initializeTableHeaders(searchBarText);
@@ -365,12 +365,20 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                         return;
                     }
                     if (m_type == TypeOfTeammates::groupTogether) {
-                        filteredStudent->groupTogether.insert(paired->ID);
-                        paired->groupTogether.insert(filteredStudent->ID);
+                        if(std::find(filteredStudent->groupTogether.begin(), filteredStudent->groupTogether.end(), paired->ID) == filteredStudent->groupTogether.end()) {
+                            filteredStudent->groupTogether.push_back(paired->ID);
+                        }
+                        if(std::find(paired->groupTogether.begin(), paired->groupTogether.end(), filteredStudent->ID) == paired->groupTogether.end()) {
+                            paired->groupTogether.push_back(filteredStudent->ID);
+                        }
                     }
                     else {
-                        filteredStudent->splitApart.insert(paired->ID);
-                        paired->splitApart.insert(filteredStudent->ID);
+                        if(std::find(filteredStudent->splitApart.begin(), filteredStudent->splitApart.end(), paired->ID) == filteredStudent->splitApart.end()) {
+                            filteredStudent->splitApart.push_back(paired->ID);
+                        }
+                        if(std::find(paired->splitApart.begin(), paired->splitApart.end(), filteredStudent->ID) == paired->splitApart.end()) {
+                            paired->splitApart.push_back(filteredStudent->ID);
+                        }
                     }
                     const int vPos = tableWidget->verticalScrollBar()->value();
                     const int hPos = tableWidget->horizontalScrollBar()->value();
@@ -458,10 +466,10 @@ void TeammatesRulesDialog::clearValues(bool verify)
         if ((sectionName == "") || (sectionName == student.section)) {
             for (int i = 0; i < numStudents; i++) {
                 if (m_type == TypeOfTeammates::groupTogether) {
-                    student.groupTogether.remove(i);
+                    std::erase(student.groupTogether, i);
                 }
                 else {
-                    student.splitApart.remove(i);
+                    std::erase(student.splitApart, i);
                 }
             }
         }
@@ -537,12 +545,20 @@ void TeammatesRulesDialog::pairAllStudents(const QList<long long> &IDs, bool hub
 
             //we have at least one specified teammate pair!
             if(m_type == TypeOfTeammates::groupTogether) {
-                student1->groupTogether << IDs[ID2];
-                student2->groupTogether << IDs[ID1];
+                if(std::find(student1->groupTogether.begin(), student1->groupTogether.end(), IDs[ID2]) == student1->groupTogether.end()) {
+                    student1->groupTogether.push_back(IDs[ID2]);
+                }
+                if(std::find(student2->groupTogether.begin(), student2->groupTogether.end(), IDs[ID1]) == student2->groupTogether.end()) {
+                    student2->groupTogether.push_back(IDs[ID1]);
+                }
             }
             else {
-                student1->splitApart << IDs[ID2];
-                student2->splitApart << IDs[ID1];
+                if(std::find(student1->splitApart.begin(), student1->splitApart.end(), IDs[ID2]) == student1->splitApart.end()) {
+                    student1->splitApart.push_back(IDs[ID2]);
+                }
+                if(std::find(student2->splitApart.begin(), student2->splitApart.end(), IDs[ID1]) == student2->splitApart.end()) {
+                    student2->splitApart.push_back(IDs[ID1]);
+                }
             }
         }
     }
@@ -831,12 +847,20 @@ bool TeammatesRulesDialog::loadExistingTeamset()
                     }
 
                     if(m_type == TypeOfTeammates::groupTogether) {
-                        students[index1].groupTogether << teamIDs[j];
-                        students[index2].groupTogether << teamIDs[i];
+                        if(std::find(students[index1].groupTogether.begin(), students[index1].groupTogether.end(), teamIDs[j]) == students[index1].groupTogether.end()) {
+                            students[index1].groupTogether.push_back(teamIDs[j]);
+                        }
+                        if(std::find(students[index2].groupTogether.begin(), students[index2].groupTogether.end(), teamIDs[i]) == students[index2].groupTogether.end()) {
+                            students[index2].groupTogether.push_back(teamIDs[i]);
+                        }
                     }
                     else {
-                        students[index1].splitApart << teamIDs[j];
-                        students[index2].splitApart << teamIDs[i];
+                        if(std::find(students[index1].splitApart.begin(), students[index1].splitApart.end(), teamIDs[j]) == students[index1].splitApart.end()) {
+                            students[index1].splitApart.push_back(teamIDs[j]);
+                        }
+                        if(std::find(students[index2].splitApart.begin(), students[index2].splitApart.end(), teamIDs[i]) == students[index2].splitApart.end()) {
+                            students[index2].splitApart.push_back(teamIDs[i]);
+                        }
                     }
                 }
             }

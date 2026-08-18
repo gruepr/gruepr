@@ -75,9 +75,12 @@
 #include <QScreen>
 #include <QSplashScreen>
 
+#include "bench/bench_scoring.h"
 
 int main(int argc, char *argv[])
 {
+    bench::run(); return 0;
+
     // Set up application
     #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
         // remove darkmode on Windows (it is removed in the plist on macOS)

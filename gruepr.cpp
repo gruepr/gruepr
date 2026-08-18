@@ -14,6 +14,7 @@
 #include <memory>
 #include <random>
 #include <utility>
+#include <vector>
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -328,7 +329,8 @@ void gruepr::initializeCriteriaCardPriorities(){
     int count = 0;
     for(auto &criteriaCard : criteriaCardsList) {
         criteriaCard->setPriorityOrder(count);
-        criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
+                                    DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         count += 1;
     }
 }
@@ -625,28 +627,34 @@ void gruepr::refreshCriteriaLayout(){
     }
     for (auto *const criteriaCard : std::as_const(criteriaCardsList)) {
         if (criteriaCard->criterion->precedence == Criterion::Precedence::fixed) {
-            criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTFIXEDSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+            criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTFIXEDSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
+                                        DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         // } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == true){
         //     if (prevCriteriaCard->includePenaltyCheckBox!=nullptr){
         //         prevCriteriaCard->includePenaltyCheckBox->setDisabled(true);
         //     }
         //     criteriaCard->includePenaltyCheckBox->setDisabled(false);
         //     criteriaCard->includePenaltyCheckBox->setVisible(true);
-        //     criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        //     criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE +
+        //                                 SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         // } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == false){
         //     criteriaCard->includePenaltyCheckBox->setVisible(true);
         //     criteriaCard->includePenaltyCheckBox->setDisabled(false);
-        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
+        //                                 DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         // } else if (prevCriteriaCard->criterion->penaltyStatus == false && criteriaCard->criterion->penaltyStatus == false){
         //     criteriaCard->includePenaltyCheckBox->setVisible(false);
-        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
+        //                                 DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         // } else {
         //     //criteriaCard->includePenaltyCheckBox->setVisible(false);
-        //     criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        //     criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE +
+        //                                 SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
         else {
             //criteriaCard->includePenaltyCheckBox->setVisible(false);
-            criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+            criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
+                                        DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
         criteriaCard->setVisible(true);
         layout->addWidget(criteriaCard);
@@ -951,8 +959,8 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
 
     // remove this student from all other students who might have them as groupTogether / SplitApart
     for(auto &student : students) {
-        student.splitApart.remove(ID);
-        student.groupTogether.remove(ID);
+        std::erase(student.splitApart, ID);
+        std::erase(student.groupTogether, ID);
     }
 
     // update in dataOptions and then the attribute tab the count of each attribute response
@@ -1415,7 +1423,7 @@ void gruepr::changeIdealTeamSize()
             for(int student = 0; student < numStudentsBeingTeamed; student++) {     // run through every student
                 // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
                 (teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams])++;
-                smallerTeamsSizeA = teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams];  // the larger of the two (uneven) team sizes
+                smallerTeamsSizeA = teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams];  // the larger of the two team sizes
                 numSmallerATeams = (student%teamingOptions->smallerTeamsNumTeams)+1;                                  // the number of larger teams
             }
             smallerTeamsSizeB = smallerTeamsSizeA - 1;                  // the smaller of the two (uneven) team sizes
@@ -1425,13 +1433,14 @@ void gruepr::changeIdealTeamSize()
             for(int student = 0; student < numStudentsBeingTeamed; student++) {	// run through every student
                 // add one student to each team in turn until we run out of students
                 (teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams])++;
-                largerTeamsSizeA = teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams];     // the larger of the two (uneven) team sizes
+                largerTeamsSizeA = teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams];     // the larger of the two team sizes
                 numLargerATeams = (student%teamingOptions->largerTeamsNumTeams)+1;                                    // the number of larger teams
             }
             largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
 
             // Add first option to selection box
-            const QString smallerTeamOption = writeTeamSizeOption(numSmallerATeams, smallerTeamsSizeA, teamingOptions->numTeamsDesired+1-numSmallerATeams, smallerTeamsSizeB);
+            const QString smallerTeamOption = writeTeamSizeOption(numSmallerATeams, smallerTeamsSizeA,
+                                                                  teamingOptions->numTeamsDesired+1-numSmallerATeams, smallerTeamsSizeB);
             if(numSmallerATeams > 0) {
                 cumNumSmallerATeams += numSmallerATeams;
             }
@@ -1440,7 +1449,8 @@ void gruepr::changeIdealTeamSize()
             }
 
             // Add second option to selection box
-            const QString largerTeamOption = writeTeamSizeOption(teamingOptions->numTeamsDesired-numLargerATeams, largerTeamsSizeB, numLargerATeams, largerTeamsSizeA);
+            const QString largerTeamOption = writeTeamSizeOption(teamingOptions->numTeamsDesired-numLargerATeams, largerTeamsSizeB,
+                                                                 numLargerATeams, largerTeamsSizeA);
             if((teamingOptions->numTeamsDesired-numLargerATeams) > 0) {
                 cumNumLargerBTeams += teamingOptions->numTeamsDesired-numLargerATeams;
             }
@@ -1606,7 +1616,7 @@ void gruepr::startOptimization()
     for(int section = 0; section < numSectionsToTeam; section++) {
         if(teamingMultipleSections) {
             // team each section one at a time by changing the section
-            sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0 = allTogether, 1 = allSeparately, 2 = separator line, 3 = first section)
+            sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0=allTogether, 1=allSeparately, 2=separator line, 3=section 1)
         }
 
         // Get the indexes of non-deleted students from desired section(s) and change numStudents accordingly
@@ -1658,8 +1668,8 @@ void gruepr::startOptimization()
         progressChart = new ScoreLineGraph("", "Generation", "Score");
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-        const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " +
-                                                          teamingOptions->sectionName) : "");
+        const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " +
+                                                                QString::number(numSectionsToTeam) + ": " +teamingOptions->sectionName) : "");
         progressWindow = new progressDialog(sectionName, progressChart, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1912,7 +1922,9 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
     }
 
     //Warn about duplicates
-    const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;});
+    const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){
+        return student.duplicateRecord;
+    });
     if(anyDuplicates) {
         grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
                                                         "Possible duplicates are indicated in the student table."), tr("OK"));
@@ -2191,7 +2203,9 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
             removerButton->setToolTip("<html>" + tr("Remove") + " " + student.firstname + " " + student.lastname + " " +
                                       tr("from the student roster.") + "</html>");
             removerButton->setProperty("StudentID", student.ID);
-            connect(removerButton, &QPushButton::clicked, ui->studentTable, [this, ID = student.ID, removerButton]{removerButton->disconnect(); removeAStudent(ID);});
+            connect(removerButton, &QPushButton::clicked, ui->studentTable, [this, ID = student.ID, removerButton]{
+                removerButton->disconnect(); removeAStudent(ID);
+            });
             ui->studentTable->setCellWidget(numActiveStudents, column, removerButton);
             ui->studentTable->trackHoverFor(removerButton, numActiveStudents);
 
@@ -2365,7 +2379,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             // 6. Determine the best score, save in historical record, and calculate score stability
             const float maxScoreInThisGeneration = genomeScores[orderedIndex[0]].score;
             const float maxScoreFromGenerationsAgo = bestScores[(generation+1) % (GA::GENERATIONS_OF_STABILITY)];
-            bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
+            bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;	//best scores from most recent generations, wrap storage location
 
             const float delta = maxScoreInThisGeneration - maxScoreFromGenerationsAgo;
             if(delta <= 0.0001F) {

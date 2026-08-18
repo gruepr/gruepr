@@ -54,11 +54,6 @@ void AssignmentPreferenceCriterion::settingsFromJson(const QJsonObject &json)
     numRankedChoices = json["numRankedChoices"].toInt(0);
 }
 
-
-/////////////////////////////////////////////////////////////////////
-// UI card
-/////////////////////////////////////////////////////////////////////
-
 void AssignmentPreferenceCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {
     auto *contentLayout = new QVBoxLayout();
@@ -136,9 +131,9 @@ void AssignmentPreferenceCriterion::prepareForOptimization(const StudentRecord *
 // Output: result[row] = column assigned to row
 /////////////////////////////////////////////////////////////////////
 
-QList<int> AssignmentPreferenceCriterion::hungarianAlgorithm(const QList<QList<float>> &costMatrix)
+QList<int> AssignmentPreferenceCriterion::hungarianAlgorithm(const std::vector<float> &costMatrix, const int dim)
 {
-    const int n = static_cast<int>(costMatrix.size());
+    const int n = dim;
     if(n == 0) {
         return {};
     }
@@ -146,16 +141,22 @@ QList<int> AssignmentPreferenceCriterion::hungarianAlgorithm(const QList<QList<f
     // Uses 1-indexed arrays for clarity (standard textbook formulation)
     const float INF = std::numeric_limits<float>::max();
 
-    QList<float> u(n + 1, 0), v(n + 1, 0);  // potentials for rows and columns
-    QList<int> p(n + 1, 0);                   // p[j] = row assigned to column j (0 = unassigned)
-    QList<int> way(n + 1, 0);                 // way[j] = column preceding j in the augmenting path
+    // thread_local because scoring runs inside an OpenMP parallel region, so these must be per-thread.
+    // dim is fixed for the whole optimization run, so after the first call these resizes are no-ops.
+    thread_local std::vector<float> u, v, minv;
+    thread_local std::vector<int> p, way;
+    thread_local std::vector<bool> used;
+    u.assign(n + 1, 0);
+    v.assign(n + 1, 0);
+    p.assign(n + 1, 0);      // p[j] = row assigned to column j (0 = unassigned)
+    way.assign(n + 1, 0);    // way[j] = column preceding j in the augmenting path
 
     for(int i = 1; i <= n; i++) {
         // Try to assign row i
         p[0] = i;
         int j0 = 0;  // virtual column 0
-        QList<float> minv(n + 1, INF);
-        QList<bool> used(n + 1, false);
+        minv.assign(n + 1, INF);
+        used.assign(n + 1, false);
 
         do {
             used[j0] = true;
@@ -165,7 +166,7 @@ QList<int> AssignmentPreferenceCriterion::hungarianAlgorithm(const QList<QList<f
 
             for(int j = 1; j <= n; j++) {
                 if(!used[j]) {
-                    const float cur = costMatrix[i0 - 1][j - 1] - u[i0] - v[j];
+                    const float cur = costMatrix[static_cast<size_t>(i0 - 1) * n + static_cast<size_t>(j - 1)] - u[i0] - v[j];
                     if(cur < minv[j]) {
                         minv[j] = cur;
                         way[j] = j0;
@@ -231,12 +232,18 @@ QList<int> AssignmentPreferenceCriterion::solveAssignment(const StudentRecord *c
     const int multiplicity = (numTeams + numOptions - 1) / numOptions;
     const int dim = std::max(numTeams, numOptions * multiplicity);
 
-    // We maximize utility, but Hungarian minimizes cost, so we use cost = maxUtility - utility
-    QList<QList<float>> utilityMatrix(dim, QList<float>(dim, 0.0f));
+    // thread_local, flat (row-major), reused across calls -- scoring runs inside an OpenMP parallel
+    // region, so these must be per-thread. dim is fixed for the whole optimization run, so after the
+    // first call these resizes are no-ops.
+    thread_local std::vector<float> utilityMatrix, costMatrix;
+    thread_local QList<float> optionUtility;
+    utilityMatrix.assign(static_cast<size_t>(dim) * static_cast<size_t>(dim), 0.0f);
+    optionUtility.resize(numOptions);
 
+    // We maximize utility, but Hungarian minimizes cost, so we use cost = maxUtility - utility
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
-        QList<float> optionUtility(numOptions, 0.0f);
+        optionUtility.fill(0.0f);
         for(int m = 0; m < teamSizes[team]; m++) {
             const auto &prefs = students[teammates[studentNum]].assignmentPreferences;
             for(int r = 0; r < prefs.size() && r < numRankedChoices; r++) {
@@ -248,35 +255,31 @@ QList<int> AssignmentPreferenceCriterion::solveAssignment(const StudentRecord *c
             studentNum++;
         }
         for(int col = 0; col < dim; col++) {
-            utilityMatrix[team][col] = optionUtility[col % numOptions];
+            utilityMatrix[static_cast<size_t>(team) * static_cast<size_t>(dim) + static_cast<size_t>(col)] = optionUtility[col % numOptions];
         }
     }
     // Dummy rows (teams beyond numTeams) stay at 0 utility
 
     float maxUtility = 0.0f;
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-            maxUtility = std::max(maxUtility, utilityMatrix[i][j]);
-        }
+    for(const float u : utilityMatrix) {
+        maxUtility = std::max(maxUtility, u);
     }
 
     // Convert to cost matrix: cost = maxUtility - utility
-    QList<QList<float>> costMatrix(dim, QList<float>(dim, 0.0f));
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-            costMatrix[i][j] = maxUtility - utilityMatrix[i][j];
-        }
+    costMatrix.resize(utilityMatrix.size());
+    for(size_t i = 0; i < utilityMatrix.size(); i++) {
+        costMatrix[i] = maxUtility - utilityMatrix[i];
     }
 
     // Solve
-    const QList<int> rawAssignment = hungarianAlgorithm(costMatrix);
+    const QList<int> rawAssignment = hungarianAlgorithm(costMatrix, dim);
 
     // Extract per-team scores, mapping each team's assigned column back to its real option index
     teamScores.resize(numTeams);
     QList<int> assignment(numTeams);
     for(int team = 0; team < numTeams; team++) {
         const int assignedColumn = rawAssignment[team];
-        const float utility = utilityMatrix[team][assignedColumn];
+        const float utility = utilityMatrix[static_cast<size_t>(team) * static_cast<size_t>(dim) + static_cast<size_t>(assignedColumn)];
         const auto maxPossible = static_cast<float>(teamSizes[team] * numRankedChoices);
         teamScores[team] = (maxPossible > 0.0f) ? (utility / maxPossible) : 0.0f;
         assignment[team] = assignedColumn % numOptions;
@@ -284,11 +287,6 @@ QList<int> AssignmentPreferenceCriterion::solveAssignment(const StudentRecord *c
 
     return assignment;
 }
-
-
-/////////////////////////////////////////////////////////////////////
-// calculateScore — called by the GA for every genome
-/////////////////////////////////////////////////////////////////////
 
 void AssignmentPreferenceCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                                    const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
@@ -380,8 +378,10 @@ void AssignmentPreferenceCriterion::solveAndCacheDisplayForTeams(const QList<Stu
     const int multiplicity = (numTeams + numOptions - 1) / numOptions;
     const int dim = std::max(numTeams, numOptions * multiplicity);
 
-    // Build utility matrix
-    QList<QList<float>> utilityMatrix(dim, QList<float>(dim, 0.0f));
+    // Build utility matrix (flat, row-major, to match hungarianAlgorithm's signature -- this path
+    // isn't hot, called once per display refresh rather than once per genome, so no thread_local
+    // scratch reuse here, just a plain local buffer).
+    std::vector<float> utilityMatrix(static_cast<size_t>(dim) * static_cast<size_t>(dim), 0.0f);
 
     for(int t = 0; t < numTeams; t++) {
         const auto &team = teams[t];
@@ -401,26 +401,22 @@ void AssignmentPreferenceCriterion::solveAndCacheDisplayForTeams(const QList<Stu
             }
         }
         for(int col = 0; col < dim; col++) {
-            utilityMatrix[t][col] = optionUtility[col % numOptions];
+            utilityMatrix[static_cast<size_t>(t) * static_cast<size_t>(dim) + static_cast<size_t>(col)] = optionUtility[col % numOptions];
         }
     }
 
     // Convert to cost matrix
     float maxUtility = 0.0f;
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-            maxUtility = std::max(maxUtility, utilityMatrix[i][j]);
-        }
+    for(const float u : utilityMatrix) {
+        maxUtility = std::max(maxUtility, u);
     }
-    QList<QList<float>> costMatrix(dim, QList<float>(dim, 0.0f));
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-            costMatrix[i][j] = maxUtility - utilityMatrix[i][j];
-        }
+    std::vector<float> costMatrix(utilityMatrix.size());
+    for(size_t i = 0; i < utilityMatrix.size(); i++) {
+        costMatrix[i] = maxUtility - utilityMatrix[i];
     }
 
     // Solve
-    const QList<int> rawAssignment = hungarianAlgorithm(costMatrix);
+    const QList<int> rawAssignment = hungarianAlgorithm(costMatrix, dim);
 
     // Cache results for every team
     for(int t = 0; t < numTeams; t++) {
@@ -430,7 +426,7 @@ void AssignmentPreferenceCriterion::solveAndCacheDisplayForTeams(const QList<Stu
         }
         const long long teamKey = team.studentIDs.first();
         const int assignedOption = rawAssignment[t] % numOptions;
-        const float utility = utilityMatrix[t][rawAssignment[t]];
+        const float utility = utilityMatrix[static_cast<size_t>(t) * static_cast<size_t>(dim) + static_cast<size_t>(rawAssignment[t])];
         const auto maxPossible = static_cast<float>(team.size * numRankedChoices);
         float score = (maxPossible > 0.0f) ? (utility / maxPossible) : 0.0f;
 
@@ -478,11 +474,6 @@ void AssignmentPreferenceCriterion::solveAndCacheDisplayForTeams(const QList<Stu
     }
 }
 
-
-/////////////////////////////////////////////////////////////////////
-// scoreForOneTeamInDisplay — return cached score from prepareForDisplay
-/////////////////////////////////////////////////////////////////////
-
 float AssignmentPreferenceCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &/*allStudents*/, const TeamRecord &team,
                                                               const TeamingOptions */*teamingOptions*/, const DataOptions */*dataOptions*/,
                                                               const QSet<long long> &/*allIDsBeingTeamed*/)
@@ -499,11 +490,6 @@ float AssignmentPreferenceCriterion::scoreForOneTeamInDisplay(const QList<Studen
 
     return NO_SCORE;
 }
-
-
-/////////////////////////////////////////////////////////////////////
-// Display methods
-/////////////////////////////////////////////////////////////////////
 
 QString AssignmentPreferenceCriterion::headerLabel(const DataOptions */*dataOptions*/) const
 {
@@ -572,11 +558,6 @@ Qt::AlignmentFlag AssignmentPreferenceCriterion::teamTextAlignment() const
 {
     return Qt::AlignLeft;
 }
-
-
-/////////////////////////////////////////////////////////////////////
-// Export methods
-/////////////////////////////////////////////////////////////////////
 
 QString AssignmentPreferenceCriterion::exportTeamingOptionText(const TeamingOptions */*teamingOptions*/, const DataOptions */*dataOptions*/) const
 {
