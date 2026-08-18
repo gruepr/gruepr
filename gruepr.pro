@@ -124,7 +124,7 @@ SOURCES += \
         widgets/attributeWidget.cpp \
         widgets/checkableComboBox.cpp \
         widgets/comboBoxWithElidedContents.cpp \
-        widgets/dropcsvframe.cpp \
+        widgets/dropFileFrame.cpp \
         widgets/frameThatForwardsMouseClicks.cpp \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
@@ -186,7 +186,7 @@ HEADERS += \
         widgets/attributeWidget.h \
         widgets/checkableComboBox.h \
         widgets/comboBoxWithElidedContents.h \
-        widgets/dropcsvframe.h \
+        widgets/dropFileFrame.h \
         widgets/frameThatForwardsMouseClicks.h \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \

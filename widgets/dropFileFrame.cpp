@@ -1,9 +1,9 @@
-#include "dropcsvframe.h"
+#include "dropFileFrame.h"
 #include "gruepr_globals.h"
 #include <QDropEvent>
 #include <QMimeData>
 
-DropCSVFrame::DropCSVFrame(QWidget *parent) :
+DropFileFrame::DropFileFrame(QWidget *parent) :
     QFrame(parent)
 {
     setAcceptDrops(true);
@@ -13,20 +13,19 @@ DropCSVFrame::DropCSVFrame(QWidget *parent) :
 }
 
 
-void DropCSVFrame::dragEnterEvent(QDragEnterEvent *event)
+void DropFileFrame::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasUrls()) {
         event->acceptProposedAction();
         setStyleSheet(BASICFRAME);
     }
 }
-void DropCSVFrame::dragLeaveEvent(QDragLeaveEvent *event)
+void DropFileFrame::dragLeaveEvent(QDragLeaveEvent */*event*/)
 {
-    Q_UNUSED(event); //suppress warnings about unused event parameter
     setStyleSheet(DROPFRAME);
 }
 
-void DropCSVFrame::dropEvent(QDropEvent *event)
+void DropFileFrame::dropEvent(QDropEvent *event)
 {
     QList<QUrl> urls = event->mimeData()->urls();
     QString filePathString;

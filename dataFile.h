@@ -2,6 +2,7 @@
 #define DATAFILE_H
 
 #include "dialogs/listTableDialog.h"
+#include <memory>
 #include <optional>
 #include <QDialog>
 #include <QFileInfo>
@@ -47,6 +48,10 @@ public:
     DataFile operator= (const DataFile&) = delete;
     DataFile(DataFile&&) = delete;
     DataFile& operator= (DataFile&&) = delete;
+
+    // Constructs the concrete subclass appropriate for filepath's suffix (.xlsx -> ExcelFile;
+    // .txt -> tab-delimited DelimitedTextFile; anything else -> comma-delimited DelimitedTextFile).
+    static std::unique_ptr<DataFile> createForFile(const QString &filepath);
 
     bool open(QWidget *parent = nullptr, const QString &caption = QObject::tr("Open Data File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");

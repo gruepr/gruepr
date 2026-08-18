@@ -183,7 +183,7 @@ bool CategorizingDialog::initializeComboBoxes()
     // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
     static const QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
                                                              "(.*(like to have on your team).*)|(.*(want to work with).*)|"
-                                                             ".*(which section are you enrolled).*|(.*(check).+(times).*)",
+                                                             ".*((which)|(what)).*(section).*|(.*(check).+(times).*)",
                                                              QRegularExpression::CaseInsensitiveOption);
     const int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
     if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
@@ -202,7 +202,7 @@ bool CategorizingDialog::initializeComboBoxes()
                                                   {"Gender", "((gender)|(pronouns))", 1},
                                                   {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                                   {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
-                                                  {"Section", "which section are you enrolled", 1},
+                                                  {"Section", "(which|what).*section", 1},
                                                   {"Timezone","(time zone)", 1},
                                                   {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},

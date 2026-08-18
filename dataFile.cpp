@@ -1,9 +1,12 @@
 #include "dataFile.h"
+#include "delimitedTextFile.h"
+#include "excelFile.h"
 #include "gruepr_globals.h"
 #include "widgets/styledComboBox.h"
 #include <QCheckBox>
 #include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QHeaderView>
 #include <QLabel>
 #include <QRegularExpression>
@@ -15,6 +18,22 @@
 DataFile::~DataFile()
 {
     delete window;
+}
+
+
+//////////////////
+// Construct the concrete DataFile subclass appropriate for this file's suffix
+//////////////////
+std::unique_ptr<DataFile> DataFile::createForFile(const QString &filepath)
+{
+    const QString suffix = QFileInfo(filepath).suffix().toLower();
+    if(suffix == "xlsx") {
+        return std::make_unique<ExcelFile>();
+    }
+    if(suffix == "txt") {
+        return std::make_unique<DelimitedTextFile>(DelimitedTextFile::Delimiter::tab);
+    }
+    return std::make_unique<DelimitedTextFile>(DelimitedTextFile::Delimiter::comma);
 }
 
 

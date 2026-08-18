@@ -36,9 +36,10 @@ Description of gruepr:
      The student data are typically collected using a survey that the students fill out. Gruepr will help
      the instructor create this survey, outputting the survey as either text files, a Canvas quiz, or, more
      commonly, a Google Form on the instructor's Google Drive. After collecting the students' survey
-     responses, the results are loaded into gruepr. If using the Google Form, the results can be directly
-     imported. If an alternate surveying instrument is used, the results must be as a comma-separated-values
-     (.csv) file with each question as a separate column and each student as a separate row.
+     responses, the results are loaded into gruepr. If using the Google Form or Canvas quiz, the results can
+     be directly imported. If an alternate surveying instrument is used, the results can be a comma-
+     separated-values (.csv) file, a tab-delimited-values (.txt) file, or an Excel (.xlsx) file with each
+     question as a separate column and each student as a separate row.
 
      Integration with various learning management systems is currently in development. Canvas integrations
      currently use a user-generated API token. Gruepr can create the survey as an ungraded quiz in the
@@ -55,9 +56,6 @@ Details on how the teams are optimized:
      random teamings (each is a "genome") is created and then refined over multiple generations. In each
      generation, a small number of the highest scoring "elite" genomes are directly copied (cloned) into the
      next generation, and the rest are created by mating tournament-selected parents using ordered crossover.
-     Once the next generation's genepool is created, each genome potentially has a mutation, which is
-     implemented by swapping of two students between the two lowest-scoring teams in the genome. Super-elite
-     genomes are exempted from mutations to provide stability.
 
      A genome's net score is the harmonic mean of the score for each team. Harmonic mean is used so that low
      scoring teams have more weight. Evolution proceeds for at least minGenerations and at most

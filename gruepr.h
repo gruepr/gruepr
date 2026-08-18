@@ -1,7 +1,6 @@
 #ifndef GRUEPR_H
 #define GRUEPR_H
 
-#include "delimitedTextFile.h"
 #include "dataOptions.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
@@ -115,7 +114,6 @@ private:
         // reading survey data
     long long numActiveStudents = MAX_STUDENTS;
     inline StudentRecord* findStudentFromID(const long long ID);
-    bool loadRosterData(DelimitedTextFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks names and emails against roster
     void refreshStudentDisplay(QProgressDialog *progressDialog = nullptr, int progressStart = 0, int progressEnd = 0);
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column

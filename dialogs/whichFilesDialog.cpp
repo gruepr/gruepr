@@ -53,9 +53,15 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     const bool urmIdentity = dataOptions->URMIdentityIncluded;
     ui->URMIdentitycheckBox->setVisible(urmIdentity);
     connect(ui->URMIdentitycheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeURMIdentity = checked;});
-    const bool sect = dataOptions->sectionIncluded && sectionType == TeamingOptions::SectionType::allTogether;
+    // Section is meaningful in a Spreadsheet/Custom export whenever a single teamset/tab can mix
+    // students from more than one section -- true both when all sections were teamed together, and
+    // when they were teamed separately (that still lands in one combined tab; see TeamsTabItem).
+    const bool sect = dataOptions->sectionIncluded &&
+                       (sectionType == TeamingOptions::SectionType::allTogether ||
+                        sectionType == TeamingOptions::SectionType::allSeparately);
     ui->sectioncheckBox->setVisible(sect);
     connect(ui->sectioncheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSect = checked;});
+    const bool sectionSeparate = (sectionType == TeamingOptions::SectionType::allSeparately);
     const int numAttributes = dataOptions->numAttributes;
     const bool anyAttribute = (numAttributes > 0);
     const int NUM_COLUMNS = 3;
@@ -146,10 +152,21 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
     ui->spreadsheetFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(ui->spreadsheetFilePushButton, &QPushButton::clicked, ui->spreadsheetFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->spreadsheetFileRadioButton, &QRadioButton::toggled, this, [this, showCustomFileContentsBox](bool checked){
+    connect(ui->spreadsheetFileRadioButton, &QRadioButton::toggled, this,
+            [this, showCustomFileContentsBox, first, last, email, sect, sectionSeparate](bool checked){
         fileType = FileType::spreadsheet;
         if(checked) {
             showCustomFileContentsBox(true);
+            // The first time Spreadsheet is selected, default-check the fields that make a plain
+            // one-row-per-student table useful on its own; leave it alone after that so later
+            // switches back to Spreadsheet don't fight the user's own unchecks.
+            if(!appliedSpreadsheetDefaults) {
+                appliedSpreadsheetDefaults = true;
+                if(first) { ui->firstnamecheckBox->setChecked(true); }
+                if(last) { ui->lastnamecheckBox->setChecked(true); }
+                if(email) { ui->emailcheckBox->setChecked(true); }
+                if(sect && sectionSeparate) { ui->sectioncheckBox->setChecked(true); }
+            }
         }
         else {
             ui->CustomFileContentsBox->hide();

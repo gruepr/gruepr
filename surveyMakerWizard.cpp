@@ -1,6 +1,5 @@
 #include "surveyMakerWizard.h"
 #include "gruepr_globals.h"
-#include "delimitedTextFile.h"
 #include "LMS/googlehandler.h"
 #include "LMS/canvashandler.h"
 #include <QApplication>
@@ -2097,74 +2096,10 @@ void CourseInfoPage::deleteASection(int sectionNum, bool pauseVisualUpdate)
 
 bool CourseInfoPage::uploadRoster()
 {
-    // Open the roster file
-    DelimitedTextFile rosterFile;
     const QFileInfo *saveFilePath = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
-    if(!rosterFile.open(this, tr("Open Student Roster File"), saveFilePath->canonicalFilePath(), tr("Roster File"))) {
+    if(!grueprGlobal::loadRoster(this, saveFilePath->canonicalFilePath(), studentNames)) {
         return false;
     }
-
-    // Read the header row
-    if(!rosterFile.readHeader()) {
-        // header row could not be read as valid data
-        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        return false;
-    }
-
-    // Ask user what the columns mean
-    // Preloading the selector boxes with "unused" except first time "first name", "last name", and "name" are found
-    const QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
-                                                          {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
-                                                          {"Full Name (First Last)", "(name)", 1},
-                                                          {"Full Name (Last, First)", "(name)", 1}};;
-    if(rosterFile.chooseFieldMeaningsDialog(rosterFieldOptions, this)->exec() == QDialog::Rejected) {
-        return false;
-    }
-
-    // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
-    const int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
-    const int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
-    const int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
-    const int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
-
-    studentNames.clear();
-
-    // Process each row until there's an empty one. Load names one-by-one
-    // Also, skip the header row, if there is one
-    if(rosterFile.hasHeaderRow) {
-        rosterFile.readDataRow();
-    }
-    else {
-        rosterFile.readDataRow(DelimitedTextFile::ReadLocation::beginningOfFile);
-    }
-    do {
-        QString name;
-        if(firstLastNameField != -1) {
-            name = rosterFile.fieldValues.at(firstLastNameField).simplified();
-        }
-        else if(lastFirstNameField != -1) {
-            const QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
-            name = lastandfirstname.at(1).trimmed() + " " + lastandfirstname.at(0).simplified();
-        }
-        else if(firstNameField != -1 && lastNameField != -1) {
-            name = rosterFile.fieldValues.at(firstNameField).simplified() + " " + rosterFile.fieldValues.at(lastNameField).simplified();
-        }
-        else if(firstNameField != -1) {
-            name = rosterFile.fieldValues.at(firstNameField).simplified();
-        }
-        else if(lastNameField != -1) {
-            name = rosterFile.fieldValues.at(lastNameField).simplified();
-        }
-        else {
-            grueprGlobal::errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
-            return false;
-        }
-        if(!name.isEmpty() && name != " ") {
-            studentNames << name;
-        }
-    } while(rosterFile.readDataRow());
-
-    rosterFile.close();
 
     setStudentNames(studentNames);
     update();

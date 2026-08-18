@@ -1053,15 +1053,9 @@ void gruepr::addAStudent()
 
 void gruepr::compareStudentsToRoster()
 {
-    // Open the roster file
     const QSettings savedSettings;
-    DelimitedTextFile rosterFile(DelimitedTextFile::Delimiter::comma);
-    if(!rosterFile.open(this, tr("Open Student Roster File"), savedSettings.value("saveFileLocation").toString(), tr("Roster File"))) {
-        return;
-    }
-
     QStringList names, emails;
-    if(loadRosterData(rosterFile, names, emails)) {
+    if(grueprGlobal::loadRoster(this, savedSettings.value("saveFileLocation").toString(), names, &emails)) {
         bool dataHasChanged = false;
 
         // load all current names from the survey so we can later remove them as they're found in the roster and be left with problem cases
@@ -1115,6 +1109,9 @@ void gruepr::compareStudentsToRoster()
                         if(!emails.isEmpty()) {
                             newStudent.email = rosterEmail;
                         }
+                        newStudent.attributeResponse.resize(dataOptions->numAttributes);
+                        newStudent.attributeVals_discrete.resize(dataOptions->numAttributes);
+                        newStudent.attributeVals_continuous.resize(dataOptions->numAttributes);
                         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
                             newStudent.attributeVals_discrete[attribute] << -1;
                             newStudent.attributeVals_continuous[attribute] << 0;
@@ -1251,7 +1248,6 @@ void gruepr::compareStudentsToRoster()
             saveState();
         }
     }
-    rosterFile.close();
 }
 
 
@@ -2025,87 +2021,6 @@ inline void gruepr::setTeamSizes(const int singleSize)
 }
 
 
-//////////////////
-// Read the roster datafile, returning true if successful and false if file is invalid
-//////////////////
-bool gruepr::loadRosterData(DelimitedTextFile &rosterFile, QStringList &names, QStringList &emails)
-{
-    // Read the header row
-    if(!rosterFile.readHeader()) {
-        // header row could not be read as valid data
-        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        return false;
-    }
-
-    // Ask user what the columns mean
-    // Preloading the selector boxes with "unused" except first time "email", "first name", "last name", and "name" are found
-    const QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
-                                                         {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
-                                                         {"Email Address", "(e).*(mail)", 1},
-                                                         {"Full Name (First Last)", "(name)", 1},
-                                                         {"Full Name (Last, First)", "(name)", 1}};;
-    if(rosterFile.chooseFieldMeaningsDialog(rosterFieldOptions, this)->exec() == QDialog::Rejected) {
-        return false;
-    }
-
-    // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
-    const int emailField = int(rosterFile.fieldMeanings.indexOf("Email Address"));
-    const int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
-    const int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
-    const int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
-    const int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
-
-    // Process each row until there's an empty one. Load names and email addresses
-    names.clear();
-    emails.clear();
-    if(rosterFile.hasHeaderRow) {
-        rosterFile.readDataRow();
-    }
-    else {
-        rosterFile.readDataRow(DelimitedTextFile::ReadLocation::beginningOfFile);
-    }
-    do {
-        QString name;
-        if((firstLastNameField >= 0) && (firstLastNameField < rosterFile.fieldValues.size())) {
-            name = rosterFile.fieldValues.at(firstLastNameField).trimmed();
-        }
-        else if((lastFirstNameField >= 0) && (lastFirstNameField < rosterFile.fieldValues.size())) {
-            if(rosterFile.fieldValues.at(lastFirstNameField).contains(',')) {
-                const QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
-                name = QString(lastandfirstname.at(1) + " " + lastandfirstname.at(0)).trimmed();
-            }
-            else {
-                name = QString(rosterFile.fieldValues.at(lastFirstNameField)).trimmed();
-            }
-        }
-        else if(firstNameField >= 0 || lastNameField >= 0) {
-            if((firstNameField >= 0) && firstNameField < rosterFile.fieldValues.size()) {
-                name = QString(rosterFile.fieldValues.at(firstNameField)).trimmed();
-            }
-            if(firstNameField >= 0 && lastNameField >= 0) {
-                name = name + " ";
-            }
-            if((lastNameField >= 0) && (lastNameField < rosterFile.fieldValues.size())) {
-                name = name + QString(rosterFile.fieldValues.at(lastNameField)).trimmed();
-            }
-        }
-        else {
-            grueprGlobal::errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
-            return false;
-        }
-
-        if(!name.isEmpty()) {
-            names << name;
-            if((emailField >= 0) && (emailField < rosterFile.fieldValues.size())){
-                emails << rosterFile.fieldValues.at(emailField).trimmed();
-            }
-        }
-    }
-    while(rosterFile.readDataRow());
-
-
-    return true;
-}
 
 
 //////////////////

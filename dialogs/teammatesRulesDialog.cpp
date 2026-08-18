@@ -1,6 +1,6 @@
 #include "teammatesRulesDialog.h"
 #include "ui_teammatesRulesDialog.h"
-#include "delimitedTextFile.h"
+#include "dataFile.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <QCompleter>
 #include <QFileDialog>
-#include <QFileInfo>
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QMenu>
@@ -100,10 +99,10 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         connect(loadFromTeamset, &QAction::triggered, this, [this](){loadExistingTeamset();});
         loadMenu->addAction(loadFromTeamset);
     }
-    auto *loadFromCSV = new QAction("from CSV file", this);
+    auto *loadFromCSV = new QAction("from CSV/text/Excel file", this);
     loadFromCSV->setFont(font);
     loadFromCSV->setIcon(QIcon(":/icons_new/upload_file.png"));
-    connect(loadFromCSV, &QAction::triggered, this, [this](){loadCSVFile();});
+    connect(loadFromCSV, &QAction::triggered, this, [this](){loadTeammatesFile();});
     auto *loadFromgruepr = new QAction("from gruepr spreadsheet file", this);
     loadFromgruepr->setFont(font);
     loadFromgruepr->setIcon(QIcon(":/icons_new/icon.svg"));
@@ -471,135 +470,173 @@ void TeammatesRulesDialog::clearValues(bool verify)
     refreshDisplay(0, 0);
 }
 
-bool TeammatesRulesDialog::loadCSVFile()
+//////////////////
+// Resolve a list of names to student IDs, prompting via findMatchingNameDialog for any that don't
+// exactly match an existing student's first+last name. Names the user chooses to ignore are simply
+// left out of the result, so the returned list may be shorter than names.
+//////////////////
+QList<long long> TeammatesRulesDialog::resolveNamesToIDs(const QStringList &names, const QString &hintName)
 {
-    DelimitedTextFile delimitedTextFile;
-    if(!delimitedTextFile.open(this, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File"))) {
-        return false;
-    }
-
-    // Read the header row and first data row to make sure file format is correct.
-    bool formattedCorrectly = true;
-    int numFields = 0;
-    if(delimitedTextFile.readHeader()) {
-        numFields = int(delimitedTextFile.headerValues.size());
-    }
-    if(numFields < 2) {     // should be basename, name1, name2, name3, ..., nameN
-        formattedCorrectly = false;
-    }
-    else {
-        if((delimitedTextFile.headerValues.at(0).toLower() != tr("basename")) || (!delimitedTextFile.headerValues.at(1).toLower().startsWith(tr("name")))) {
-            formattedCorrectly = false;
+    QList<long long> IDs;
+    IDs.reserve(names.size());
+    for(const auto &searchStudent : names) {   // searchStudent is the name we're looking for
+        int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
+        while((knownStudent < numStudents) &&
+               (searchStudent.compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0)) {
+            knownStudent++;
         }
-        delimitedTextFile.readDataRow();
-        if(delimitedTextFile.fieldValues.size() < numFields) {
-            formattedCorrectly = false;
-        }
-    }
-    if(!formattedCorrectly) {
-        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        delimitedTextFile.close();
-        return false;
-    }
 
-    // Having read the header row and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
-    // Process each row by loading unique base names into basenames and other names in the row into corresponding teammates list
-    QStringList basenames;
-    QList<QStringList> teammates;
-    delimitedTextFile.readHeader();
-    while(delimitedTextFile.readDataRow()) {
-        const int pos = int(basenames.indexOf(delimitedTextFile.fieldValues.at(0).trimmed())); // get index of this name
-
-        if(pos == -1) { // basename is not yet found in basenames list
-            basenames << delimitedTextFile.fieldValues.at(0).trimmed();
-            teammates.append(QStringList());
-            for(int i = 1; i < numFields; i++) {
-                const QString teammate = delimitedTextFile.fieldValues.at(i).trimmed();
-                if(!teammate.isEmpty()) {
-                    teammates.last() << teammate;
-                }
-            }
+        if(knownStudent != numStudents) {
+            // Exact match found
+            IDs << students[knownStudent].ID;
         }
         else {
-            grueprGlobal::errorMessage(this, tr("File error."), tr("This file has an error in its format:\n"
-                                                             "The same name appears more than once in the first column."));
-            delimitedTextFile.close();
-            return false;
+            // No exact match, so list possible matches sorted by Levenshtein distance
+            auto *choiceWindow = new findMatchingNameDialog(students, searchStudent, this, hintName);
+            if(choiceWindow->exec() == QDialog::Accepted) {
+                IDs << choiceWindow->currSurveyID;
+            }
+            delete choiceWindow;
         }
     }
-    delimitedTextFile.close();
+    return IDs;
+}
 
-    // Now we have list of basenames and corresponding lists of teammates by name
-    // Need to convert names to IDs and then add each teammate to the basename
 
-    // First prepend the basenames to each list of teammates
-    for(int basestudent = 0; basestudent < basenames.size(); basestudent++) {
-        teammates[basestudent].prepend(basenames.at(basestudent));
+//////////////////
+// Apply a groupTogether/splitApart pairing (per m_type) across IDs -- hub-and-spoke pairs IDs[0] with
+// each other ID; all-pairs pairs every ID with every other ID.
+//////////////////
+void TeammatesRulesDialog::pairAllStudents(const QList<long long> &IDs, bool hubAndSpoke)
+{
+    if(IDs.isEmpty()) {
+        return;
     }
 
-    QList<long long> IDs;
-    for(int basename = 0; basename < basenames.size(); basename++) {
-        IDs.clear();
-        for(const auto &searchStudent : teammates.at(basename)) {   // searchStudent is the name we're looking for
-            int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-            while((knownStudent < numStudents) &&
-                   (searchStudent.compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0)) {
-                knownStudent++;
-            }
-
-            if(knownStudent != numStudents) {
-                // Exact match found
-                IDs << students[knownStudent].ID;
-            }
-            else {
-                // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(students, searchStudent, this);
-                if(choiceWindow->exec() == QDialog::Accepted) {
-                    IDs << choiceWindow->currSurveyID;
-                }
-                delete choiceWindow;
-            }
-        }
-
-        // find the baseStudent
+    const auto findByID = [this](long long id) -> StudentRecord* {
         int index = 0;
-        StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-        while((students.at(index).ID != IDs[0]) && (index < numStudents)) {
+        while((index < numStudents) && (students.at(index).ID != id)) {
             index++;
         }
-        if(index < numStudents) {
-            baseStudent = &students[index];
-        }
-        else {
+        return (index < numStudents) ? &students[index] : nullptr;
+    };
+
+    for(int ID1 = 0; ID1 < (hubAndSpoke ? 1 : IDs.size()); ID1++) {
+        StudentRecord *student1 = findByID(IDs[ID1]);
+        if(student1 == nullptr) {
             continue;
         }
+        for(int ID2 = ID1 + 1; ID2 < IDs.size(); ID2++) {
+            if(IDs[ID1] == IDs[ID2]) {
+                continue;
+            }
+            StudentRecord *student2 = findByID(IDs[ID2]);
+            if(student2 == nullptr) {
+                continue;
+            }
 
-        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a groupTogether / SplitApart pairing
-        for(int ID2 = 1; ID2 < IDs.size(); ID2++) {
-            if(IDs[0] != IDs[ID2]) {
-                // find the student with ID2
-                index = 0;
-                while((students.at(index).ID != IDs[ID2]) && (index < numStudents)) {
-                    index++;
-                }
-                if(index < numStudents) {
-                    student2 = &students[index];
-                }
-                else {
-                    continue;
-                }
+            //we have at least one specified teammate pair!
+            if(m_type == TypeOfTeammates::groupTogether) {
+                student1->groupTogether << IDs[ID2];
+                student2->groupTogether << IDs[ID1];
+            }
+            else {
+                student1->splitApart << IDs[ID2];
+                student2->splitApart << IDs[ID1];
+            }
+        }
+    }
+}
 
-                //we have at least one specified teammate pair!
-                if(m_type == TypeOfTeammates::groupTogether) {
-                    baseStudent->groupTogether << IDs[ID2];
-                    student2->groupTogether << IDs[0];
-                }
-                else {
-                    baseStudent->splitApart << IDs[ID2];
-                    student2->splitApart << IDs[0];
+
+bool TeammatesRulesDialog::loadTeammatesFile()
+{
+    const QString fileName = QFileDialog::getOpenFileName(this, tr("Open File of Teammates"), "",
+                                                            tr("Teammates File") + " (*.csv *.txt *.xlsx);;All Files (*)");
+    if(fileName.isEmpty()) {
+        return false;
+    }
+
+    const std::unique_ptr<DataFile> teammatesFile = DataFile::createForFile(fileName);
+    if(!teammatesFile->openExistingFile(fileName)) {
+        return false;
+    }
+
+    // Two supported shapes:
+    //  - "basename" format: header row is "basename, name1, name2, ...", and each subsequent row names
+    //    one student (column 1) plus that student's own specific teammates (remaining columns) --
+    //    a hub-and-spoke pairing between the basename and each named teammate.
+    //  - headerless format: no header row at all; each row is simply a full team, and every name in
+    //    the row is a mutual teammate of every other name in that row (all-pairs pairing).
+    if(!teammatesFile->readHeader() || teammatesFile->headerValues.isEmpty()) {
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        teammatesFile->close();
+        return false;
+    }
+    const int numFields = int(teammatesFile->headerValues.size());
+    const bool basenameFormat = (numFields >= 2) &&
+                                 (teammatesFile->headerValues.at(0).toLower() == tr("basename")) &&
+                                 (teammatesFile->headerValues.at(1).toLower().startsWith(tr("name")));
+
+    // Each entry is one row's set of names: for basenameFormat, element 0 is the basename (the "hub")
+    // and the rest are its specific teammates; for the headerless format, it's simply every name found
+    // in that row (order doesn't matter -- all of them are paired with each other).
+    QList<QStringList> teammateGroups;
+
+    if(basenameFormat) {
+        QStringList basenames;   // tracked separately just to detect a basename repeated across rows
+
+        teammatesFile->readDataRow();
+        if(teammatesFile->fieldValues.size() < numFields) {
+            grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+            teammatesFile->close();
+            return false;
+        }
+        teammatesFile->readHeader();   // reset the cursor back to the first data row
+        while(teammatesFile->readDataRow()) {
+            const QString basename = teammatesFile->fieldValues.at(0).trimmed();
+            if(basenames.contains(basename)) {
+                grueprGlobal::errorMessage(this, tr("File error."), tr("This file has an error in its format:\n"
+                                                                 "The same name appears more than once in the first column."));
+                teammatesFile->close();
+                return false;
+            }
+            basenames << basename;
+            teammateGroups.append(QStringList(basename));
+            for(int i = 1; i < numFields; i++) {
+                const QString teammate = teammatesFile->fieldValues.at(i).trimmed();
+                if(!teammate.isEmpty()) {
+                    teammateGroups.last() << teammate;
                 }
             }
         }
+    }
+    else {
+        teammatesFile->readDataRow(DataFile::ReadLocation::beginningOfFile);   // re-include the row readHeader() consumed above
+        do {
+            QStringList rowNames;
+            for(const auto &field : std::as_const(teammatesFile->fieldValues)) {
+                const QString name = field.trimmed();
+                if(!name.isEmpty()) {
+                    rowNames << name;
+                }
+            }
+            if(rowNames.size() >= 2) {     // rows with 0 or 1 names have nobody to pair up
+                teammateGroups << rowNames;
+            }
+        } while(teammatesFile->readDataRow());
+    }
+    teammatesFile->close();
+
+    if(teammateGroups.isEmpty()) {
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        return false;
+    }
+
+    // Now we have, per row, a list of names. Convert names to IDs and pair them up -- hub-and-spoke
+    // for the basename format, all-pairs for the headerless format.
+    for(const auto &group : std::as_const(teammateGroups)) {
+        pairAllStudents(resolveNamesToIDs(group), basenameFormat);
     }
 
     refreshDisplay(0, 0);
@@ -609,7 +646,6 @@ bool TeammatesRulesDialog::loadCSVFile()
 bool TeammatesRulesDialog::loadStudentPrefs()
 {
     // Need to convert names to IDs and then add all to the preferences
-    QList<long long> IDs;
     for(int basestudent = 0; basestudent < numStudents; basestudent++) {
         if((sectionName == "") || (sectionName == students[basestudent].section)) {
             QStringList prefs;
@@ -620,70 +656,10 @@ bool TeammatesRulesDialog::loadStudentPrefs()
                 prefs = students[basestudent].prefTeammates.split('\n');
             }
             prefs.removeAll("");
-            prefs.prepend(students[basestudent].firstname + " " + students[basestudent].lastname);
+            const QString baseStudentName = students[basestudent].firstname + " " + students[basestudent].lastname;
+            prefs.prepend(baseStudentName);
 
-            IDs.clear();
-            IDs.reserve(prefs.size());
-            for(int searchStudent = 0; searchStudent < prefs.size(); searchStudent++) {   // searchStudent is the name we're looking for
-                int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-                while((knownStudent < numStudents) &&
-                       (prefs.at(searchStudent).compare((students[knownStudent].firstname + " " + students[knownStudent].lastname), Qt::CaseInsensitive) != 0)) {
-                    knownStudent++;
-                }
-
-                if(knownStudent != numStudents) {
-                    // Exact match found
-                    IDs << students[knownStudent].ID;
-                }
-                else {
-                    // No exact match, so list possible matches sorted by Levenshtein distance
-                    auto *choiceWindow = new findMatchingNameDialog(students, prefs.at(searchStudent), this, prefs.at(0));
-                    if(choiceWindow->exec() == QDialog::Accepted) {
-                        IDs << choiceWindow->currSurveyID;
-                    }
-                    delete choiceWindow;
-                }
-
-                // find the baseStudent
-                int index = 0;
-                StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-                while((students.at(index).ID != IDs[0]) && (index < numStudents)) {
-                    index++;
-                }
-                if(index < numStudents) {
-                    baseStudent = &students[index];
-                }
-                else {
-                    continue;
-                }
-
-                //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a groupTogether / SplitApart pairing
-                for(int ID2 = 1; ID2 < IDs.size(); ID2++) {
-                    if(IDs[0] != IDs[ID2]) {
-                        // find the student with ID2
-                        index = 0;
-                        while((students.at(index).ID != IDs[ID2]) && (index < numStudents)) {
-                            index++;
-                        }
-                        if(index < numStudents) {
-                            student2 = &students[index];
-                        }
-                        else {
-                            continue;
-                        }
-
-                        //we have at least one specified teammate pair!
-                        if(m_type == TypeOfTeammates::groupTogether) {
-                            baseStudent->groupTogether << IDs[ID2];
-                            student2->groupTogether << IDs[0];
-                        }
-                        else {
-                            baseStudent->splitApart << IDs[ID2];
-                            student2->splitApart << IDs[0];
-                        }
-                    }
-                }
-            }
+            pairAllStudents(resolveNamesToIDs(prefs, baseStudentName), true);
         }
     }
 
@@ -695,12 +671,10 @@ TeammatesRulesDialog::ParsedSpreadsheetTeams TeammatesRulesDialog::parseTeamsFro
 {
     ParsedSpreadsheetTeams result;
 
-    // Delimiter picked from the extension -- .csv is comma-delimited, .txt is tab-delimited, matching
-    // what gruepr's own Spreadsheet export can produce. (xlsx import isn't supported yet; add a branch
-    // here once it is.)
-    const bool isCsv = (QFileInfo(fileName).suffix().compare("csv", Qt::CaseInsensitive) == 0);
-    DelimitedTextFile spreadsheetFile(isCsv ? DelimitedTextFile::Delimiter::comma : DelimitedTextFile::Delimiter::tab);
-    if(!spreadsheetFile.openExistingFile(fileName)) {
+    // Concrete format (csv/txt/xlsx) picked from the file's extension, matching what gruepr's own
+    // Spreadsheet export can produce.
+    const std::unique_ptr<DataFile> spreadsheetFile = DataFile::createForFile(fileName);
+    if(!spreadsheetFile->openExistingFile(fileName)) {
         return result;
     }
 
@@ -708,9 +682,9 @@ TeammatesRulesDialog::ParsedSpreadsheetTeams TeammatesRulesDialog::parseTeamsFro
     // of a combined "Name" column (older exports) or separate "First Name"/"Last Name" columns (current
     // Spreadsheet export), and of "Section"/"Email"/other columns being absent, reordered, or additional.
     int teamCol = -1, nameCol = -1, firstNameCol = -1, lastNameCol = -1;
-    if(spreadsheetFile.readHeader()) {
-        for(int field = 0; field < spreadsheetFile.headerValues.size(); field++) {
-            const QString header = spreadsheetFile.headerValues.at(field).trimmed().toLower();
+    if(spreadsheetFile->readHeader()) {
+        for(int field = 0; field < spreadsheetFile->headerValues.size(); field++) {
+            const QString header = spreadsheetFile->headerValues.at(field).trimmed().toLower();
             if(header == tr("team").toLower()) {
                 teamCol = field;
             }
@@ -729,13 +703,13 @@ TeammatesRulesDialog::ParsedSpreadsheetTeams TeammatesRulesDialog::parseTeamsFro
     bool formattedCorrectly = (teamCol != -1) && ((nameCol != -1) || ((firstNameCol != -1) && (lastNameCol != -1)));
     const int lastNeededCol = std::max({teamCol, nameCol, firstNameCol, lastNameCol});
     if(formattedCorrectly) {
-        spreadsheetFile.readDataRow();
-        if(spreadsheetFile.fieldValues.size() <= lastNeededCol) {
+        spreadsheetFile->readDataRow();
+        if(spreadsheetFile->fieldValues.size() <= lastNeededCol) {
             formattedCorrectly = false;
         }
     }
     if(!formattedCorrectly) {
-        spreadsheetFile.close();
+        spreadsheetFile->close();
         return result;
     }
 
@@ -750,23 +724,23 @@ TeammatesRulesDialog::ParsedSpreadsheetTeams TeammatesRulesDialog::parseTeamsFro
     // Process each row by loading unique team strings into teams and new/matching names into corresponding teammates list
     QStringList &teamnames = result.teamNames;
     QList<QStringList> &teammateLists = result.teammateNames;
-    spreadsheetFile.readHeader();
-    while(spreadsheetFile.readDataRow()) {
-        if(spreadsheetFile.fieldValues.size() <= lastNeededCol) {
+    spreadsheetFile->readHeader();
+    while(spreadsheetFile->readDataRow()) {
+        if(spreadsheetFile->fieldValues.size() <= lastNeededCol) {
             continue;   // skip any short/malformed row
         }
-        const QString name = nameFromRow(spreadsheetFile.fieldValues);
-        const int pos = int(teamnames.indexOf(spreadsheetFile.fieldValues.at(teamCol).trimmed())); // get index of this team
+        const QString name = nameFromRow(spreadsheetFile->fieldValues);
+        const int pos = int(teamnames.indexOf(spreadsheetFile->fieldValues.at(teamCol).trimmed())); // get index of this team
 
         if(pos == -1) {     // team is not yet found in teams list
-            teamnames << spreadsheetFile.fieldValues.at(teamCol).trimmed();
+            teamnames << spreadsheetFile->fieldValues.at(teamCol).trimmed();
             teammateLists.append(QStringList(name));
         }
         else {
             teammateLists[pos].append(name);
         }
     }
-    spreadsheetFile.close();
+    spreadsheetFile->close();
 
     result.success = true;
     return result;
@@ -775,7 +749,7 @@ TeammatesRulesDialog::ParsedSpreadsheetTeams TeammatesRulesDialog::parseTeamsFro
 bool TeammatesRulesDialog::loadSpreadsheetFile()
 {
     const QString fileName = QFileDialog::getOpenFileName(this, tr("Open Spreadsheet File of Previous Teammates"), "",
-                                                          tr("Spreadsheet File (*.csv *.txt);;All Files (*)"));
+                                                          tr("Spreadsheet File (*.csv *.txt *.xlsx);;All Files (*)"));
     if(fileName.isEmpty()) {
         return false;
     }
@@ -790,72 +764,8 @@ bool TeammatesRulesDialog::loadSpreadsheetFile()
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
-    QList<long long> IDs;
     for(const auto &teammateList : std::as_const(teammateLists)) {
-        IDs.clear();
-        IDs.reserve(teammateList.size());
-        for(const auto &searchStudent : teammateList) {     // searchStudent is the name we're looking for
-            int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-            while((knownStudent < numStudents) &&
-                   (searchStudent.compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0)) {
-                knownStudent++;
-            }
-
-            if(knownStudent != numStudents) {
-                // Exact match found
-                IDs << students[knownStudent].ID;
-            }
-            else {
-                // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(students, searchStudent, this);
-                if(choiceWindow->exec() == QDialog::Accepted) {
-                    IDs << choiceWindow->currSurveyID;
-                }
-                delete choiceWindow;
-            }
-        }
-
-        //Work through all pairings in the set to enable as a required or prevented pairing in both studentRecords
-        StudentRecord *student1 = nullptr, *student2 = nullptr;
-        for(int ID1 = 0; ID1 < IDs.size(); ID1++) {
-            // find the student with ID1
-            int index = 0;
-            while((students.at(index).ID != IDs[ID1]) && (index < numStudents)) {
-                index++;
-            }
-            if(index < numStudents) {
-                student1 = &students[index];
-            }
-            else {
-                continue;
-            }
-
-            for(int ID2 = ID1+1; ID2 < IDs.size(); ID2++) {
-                if(IDs[ID1] != IDs[ID2]) {
-                    // find the student with ID2
-                    index = 0;
-                    while((students.at(index).ID != IDs[ID2]) && (index < numStudents)) {
-                        index++;
-                    }
-                    if(index < numStudents) {
-                        student2 = &students[index];
-                    }
-                    else {
-                        continue;
-                    }
-
-                    //we have at least one required/prevented teammate pair!
-                    if(m_type == TypeOfTeammates::groupTogether) {
-                        student1->groupTogether << IDs[ID2];
-                        student2->groupTogether << IDs[ID1];
-                    }
-                    else {
-                        student1->splitApart << IDs[ID2];
-                        student2->splitApart << IDs[ID1];
-                    }
-                }
-            }
-        }
+        pairAllStudents(resolveNamesToIDs(teammateList), false);
     }
 
     refreshDisplay(0, 0);

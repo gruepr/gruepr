@@ -37,7 +37,6 @@ private:
     void loadData(QString filePathString);
     void finalizeAccept(bool showCategorizingDialog);
     std::unique_ptr<DataFile> surveyFile;
-    static std::unique_ptr<DataFile> makeDataFile(const QString &filepath);
     bool getFromFile();
     bool getFromGoogle();
     bool getFromCanvas();

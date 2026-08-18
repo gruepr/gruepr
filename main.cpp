@@ -36,11 +36,11 @@
 //      - using faster data structures in the attribute, gender, race/ethnicity, required/prevented teammates, and schedule criteria
 //      - multi-threaded the mating process that creates most of the next generation
 //      - modified the genetic algorithm's mating procedure (crossover) to better maintain teams from dad's allele
-//      - modified the mutation process from random to hill-climbing (meaning this is now technically a memetic, not genetic, algorithm)
-//      - tweaked the genetic algorithm parameters and processes through benchmark testing
+//      - removed mutation from the optimization process & tweaked the genetic algorithm parameters and processes through benchmark testing
 //      - modified the math for computing and sorting genome scores when they have >= 1 non-positive team score(s)
 //      - added link time optimization during compiling
 //  - Made export of teams more flexible, including export as Excel (xlsx) file
+//  - Made import of student data (survey responses and student rosters) more flexible, including import as Excel (xlsx) file
 //  - Now alphabetizes the students / teams by last name on first display of a team set
 //  - Changed the progress graph from box and whisker plots to a simpler line graph tracking the max. score
 //  - Better UI associated with the "Duplicate" marker in student list
@@ -48,10 +48,7 @@
 //  - Bugfix: autoscroll issue when drag/drop reordering the criteria cards
 //  - Bugfix: project assignment criteria has a fallback when there are fewer projects than teams: options now repeat as needed
 //
-// INPROG:
-//
 // TO DO:
-//  - Allow import of student data as Excel (xlsx) file
 //
 //    NEW FEATURES:
 //  - fully implement "need" vs "want" (or "requirement" vs "preference"?)

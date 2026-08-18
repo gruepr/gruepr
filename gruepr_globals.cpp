@@ -1,5 +1,7 @@
 #include "gruepr_globals.h"
+#include "dataFile.h"
 #include <QEvent>
+#include <QFileDialog>
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
@@ -83,6 +85,115 @@ Gender grueprGlobal::stringToGender(const QString& genderStr) {
     }
     return Gender::unknown; // Default to unknown if input is invalid
 }
+
+//////////////////
+// Prompt for and open a roster file (.csv/.txt/.xlsx), let the user map its columns, and extract
+// student names (and, if requested, email addresses)
+//////////////////
+bool grueprGlobal::loadRoster(QWidget *parent, const QString &startingDirectory, QStringList &names, QStringList *emails) {
+    const QString fileName = QFileDialog::getOpenFileName(parent, QObject::tr("Open Student Roster File"), startingDirectory,
+                                                            QObject::tr("Roster File") + " (*.csv *.txt *.xlsx);;All Files (*)");
+    if(fileName.isEmpty()) {
+        return false;
+    }
+
+    const std::unique_ptr<DataFile> rosterFile = DataFile::createForFile(fileName);
+    if(!rosterFile->openExistingFile(fileName)) {
+        return false;
+    }
+
+    // Read the header row
+    if(!rosterFile->readHeader()) {
+        // header row could not be read as valid data
+        grueprGlobal::errorMessage(parent, QObject::tr("File error."), QObject::tr("This file is empty or there is an error in its format."));
+        return false;
+    }
+
+    // Ask user what the columns mean
+    // Preloading the selector boxes with "unused" except first time "email" (if requested), "first name", "last name", and "name" are found
+    QList<possFieldMeaning> rosterFieldOptions = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+                                                   {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
+                                                   {"Full Name (First Last)", "(name)", 1},
+                                                   {"Full Name (Last, First)", "(name)", 1}};
+    if(emails != nullptr) {
+        rosterFieldOptions.insert(2, {"Email Address", "(e).*(mail)", 1});
+    }
+    if(rosterFile->chooseFieldMeaningsDialog(rosterFieldOptions, parent)->exec() == QDialog::Rejected) {
+        return false;
+    }
+
+    // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
+    const int emailField = int(rosterFile->fieldMeanings.indexOf("Email Address"));
+    const int firstNameField = int(rosterFile->fieldMeanings.indexOf("First Name"));
+    const int lastNameField = int(rosterFile->fieldMeanings.indexOf("Last Name"));
+    const int firstLastNameField = int(rosterFile->fieldMeanings.indexOf("Full Name (First Last)"));
+    const int lastFirstNameField = int(rosterFile->fieldMeanings.indexOf("Full Name (Last, First)"));
+
+    // Process each row until there's an empty one. Load names (and emails, if requested)
+    names.clear();
+    if(emails != nullptr) {
+        emails->clear();
+    }
+    if(rosterFile->hasHeaderRow) {
+        rosterFile->readDataRow();
+    }
+    else {
+        rosterFile->readDataRow(DataFile::ReadLocation::beginningOfFile);
+    }
+    do {
+        QString name;
+        if(firstNameField >= 0 && lastNameField >= 0) {
+            // Both explicitly chosen -- the most unambiguous signal, so it takes priority over a
+            // "Full Name" field that may have only been auto-guessed onto some unrelated column
+            // (e.g. one asking for the names of preferred teammates, which also contains "name").
+            if(firstNameField < rosterFile->fieldValues.size()) {
+                name = rosterFile->fieldValues.at(firstNameField).trimmed();
+            }
+            name = name + " ";
+            if(lastNameField < rosterFile->fieldValues.size()) {
+                name = name + rosterFile->fieldValues.at(lastNameField).trimmed();
+            }
+        }
+        else if((firstLastNameField >= 0) && (firstLastNameField < rosterFile->fieldValues.size())) {
+            name = rosterFile->fieldValues.at(firstLastNameField).trimmed();
+        }
+        else if((lastFirstNameField >= 0) && (lastFirstNameField < rosterFile->fieldValues.size())) {
+            if(rosterFile->fieldValues.at(lastFirstNameField).contains(',')) {
+                const QStringList lastandfirstname = rosterFile->fieldValues.at(lastFirstNameField).split(',');
+                name = QString(lastandfirstname.at(1) + " " + lastandfirstname.at(0)).trimmed();
+            }
+            else {
+                name = rosterFile->fieldValues.at(lastFirstNameField).trimmed();
+            }
+        }
+        else if(firstNameField >= 0 || lastNameField >= 0) {
+            if((firstNameField >= 0) && (firstNameField < rosterFile->fieldValues.size())) {
+                name = rosterFile->fieldValues.at(firstNameField).trimmed();
+            }
+            if(firstNameField >= 0 && lastNameField >= 0) {
+                name = name + " ";
+            }
+            if((lastNameField >= 0) && (lastNameField < rosterFile->fieldValues.size())) {
+                name = name + rosterFile->fieldValues.at(lastNameField).trimmed();
+            }
+        }
+        else {
+            grueprGlobal::errorMessage(parent, QObject::tr("File error."), QObject::tr("This roster does not contain student names."));
+            return false;
+        }
+
+        if(!name.isEmpty() && name != " ") {
+            names << name;
+            if(emails != nullptr && emailField >= 0 && emailField < rosterFile->fieldValues.size()) {
+                *emails << rosterFile->fieldValues.at(emailField).trimmed();
+            }
+        }
+    }
+    while(rosterFile->readDataRow());
+
+    return true;
+}
+
 
 void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, const QString &message) {
     auto *win = new QMessageBox(parent);
@@ -199,12 +310,10 @@ void grueprGlobal::helpWindow(QWidget *parent) {
                                              "<h3>Further details on the genetic optimization algorithm</h3>"
                                              "<p>&nbsp; &nbsp;A population of 10's of thousands of random teamings (each is a \"genome\") is created and then refined over "
                                              "multiple generations. In each generation, a few of the highest scoring \"elite\" genomes are directly copied (cloned) into the next "
-                                             "generation, and then the remainder are created by mating tournament-selected parent genomes using ordered crossover. Once the next "
-                                             "generation's genepool is created, each genome has 1 or more potential mutations, implemented as a swapping of two random locations on "
-                                             "the genome. Mutations occur preferentially in the genome's lowest-scoring team. A genome's net score is, generally, the harmonic mean "
-                                             "of the compatibility score for each team. Evolution proceeds for at least a minimum number of generations. It automatically stops "
-                                             "(though the user can choose to keep it going indefinitely) after a maximum number of have been reached or when the best score has "
-                                             "remained +/- 1% for a set number of generations in a row.</p>"
+                                             "generation, and then the remainder are created by mating tournament-selected parent genomes using ordered crossover. "
+                                             "A genome's net score is, generally, the harmonic mean of the compatibility score for each team. Evolution proceeds for at least a "
+                                             "minimum number of generations. It automatically stops (though the user can choose to keep it going indefinitely) after a maximum "
+                                             "number of have been reached or when the best score has remained +/- 1% for a set number of generations in a row.</p>"
                                              "<hr>"
                                              "<h3>Further details on the data file format</h3>"
                                              "<p>&nbsp; &nbsp;The datafile of student information must be a comma-separated-values (.csv), and it is easiest if the content is as "

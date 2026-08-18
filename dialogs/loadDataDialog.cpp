@@ -5,8 +5,7 @@
 #include "delimitedTextFile.h"
 #include "dialogs/baseTimeZoneDialog.h"
 #include "dialogs/categorizingDialog.h"
-#include "excelFile.h"
-#include "widgets/dropcsvframe.h"
+#include "widgets/dropFileFrame.h"
 #include "widgets/styledComboBox.h"
 #include <QCollator>
 #include <QDir>
@@ -29,13 +28,13 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
     // "Choose a data source" label
     ui->chooseSourceLabel->setStyleSheet("QLabel { color: #888; font-size: 10pt; font-weight: 500; letter-spacing: 0.5px; }");
 
-    ui->csvSourceButton->setStyleSheet(PILLCARDSELECTED);
+    ui->fileSourceButton->setStyleSheet(PILLCARDSELECTED);
     ui->googleSourceButton->setStyleSheet(PILLCARDUNSELECTED);
     ui->canvasSourceButton->setStyleSheet(PILLCARDUNSELECTED);
     ui->prevWorkSourceButton->setStyleSheet(PILLCARDUNSELECTED);
 
     // CSV page
-    ui->dropCSVFileFrame->setStyleSheet(DROPFRAME);
+    ui->dropFileFrame->setStyleSheet(DROPFRAME);
     ui->uploadButton->setStyleSheet(UPLOADBUTTONSTYLE);
     ui->uploadSourceLabel->setStyleSheet(LABEL10PTSTYLE);
     ui->acceptedFormatsLabel->setStyleSheet(LABEL10PTSTYLE);
@@ -71,7 +70,7 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
     //--- Set up the source selector button group for mutual exclusivity ---
     sourceButtonGroup = new QButtonGroup(this);
     sourceButtonGroup->setExclusive(true);
-    sourceButtonGroup->addButton(ui->csvSourceButton, CsvPage);
+    sourceButtonGroup->addButton(ui->fileSourceButton, CsvPage);
     sourceButtonGroup->addButton(ui->googleSourceButton, GooglePage);
     sourceButtonGroup->addButton(ui->canvasSourceButton, CanvasPage);
     sourceButtonGroup->addButton(ui->prevWorkSourceButton, PrevWorkPage);
@@ -118,7 +117,7 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
     }
     savedSettings.endArray();
 
-    connect(ui->dropCSVFileFrame, &DropCSVFrame::itemDropped, this, [this](const QString &filePathString) {
+    connect(ui->dropFileFrame, &DropFileFrame::itemDropped, this, [this](const QString &filePathString) {
         source = DataOptions::DataSource::fromDragDropFile;
         loadData(filePathString);
     });
@@ -149,14 +148,6 @@ loadDataDialog::~loadDataDialog()
     delete ui;
 }
 
-std::unique_ptr<DataFile> loadDataDialog::makeDataFile(const QString &filepath)
-{
-    if(QFileInfo(filepath).suffix().compare("xlsx", Qt::CaseInsensitive) == 0) {
-        return std::make_unique<ExcelFile>();
-    }
-    return std::make_unique<DelimitedTextFile>();
-}
-
 bool loadDataDialog::getFromDropFile(QString filePathString)
 {
     const QPixmap icon(":/icons_new/file.png");
@@ -171,7 +162,7 @@ bool loadDataDialog::getFromDropFile(QString filePathString)
     QFileInfo dataFileLocation;
     dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
-    surveyFile = makeDataFile(filePathString);
+    surveyFile = DataFile::createForFile(filePathString);
     try {
         if (!surveyFile->openExistingFile(filePathString)) {
             //qDebug() << "Error: Failed to open CSV file.";
@@ -276,7 +267,7 @@ bool loadDataDialog::readQuestionsFromHeader()
     // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
     static const QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
                                                              "(.*(like to have on your team).*)|(.*(want to work with).*)|"
-                                                             ".*(which section are you enrolled).*|(.*(check).+(times).*)",
+                                                             ".*((which)|(what)).*(section).*|(.*(check).+(times).*)",
                                                              QRegularExpression::CaseInsensitiveOption);
     const int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
     if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
@@ -295,7 +286,7 @@ bool loadDataDialog::readQuestionsFromHeader()
                                                         {"Gender", "((gender)|(pronouns))", 1},
                                                         {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                                         {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
-                                                        {"Section", "which section are you enrolled", 1},
+                                                        {"Section", "(which|what).*section", 1},
                                                         {"Timezone","(time zone)", 1},
                                                         {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                         {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
@@ -353,7 +344,7 @@ bool loadDataDialog::getFromFile()
         return false;
     }
 
-    surveyFile = makeDataFile(fileName);
+    surveyFile = DataFile::createForFile(fileName);
     if(!surveyFile->openExistingFile(fileName)) {
         return false;
     }

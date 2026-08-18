@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>422</width>
-    <height>387</height>
+    <width>468</width>
+    <height>393</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,9 +44,9 @@
       <number>8</number>
      </property>
      <item>
-      <widget class="QPushButton" name="csvSourceButton">
+      <widget class="QPushButton" name="fileSourceButton">
        <property name="text">
-        <string>CSV File</string>
+        <string>File</string>
        </property>
        <property name="icon">
         <iconset resource="../gruepr.qrc">
@@ -136,7 +136,7 @@
      <widget class="QWidget" name="csvPage">
       <layout class="QVBoxLayout" name="csvPageLayout">
        <item>
-        <widget class="DropCSVFrame" name="dropCSVFileFrame">
+        <widget class="DropFileFrame" name="dropFileFrame">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -149,7 +149,7 @@
            <height>200</height>
           </size>
          </property>
-         <layout class="QVBoxLayout" name="dropCSVFileFrameLayout">
+         <layout class="QVBoxLayout" name="dropFileFrameLayout">
           <item alignment="Qt::AlignmentFlag::AlignHCenter">
            <widget class="QPushButton" name="uploadButton">
             <property name="sizePolicy">
@@ -453,9 +453,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>DropCSVFrame</class>
+   <class>DropFileFrame</class>
    <extends>QFrame</extends>
-   <header>widgets/dropcsvframe.h</header>
+   <header>widgets/dropFileFrame.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

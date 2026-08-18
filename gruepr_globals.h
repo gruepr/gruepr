@@ -727,6 +727,20 @@ namespace grueprGlobal {
 
     QString genderToString(const Gender gender);
     Gender stringToGender(const QString& genderStr);
+
+    /**
+     * @brief loadRoster Prompts the user to choose and open a roster file (.csv/.txt/.xlsx), lets them
+     * map its columns to name (and, if emails is not null, email) fields, and extracts student names
+     * (as "First Last") and, if requested, email addresses into parallel lists.
+     * @param parent The parent window for the file-open and column-mapping dialogs.
+     * @param startingDirectory Directory the file-open dialog should start in.
+     * @param names Receives one "First Last" name per roster row.
+     * @param emails If non-null, receives one email address (or empty string) per name; also adds
+     * "Email Address" as a mappable column.
+     * @return True if names (and, if requested, emails) were extracted; false if the user cancelled,
+     * the file couldn't be opened, or it didn't contain identifiable name data.
+     */
+    bool loadRoster(QWidget *parent, const QString &startingDirectory, QStringList &names, QStringList *emails = nullptr);
 }
 
 inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};

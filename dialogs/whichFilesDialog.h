@@ -48,6 +48,7 @@ private:
     Ui::WhichFilesDialog *ui;
     QMenu *saveFormatMenu = nullptr;
     Action action;
+    bool appliedSpreadsheetDefaults = false;
     void rebuildSaveFormatMenu();
 };
 

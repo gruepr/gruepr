@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1019</width>
+    <width>978</width>
     <height>669</height>
    </rect>
   </property>
@@ -198,7 +198,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                </font>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;Check the names and email addresses listed in the table against a class roster csv file.&lt;/html&gt;</string>
+               <string>&lt;html&gt;Check the names and / or email addresses listed in the table against a class roster file (.csv, .txt, or .xlsx).&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Compare to Roster</string>
@@ -243,7 +243,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>495</width>
+           <width>475</width>
            <height>539</height>
           </rect>
          </property>

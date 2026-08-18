@@ -42,10 +42,11 @@ public:
         QStringList teamNames;
         QList<QStringList> teammateNames;
     };
-    // Reads fileName (delimiter picked from its extension: .csv -> comma, else tab) and finds the
-    // Team/Name (or First Name + Last Name) columns by header text rather than fixed position --
-    // tolerant of a combined "Name" column (older exports), reordered/extra columns, or a missing
-    // Section/Email. Static and UI-free on purpose: callable from a test without any dialog involved.
+    // Reads fileName (concrete format -- csv/txt/xlsx -- picked from its extension via
+    // DataFile::createForFile) and finds the Team/Name (or First Name + Last Name) columns by header
+    // text rather than fixed position -- tolerant of a combined "Name" column (older exports),
+    // reordered/extra columns, or a missing Section/Email. Static and UI-free on purpose: callable
+    // from a test without any dialog involved.
     static ParsedSpreadsheetTeams parseTeamsFromSpreadsheetFile(const QString &fileName);
 
     // Header widgets (public so layout can be managed)
@@ -73,8 +74,17 @@ private:
     void refreshDisplay(int verticalScrollPos, int horizontalScrollPos, QString searchBarText="");
     void clearValues(bool verify = true);
 
+    // Resolves each name to a student ID (exact first+last match, else a Levenshtein-sorted
+    // findMatchingNameDialog fallback -- names the user chooses to ignore are simply left out, so the
+    // result may be shorter than names). hintName, if given, is shown in the fallback dialog as whose
+    // preference this name came from.
+    QList<long long> resolveNamesToIDs(const QStringList &names, const QString &hintName = "");
+    // Applies a groupTogether/splitApart pairing (per m_type) across IDs: hub-and-spoke pairs IDs[0]
+    // with each other ID, all-pairs pairs every ID with every other ID.
+    void pairAllStudents(const QList<long long> &IDs, bool hubAndSpoke);
+
     // these all return true on success, false on fail
-    bool loadCSVFile();
+    bool loadTeammatesFile();
     bool loadStudentPrefs();
     bool loadSpreadsheetFile();
     bool loadExistingTeamset();
