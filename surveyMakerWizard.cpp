@@ -2423,7 +2423,7 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
 
 void PreviewAndExportPage::initializePage()
 {
-    survey = new Survey;
+    survey.reset(new Survey);
     auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     wiz->previewPageVisited = true;
     QList<QWizard::WizardButton> buttonLayout;
@@ -2932,8 +2932,6 @@ void PreviewAndExportPage::initializePage()
 
 void PreviewAndExportPage::cleanupPage()
 {
-    delete survey;
-
     // going back to previous page, so allow user to immediately return to this preview
     auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     QList<QWizard::WizardButton> buttonLayout;

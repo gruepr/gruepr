@@ -84,7 +84,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
             return {};
         }
 
-        delete reply;
+        reply->deleteLater();
         emit retrying(++attempt);
 
         QEventLoop delayLoop;

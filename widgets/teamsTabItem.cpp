@@ -1110,7 +1110,7 @@ void TeamsTabItem::saveTeams()
                                   tr("(Custom contents)")};
 
     //Open specialized dialog box to choose which file(s) to save
-    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::save, &teams.dataOptions, teamingOptions->sectionType, previews, this);
+    QScopedPointer<WhichFilesDialog> window(new WhichFilesDialog(WhichFilesDialog::Action::save, &teams.dataOptions, teamingOptions->sectionType, previews, this));
     if(window->exec() == QDialog::Accepted) {
         if(window->fileType == WhichFilesDialog::FileType::custom) {
             fileContents[customFile] = createProseFileContents(window->customFileOptions);
@@ -1169,7 +1169,6 @@ void TeamsTabItem::saveTeams()
                 }
             }
         }
-        delete window;
     }
 }
 
@@ -1252,6 +1251,8 @@ void TeamsTabItem::postTeamsToCanvas()
     connect(buttonBox, &QDialogButtonBox::accepted, canvasCoursesDialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesDialog, &QDialog::reject);
     if((canvasCoursesDialog->exec() == QDialog::Rejected)) {
+        delete canvasCoursesDialog;
+        canvas->deleteLater();
         return;
     }
 
@@ -1299,11 +1300,13 @@ void TeamsTabItem::postTeamsToCanvas()
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->actionComplete(busyBox);
+        delete canvasCoursesDialog;
+        canvas->deleteLater();
         return;
     }
-    delete canvasCoursesDialog;
 
-    delete canvas;
+    delete canvasCoursesDialog;
+    canvas->deleteLater();
 }
 
 

@@ -18,6 +18,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QScopedPointer>
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QWizard>
@@ -709,7 +710,7 @@ private:
     QList<QSpacerItem *> preSectionSpacer;
     QWidget *schedGrid = nullptr;
     QGridLayout *schedGridLayout = nullptr;
-    Survey *survey = nullptr;
+    QScopedPointer<Survey> survey;
     QRadioButton *destinationGoogle = nullptr;
     QRadioButton *destinationCanvas = nullptr;
     QRadioButton *destinationTextFiles = nullptr;

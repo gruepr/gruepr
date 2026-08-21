@@ -285,10 +285,10 @@ void StartDialog::openRegisterDialog() {
 
             auto *manager = new QNetworkAccessManager(registerWin);
             manager->setTransferTimeout(5000);
-            auto *request = new QNetworkRequest(QUrl(USER_REGISTRATION_URL));
-            request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
-            request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-            request->setHeader(QNetworkRequest::ContentTypeHeader,QVariant("application/x-www-form-urlencoded"));
+            QNetworkRequest request(QUrl(USER_REGISTRATION_URL));
+            request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
+            request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+            request.setHeader(QNetworkRequest::ContentTypeHeader,QVariant("application/x-www-form-urlencoded"));
             QJsonObject data;
             data["name"] = registerWin->name;
             data["institution"] = registerWin->institution;
@@ -302,7 +302,7 @@ void StartDialog::openRegisterDialog() {
 #endif
             const QJsonDocument doc(data);
             const QByteArray postData = doc.toJson();
-            auto *reply = manager->post(*request, postData);
+            auto *reply = manager->post(request, postData);
             QEventLoop loop;
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
@@ -326,7 +326,6 @@ void StartDialog::openRegisterDialog() {
             loop.exec();
             registerWin->hide();
             delete box;
-            delete request;
         }
         registerWin->deleteLater();
     }
