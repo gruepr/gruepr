@@ -3177,7 +3177,7 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
 
     //upload the survey as a form
     auto *busyBox = google->actionDialog(this);
-    const auto form = google->createSurvey(survey);
+    const auto form = google->createSurvey(survey.data());
     const bool fail = form.name.isEmpty();
 
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
@@ -3298,7 +3298,7 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
 
     //upload the survey as a quiz
     busyBox = canvas->actionDialog(this);
-    const bool success = canvas->createSurvey(course, survey);
+    const bool success = canvas->createSurvey(course, survey.data());
 
     const QPixmap resultIcon(success? ":/icons_new/ok.png" : ":/icons_new/error.png");
     const QSize iconSize = canvas->actionDialogIcon->size();
