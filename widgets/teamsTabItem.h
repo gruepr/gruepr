@@ -10,10 +10,8 @@
 #include <QCheckBox>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QLabel>
 #include <QPrinter>
 #include <QPushButton>
-#include <QTableWidget>
 #include <QWidget>
 
 class TeamsTabItem : public QWidget

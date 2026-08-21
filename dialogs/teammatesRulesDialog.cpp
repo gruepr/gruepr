@@ -11,7 +11,6 @@
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QMenu>
-#include <QMessageBox>
 #include <QScrollBar>
 #include <QStringListModel>
 #include <QTimer>

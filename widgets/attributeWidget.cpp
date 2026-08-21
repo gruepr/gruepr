@@ -2,7 +2,7 @@
 #include "criteria/attributeCriterion.h"
 #include "dialogs/attributeRulesDialog.h"
 #include <QButtonGroup>
-#include <QGridLayout>
+#include <QLabel>
 #include <QPainter>
 
 AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,

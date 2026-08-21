@@ -32,10 +32,9 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - SIGNIFICANT speed-up in the optimization process
-//      - using faster data structures in the attribute, gender, race/ethnicity, required/prevented teammates, and schedule criteria
-//      - multi-threaded the mating process that creates most of the next generation
-//      - modified the genetic algorithm's mating procedure (crossover) to better maintain teams from dad's allele
+//  - SIGNIFICANT speed-up in creating optimal teams (up to 14x faster per generation)
+//      - using faster data structures in calculating criteria scores
+//      - multi-threaded the genetic algorithm's mating process and modified the crossover operation to better propagate teams from dad's allele
 //      - removed mutation from the optimization process & tweaked the genetic algorithm parameters and processes through benchmark testing
 //      - modified the math for computing and sorting genome scores when they have >= 1 non-positive team score(s)
 //      - added link time optimization during compiling
@@ -75,12 +74,8 @@
 #include <QScreen>
 #include <QSplashScreen>
 
-#include "bench/bench_scoring.h"
-
 int main(int argc, char *argv[])
 {
-    bench::run(); return 0;
-
     // Set up application
     #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
         // remove darkmode on Windows (it is removed in the plist on macOS)

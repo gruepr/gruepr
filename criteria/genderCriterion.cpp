@@ -1,6 +1,5 @@
 #include "genderCriterion.h"
 #include "gruepr_globals.h"
-#include "teamingOptions.h"
 #include "dialogs/identityRulesDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QJsonArray>
@@ -269,7 +268,7 @@ void GenderCriterion::prepareForOptimization(const StudentRecord *students, cons
     }
 }
 
-void GenderCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
+void GenderCriterion::calculateScore(const StudentRecord *const /*students*/, const int teammates[], const int numTeams, const int teamSizes[],
                                      const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
                                      QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {

@@ -2,7 +2,6 @@
 #define DATAOPTIONS_H
 
 #include "gruepr_globals.h"
-#include <QFileInfo>
 #include <QJsonObject>
 #include <QStringList>
 #include <map>

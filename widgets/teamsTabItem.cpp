@@ -18,7 +18,6 @@
 #include <QFuture>
 #include <QHBoxLayout>
 #include <QJsonArray>
-#include <QLineEdit>
 #include <QMessageBox>
 #include <QMetaEnum>
 #include <QPainter>

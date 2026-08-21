@@ -2,7 +2,6 @@
 #include "gruepr_globals.h"
 #include <QDropEvent>
 #include <QPainter>
-#include <QTextLayout>
 #include <QTimer>
 #include <QToolTip>
 

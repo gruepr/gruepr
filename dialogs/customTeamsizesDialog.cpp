@@ -1,7 +1,6 @@
 #include "customTeamsizesDialog.h"
 #include "gruepr_globals.h"
 #include <QHeaderView>
-#include <QPushButton>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to choose custom team sizes

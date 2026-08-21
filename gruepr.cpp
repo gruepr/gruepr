@@ -1,4 +1,5 @@
 #include "gruepr.h"
+#include "GA.h"
 #include "ui_gruepr.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/scheduleCriterion.h"
@@ -11,13 +12,12 @@
 #include "widgets/groupingCriteriaCardWidget.h"
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
+#include <cmath>
 #include <memory>
 #include <random>
 #include <utility>
 #include <vector>
-#include <QDesktopServices>
 #include <QFile>
-#include <QFileDialog>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QLabel>
@@ -27,13 +27,10 @@
 #include <QMetaEnum>
 #include <QMimeData>
 #include <QPushButton>
-#include <QScreen>
 #include <QScrollBar>
 #include <QSettings>
-#include <QSlider>
 #include <QSplitter>
 #include <QtConcurrentRun>
-#include <QTextBrowser>
 
 gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProgressDialog *progressDialog) :
     QMainWindow(),
@@ -1679,9 +1676,6 @@ void gruepr::startOptimization()
                                                                          optimizationStoppedmutex.unlock();
                                                                         });
 
-        // set the working value of the genetic algorithm's population size and tournament selection probability
-        ga.setGAParameters(numActiveStudents);
-
         // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
         optimizationStopped = false;
         future = QtConcurrent::run(&gruepr::optimizeTeams, this, studentIndexes);       // spin optimization off into a separate thread
@@ -2240,15 +2234,17 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // For example, if team 1 has 4 students, and genePool[0][] = [4, 9, 12, 1, 3, 6...], then the first genome places
     // students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
 
-    // allocate memory for gene pools and ancestor pools (RAII — freed automatically)
-    GA::GenePool genePool(ga, numActiveStudents);
-    GA::GenePool nextGenGenePool(ga, numActiveStudents);
-    GA::AncestorPool ancestors(ga);
-    GA::AncestorPool nextGenAncestors(ga);
+    const int populationSize = GA::POPULATIONSIZE;
+
+    // allocate memory for genepools and ancestor pools (RAII — freed automatically)
+    GA::GenePool genePool(populationSize, numActiveStudents);
+    GA::GenePool nextGenGenePool(populationSize, numActiveStudents);
+    GA::AncestorPool ancestors(populationSize);
+    GA::AncestorPool nextGenAncestors(populationSize);
 
     // array of indexes, sorted in order of score (so genePool[orderedIndex[0]] is the one with the top score)
-    auto orderedIndex = std::make_unique<int[]>(ga.populationsize);
-    for(int genome = 0; genome < ga.populationsize; genome++) {
+    auto orderedIndex = std::make_unique<int[]>(populationSize);
+    for(int genome = 0; genome < populationSize; genome++) {
         orderedIndex[genome] = genome;
     }
 
@@ -2260,8 +2256,8 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     }
     // then make "populationSize" number of random permutations for the initial population, store in genePool
     // just use random values for their initial "ancestor" values
-    std::uniform_int_distribution<unsigned int> randAncestor(0, ga.populationsize);
-    for(int genome = 0; genome < ga.populationsize; genome++) {
+    std::uniform_int_distribution<unsigned int> randAncestor(0, populationSize);
+    for(int genome = 0; genome < populationSize; genome++) {
         std::shuffle(randPerm.get(), randPerm.get()+numActiveStudents, pRNG);
         auto *const thisGenome = genePool[genome];
         for(int ID = 0; ID < numActiveStudents; ID++) {
@@ -2284,35 +2280,41 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         teamStartPositions[team + 1] = teamStartPositions[team] + teamSizes[team];
     }
 
+    // Create a log-spaced set of genome indexes (denser near rank 0) for exhaustiveRepairGenome()
+    const auto repairRanks = chooseIndexesToRepair(populationSize, NUM_GENOMES_TO_REPAIR);
+    // repairHints[genome] = {negativeTeamCount, worstTeamIndex}, filled during the main scoring pass for use in the repair step
+    auto repairHints = std::make_unique<std::pair<int,int>[]>(populationSize);
+
+
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    auto genomeScores = std::make_unique<GenomeScore[]>(ga.populationsize);
+    auto genomeScores = std::make_unique<GenomeScore[]>(populationSize);
+
     // make local copies of member variables to satisfy openMP's needs
     const auto &sharedStudents = students;
     const auto &sharedNumTeams = numTeams;
     const auto *const sharedTeamingOptions = teamingOptions;
     const auto *const sharedDataOptions = dataOptions;
     const int sharedNumActiveStudents = int(numActiveStudents);
-    const GA *const sharedGA = &ga;
 
     //parallel initialization of needed variables.
 #pragma omp parallel \
         default(none) \
-        shared(genomeScores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA)
+        shared(genomeScores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, populationSize)
     {
         QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
         QList<float> penaltyPoints(sharedNumTeams);
-        QList<float> teamScoresScratch(sharedNumTeams);
+        QList<float> tempTeamScores(sharedNumTeams);
 #pragma omp for
-        for(int genome = 0; genome < sharedGA->populationsize; genome++) {
+        for(int genome = 0; genome < populationSize; genome++) {
             genomeScores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                                   sharedTeamingOptions, sharedDataOptions,
-                                                  teamScoresScratch.data(),
+                                                  tempTeamScores.data(),
                                                   criteriaScores, penaltyPoints);
         }
     }
 
     // get genome indexes in order of score, largest to smallest
-    std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&genomeScores](const int i, const int j)
+    std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j)
         {return (genomeScores[i] > genomeScores[j]);});
     emit generationComplete(genomeScores[orderedIndex[0]].score, 0, 0);
 
@@ -2335,14 +2337,14 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 #pragma omp parallel \
             default(none) \
             shared(genePool, nextGenGenePool, ancestors, nextGenAncestors, orderedIndex, \
-                   teamStartPositions, sharedNumTeams, sharedNumActiveStudents, sharedGA)
+                   teamStartPositions, sharedNumTeams, sharedNumActiveStudents, populationSize)
             {
                 const int *threadMom = nullptr, *threadDad = nullptr;
 #pragma omp for
-                for(int genome = GA::NUM_ELITES; genome < sharedGA->populationsize; genome++) {
+                for(int genome = GA::NUM_ELITES; genome < populationSize; genome++) {
                     //get a couple of parents
-                    sharedGA->tournamentSelectParents(genePool.data(), orderedIndex.get(), ancestors.data(),
-                                                      threadMom, threadDad, nextGenAncestors[genome]);
+                    GA::tournamentSelectParents(genePool.data(), orderedIndex.get(), ancestors.data(),
+                                                threadMom, threadDad, nextGenAncestors[genome]);
 
                     //mate them and put child in nextGenGenePool
                     GA::mate(threadMom, threadDad, teamStartPositions.get(), sharedNumTeams,
@@ -2359,24 +2361,57 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             // 4. Calculate the score for every genome in this generation (multi-threaded using OpenMP)
 #pragma omp parallel \
             default(none) \
-            shared(genomeScores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, sharedGA)
+            shared(genomeScores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, repairHints, populationSize)
             {
                 QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
                 QList<float> penaltyPoints(sharedNumTeams);
                 QList<float> teamScoresScratch(sharedNumTeams);
 #pragma omp for
-                for(int genome = 0; genome < sharedGA->populationsize; genome++) {
+                for(int genome = 0; genome < populationSize; genome++) {
                     genomeScores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
                                                           sharedTeamingOptions, sharedDataOptions, teamScoresScratch.data(),
                                                           criteriaScores, penaltyPoints);
+                    int worstTeam = 0, negativeTeamCount = 0;
+                    for(int team = 0; team < sharedNumTeams; team++) {
+                        if(teamScoresScratch[team] < teamScoresScratch[worstTeam]) {
+                            worstTeam = team;
+                        }
+                        if(teamScoresScratch[team] <= 0.0f) {
+                            negativeTeamCount++;
+                        }
+                    }
+                    repairHints[genome] = {negativeTeamCount, worstTeam};
                 }
             }
 
             // 5. Get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex.get(), orderedIndex.get() + ga.populationsize, [&genomeScores](const int i, const int j)
+            std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j)
                 {return (genomeScores[i] > genomeScores[j]);});
 
-            // 6. Determine the best score, save in historical record, and calculate score stability
+            // 6. Repair a broken gene within a sample of genomes (multi-threaded using OpenMP):
+            // for each sampled genome's current worst team, exhaustively try swapping its teammates
+            // against students on every other team until a swap reduces the genome's negative-team count.
+#pragma omp parallel \
+            default(none) \
+            shared(genomeScores, sharedStudents, genePool, orderedIndex, repairRanks, repairHints, \
+                   sharedNumTeams, teamSizes, teamStartPositions, sharedTeamingOptions, sharedDataOptions)
+            {
+#pragma omp for
+                for(int sample = 0; sample < int(repairRanks.size()); sample++) {
+                    const int genome = orderedIndex[repairRanks[sample]];
+                    const auto &hint = repairHints[genome];
+                    genomeScores[genome] = exhaustiveRepairGenome(sharedStudents.constData(), genePool[genome], sharedNumTeams,
+                                                                  teamSizes.data(), teamStartPositions.get(),
+                                                                  sharedTeamingOptions, sharedDataOptions,
+                                                                  hint.first, hint.second, genomeScores[genome]);
+                }
+            }
+
+            // 7. Re-sort genome indexes by score now that the repair step above changed some of them
+            std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j)
+                {return (genomeScores[i] > genomeScores[j]);});
+
+            // 8. Determine the best score, save in historical record, and calculate score stability
             const float maxScoreInThisGeneration = genomeScores[orderedIndex[0]].score;
             const float maxScoreFromGenerationsAgo = bestScores[(generation+1) % (GA::GENERATIONS_OF_STABILITY)];
             bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;	//best scores from most recent generations, wrap storage location
@@ -2477,9 +2512,8 @@ GenomeScore gruepr::getGenomeScore(const StudentRecord *const _students, const i
 
 
 //////////////////
-// Combine already-computed team scores into a genome score. Shared by getGenomeScore() (which just
-// computed _teamScores above) and the hill climb (which only ever touches two teams' scores, so it
-// recombines the whole cached array here rather than paying for a full rescore).
+// Combine already-computed team scores into a genome score. Called by getGenomeScore(), which just
+// computed _teamScores above.
 //
 // Use the harmonic mean, the inverse of the average of the inverses, so score is skewed towards the smaller members.
 // This makes it so we optimize for better values of the worse teams rather than run-away best teams.
@@ -2517,6 +2551,152 @@ GenomeScore gruepr::aggregateTeamScores(const float _teamScores[], const int _te
     const float positiveTeamsHarmonicMean = (harmonicSum > 0) ? (float(numTeamsScored)/harmonicSum) : 0;
     const float score = allTeamsPositive ? positiveTeamsHarmonicMean : (nonPositiveSum / float(numTeamsScored));
     return {score, positiveTeamsHarmonicMean};
+}
+
+
+//////////////////
+// Create a log-spaced set of indexes in [0, populationSize), denser near rank 0 (rank 0 = top-scoring
+// genome). Clamping each computed index to at least (previous + 1) makes the sequence purely
+// consecutive (0, 1, 2, 3, ...) for as long as the raw exponential value stays below that floor, only
+// diverging into sparser spacing once the exponential curve overtakes it -- a dense, gap-free run at
+// the top (every genome with a real shot at tournament selection) followed by increasingly sparse
+// coverage reaching all the way to the bottom of the population, rather than clustering the whole
+// sample near the top.
+//////////////////
+std::vector<int> gruepr::chooseIndexesToRepair(const int populationSize, const int numSamples)
+{
+    std::vector<int> ranks(numSamples);
+    int lastIndex = -1;
+    const double lnPop = std::log(double(populationSize));
+    for(int i = 0; i < numSamples; i++) {
+        const int raw = int(std::llround(std::exp(i * lnPop / double(numSamples - 1)))) - 1;
+        const int idx = std::min(std::max(raw, lastIndex + 1), populationSize - 1);
+        ranks[i] = idx;
+        lastIndex = idx;
+    }
+    return ranks;
+}
+
+
+//////////////////
+// Single-pass exhaustive repair: any penalty from any criterion sends a team's score to be a
+// negative value, so a genome's negative-scoring teams are "broken". For the genome's CURRENT
+// worst-scoring team, tries swapping each of its members against every member of every other team in
+// turn, stopping at the first swap that decreases the genome's negative-team count. The goal is to cheaply
+// surface one more compliant team per call, with the repeated per-generation application accumulating
+// improvement over time.
+// A completed swap only ever moves one student out of the worst team and one out of the other team. So
+// checking whether a candidate swap helps only needs those two teams' scores. Thus, the check is by
+// scoring via the same getGenomeScore used everywhere else, just scoped down to numTeams=2.
+// negativeTeams/worstTeam/currentScore are the genome's own per-team scoring results -- always
+// supplied by the caller as a byproduct of its own scoring pass (see optimizeTeams step 4), since this
+// is the only caller and it always has them on hand.
+//////////////////
+GenomeScore gruepr::exhaustiveRepairGenome(const StudentRecord *const _students, int _teammates[], const int _numTeams,
+                                           const int _teamSizes[], const int _teamStartPositions[],
+                                           const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                                           const int negativeTeams, const int worstTeam, const GenomeScore &currentScore)
+{
+    if(negativeTeams == 0) {
+        return currentScore;   // nothing to fix -- zero rescoring, zero allocation
+    }
+
+    const int numCrits = _teamingOptions->criteria.size();
+
+    thread_local std::vector<int> subTeammates;
+    thread_local QList<QList<float>> subCriteriaScores;
+    thread_local QList<float> subPenaltyPoints;
+    thread_local QList<float> subScores;
+    if(subCriteriaScores.size() != numCrits) {
+        subCriteriaScores.resize(numCrits);
+    }
+    for(auto &c : subCriteriaScores) {
+        if(c.size() != 2) {
+            c.resize(2);
+        }
+    }
+    if(subPenaltyPoints.size() != 2) {
+        subPenaltyPoints.resize(2);
+    }
+    if(subScores.size() != 2) {
+        subScores.resize(2);
+    }
+    const auto scoreTwoTeams = [&](const int teamAIdx, const int teamBIdx) {
+        const int aStart = _teamStartPositions[teamAIdx], aSize = _teamStartPositions[teamAIdx + 1] - aStart;
+        const int bStart = _teamStartPositions[teamBIdx], bSize = _teamStartPositions[teamBIdx + 1] - bStart;
+        subTeammates.resize(size_t(aSize) + bSize);
+        std::copy(_teammates + aStart, _teammates + aStart + aSize, subTeammates.begin());
+        std::copy(_teammates + bStart, _teammates + bStart + bSize, subTeammates.begin() + aSize);
+        const QList<int> subTeamSizes = {aSize, bSize};
+        getGenomeScore(_students, subTeammates.data(), 2, subTeamSizes.data(), _teamingOptions, _dataOptions,
+                       subScores.data(), subCriteriaScores, subPenaltyPoints);
+    };
+
+    bool found = false;
+    //int finalNegativeTeams = negativeTeams;
+    GenomeScore finalScore = currentScore;
+
+    for(int posA = _teamStartPositions[worstTeam]; posA < _teamStartPositions[worstTeam + 1] && !found; posA++) {
+        for(int otherTeam = 0; otherTeam < _numTeams && !found; otherTeam++) {
+            if(otherTeam == worstTeam) {
+                continue;
+            }
+            scoreTwoTeams(worstTeam, otherTeam);
+            const int negCountBefore = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
+
+            for(int posB = _teamStartPositions[otherTeam]; posB < _teamStartPositions[otherTeam + 1] && !found; posB++) {
+                std::swap(_teammates[posA], _teammates[posB]);
+
+                scoreTwoTeams(worstTeam, otherTeam);
+                const int negCountAfter = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
+                const int newNegativeTeams = negativeTeams - negCountBefore + negCountAfter;
+
+                if(newNegativeTeams < negativeTeams) {
+                    found = true;
+                    //finalNegativeTeams = newNegativeTeams;
+                }
+                else {
+                    std::swap(_teammates[posA], _teammates[posB]);   // revert
+                }
+            }
+        }
+    }
+
+    // Rescore the whole genome when a swap actually landed
+    if(found) {
+        thread_local QList<QList<float>> criteriaScores;
+        thread_local QList<float> penaltyPoints;
+        thread_local QList<float> teamScores;
+        if(criteriaScores.size() != numCrits) {
+            criteriaScores.resize(numCrits);
+        }
+        for(auto &c : criteriaScores) {
+            if(c.size() != _numTeams) {
+                c.resize(_numTeams);
+            }
+        }
+        if(penaltyPoints.size() != _numTeams) {
+            penaltyPoints.resize(_numTeams);
+        }
+        if(teamScores.size() != _numTeams) {
+            teamScores.resize(_numTeams);
+        }
+
+        finalScore = getGenomeScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions,
+                                    teamScores.data(), criteriaScores, penaltyPoints);
+        //int confirmNegativeTeams = 0;
+        //for(int team = 0; team < _numTeams; team++) {
+        //    if(teamScores[team] <= 0) {
+        //        confirmNegativeTeams++;
+        //    }
+        //}
+        //if(confirmNegativeTeams != finalNegativeTeams) {
+        //    qWarning("gruepr::exhaustiveRepairGenome: incremental negativeTeams=%d, full-rescore negativeTeams=%d",
+        //             finalNegativeTeams, confirmNegativeTeams);
+        //}
+    }
+
+    return finalScore;
 }
 
 

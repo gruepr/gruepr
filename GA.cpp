@@ -6,18 +6,9 @@
 #include <vector>
 
 namespace {
-// One generator per thread, seeded on first use. std::mt19937 is not thread-safe, so a shared one
-// would race; thread_local removes the sharing entirely and keeps the call sites free of any
-// per-thread bookkeeping. Seeded from random_device, so the streams are not reproducible -- see the
-// note in GA.h.
+// One generator per thread, seeded on first use: std::mt19937 is not thread-safe
 thread_local std::mt19937 threadRNG{std::random_device{}()};
 }
-
-void GA::setGAParameters(int numRecords)
-{
-    populationsize = (numRecords <= GENOMESIZETHRESHOLD) ? POPULATIONSIZE[0] : POPULATIONSIZE[1];
-}
-
 
 //////////////////
 // Clone one parent from the genepool into new genepool
@@ -50,11 +41,11 @@ void GA::clone(const int *const parent, const int *const ancestors, const int pa
 // Select two parents from the genepool using tournament selection
 //////////////////
 void GA::tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
-                                 const int *&mom, const int *&dad, int parentage[]) const
+                                 const int *&mom, const int *&dad, int parentage[])
 {
     std::mt19937 &pRNG = threadRNG;
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-    std::uniform_int_distribution<unsigned int> randGenome(0, populationsize-1);
+    std::uniform_int_distribution<unsigned int> randGenome(0, POPULATIONSIZE-1);
 
     int momsindex, dadsindex;
     bool failedTournament;  // tournament fails when can't find unrelated mom and dad
@@ -68,7 +59,7 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
         for(auto &player : tourneyPick) {
             player = randGenome(pRNG);
         }
-        std::sort(tourneyPick, tourneyPick+TOURNAMENTSIZE);
+        std::sort(std::begin(tourneyPick), std::end(tourneyPick));
 
         //pick first genome from tournament, most likely from the beginning so that best genomes are more likely have offspring
         //for now, index represent which ordinal genome from the tournament is selected (i.e., 0 = top scoring genome in tournament, 1 = 2nd highest scoring, etc.)
@@ -250,8 +241,8 @@ std::pair<int,int> GA::mutate(int genome[], const int startA, const int endA, co
 //////////////////
 // GenePool RAII wrapper
 //////////////////
-GA::GenePool::GenePool(const GA &ga, int genomeSize)
-    : popSize(ga.populationsize), genSize(genomeSize)
+GA::GenePool::GenePool(int populationSize, int genomeSize)
+    : popSize(populationSize), genSize(genomeSize)
     , dataVals(new int[static_cast<size_t>(popSize) * genSize]), rows(new int*[popSize])
 {
     for(int i = 0; i < popSize; ++i) {
@@ -311,8 +302,8 @@ void swap(GA::GenePool &a, GA::GenePool &b) noexcept
 //////////////////
 // AncestorPool RAII wrapper
 //////////////////
-GA::AncestorPool::AncestorPool(const GA &ga)
-    : popSize(ga.populationsize), numAncest(2)   // always track mom & dad
+GA::AncestorPool::AncestorPool(int populationSize)
+    : popSize(populationSize), numAncest(2)   // always track mom & dad
     , dataVals(nullptr), rows(nullptr)
 {
     for(int generation = 0; generation < GA::NUMGENERATIONSOFANCESTORS; ++generation) {

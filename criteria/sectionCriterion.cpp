@@ -1,7 +1,7 @@
 #include "sectionCriterion.h"
 #include "gruepr_globals.h"
-#include "teamingOptions.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include <QHBoxLayout>
 #include <QPushButton>
 
 void SectionCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)

@@ -1,7 +1,7 @@
 #include "teamsizeCriterion.h"
 #include "gruepr_globals.h"
-#include "teamingOptions.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include <QHBoxLayout>
 
 void TeamsizeCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {

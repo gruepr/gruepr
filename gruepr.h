@@ -14,11 +14,10 @@
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QMainWindow>
-#include <QPrinter>
 #include <QProgressDialog>
 #include <QSpinBox>
 #include <compare>
-#include <random>
+#include <vector>
 
 
 namespace Ui {class gruepr;}
@@ -126,11 +125,21 @@ private:
     QFutureWatcher< QList<int> > futureWatcher;                   // used for signaling of optimization completion
     ScoreLineGraph *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
-    GA ga;                                                        // class for genetic algorithm optimization
     static GenomeScore getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
                                 QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
     static GenomeScore aggregateTeamScores(const float _teamScores[], const int _teamSizes[], const int _numTeams);
+
+    // Single-pass exhaustive repair of one genome's damaged section (its current worst-scoring team).
+    // Every generation, a log-spaced sample of genomes (denser near rank 0) gets a single-pass
+    // exhaustiveRepairGenome() repair targeting its current worst-scoring team.
+    static constexpr int NUM_GENOMES_TO_REPAIR = 500;
+    // Select which genomes will receive the exhaustiveRepair process
+    static std::vector<int> chooseIndexesToRepair(const int populationSize, const int numSamples);
+    static GenomeScore exhaustiveRepairGenome(const StudentRecord *const _students, int _teammates[], const int _numTeams,
+                                              const int _teamSizes[], const int _teamStartPositions[],
+                                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                                              const int negativeTeams, const int worstTeam, const GenomeScore &currentScore);
 
     float teamSetScore = 0;
     int finalGeneration = 1;

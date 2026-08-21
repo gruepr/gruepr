@@ -80,7 +80,7 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
     }
 
     auto updatePairingCount = [this, grueprParent, type]() {
-        int count = 0;
+        long long count = 0;
         for (const auto &student : std::as_const(grueprParent->students)) {
             if (!student.deleted) {
                 if (type == TeammatesRulesDialog::TypeOfTeammates::splitApart) {

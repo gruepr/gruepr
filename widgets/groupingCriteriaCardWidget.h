@@ -26,13 +26,14 @@
 #include "criteria/criterion.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
 #include <QFrame>
-#include <QGridLayout>
+#include <QHBoxLayout>
 #include <QParallelAnimationGroup>
 #include <QPushButton>
 #include <QSplitter>
 #include <QTimer>
 #include <QToolButton>
 #include <QtUiPlugin/customwidget.h>
+#include <QVBoxLayout>
 #include <QWidget>
 
 class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterface {

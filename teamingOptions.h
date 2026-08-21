@@ -3,8 +3,6 @@
 
 #include "criteria/criterion.h"
 #include <QJsonObject>
-#include <QObject>
-#include <QStringList>
 
 // A container for the general teaming criteria as well as specific values for teamsize(s) and section(s) being teamed
 // (those are not stored in the criteria, since those values are used ubiquitously)

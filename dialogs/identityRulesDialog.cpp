@@ -4,7 +4,6 @@
 #include "widgets/labelWithInstantTooltip.h"
 #include "widgets/styledComboBox.h"
 #include <QHeaderView>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSpinBox>
 

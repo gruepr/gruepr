@@ -1,6 +1,5 @@
 #include "editOrAddStudentDialog.h"
 #include <QCheckBox>
-#include <QCollator>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>

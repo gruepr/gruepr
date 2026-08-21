@@ -7,7 +7,6 @@
 #include <QDialog>
 #include <QFileInfo>
 #include <QString>
-#include <QTableWidget>
 
 /**
      * @brief possFieldMeaning represents what kind of data might be stored in a data file

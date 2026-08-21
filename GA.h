@@ -4,17 +4,16 @@
 #include <utility>
 
 // Code related to the Genetic Algorithm used in gruepr
+// Could probably be converted to a namespace instead of a class (all functions static, no instance data)
 
 class GA
 {
 public:
-    void setGAParameters(int numRecords);
-
     static void clone(const int *const parent, const int *const ancestors, const int parentsIndex,
                       int child[], int parentage[], const int genomeSize);
 
-    void tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
-                                 const int *&mom, const int *&dad, int parentage[]) const;
+    static void tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
+                                        const int *&mom, const int *&dad, int parentage[]);
 
     static void mate(const int *const mom, const int *const dad, const int teamStartPositions[],
                      const int numTeams, int child[], const long long genomeSize);
@@ -31,7 +30,7 @@ public:
 
     class GenePool {
     public:
-        GenePool(const GA &ga, int genomeSize);
+        explicit GenePool(int populationSize, int genomeSize);
         ~GenePool();
 
         GenePool(const GenePool &) = delete;
@@ -58,7 +57,7 @@ public:
 
     class AncestorPool {
     public:
-        AncestorPool(const GA &ga);
+        explicit AncestorPool(int populationSize);
         ~AncestorPool();
 
         AncestorPool(const AncestorPool &) = delete;
@@ -85,28 +84,25 @@ public:
 
     static constexpr int MAX_RECORDS = 1000;            // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow as value gets bigger)
 
-    static constexpr int MIN_GENERATIONS = 40;          // will keep optimizing for at least minGenerations
-    static constexpr int MAX_GENERATIONS = 800;         // will keep optimizing for at most maxGenerations
+    static constexpr int MIN_GENERATIONS = 50;          // will keep optimizing for at least minGenerations
+    static constexpr int MAX_GENERATIONS = 1000;        // will keep optimizing for at most maxGenerations
     static constexpr int GENERATIONS_OF_STABILITY = 25; // after minGenerations, if score has not improved for generationsOfStability, stop optimizing
     static constexpr int MIN_SCORE_STABILITY = 100;     // will keep optimizing until scoreStability (current score divided by range of scores within generationsOfStability) exceeds this
 
-    static constexpr int TOPGENOMELIKELIHOOD = 50;      // percent likelihood of selecting the best genome in the tournament as parent;
-                                                        //    if top is not selected, move to next best genome with same probability, and so on
     static constexpr int NUMGENERATIONSOFANCESTORS = 3; // how many generations of ancestors to look back when preventing the selection of related mates:
                                                         //    1 = prevent if either parent is same (no siblings mating);
                                                         //    2 = prevent if any parent or grandparent is same (no siblings or 1st cousins);
                                                         //    3 = prevent if any parent, grandparent, or greatgrandparent is same (no siblings, 1st or 2nd cousins); etc.
-    inline static const int NUM_ELITES = 3;             // From each generation, this many highest scoring genomes are directly cloned into the next generation.
+
+    static constexpr int POPULATIONSIZE = 50000;        // how many genomes are in the genepool
+
+    static constexpr int NUM_ELITES = 3;                // From each generation, this many highest scoring genomes are directly cloned into the next generation.
                                                         //    Having at least 1 elite stabilizes the high score to end optimization
 
-    // working value of the one algorithm constant that varies with class size, set when beginning an optimization and the genome size is known
-    int populationsize = POPULATIONSIZE[1];
-
-private:
-    static constexpr int POPULATIONSIZE[] = {45000, 30000}; // the number of genomes in the genepool--larger size is slower, but each generation is more likely to have optimal result
-    static constexpr int GENOMESIZETHRESHOLD = 200;         // numRecords at or below this threshold use the larger population size; above it, the smaller one
-    static constexpr int TOURNAMENTSIZE = 30;               // Most of the next generation is created by mating pairs of parent genomes,
-                                                            //   each time chosen from genomes in a randomly selected tournament in the genepool
+    static constexpr int TOURNAMENTSIZE = 30;           // Most of the next generation is created by mating pairs of parent genomes,
+                                                        //   each time chosen from genomes in a randomly selected tournament in the genepool
+    static constexpr int TOPGENOMELIKELIHOOD = 50;      // percent likelihood of selecting the best genome in the tournament as parent;
+                                                        //    if top is not selected, move to next best genome with same probability, and so on
 };
 
 

@@ -5,6 +5,7 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QTimeZone>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to select base timezone for the class in the survey

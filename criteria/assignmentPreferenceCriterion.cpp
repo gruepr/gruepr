@@ -3,7 +3,6 @@
 #include "teamingOptions.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include "widgets/styledComboBox.h"
-#include <QHBoxLayout>
 #include <QJsonArray>
 #include <QVBoxLayout>
 #include <algorithm>

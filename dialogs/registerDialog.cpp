@@ -1,10 +1,10 @@
 #include "registerDialog.h"
 #include "gruepr_globals.h"
-#include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QVBoxLayout>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to register the software

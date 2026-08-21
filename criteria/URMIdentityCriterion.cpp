@@ -1,6 +1,5 @@
 #include "URMIdentityCriterion.h"
 #include "gruepr_globals.h"
-#include "teamingOptions.h"
 #include "dialogs/identityRulesDialog.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QJsonArray>
@@ -182,7 +181,7 @@ void URMIdentityCriterion::prepareForOptimization(const StudentRecord *students,
     }
 }
 
-void URMIdentityCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
+void URMIdentityCriterion::calculateScore(const StudentRecord *const /*students*/, const int teammates[], const int numTeams, const int teamSizes[],
                                           const TeamingOptions *const /*teamingOptions*/, const DataOptions *const /*dataOptions*/,
                                           QList<float> &criteriaScores, QList<float> &penaltyPoints) const
 {

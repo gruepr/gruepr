@@ -5,7 +5,6 @@
 #include "teamingOptions.h"
 #include <widgets/frameThatForwardsMouseClicks.h>
 #include <QDoubleSpinBox>
-#include <QLabel>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QVBoxLayout>

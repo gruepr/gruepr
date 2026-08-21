@@ -1,7 +1,6 @@
 #include "checkableComboBox.h"
 #include <QAbstractItemView>
 #include <QApplication>
-#include <QMouseEvent>
 #include <QPainter>
 #include <QStyleOptionButton>
 #include <QStyleOptionComboBox>

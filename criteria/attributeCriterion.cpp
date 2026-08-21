@@ -2,8 +2,6 @@
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QHBoxLayout>
 #include <QJsonArray>
-#include <QLabel>
-#include <QVBoxLayout>
 #include <algorithm>
 #include <iterator>
 #include <vector>

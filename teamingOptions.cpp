@@ -1,7 +1,5 @@
 #include "teamingOptions.h"
 #include <QJsonArray>
-#include <QMetaEnum>
-#include <QString>
 
 
 TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
