@@ -2388,9 +2388,12 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j)
                 {return (genomeScores[i] > genomeScores[j]);});
 
-            // 6. Repair a broken gene within a sample of genomes (multi-threaded using OpenMP):
-            // for each sampled genome's current worst team, exhaustively try swapping its teammates
-            // against students on every other team until a swap reduces the genome's negative-team count.
+            // 6. Repair 1 broken gene each from within a sample of genomes (multi-threaded using OpenMP):
+            // for each selected genome's current worst team, exhaustively try swapping its teammates
+            // against students on every other team until a swap reduces the genome's negative-team
+            // count. For the elite genomes specifically (always among the sample, since they're always
+            // ranked 0..NUM_ELITES-1), once there's no negative team left to fix, the same search
+            // keeps going to squeeze further improvement out of an already-clean genome.
 #pragma omp parallel \
             default(none) \
             shared(genomeScores, sharedStudents, genePool, orderedIndex, repairRanks, repairHints, \
@@ -2400,10 +2403,11 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 for(int sample = 0; sample < int(repairRanks.size()); sample++) {
                     const int genome = orderedIndex[repairRanks[sample]];
                     const auto &hint = repairHints[genome];
+                    const bool isElite = repairRanks[sample] < GA::NUM_ELITES;
                     genomeScores[genome] = exhaustiveRepairGenome(sharedStudents.constData(), genePool[genome], sharedNumTeams,
                                                                   teamSizes.data(), teamStartPositions.get(),
                                                                   sharedTeamingOptions, sharedDataOptions,
-                                                                  hint.first, hint.second, genomeScores[genome]);
+                                                                  hint.first, hint.second, genomeScores[genome], isElite);
                 }
             }
 
@@ -2585,20 +2589,26 @@ std::vector<int> gruepr::chooseIndexesToRepair(const int populationSize, const i
 // turn, stopping at the first swap that decreases the genome's negative-team count. The goal is to cheaply
 // surface one more compliant team per call, with the repeated per-generation application accumulating
 // improvement over time.
+//
 // A completed swap only ever moves one student out of the worst team and one out of the other team. So
 // checking whether a candidate swap helps only needs those two teams' scores. Thus, the check is by
 // scoring via the same getGenomeScore used everywhere else, just scoped down to numTeams=2.
 // negativeTeams/worstTeam/currentScore are the genome's own per-team scoring results -- always
 // supplied by the caller as a byproduct of its own scoring pass (see optimizeTeams step 4), since this
 // is the only caller and it always has them on hand.
+//
+// isElite genomes with negativeTeams == 0 behave differently: rather than stopping, the same worst-team
+// target is used to keep evolving the genome. Every candidate swap for that team is tried exhaustively,
+// and any swap that leaves BOTH teams' own scores higher than before is kept, and the scan continues.
 //////////////////
 GenomeScore gruepr::exhaustiveRepairGenome(const StudentRecord *const _students, int _teammates[], const int _numTeams,
                                            const int _teamSizes[], const int _teamStartPositions[],
                                            const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                           const int negativeTeams, const int worstTeam, const GenomeScore &currentScore)
+                                           const int negativeTeams, const int worstTeam, const GenomeScore &currentScore,
+                                           const bool isElite)
 {
-    if(negativeTeams == 0) {
-        return currentScore;   // nothing to fix -- zero rescoring, zero allocation
+    if(negativeTeams == 0 && !isElite) {
+        return currentScore;   // nothing to fix, and not an elite -- zero rescoring, zero allocation
     }
 
     const int numCrits = _teamingOptions->criteria.size();
@@ -2636,27 +2646,53 @@ GenomeScore gruepr::exhaustiveRepairGenome(const StudentRecord *const _students,
     //int finalNegativeTeams = negativeTeams;
     GenomeScore finalScore = currentScore;
 
-    for(int posA = _teamStartPositions[worstTeam]; posA < _teamStartPositions[worstTeam + 1] && !found; posA++) {
-        for(int otherTeam = 0; otherTeam < _numTeams && !found; otherTeam++) {
-            if(otherTeam == worstTeam) {
-                continue;
-            }
-            scoreTwoTeams(worstTeam, otherTeam);
-            const int negCountBefore = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
-
-            for(int posB = _teamStartPositions[otherTeam]; posB < _teamStartPositions[otherTeam + 1] && !found; posB++) {
-                std::swap(_teammates[posA], _teammates[posB]);
-
-                scoreTwoTeams(worstTeam, otherTeam);
-                const int negCountAfter = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
-                const int newNegativeTeams = negativeTeams - negCountBefore + negCountAfter;
-
-                if(newNegativeTeams < negativeTeams) {
-                    found = true;
-                    //finalNegativeTeams = newNegativeTeams;
+    if(negativeTeams == 0) {        // Elite genome, so exhaustive, keep-every-improving-swap continuation.
+        for(int posA = _teamStartPositions[worstTeam]; posA < _teamStartPositions[worstTeam + 1]; posA++) {
+            for(int otherTeam = 0; otherTeam < _numTeams; otherTeam++) {
+                if(otherTeam == worstTeam) {
+                    continue;
                 }
-                else {
-                    std::swap(_teammates[posA], _teammates[posB]);   // revert
+                for(int posB = _teamStartPositions[otherTeam]; posB < _teamStartPositions[otherTeam + 1]; posB++) {
+                    scoreTwoTeams(worstTeam, otherTeam);
+                    const float worstScoreBefore = subScores[0];
+                    const float otherScoreBefore = subScores[1];
+
+                    std::swap(_teammates[posA], _teammates[posB]);
+                    scoreTwoTeams(worstTeam, otherTeam);
+
+                    if(subScores[0] > worstScoreBefore && subScores[1] > otherScoreBefore) {
+                        found = true;   // keep this swap, keep scanning
+                    }
+                    else {
+                        std::swap(_teammates[posA], _teammates[posB]);   // revert
+                    }
+                }
+            }
+        }
+    }
+    else {
+        for(int posA = _teamStartPositions[worstTeam]; posA < _teamStartPositions[worstTeam + 1] && !found; posA++) {
+            for(int otherTeam = 0; otherTeam < _numTeams && !found; otherTeam++) {
+                if(otherTeam == worstTeam) {
+                    continue;
+                }
+                scoreTwoTeams(worstTeam, otherTeam);
+                const int negCountBefore = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
+
+                for(int posB = _teamStartPositions[otherTeam]; posB < _teamStartPositions[otherTeam + 1] && !found; posB++) {
+                    std::swap(_teammates[posA], _teammates[posB]);
+
+                    scoreTwoTeams(worstTeam, otherTeam);
+                    const int negCountAfter = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
+                    const int newNegativeTeams = negativeTeams - negCountBefore + negCountAfter;
+
+                    if(newNegativeTeams < negativeTeams) {
+                        found = true;
+                        //finalNegativeTeams = newNegativeTeams;
+                    }
+                    else {
+                        std::swap(_teammates[posA], _teammates[posB]);   // revert
+                    }
                 }
             }
         }

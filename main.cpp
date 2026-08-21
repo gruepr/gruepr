@@ -35,6 +35,8 @@
 //  - SIGNIFICANT speed-up in creating optimal teams (up to 14x faster per generation)
 //      - using faster data structures in calculating criteria scores
 //      - multi-threaded the genetic algorithm's mating process and modified the crossover operation to better propagate teams from dad's allele
+//      - added a broken-gene repair process applied to a sampling of genomes with a negative scoring team
+//      - added an exhaustive local search optimization to the cloned elite genomes
 //      - removed mutation from the optimization process & tweaked the genetic algorithm parameters and processes through benchmark testing
 //      - modified the math for computing and sorting genome scores when they have >= 1 non-positive team score(s)
 //      - added link time optimization during compiling

@@ -130,16 +130,19 @@ private:
                                 QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
     static GenomeScore aggregateTeamScores(const float _teamScores[], const int _teamSizes[], const int _numTeams);
 
-    // Single-pass exhaustive repair of one genome's damaged section (its current worst-scoring team).
+    // Single-pass exhaustive repair of a genome's most damaged gene (lowest scoring negative team).
     // Every generation, a log-spaced sample of genomes (denser near rank 0) gets a single-pass
-    // exhaustiveRepairGenome() repair targeting its current worst-scoring team.
+    // exhaustiveRepairGenome() repair targeting its current worst-scoring team. For elite genomes
+    // that already have no negative teams, the same worst-team target is instead used to keep
+    // evolving the genome further.
     static constexpr int NUM_GENOMES_TO_REPAIR = 500;
     // Select which genomes will receive the exhaustiveRepair process
     static std::vector<int> chooseIndexesToRepair(const int populationSize, const int numSamples);
     static GenomeScore exhaustiveRepairGenome(const StudentRecord *const _students, int _teammates[], const int _numTeams,
                                               const int _teamSizes[], const int _teamStartPositions[],
                                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                              const int negativeTeams, const int worstTeam, const GenomeScore &currentScore);
+                                              const int negativeTeams, const int worstTeam, const GenomeScore &currentScore,
+                                              const bool isElite);
 
     float teamSetScore = 0;
     int finalGeneration = 1;
