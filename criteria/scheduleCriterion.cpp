@@ -36,6 +36,17 @@ void ScheduleCriterion::settingsFromJson(const QJsonObject &json)
     minTimeBlocksOverlap = json["minTimeBlocksOverlap"].toInt(4);
     meetingBlockSize = static_cast<float>(json["meetingBlockSize"].toDouble(1));
     numBlocksForOneMeeting = json["numBlocksForOneMeeting"].toInt(1);
+
+    // display settings in the card
+    if (minMeetingTimes) {
+        minMeetingTimes->setValue(minTimeBlocksOverlap);
+    }
+    if (desiredMeetingTimes) {
+        desiredMeetingTimes->setValue(desiredTimeBlocksOverlap);
+    }
+    if (meetingLengthSpinBox) {
+        meetingLengthSpinBox->setValue(meetingBlockSize);
+    }
 }
 
 void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)

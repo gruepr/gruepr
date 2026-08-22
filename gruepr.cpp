@@ -1720,13 +1720,13 @@ void gruepr::optimizationComplete()
             indexInTeamset++;
         }
         //sort teammates within a team alphabetically by lastname,firstname
-        std::sort(IDList.begin(), IDList.end(), [this] (const int a, const int b)
-                  { const StudentRecord *const studentA = findStudentFromID(a);
-                    const StudentRecord *const studentB = findStudentFromID(b);
-                    const QString keyA = (studentA != nullptr) ? (studentA->lastname + studentA->firstname) : QString();
-                    const QString keyB = (studentB != nullptr) ? (studentB->lastname + studentB->firstname) : QString();
-                    return (keyA < keyB);
-                  });
+        std::sort(IDList.begin(), IDList.end(), [this] (const int a, const int b) {
+            const StudentRecord *const studentA = findStudentFromID(a);
+            const StudentRecord *const studentB = findStudentFromID(b);
+            const QString keyA = (studentA != nullptr) ? (studentA->lastname + studentA->firstname) : QString();
+            const QString keyB = (studentB != nullptr) ? (studentB->lastname + studentB->firstname) : QString();
+            return (keyA < keyB);
+        });
     }
 
     // Load scores and info into the teams
@@ -1736,16 +1736,29 @@ void gruepr::optimizationComplete()
     }
 
     // Sort teams by 1st student's name
-    std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
-              { const StudentRecord *const firstStudentOnTeamA = a.studentIDs.isEmpty() ? nullptr : findStudentFromID(a.studentIDs.at(0));
-                const StudentRecord *const firstStudentOnTeamB = b.studentIDs.isEmpty() ? nullptr : findStudentFromID(b.studentIDs.at(0));
-                const QString keyA = (firstStudentOnTeamA != nullptr) ? (firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) : QString();
-                const QString keyB = (firstStudentOnTeamB != nullptr) ? (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname) : QString();
-                return (keyA < keyB);
-              });
+    std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b) {
+        const StudentRecord *const firstStudentOnTeamA = a.studentIDs.isEmpty() ? nullptr : findStudentFromID(a.studentIDs.at(0));
+        const StudentRecord *const firstStudentOnTeamB = b.studentIDs.isEmpty() ? nullptr : findStudentFromID(b.studentIDs.at(0));
+        const QString keyA = (firstStudentOnTeamA != nullptr) ? (firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) : QString();
+        const QString keyB = (firstStudentOnTeamB != nullptr) ? (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname) : QString();
+        return (keyA < keyB);
+    });
 
-    // Name teams sequentially now that they're in their final (alphabetical) order, so the team-tab's
-    // default sort-by-name view matches this order instead of reverting to GA output order
+    // When teaming each section separately, stable-sort by section next so sections are grouped
+    // contiguously while preserving the alphabetical order already set above within each section
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+        std::stable_sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b) {
+            const StudentRecord *const firstStudentOnTeamA = a.studentIDs.isEmpty() ? nullptr : findStudentFromID(a.studentIDs.at(0));
+            const StudentRecord *const firstStudentOnTeamB = b.studentIDs.isEmpty() ? nullptr : findStudentFromID(b.studentIDs.at(0));
+            const int sectionIndexA = (firstStudentOnTeamA != nullptr) ? dataOptions->sectionNames.indexOf(firstStudentOnTeamA->section) : -1;
+            const int sectionIndexB = (firstStudentOnTeamB != nullptr) ? dataOptions->sectionNames.indexOf(firstStudentOnTeamB->section) : -1;
+            return (sectionIndexA < sectionIndexB);
+        });
+    }
+
+    // Name teams sequentially now that they're in their final order (alphabetical within each
+    // section, sections grouped in canonical order), so the team-tab's default sort-by-name view
+    // matches this order instead of reverting to GA output order
     for(int team = 0; team < teams.size(); team++) {
         teams[team].name = QString::number(team+1);
     }
