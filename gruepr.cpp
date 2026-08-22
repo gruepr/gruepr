@@ -626,36 +626,13 @@ void gruepr::refreshCriteriaLayout(){
         if (criteriaCard->criterion->precedence == Criterion::Precedence::fixed) {
             criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTFIXEDSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
                                         DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        // } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == true){
-        //     if (prevCriteriaCard->includePenaltyCheckBox!=nullptr){
-        //         prevCriteriaCard->includePenaltyCheckBox->setDisabled(true);
-        //     }
-        //     criteriaCard->includePenaltyCheckBox->setDisabled(false);
-        //     criteriaCard->includePenaltyCheckBox->setVisible(true);
-        //     criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE +
-        //                                 SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        // } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == false){
-        //     criteriaCard->includePenaltyCheckBox->setVisible(true);
-        //     criteriaCard->includePenaltyCheckBox->setDisabled(false);
-        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
-        //                                 DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        // } else if (prevCriteriaCard->criterion->penaltyStatus == false && criteriaCard->criterion->penaltyStatus == false){
-        //     criteriaCard->includePenaltyCheckBox->setVisible(false);
-        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
-        //                                 DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        // } else {
-        //     //criteriaCard->includePenaltyCheckBox->setVisible(false);
-        //     criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE +
-        //                                 SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
         else {
-            //criteriaCard->includePenaltyCheckBox->setVisible(false);
             criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
                                         DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
         criteriaCard->setVisible(true);
         layout->addWidget(criteriaCard);
-        //prevCriteriaCard = criteriaCard;
     }
     layout->addWidget(bottomDropZone);
     layout->addWidget(addNewCriteriaCardButton);
@@ -681,11 +658,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         teamSizes[teamnum] = _teams[teamnum].size;
         for(const auto studentID : std::as_const(_teams[teamnum].studentIDs)) {
-            int index = 0;
-            while(index < _students.size() && _students.at(index).ID != studentID) {
-                index++;
-            }
-            genome[ID] = index;
+            genome[ID] = grueprGlobal::findStudentIndex(_students, studentID);
             ID++;
         }
     }
@@ -844,12 +817,7 @@ void gruepr::editSectionNames()
 
 inline StudentRecord* gruepr::findStudentFromID(const long long ID)
 {
-    for(auto &student : students) {
-        if(student.ID == ID) {
-            return &student;
-        }
-    }
-    return nullptr;
+    return grueprGlobal::findStudentFromID(students, ID);
 }
 
 

@@ -1,8 +1,10 @@
 #include "gruepr_globals.h"
 #include "dataFile.h"
+#include "studentRecord.h"
 #include <QEvent>
 #include <QFileDialog>
 #include <QGridLayout>
+#include <QLayout>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -194,6 +196,28 @@ bool grueprGlobal::loadRoster(QWidget *parent, const QString &startingDirectory,
     return true;
 }
 
+void grueprGlobal::clearLayout(QLayout *layout)
+{
+    while (QLayoutItem *child = layout->takeAt(0)) {
+        delete child->widget();
+        delete child;
+    }
+}
+
+int grueprGlobal::findStudentIndex(const QList<StudentRecord> &allStudents, const long long studentID)
+{
+    int i = 0;
+    while (i < allStudents.size() && allStudents[i].ID != studentID) {
+        i++;
+    }
+    return i;
+}
+
+StudentRecord* grueprGlobal::findStudentFromID(QList<StudentRecord> &allStudents, const long long studentID)
+{
+    const int i = findStudentIndex(allStudents, studentID);
+    return (i < allStudents.size()) ? &allStudents[i] : nullptr;
+}
 
 void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, const QString &message) {
     auto *win = new QMessageBox(parent);

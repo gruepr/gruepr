@@ -301,11 +301,7 @@ void SurveyMakerAttributeQuestion::resizeQuestionPlainTextEdit()
 void SurveyMakerAttributeQuestion::updatePreviewWidget()
 {
     previewWidget->setUpdatesEnabled(false);
-    QLayoutItem *child;
-    while ((child = previewLayout->takeAt(0)) != nullptr) {
-        delete child->widget(); // delete the widget
-        delete child;   // delete the layout item
-    }
+    grueprGlobal::clearLayout(previewLayout);
 
     if(responsesComboBox->currentIndex() != 0) {
         if(responsesComboBox->currentData().toStringList() == QStringList({FREERESPONSENUMBER})) {
@@ -459,11 +455,7 @@ void SurveyMakerFreeResponseQuestion::resizeQuestionPlainTextEdit()
 void SurveyMakerFreeResponseQuestion::updatePreviewWidget()
 {
     previewWidget->setUpdatesEnabled(false);
-    QLayoutItem *child;
-    while ((child = previewLayout->takeAt(0)) != nullptr) {
-        delete child->widget(); // delete the widget
-        delete child;   // delete the layout item
-    }
+    grueprGlobal::clearLayout(previewLayout);
 
     previewWidget->setUpdatesEnabled(true);
     previewWidget->update();

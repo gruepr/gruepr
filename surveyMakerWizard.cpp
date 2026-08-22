@@ -1917,11 +1917,7 @@ void CourseInfoPage::update()
 {
     sectionNames.clear();
 
-    QLayoutItem *child;
-    while ((child = sectionsPreviewLayout->takeAt(0)) != nullptr) {
-        delete child->widget(); // delete the widget
-        delete child;   // delete the layout item
-    }
+    grueprGlobal::clearLayout(sectionsPreviewLayout);
 
     auto *topLabel = new QLabel(SELECTONE);
     topLabel->setStyleSheet(LABEL10PTSTYLE);
@@ -2514,11 +2510,7 @@ void PreviewAndExportPage::initializePage()
             break;
         }
         section[SurveyMakerWizard::demographics]->questionLabel[3]->setText(questionText);
-        QLayoutItem *child;
-        while((child = section[SurveyMakerWizard::demographics]->questionGroupLayout[3]->takeAt(0)) != nullptr) {
-            delete child->widget(); // delete the widget
-            delete child;   // delete the layout item
-        }
+        grueprGlobal::clearLayout(section[SurveyMakerWizard::demographics]->questionGroupLayout[3]);
         for(const auto &genderOption : std::as_const(genderOptions)) {
             QWidget *option;
             if(field("GenderAllowMulti").toBool()) {
@@ -2582,11 +2574,7 @@ void PreviewAndExportPage::initializePage()
             }
             else if((multiQuestionMultis[questionNum]).toBool()) {
                 section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->setText(attributeQuestionTexts[questionNum] + "\n" + SELECTMULT);
-                QLayoutItem *child;
-                while((child = section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
-                    delete child->widget(); // delete the widget
-                    delete child;   // delete the layout item
-                }
+                grueprGlobal::clearLayout(section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]);
                 for(const auto &response : std::as_const(responses)) {
                     auto *option = new QCheckBox(response);
                     section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->addWidget(option);
@@ -2597,11 +2585,7 @@ void PreviewAndExportPage::initializePage()
             }
             else if(responses.size() < 10) {
                 section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->setText(attributeQuestionTexts[questionNum] + "\n" + SELECTONE);
-                QLayoutItem *child;
-                while((child = section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
-                    delete child->widget(); // delete the widget
-                    delete child;   // delete the layout item
-                }
+                grueprGlobal::clearLayout(section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]);
                 for(const auto &response : std::as_const(responses)) {
                     auto *option = new QRadioButton(response);
                     section[SurveyMakerWizard::attribute]->questionGroupLayout[questionNum]->addWidget(option);
@@ -2659,11 +2643,7 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::assignmentpreference]->questionLabel[0]->setText(displayText);
         section[SurveyMakerWizard::assignmentpreference]->questionLabel[0]->show();
 
-        QLayoutItem *child;
-        while((child = section[SurveyMakerWizard::assignmentpreference]->questionGroupLayout[0]->takeAt(0)) != nullptr) {
-            delete child->widget();
-            delete child;
-        }
+        grueprGlobal::clearLayout(section[SurveyMakerWizard::assignmentpreference]->questionGroupLayout[0]);
         for(int i = 0; i < numRankedChoices; i++) {
             auto *label = new QLabel(i == 0? QString(RANKYOURFIRSTCHOICE) : (QString(RANKYOURCHOICE) + " " + QString::number(i + 1)));
 
@@ -2784,11 +2764,7 @@ void PreviewAndExportPage::initializePage()
     if(courseSections) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::courseinfo]->questionLabel[0]->show();
-        QLayoutItem *child;
-        while((child = section[SurveyMakerWizard::courseinfo]->questionGroupLayout[0]->takeAt(0)) != nullptr) {
-            delete child->widget(); // delete the widget
-            delete child;   // delete the layout item
-        }
+        grueprGlobal::clearLayout(section[SurveyMakerWizard::courseinfo]->questionGroupLayout[0]);
         for(const auto &courseSectionsName : courseSectionsNames) {
             auto *option = new QRadioButton(courseSectionsName);
             section[SurveyMakerWizard::courseinfo]->questionGroupLayout[0]->addWidget(option);
@@ -2815,11 +2791,7 @@ void PreviewAndExportPage::initializePage()
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->hide();
             section[SurveyMakerWizard::courseinfo]->questionGroupBox[1]->show();
-            QLayoutItem *child;
-            while((child = section[SurveyMakerWizard::courseinfo]->questionGroupLayout[1]->takeAt(0)) != nullptr) {
-                delete child->widget(); // delete the widget
-                delete child;   // delete the layout item
-            }
+            grueprGlobal::clearLayout(section[SurveyMakerWizard::courseinfo]->questionGroupLayout[1]);
             for(int i = 0; i < numPrefTeammates; i++) {
                 auto *selector = new StyledComboBox;
                 selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
@@ -2855,11 +2827,7 @@ void PreviewAndExportPage::initializePage()
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->hide();
             section[SurveyMakerWizard::courseinfo]->questionGroupBox[2]->show();
-            QLayoutItem *child;
-            while((child = section[SurveyMakerWizard::courseinfo]->questionGroupLayout[2]->takeAt(0)) != nullptr) {
-                delete child->widget(); // delete the widget
-                delete child;   // delete the layout item
-            }
+            grueprGlobal::clearLayout(section[SurveyMakerWizard::courseinfo]->questionGroupLayout[2]);
             for(int i = 0; i < numPrefTeammates; i++) {
                 auto *selector = new StyledComboBox;
                 selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);

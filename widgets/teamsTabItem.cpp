@@ -1474,12 +1474,7 @@ QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder() const
 
 inline StudentRecord* TeamsTabItem::findStudentFromID(const long long ID)
 {
-    for(auto &student : students) {
-        if(student.ID == ID) {
-            return &student;
-        }
-    }
-    return nullptr;
+    return grueprGlobal::findStudentFromID(students, ID);
 }
 
 

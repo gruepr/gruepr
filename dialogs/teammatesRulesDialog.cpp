@@ -160,21 +160,6 @@ TeammatesRulesDialog::~TeammatesRulesDialog()
     delete ui;
 }
 
-void clearLayout(QHBoxLayout *layout)
-{
-    if (!layout) {
-        return; // Safety check
-    }
-
-    QLayoutItem *item;
-    while ((item = layout->takeAt(0)) != nullptr) {
-        if (item->widget()) {
-            item->widget()->deleteLater(); // Delete the widget safely
-        }
-        delete item; // Remove the layout item
-    }
-}
-
 void TeammatesRulesDialog::showToast(QWidget *parent, const QString &message, int duration) {
     // Create label for the toast message
     auto *toast = new QLabel(parent);
@@ -400,7 +385,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
 
 void TeammatesRulesDialog::initializeTableHeaders(QString searchBarText, bool initializeStatus)
 {
-    clearLayout(headerLayout);
+    grueprGlobal::clearLayout(headerLayout);
 
     const int vheaderWidth = tableWidget->verticalHeader()->sizeHint().width();
     if (initializeStatus) {
@@ -520,16 +505,8 @@ void TeammatesRulesDialog::pairAllStudents(const QList<long long> &IDs, bool hub
         return;
     }
 
-    const auto findByID = [this](long long id) -> StudentRecord* {
-        int index = 0;
-        while((index < numStudents) && (students.at(index).ID != id)) {
-            index++;
-        }
-        return (index < numStudents) ? &students[index] : nullptr;
-    };
-
     for(int ID1 = 0; ID1 < (hubAndSpoke ? 1 : IDs.size()); ID1++) {
-        StudentRecord *student1 = findByID(IDs[ID1]);
+        StudentRecord *student1 = grueprGlobal::findStudentFromID(students, IDs[ID1]);
         if(student1 == nullptr) {
             continue;
         }
@@ -537,7 +514,7 @@ void TeammatesRulesDialog::pairAllStudents(const QList<long long> &IDs, bool hub
             if(IDs[ID1] == IDs[ID2]) {
                 continue;
             }
-            StudentRecord *student2 = findByID(IDs[ID2]);
+            StudentRecord *student2 = grueprGlobal::findStudentFromID(students, IDs[ID2]);
             if(student2 == nullptr) {
                 continue;
             }
@@ -827,20 +804,14 @@ bool TeammatesRulesDialog::loadExistingTeamset()
     for(const auto &teamIDs : teamIDLists) {
         for(int i = 0; i < teamIDs.size(); i++) {
             // find student with this ID
-            int index1 = 0;
-            while((index1 < numStudents) && (students.at(index1).ID != teamIDs[i])) {
-                index1++;
-            }
+            const int index1 = grueprGlobal::findStudentIndex(students, teamIDs[i]);
             if(index1 == numStudents) {
                 continue;
             }
 
             for(int j = i + 1; j < teamIDs.size(); j++) {
                 if(teamIDs[i] != teamIDs[j]) {
-                    int index2 = 0;
-                    while((index2 < numStudents) && (students.at(index2).ID != teamIDs[j])) {
-                        index2++;
-                    }
+                    const int index2 = grueprGlobal::findStudentIndex(students, teamIDs[j]);
                     if(index2 == numStudents) {
                         continue;
                     }

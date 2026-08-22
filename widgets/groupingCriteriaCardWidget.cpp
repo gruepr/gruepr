@@ -517,32 +517,6 @@ void GroupingCriteriaCard::setPriorityOrder(int newPriorityOrder)
     headerRowLayout->update();
 }
 
-Criterion::Precedence GroupingCriteriaCard::getPrecedence() const
-{
-    return criterion->precedence;
-}
-
-void GroupingCriteriaCard::setPrecedence(Criterion::Precedence precedence)
-{
-    criterion->precedence = precedence;
-    QString labelText;
-    switch(criterion->precedence) {
-    case Criterion::Precedence::fixed:
-        labelText = "";
-        break;
-    case Criterion::Precedence::need:
-        labelText = tr("Requirement");// "# " + QString::number(priorityOrder+1) + " - " + tr("Need");
-        priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
-        break;
-    case Criterion::Precedence::want:
-        labelText = tr("Preference") + " # " + QString::number(priorityOrder + 1 - fixedCardOffset); // + " - " + tr("Want");
-        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
-        break;
-    }
-    priorityOrderLabel->setText(labelText);
-    headerRowLayout->update();
-}
-
 void GroupingCriteriaCard::stopDragTimer()
 {
     m_dragTimer.stop();

@@ -79,8 +79,6 @@ public:
     void dropEvent(QDropEvent *event) override;
     int getPriorityOrder() const;
     void setPriorityOrder(int newPriorityOrder);
-    Criterion::Precedence getPrecedence() const;
-    void setPrecedence(Criterion::Precedence precedence);
     void stopDragTimer();
 
 signals:

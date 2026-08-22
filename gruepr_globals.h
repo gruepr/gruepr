@@ -3,6 +3,7 @@
 
 #include "GA.h"
 #include <QApplication>
+#include <QLayout>
 #include <QObject>
 
 // constants
@@ -676,6 +677,8 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Loch Ness Monster,Mongolian Death Worm,Nandi Bear,Ozark Howler,Pukwudgie,Queensland Tiger,Reptilian,Skunk Ape,Tatzelwurm,"
                                  "Urayuli,Vegetable Lamb of Tartary,Wolpertinger,Yeti,Zuiyō-maru Creature,Akkorokamui,Bat Boy,Chessie,Dingonek,Ebu Gogo"};
 
+class StudentRecord;
+
 /**
  * The namespace with methods used throughout gruepr.
  */
@@ -741,6 +744,28 @@ namespace grueprGlobal {
      * the file couldn't be opened, or it didn't contain identifiable name data.
      */
     bool loadRoster(QWidget *parent, const QString &startingDirectory, QStringList &names, QStringList *emails = nullptr);
+
+    /**
+     * @brief clearLayout Removes and deletes every item (and its widget, if any) from a layout.
+     * @param layout The layout to empty.
+     */
+    void clearLayout(QLayout *layout);
+
+    /**
+     * @brief findStudentIndex Finds the index of the student with the given ID.
+     * @param allStudents The list of students to search.
+     * @param studentID The ID of the student to find.
+     * @return The index of the matching student, or allStudents.size() if not found.
+     */
+    int findStudentIndex(const QList<StudentRecord> &allStudents, const long long studentID);
+
+    /**
+     * @brief findStudentFromID Finds the student with the given ID.
+     * @param allStudents The list of students to search.
+     * @param studentID The ID of the student to find.
+     * @return A pointer to the matching student, or nullptr if not found.
+     */
+    StudentRecord* findStudentFromID(QList<StudentRecord> &allStudents, const long long studentID);
 }
 
 inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};

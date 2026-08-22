@@ -332,10 +332,7 @@ float GenderCriterion::scoreForOneTeamInDisplay(const QList<StudentRecord> &allS
 
     int numWomen = 0, numMen = 0, numNonbinary = 0;
     for (const auto studentID : team.studentIDs) {
-        int i = 0;
-        while (i < allStudents.size() && allStudents[i].ID != studentID) {
-            i++;
-        }
+        const int i = grueprGlobal::findStudentIndex(allStudents, studentID);
         if (i >= allStudents.size()) {
             continue;
         }
