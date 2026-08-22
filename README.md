@@ -52,10 +52,24 @@ Description of gruepr:
 ---------------
 Details on how the teams are optimized:
 
-     To optimize the teams, a genetic algorithm is used. First, a large population (10's of thousands) of
-     random teamings (each is a "genome") is created and then refined over multiple generations. In each
-     generation, a small number of the highest scoring "elite" genomes are directly copied (cloned) into the
-     next generation, and the rest are created by mating tournament-selected parents using ordered crossover.
+     To optimize the teams, a memetic (modified genetic) algorithm is used. First, a large population (10's
+     of thousands) of random teamings (each is a "genome") is created and then refined over multiple 
+     generations. In each generation, a small number of the highest scoring "elite" genomes are directly 
+     copied (cloned) into the next generation, and the rest are created by mating tournament-selected parents
+     using ordered crossover.
+     
+     The memetic component is that a local search is used to improve a selection of genomes each generation.
+     A logarithmically spaced set of genomes undergo this process. It is an expensive process, so only 1% of
+     the population is processed, and they are spaced more densely near the higher scoring genomes so that
+     the time isn't wasted on genomes unlikely to be selected for mating the next generation. The process
+     takes the most broken gene in the genome (the lowest-scoring negative team) and performs an exhaustive
+     search swapping each teammate on that team with every other student on every other team, stopping once
+     the genome is less broken (the number of negative teams decreases). If a genome has no negative teams,
+     this process is skipped EXCEPT for the elite genomes. The elite genomes always go through an exhaustive
+     search, either to fix a broken gene as described previously or, if no genes are broken, to neverthless
+     try swapping each teammate on the lowest scoring team with every other student and keeping the swap if
+     the genome's score increases, hill climbing by continuing with every possible swap and keeping each one
+     that causes the overall genome score to rise.
 
      A genome's net score is the harmonic mean of the score for each team. Harmonic mean is used so that low
      scoring teams have more weight. Evolution proceeds for at least minGenerations and at most
@@ -91,7 +105,7 @@ A Note about genetic algorithm efficiency:
           Effective (tried, improved):
                - Tuned the tournamentSize from 100 to 30
           Not promising (tried, ruled out):
-               - Tuning numElites/numSuperElites — effect is noise-level.
+               - Tuning numElites / adding non-mutated SuperElites — effect is noise-level.
                - Annealing/scheduling tournamentSize down over a run — actively worse than just holding a
                  good flat value; early diversity loss doesn't recover.
                - Island genepools with migration — neutral at every size tested (2-6 islands); adds real
@@ -101,12 +115,14 @@ A Note about genetic algorithm efficiency:
                 set of identical copies) still isn't solved by anything above (though real data doesn't look
                 like this).
           Promising / worth exploring:
-               - A dedicated local-repair step (scan for exact-swap opportunities to complete near-matching
-                 teams) — untested, but the one idea that could plausibly crack the still-unsolved "many
-                 duplicate/near-duplicate students" case, since parameter tuning alone couldn't.
                - To get around the redundancy-of-genome issue, sort indexes w/in each team and then each
                  team w/in the genome.
 
+     Results from continued GA investigation (2026-08-20):
+          Very effective memetic addition to the genetic algorithm:
+               - Use exhaustive search to fix a broken gene (a negative scoring team) within a genome
+               - Use exhaustive search to improve the lowest scoring team in an elite genome once it hss
+                 no broken genes
 
 
 ---------------

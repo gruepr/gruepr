@@ -42,9 +42,10 @@
 //      - added link time optimization during compiling
 //  - Made export of teams more flexible, including export as Excel (xlsx) file
 //  - Made import of student data (survey responses and student rosters) more flexible, including import as Excel (xlsx) file
-//  - Now alphabetizes the students / teams by last name on first display of a team set
-//  - Changed the progress graph from box and whisker plots to a simpler line graph tracking the max. score
+//  - Now alphabetizes the students / teams by name on first display of a team set
+//  - Changed the optimization progress graph to be a simpler line graph tracking the max. score
 //  - Better UI associated with the "Duplicate" marker in student list
+//  - Added more preset team name options
 //  - Added a 2nd set of sample survey results: testdata_largeclass.csv
 //  - Bugfix: autoscroll issue when drag/drop reordering the criteria cards
 //  - Bugfix: project assignment criteria has a fallback when there are fewer projects than teams: options now repeat as needed

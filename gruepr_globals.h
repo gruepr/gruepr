@@ -534,22 +534,28 @@ inline static const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
                                  "NATO phonetic alphabet,"
                                  "Groups of animals,"
                                  "Chemical elements,"
+                                 "Units of measure (SI),"
+                                 "Units of measure (Imperial),"
+                                 "Units of measure (Obsolete),"
                                  "Papal names,"
+                                 "Greek gods,"
                                  "Constellations,"
                                  "Crayola crayon colors,"
                                  "Genres of music,"
                                  "Cheeses,"
                                  "Classic video games,"
                                  "Shakespeare plays (RSC chron.),"
+                                 "Art movements,"
                                  "Languages (globally most spoken),"
                                  "All time best-selling albums in US,"
                                  "Minor Simpsons characters,"
                                  "Bones of the human skeleton,"
                                  "Minor league baseball teams,"
                                  "Discontinued Olympic sports,"
-                                 "Obsolete units of measure,"
                                  "Everyone's a winner!,"
-                                 "Cryptids"};
+                                 "Cryptids,"
+                                 "Knots,"
+                                 "Gemstones"};
 inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::numeric,
                                                   TeamNameType::numeric,
@@ -562,6 +568,11 @@ inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
+                                                  TeamNameType::random_sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::random_sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
@@ -575,7 +586,8 @@ inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::random_sequeled,
                                                   TeamNameType::sequeled,
-                                                  TeamNameType::sequeled};
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::random_sequeled};
 inline static const char TEAMNAMELISTS[] {";"
                               ";"
                               ";"
@@ -604,9 +616,18 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Berkelium,Californium,Einsteinium,Fermium,Mendelevium,Nobelium,Lawrencium,Rutherfordium,Dubnium,Seaborgium,"
                                  "Bohrium,Hassium,Meitnerium,Darmstadtium,Roentgenium,Copernicium,Nihonium,Flerovium,Moscovium,Livermorium,"
                                  "Tennessine,Oganesson;"
+                              "Meter,Kilogram,Second,Ampere,Kelvin,Mole,Candela,Hertz,Radian,Newton,Pascal,Joule,Watt,Coulomb,Volt,Farad,Ohm,Siemens,"
+                                 "Weber,Tesla,Henry,Lumen,Lux,Becquerel,Gray,Sievert,Katal,Steradian;"
+                              "Foot,Pound,Gallon,Fahrenheit,Horsepower,Slug,BTU,Mile,Ounce,PSI,Acre,Quart,Inch,Stone,Pint,Chain,Ton,Fathom,Grain,"
+                                 "Bushel,Rod,Dram,League,Rankine,Foot-Pound;"
+                              "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
+                                 "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire;"
                               "Adrian,Benedict,Clement,Damasus,Eugene,Felix,Gregory,Hilarius,Innocent,John,Leo,Martin,Nicholas,Pius,Romanus,"
                                  "Stephen,Theodore,Urban,Victor,Zosimus,Alexander,Boniface,Celestine,Dionysius,Evaristus,Fabian,Gelasius,Honorius,"
                                  "Julius,Lucius,Marcellus,Pelagius,Sixtus,Telesphorus,Valentine,Zephyrinus;"
+                              "Persephone,Hermes,Ares,Nike,Cronus,Hestia,Apollo,Nyx,Poseidon,Hecate,Atlas,Eros,Demeter,Morpheus,Hades,Aphrodite,"
+                                 "Rhea,Athena,Selene,Prometheus,Hephaestus,Gaia,Triton,Artemis,Nemesis,Asclepius,Dionysus,Helios,Pandora,Hypnos,"
+                                 "Iris,Thanatos,Pan,Hebe,Eos,Hera;"
                               "Andromeda,Bootes,Cassiopeia,Draco,Equuleus,Fornax,Gemini,Hydra,Indus,Leo,Musca,Norma,Orion,Perseus,Reticulum,"
                                  "Sagittarius,Taurus,Ursa Major,Virgo,Aries,Canis Major,Dorado,Eridanus,Grus,Hercules,Lupus,Musca,Octans,Phoenix,"
                                  "Scorpius,Triangulum Australe,Ursa Minor,Vela;"
@@ -632,6 +653,10 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Twelfth Night,Troilus and Cressida,Othello,Measure for Measure,All's Well That Ends Well,Timon of Athens,"
                                  "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,Winter's Tale,Tempest,Henry VIII,"
                                  "Two Noble Kinsmen;"
+                              "Byzantine,Gothic,Renaissance,Mannerism,Baroque,Rococo,Neoclassicism,Romanticism,Realism,Pre-Raphaelite,"
+                                 "Impressionism,Post-Impressionism,Symbolism,Art Nouveau,Fauvism,Expressionism,Cubism,Futurism,Dada,De Stijl,"
+                                 "Bauhaus,Art Deco,Surrealism,Abstract Expressionism,Pop Art,Minimalism,Conceptual Art,Photorealism,"
+                                 "Postmodernism,Street Art;"
                               "Mandarin,Spanish,English,Hindi,Arabic,Portugese,Bengali,Russian,Japanese,Punjabi,German,Javanese,Wu,Malay,Telugu,Vietnamese,Korean,"
                                  "French,Marathi,Tamil,Urdu,Turkish,Italian,Yue,Thai,Gujarati,Jin,Southern Min,Persian,Polish,Pashto,Kannada,Xiang,Malayalam,Sundanese,"
                                  "Hausa,Odia,Burmese,Hakka,Ukranian,Bhojpuri,Tagalog,Yoruba,Maithili,Uzbek,Sindhi,Amharic,Fula,Romanian,Oromo,Igbo,Azerbaijani,Awadhi,Gan,"
@@ -668,14 +693,19 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Korfball,Lacrosse,Motorcycle Racing,Orchestra,Pigeon Racing,Roller Hockey,Savate,Tug of War,Vaulting,Waterskiing,"
                                  "Ballooning,Croquet,Dueling Pistol,Kaatsen,Life Saving,Plunge Distance Diving,Rope Climb,Solo Synchronized Swimming,"
                                  "Standing High Jump,Polo;"
-                              "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
-                                 "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire;"
                               "1,A,Alpha,Gold,Blue Ribbon,Numero Uno,First Place,i,Pole Position,Prime,Superior,Head of the line,Crème de la crème,"
                                  "Jewel in the crown,Elite,Superlative,Pick of the litter,Best of the bunch,Tip-top,Peak,First class,Flawless,"
                                  "Preeminent,Ultimate;"
                               "Abonesi,Bigfoot,Chupacabra,Dover Demon,Enfield Monster,Flying Rod,Ghost Deer,Hellhound,Igopopo,Jersey Devil,Kraken,"
                                  "Loch Ness Monster,Mongolian Death Worm,Nandi Bear,Ozark Howler,Pukwudgie,Queensland Tiger,Reptilian,Skunk Ape,Tatzelwurm,"
-                                 "Urayuli,Vegetable Lamb of Tartary,Wolpertinger,Yeti,Zuiyō-maru Creature,Akkorokamui,Bat Boy,Chessie,Dingonek,Ebu Gogo"};
+                                 "Urayuli,Vegetable Lamb of Tartary,Wolpertinger,Yeti,Zuiyō-maru Creature,Akkorokamui,Bat Boy,Chessie,Dingonek,Ebu Gogo;"
+                              "Overhand,Square,Bowline,Figure Eight,Slip,Clove Hitch,Sheet Bend,Fisherman's,Timber Hitch,Anchor Bend,Cleat Hitch,"
+                                 "Trucker's Hitch,Taut-Line Hitch,Double Fisherman's,Surgeon's,Lark's Head,Monkey's Fist,Alpine Butterfly,Sheepshank,"
+                                 "Bowline on a Bight,Turk's Head,Highwayman's Hitch,Constrictor,Rolling Hitch,Munter Hitch,Prusik,Blood,Ring Bend,"
+                                 "Zeppelin Bend,Carrick Bend;"
+                              "Ruby,Sapphire,Emerald,Amethyst,Topaz,Opal,Garnet,Aquamarine,Peridot,Citrine,Tourmaline,Turquoise,Jade,Onyx,"
+                                 "Moonstone,Pearl,Lapis Lazuli,Amber,Malachite,Agate,Jasper,Zircon,Spinel,Tanzanite,Morganite,Alexandrite,Kunzite,"
+                                 "Iolite,Sunstone,Labradorite,Carnelian"};
 
 class StudentRecord;
 
