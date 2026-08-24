@@ -15,7 +15,7 @@ include(third_party/QXlsx/QXlsx.pri)
 TARGET = gruepr
 TEMPLATE = app
 macx: QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
-macx: QMAKE_CXXFLAGS += -Xarch_arm64 -include -Xarch_arm64 arm_acle.h
+macx: QMAKE_CXXFLAGS += -Xarch_arm64 -D__yield=__builtin_arm_yield
 
 DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
 DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
