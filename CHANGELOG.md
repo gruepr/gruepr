@@ -1,3 +1,23 @@
+## v13.1.0 — 2026-08-24
+
+- SIGNIFICANT speed-up in creating optimal teams (up to 14x faster per generation)
+  - using faster data structures in calculating criteria scores
+  - multi-threaded the genetic algorithm's mating process and modified the crossover operation to better propagate teams from dad's allele
+  - added a broken-gene repair process applied to a sampling of genomes with a negative scoring team
+  - added an exhaustive local search optimization to the cloned elite genomes
+  - removed mutation from the optimization process & tweaked the genetic algorithm parameters and processes through benchmark testing
+  - modified the math for computing and sorting genome scores when they have >= 1 non-positive team score(s)
+  - added link time optimization during compiling
+- Made export of teams more flexible, including export as Excel (xlsx) file
+- Made import of student data (survey responses and student rosters) more flexible, including import as Excel (xlsx) file
+- Now alphabetizes the students / teams by name on first display of a team set
+- Changed the optimization progress graph to be a simpler line graph tracking the max. score
+- Better UI associated with the "Duplicate" marker in student list
+- Added more preset team name options
+- Added a 2nd set of sample survey results: testdata_largeclass.csv
+- Bugfix: autoscroll issue when drag/drop reordering the criteria cards
+- Bugfix: project assignment criteria has a fallback when there are fewer projects than teams: options now repeat as needed
+
 ## v13.0.2 — 2026-07-01
 
 - bugfix: crash when directly loading Canvas survey results with 1+ students w/o a submission and survey has 1+ attribute question
