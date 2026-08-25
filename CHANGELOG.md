@@ -1,3 +1,7 @@
+## v13.1.1 — 2026-08-25
+
+- Bugfix: several small issues that might affect Canvas connections
+
 ## v13.1.0 — 2026-08-24
 
 - SIGNIFICANT speed-up in creating optimal teams (up to 14x faster per generation)
