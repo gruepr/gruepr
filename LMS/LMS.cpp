@@ -114,6 +114,12 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
 
     if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
         lastErrorMessage = reply->errorString();
+        lastErrorMessage.replace(" - ", "\n");
+        const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if(httpStatus != 0) {
+            const QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+            lastErrorMessage += " (" + tr("HTTP status") + " " + QString::number(httpStatus) + (httpReason.isEmpty() ? "" : (" " + httpReason)) + ")";
+        }
         //qDebug() << "**** failed or empty reply";
         emit requestFailed(reply->error(), url);
         reply->deleteLater();

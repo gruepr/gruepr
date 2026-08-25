@@ -864,6 +864,9 @@ QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentAcc
     }
 
     QString url = canvasURL->text().trimmed();
+    while(url.endsWith('/')) {
+        url.chop(1);
+    }
     if(!url.startsWith("https://") && !url.startsWith("http://")) {
         url.prepend("https://");
     }
