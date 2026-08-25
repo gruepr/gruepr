@@ -9,6 +9,7 @@ prev_versions/*
 macOS/*
 !macOS/MyAppInfo.plist
 !macOS/DMG_background.png
+!macOS/gruepr.entitlements
 windows/*
 !windows/gruepr_InstallScript.nsi
 !windows/install.bmp

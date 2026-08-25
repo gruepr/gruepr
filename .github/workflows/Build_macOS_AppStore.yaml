@@ -1,0 +1,143 @@
+name: Build macOS (App Store)
+
+on: workflow_dispatch
+
+jobs:
+  build-macos-appstore:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.9.1'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          modules: 'qtnetworkauth'
+          cache: true
+
+      - name: Build universal libomp
+        run: |
+          brew install cmake
+          git clone --depth 1 --branch llvmorg-18.1.8 https://github.com/llvm/llvm-project.git
+          cmake -S llvm-project/openmp -B libomp-build \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$PWD/libomp-universal
+          cmake --build libomp-build --parallel $(sysctl -n hw.ncpu)
+          cmake --install libomp-build
+
+      - name: Create secrets defines
+        run: |
+          cat > ci_secrets.pri << 'EOF'
+          DEFINES += GITHUB_SECRETS
+          DEFINES += SECRET_GOOGLE_CLIENT_ID=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_ID }}\\\"
+          DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
+          EOF
+
+      - name: Read version from gruepr.pro
+        id: version
+        run: |
+          GRUEPR_VERSION=$(grep -m1 '^gruepr_version' gruepr.pro | sed 's/.*= *//')
+          echo "version=$GRUEPR_VERSION" >> "$GITHUB_OUTPUT"
+
+      # --- Build universal binary ---
+      - name: Build universal binary
+        run: |
+          qmake gruepr.pro CONFIG+=release CONFIG+=macappstore "OMP_PREFIX=$PWD/libomp-universal"
+          make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS="arm64 x86_64" EXPORT_DEFAULT_ARCHS="arm64 x86_64"
+          lipo -info gruepr.app/Contents/MacOS/gruepr
+
+      # --- Deploy Qt frameworks ---
+      - name: Deploy Qt
+        run: macdeployqt gruepr.app
+
+      # --- Copy universal libomp into app bundle ---
+      - name: Bundle libomp
+        run: |
+          cp libomp-universal/lib/libomp.dylib gruepr.app/Contents/Frameworks/
+          install_name_tool -change @rpath/libomp.dylib @executable_path/../Frameworks/libomp.dylib gruepr.app/Contents/MacOS/gruepr
+
+      # --- Import Apple Distribution + Mac Installer Distribution certificates ---
+      - name: Import certificates
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 12)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/distribution.p12
+          security import $RUNNER_TEMP/distribution.p12 \
+            -P "${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}" \
+            -T /usr/bin/codesign -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          echo "${{ secrets.APPLE_INSTALLER_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/installer.p12
+          security import $RUNNER_TEMP/installer.p12 \
+            -P "${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}" \
+            -T /usr/bin/productbuild -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      # --- Embed the Mac App Store provisioning profile ---
+      - name: Embed provisioning profile
+        run: |
+          echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" | base64 --decode > gruepr.app/Contents/embedded.provisionprofile
+
+      # --- Sign the app (inside-out: nested binaries/frameworks first, then the sandboxed bundle) ---
+      - name: Sign app
+        run: |
+          SIGN_ID="Apple Distribution: ${{ secrets.APPLE_SIGNING_IDENTITY }}"
+
+          for dir in gruepr.app/Contents/Frameworks gruepr.app/Contents/PlugIns; do
+            [ -d "$dir" ] && find "$dir" -name "*.dylib" -exec codesign --force --options runtime --sign "$SIGN_ID" {} \;
+          done
+          find gruepr.app/Contents/Frameworks -maxdepth 1 -name "*.framework" -exec codesign --force --options runtime --sign "$SIGN_ID" {} \;
+
+          codesign --force --options runtime \
+            --entitlements macOS/gruepr.entitlements \
+            --sign "$SIGN_ID" \
+            gruepr.app
+
+      # --- Build the signed App Store installer package ---
+      - name: Build installer package
+        run: |
+          productbuild --component gruepr.app /Applications \
+            --sign "Mac Installer Distribution: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            gruepr_appstore.pkg
+
+      # --- Cleanup keychain ---
+      - name: Cleanup keychain
+        if: always()
+        continue-on-error: true
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+
+      # --- Upload to App Store Connect ---
+      - name: Upload to App Store Connect
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${{ secrets.APPLE_API_KEY }}" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+
+          xcrun altool --upload-package gruepr_appstore.pkg --type macos \
+            --apple-id "REPLACE_WITH_NUMERIC_APPLE_ID" \
+            --asc-public-id "REPLACE_WITH_ASC_PUBLIC_ID" \
+            --bundle-id com.gruepr.gruepr \
+            --bundle-version "${{ steps.version.outputs.version }}" \
+            --bundle-short-version-string "${{ steps.version.outputs.version }}" \
+            --apiKey "${{ secrets.APPLE_API_KEY_ID }}" \
+            --apiIssuer "${{ secrets.APPLE_API_ISSUER_ID }}"
+
+      # --- Keep the signed pkg as a build artifact too ---
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: gruepr-macos-appstore-pkg
+          path: gruepr_appstore.pkg
+          compression-level: 0
