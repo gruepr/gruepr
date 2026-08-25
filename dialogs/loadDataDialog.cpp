@@ -494,12 +494,10 @@ bool loadDataDialog::getFromCanvas()
     canvasCoursesAndQuizzesDialog->setWindowIcon(CanvasHandler::icon());
     canvasCoursesAndQuizzesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
-    int i = 1;
     auto *label = new QLabel(tr("From which course should the survey be downloaded?"), canvasCoursesAndQuizzesDialog);
     auto *coursesAndQuizzesComboBox = new StyledComboBox(canvasCoursesAndQuizzesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
         coursesAndQuizzesComboBox->addItem(canvasCourse.name, canvasCourse.ID);
-        coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesAndQuizzesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);

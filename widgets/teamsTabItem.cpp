@@ -1233,13 +1233,11 @@ void TeamsTabItem::postTeamsToCanvas()
     canvasCoursesDialog->setWindowIcon(QIcon(CanvasHandler::icon()));
     canvasCoursesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
-    int i = 1;
     auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
     auto *coursesComboBox = new StyledComboBox(canvasCoursesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
         coursesComboBox->addItem(canvasCourse.name, canvasCourse.ID);
-        coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
