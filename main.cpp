@@ -32,6 +32,7 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - Bugfix: several small issues that might affect Canvas connections
 //
 // TO DO:
 //
