@@ -215,9 +215,9 @@ QList<CanvasHandler::CanvasCourse> CanvasHandler::getCourses() {
 }
 
 // Retrieves the number of students in the given course
-int CanvasHandler::getStudentCount(const QString &courseName) {
+int CanvasHandler::getStudentCount(int courseID) {
     for(const auto &course : std::as_const(canvasCourses)) {
-        if(course.name == courseName) {
+        if(course.ID == courseID) {
             return course.numStudents;
         }
     }
@@ -225,12 +225,7 @@ int CanvasHandler::getStudentCount(const QString &courseName) {
 }
 
 // Retrieves the StudentRoster in the given course
-QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) {
-    const int courseID = getCourseID(courseName);
-    if(courseID == -1) {
-        return {};
-    }
-
+QList<StudentRecord> CanvasHandler::getStudentRoster(int courseID) {
     // First get the name, email address, and canvasID# of all students in the class
     QStringList studentNames;
     QStringList studentEmails;
@@ -300,12 +295,7 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) 
     return roster;
 }
 
-bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const survey) {
-    const int courseID = getCourseID(courseName);
-    if(courseID == -1) {
-        return false;
-    }
-
+bool CanvasHandler::createSurvey(int courseID, const Survey *const survey) {
     //create the survey (a quiz type in Canvas)
     bool allGood = true;
     QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes";
@@ -496,12 +486,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
     return allGood;
 }
 
-QStringList CanvasHandler::getQuizList(const QString &courseName) {
-    const int courseID = getCourseID(courseName);
-    if(courseID == -1) {
-        return {};
-    }
-
+QList<CanvasHandler::CanvasQuiz> CanvasHandler::getQuizList(int courseID) {
     QStringList titles;
     QList<int> ids;
     QStringList x;
@@ -516,24 +501,14 @@ QStringList CanvasHandler::getQuizList(const QString &courseName) {
                               {}, stringInSubobjectParams,
                               {}, intInSubArrayParams);
 
-    quizList.clear();
+    QList<CanvasQuiz> quizzes;
     for(int i = 0; i < titles.size(); i++) {
-        quizList.append({titles.at(i), ids.at(i)});
+        quizzes.append({titles.at(i), ids.at(i)});
     }
-    return titles;
+    return quizzes;
 }
 
-QString CanvasHandler::downloadQuizResult(const QString &courseName, const QString &quizName) {
-    const int courseID = getCourseID(courseName);
-    if(courseID == -1) {
-        return {};
-    }
-
-    const int quizID = getQuizID(quizName);
-    if(quizID == -1) {
-        return {};
-    }
-
+QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QString &quizName) {
     const QUrl URL = getQuizResultsURL(courseID, quizID);
     if(URL.isEmpty()) {
         return {};
@@ -572,12 +547,7 @@ QString CanvasHandler::downloadQuizResult(const QString &courseName, const QStri
 }
 
 // Creates a teamset
-bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams) {
-    const int courseID = getCourseID(courseName);
-    if(courseID == -1) {
-        return false;
-    }
-
+bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams) {
     bool allGood = true;
 
     //create the teamset
@@ -639,26 +609,6 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
 }
 
 ////////////////////////////////////////////
-
-int CanvasHandler::getCourseID(const QString &courseName) {
-    int courseID = -1;
-    for(const auto &course : std::as_const(canvasCourses)) {
-        if(course.name == courseName) {
-            courseID = course.ID;
-        }
-    }
-    return courseID;
-}
-
-int CanvasHandler::getQuizID(const QString &quizName) {
-    int quizID = -1;
-    for(const auto &quiz : std::as_const(quizList)) {
-        if(quiz.name == quizName) {
-            quizID = quiz.ID;
-        }
-    }
-    return quizID;
-}
 
 QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID) {
     const QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports";

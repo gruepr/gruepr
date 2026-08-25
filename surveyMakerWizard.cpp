@@ -3245,7 +3245,7 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     label->setStyleSheet(LABEL10PTSTYLE);
     auto *coursesComboBox = new StyledComboBox(canvasCoursesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
-        coursesComboBox->addItem(canvasCourse.name);
+        coursesComboBox->addItem(canvasCourse.name, canvasCourse.ID);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
@@ -3261,12 +3261,12 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
         canvas->deleteLater();
         return;
     }
-    const QString course = coursesComboBox->currentText();
+    const int courseID = coursesComboBox->currentData().toInt();
     canvasCoursesDialog->deleteLater();
 
     //upload the survey as a quiz
     busyBox = canvas->actionDialog(this);
-    const bool success = canvas->createSurvey(course, survey.data());
+    const bool success = canvas->createSurvey(courseID, survey.data());
 
     const QPixmap resultIcon(success? ":/icons_new/ok.png" : ":/icons_new/error.png");
     const QSize iconSize = canvas->actionDialogIcon->size();

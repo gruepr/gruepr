@@ -498,7 +498,7 @@ bool loadDataDialog::getFromCanvas()
     auto *label = new QLabel(tr("From which course should the survey be downloaded?"), canvasCoursesAndQuizzesDialog);
     auto *coursesAndQuizzesComboBox = new StyledComboBox(canvasCoursesAndQuizzesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
-        coursesAndQuizzesComboBox->addItem(canvasCourse.name);
+        coursesAndQuizzesComboBox->addItem(canvasCourse.name, canvasCourse.ID);
         coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesAndQuizzesDialog);
@@ -515,25 +515,26 @@ bool loadDataDialog::getFromCanvas()
         canvas->deleteLater();
         return false;
     }
-    const QString course = coursesAndQuizzesComboBox->currentText();
+    const int courseID = coursesAndQuizzesComboBox->currentData().toInt();
     canvasCoursesAndQuizzesDialog->hide();
 
     //ask which survey (canvas Quiz) to download
     busyBox = canvas->actionDialog(this);
-    QStringList formsList = canvas->getQuizList(course);
+    QList<CanvasHandler::CanvasQuiz> formsList = canvas->getQuizList(courseID);
     canvas->actionComplete(busyBox);
 
     canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas quiz"));
     label->setText(tr("Which survey should be downloaded?"));
     coursesAndQuizzesComboBox->clear();
     for(const auto &form : std::as_const(formsList)) {
-        coursesAndQuizzesComboBox->addItem(form);
+        coursesAndQuizzesComboBox->addItem(form.name, form.ID);
     }
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected)) {
         canvasCoursesAndQuizzesDialog->deleteLater();
         canvas->deleteLater();
         return false;
     }
+    const int quizID = coursesAndQuizzesComboBox->currentData().toInt();
     const QString canvasSurveyName = coursesAndQuizzesComboBox->currentText();
     canvasCoursesAndQuizzesDialog->deleteLater();
 
@@ -545,11 +546,11 @@ bool loadDataDialog::getFromCanvas()
         fileNotFound = (error == QNetworkReply::NetworkError::ContentNotFoundError);
         requesturl = url.toString();
     });
-    const QString filepath = canvas->downloadQuizResult(course, canvasSurveyName);
+    const QString filepath = canvas->downloadQuizResult(courseID, quizID, canvasSurveyName);
     const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
     if(!fail) {
         //get the roster for later comparison
-        roster = canvas->getStudentRoster(course);
+        roster = canvas->getStudentRoster(courseID);
     }
 
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");

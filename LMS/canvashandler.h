@@ -26,12 +26,12 @@ public:
     void setBaseURL(const QString &baseAPIURL);
 
     QList<CanvasCourse> getCourses();
-    int getStudentCount(const QString &courseName);
-    QList<StudentRecord> getStudentRoster(const QString &courseName);
-    bool createSurvey(const QString &courseName, const Survey *const survey);
-    QStringList getQuizList(const QString &courseName);
-    QString downloadQuizResult(const QString &courseName, const QString &quizName); //returns the filepath of the downloaded file (empty string if error)
-    bool createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams);
+    int getStudentCount(int courseID);
+    QList<StudentRecord> getStudentRoster(int courseID);
+    bool createSurvey(int courseID, const Survey *const survey);
+    QList<CanvasQuiz> getQuizList(int courseID);
+    QString downloadQuizResult(int courseID, int quizID, const QString &quizName); //returns the filepath of the downloaded file (empty string if error)
+    bool createTeams(int courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams);
 
     static QPixmap icon();
 
@@ -43,8 +43,6 @@ private:
     void authenticateWithManualToken(const QString &token);
     QStringList askUserForManualURLandToken(const QString &currentAccountName = "", const QString &currentURL = "", const QString &currentToken = "");
 
-    int getCourseID(const QString &courseName);
-    int getQuizID(const QString &quizName);
     QUrl getQuizResultsURL(const int courseID, const int quizID);
 
     void getPaginatedCanvasResults(const QString &initialURL, const QStringList &stringParams, QList<QStringList*> &stringVals,
@@ -59,7 +57,6 @@ private:
     QString baseURL;
     QList<CanvasCourse> canvasCourses;
     QList<StudentRecord> roster;
-    QList<CanvasQuiz> quizList;
 
     QWidget *parent = nullptr;
 

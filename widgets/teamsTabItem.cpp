@@ -1238,7 +1238,7 @@ void TeamsTabItem::postTeamsToCanvas()
     label->setStyleSheet(LABEL10PTSTYLE);
     auto *coursesComboBox = new StyledComboBox(canvasCoursesDialog);
     for(const auto &canvasCourse : std::as_const(canvasCourses)) {
-        coursesComboBox->addItem(canvasCourse.name);
+        coursesComboBox->addItem(canvasCourse.name, canvasCourse.ID);
         coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesDialog);
@@ -1284,7 +1284,7 @@ void TeamsTabItem::postTeamsToCanvas()
     const QSize iconSize = canvas->actionDialogIcon->pixmap().size();
     QPixmap icon;
     QEventLoop loop;
-    if(canvas->createTeams(coursesComboBox->currentText(), tabName, teamNames, teamRosters)) {
+    if(canvas->createTeams(coursesComboBox->currentData().toInt(), tabName, teamNames, teamRosters)) {
         canvas->actionDialogLabel->setText(tr("Success!"));
         icon.load(":/icons_new/ok.png");
         canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
