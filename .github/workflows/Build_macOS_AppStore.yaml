@@ -71,16 +71,23 @@ jobs:
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
+          # Combine both certs (+ keys) into one p12 before import, rather than two separate
+          # `security import` calls into the same keychain -- importing certs for the same
+          # identity-signing session separately has been reported to cause keychain ACL/trust
+          # issues that a single combined import avoids.
           echo "${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/distribution.p12
-          security import $RUNNER_TEMP/distribution.p12 \
-            -P "${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}" \
-            -T /usr/bin/codesign -t cert -f pkcs12 \
-            -k "$KEYCHAIN_PATH"
-
           echo "${{ secrets.APPLE_INSTALLER_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/installer.p12
-          security import $RUNNER_TEMP/installer.p12 \
-            -P "${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}" \
-            -T /usr/bin/productbuild -T /usr/bin/productsign -T /usr/bin/pkgbuild -t cert -f pkcs12 \
+          openssl pkcs12 -legacy -in $RUNNER_TEMP/distribution.p12 -out $RUNNER_TEMP/distribution.pem -nodes -passin pass:"${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}"
+          openssl pkcs12 -legacy -in $RUNNER_TEMP/installer.p12 -out $RUNNER_TEMP/installer.pem -nodes -passin pass:"${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}"
+          cat $RUNNER_TEMP/distribution.pem $RUNNER_TEMP/installer.pem > $RUNNER_TEMP/combined.pem
+
+          COMBINED_PASSWORD=$(openssl rand -hex 12)
+          openssl pkcs12 -legacy -export -in $RUNNER_TEMP/combined.pem -out $RUNNER_TEMP/combined.p12 -passout pass:"$COMBINED_PASSWORD"
+
+          security import $RUNNER_TEMP/combined.p12 \
+            -P "$COMBINED_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/productbuild -T /usr/bin/productsign -T /usr/bin/pkgbuild \
+            -t cert -f pkcs12 \
             -k "$KEYCHAIN_PATH"
 
           security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -126,6 +133,12 @@ jobs:
           productbuild --component gruepr.app /Applications \
             --sign "$INSTALLER_ID" \
             gruepr_appstore.pkg
+
+      # --- If packaging failed/hung, open an SSH debug session into this exact runner state ---
+      - name: Debug via tmate on failure
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
 
       # --- Cleanup keychain ---
       - name: Cleanup keychain
