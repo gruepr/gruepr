@@ -111,6 +111,7 @@ jobs:
 
       # --- Build the signed App Store installer package ---
       - name: Build installer package
+        timeout-minutes: 3
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -122,7 +123,7 @@ jobs:
             exit 1
           fi
 
-          timeout 120 productbuild --component gruepr.app /Applications \
+          productbuild --component gruepr.app /Applications \
             --sign "$INSTALLER_ID" \
             gruepr_appstore.pkg
 
