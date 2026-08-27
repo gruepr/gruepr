@@ -775,6 +775,17 @@ namespace grueprGlobal {
      */
     bool loadRoster(QWidget *parent, const QString &startingDirectory, QStringList &names, QStringList *emails = nullptr);
 
+    enum class TabularFileFormat {text, csv, xlsx};
+
+    /**
+     * @brief writeTabularFile Writes rows of values to a text (tab-delimited), csv, or xlsx file.
+     * @param rows The rows to write; each inner QStringList is one row of column values.
+     * @param format Whether to write a tab-delimited text file, an RFC-4180-escaped csv, or an xlsx.
+     * @param fileName The file to write.
+     * @return True if the file was written successfully; false otherwise.
+     */
+    bool writeTabularFile(const QList<QStringList> &rows, TabularFileFormat format, const QString &fileName);
+
     /**
      * @brief clearLayout Removes and deletes every item (and its widget, if any) from a layout.
      * @param layout The layout to empty.

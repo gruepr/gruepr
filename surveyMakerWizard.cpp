@@ -3047,7 +3047,7 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
     successDialog->setWindowTitle(tr("Survey Creation"));
     successDialog->setText(tr("The next step will save two files to your computer:\n\n"
                               "  » A text file that lists the questions you should include in your survey.\n\n"
-                              "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
+                              "  » A csv or Excel file that gruepr can read after you paste into it the survey data you receive."));
     successDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
     successDialog->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     successDialog->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -3057,27 +3057,31 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
     }
     delete successDialog;
 
-    //get the filenames and location
-    const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
-    if(fileName.isEmpty()) {
+    //get both filenames before writing anything -- if either dialog is cancelled, nothing has
+    //been written yet, so there's nothing to clean up
+    const QString txtFileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(),
+                                                              tr("Text File (*.txt);;All Files (*)"));
+    if(txtFileName.isEmpty()) {
         grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
         return;
     }
-    //create the files
-    QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
-    if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text) || !saveFile2.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    const QString dataFileName = QFileDialog::getSaveFileName(this, tr("Save File"), QFileInfo(txtFileName).absolutePath(),
+                                                               tr("CSV File (*.csv);;Excel File (*.xlsx)"));
+    if(dataFileName.isEmpty()) {
         grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
         return;
     }
-    saveFileLocation->setFile(QFileInfo(fileName).canonicalPath());
+    const auto dataFileFormat = (QFileInfo(dataFileName).suffix().compare("xlsx", Qt::CaseInsensitive) == 0) ?
+                                     grueprGlobal::TabularFileFormat::xlsx : grueprGlobal::TabularFileFormat::csv;
 
-    QString textFileContents, csvFileContents = "Timestamp";
+    QString textFileContents;
+    QStringList headerRow = {"Timestamp"};
     int questionNumber = 0;
     if(!survey->title.isEmpty()) {
         textFileContents += survey->title + "\n\n";
     }
 
-    textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
+    textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the file \"") + dataFileName + "\":";
     for(const auto &question : std::as_const(survey->questions)) {
         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
         if(question.type == Question::QuestionType::schedule) {
@@ -3089,7 +3093,7 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
             for(const auto &dayName : std::as_const(survey->schedDayNames)) {
                 if(!(dayName.isEmpty())) {
                     textFileContents += "\n      " + dayName + "\n";
-                    csvFileContents +=  "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text) + "[" + dayName + "]";
+                    headerRow << (question.text + "[" + dayName + "]");
                 }
             }
         }
@@ -3098,11 +3102,11 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
             textFileContents += "\n     " + tr("Students rank their top %1 choices.").arg(question.numRankedChoices);
             for(int i = 0; i < question.numRankedChoices; i++) {
                 const QString columnHeader = question.text + " [" + (i == 0? QString(RANKYOURFIRSTCHOICE) : ( QString(RANKYOURCHOICE) + " " + QString::number(i + 1))) + "]";
-                csvFileContents += "," + (columnHeader.contains(',') ? "\"" + columnHeader + "\"" : columnHeader);
+                headerRow << columnHeader;
             }
         }
         else {
-            csvFileContents += "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text);
+            headerRow << question.text;
             if((question.type == Question::QuestionType::dropdown) ||
                 (question.type == Question::QuestionType::radiobutton) ||
                 (question.type == Question::QuestionType::checkbox)) {
@@ -3118,11 +3122,21 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
     }
 
     //write the files
-    QTextStream output(&saveFile), output2(&saveFile2);
+    QFile saveFile(txtFileName);
+    if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+        return;
+    }
+    QTextStream output(&saveFile);
     output << textFileContents;
-    output2 << csvFileContents;
     saveFile.close();
-    saveFile2.close();
+
+    if(!grueprGlobal::writeTabularFile({headerRow}, dataFileFormat, dataFileName)) {
+        grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+        return;
+    }
+
+    saveFileLocation->setFile(QFileInfo(txtFileName).canonicalPath());
     auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     wiz->surveyHasBeenExported = true;
 }

@@ -9,7 +9,6 @@
 #include "dialogs/customTeamnamesDialog.h"
 #include "LMS/canvashandler.h"
 #include "widgets/labelWithInstantTooltip.h"
-#include "xlsxdocument.h"
 #include <random>
 #include <QApplication>
 #include <QFileDialog>
@@ -1140,7 +1139,10 @@ void TeamsTabItem::saveTeams()
             if (!fileName.isEmpty()) {
                 bool problemSaving = false;
                 if(window->fileType == WhichFilesDialog::FileType::spreadsheet) {
-                    problemSaving = !writeTabularFile(spreadsheetContents, window->saveFormat, fileName);
+                    const auto tabularFormat = (window->saveFormat == WhichFilesDialog::SaveFormat::csv) ? grueprGlobal::TabularFileFormat::csv :
+                                                (window->saveFormat == WhichFilesDialog::SaveFormat::xlsx) ? grueprGlobal::TabularFileFormat::xlsx :
+                                                                                                              grueprGlobal::TabularFileFormat::text;
+                    problemSaving = !grueprGlobal::writeTabularFile(spreadsheetContents, tabularFormat, fileName);
                 }
                 else {
                     QString content;
@@ -1749,48 +1751,6 @@ QList<QStringList> TeamsTabItem::createSpreadsheetFileContents(WhichFilesDialog:
         }
     }
     return rows;
-}
-
-
-bool TeamsTabItem::writeTabularFile(const QList<QStringList> &rows, WhichFilesDialog::SaveFormat format, const QString &fileName)
-{
-    if(format == WhichFilesDialog::SaveFormat::xlsx) {
-        QXlsx::Document xlsx;
-        for(int row = 0; row < rows.size(); row++) {
-            const QStringList &rowValues = rows.at(row);
-            for(int col = 0; col < rowValues.size(); col++) {
-                xlsx.write(row + 1, col + 1, rowValues.at(col));   // QXlsx rows/columns are 1-indexed
-            }
-        }
-        return xlsx.saveAs(fileName);
-    }
-
-    QFile saveFile(fileName);
-    if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        return false;
-    }
-    QTextStream out(&saveFile);
-    const QChar delimiter = (format == WhichFilesDialog::SaveFormat::csv) ? QChar(',') : QChar('\t');
-    for(const auto &rowValues : rows) {
-        QStringList outRow;
-        outRow.reserve(rowValues.size());
-        for(const auto &value : rowValues) {
-            // CSV requires quoting (and doubling any embedded quotes) for any field containing the
-            // delimiter, a quote, or a newline -- this matters in practice for multicategorical/
-            // multiordered attribute responses, which are themselves comma-joined lists (e.g. "A,C").
-            if(format == WhichFilesDialog::SaveFormat::csv && (value.contains(',') || value.contains('"') || value.contains('\n'))) {
-                QString escaped = value;
-                escaped.replace('"', "\"\"");
-                outRow << ('"' + escaped + '"');
-            }
-            else {
-                outRow << value;
-            }
-        }
-        out << outRow.join(delimiter) << "\n";
-    }
-    saveFile.close();
-    return true;
 }
 
 

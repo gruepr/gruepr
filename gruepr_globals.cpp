@@ -1,7 +1,9 @@
 #include "gruepr_globals.h"
 #include "dataFile.h"
 #include "studentRecord.h"
+#include "xlsxdocument.h"
 #include <QEvent>
+#include <QFile>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLayout>
@@ -12,6 +14,7 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QTextBrowser>
+#include <QTextStream>
 #include <QTime>
 #include <QWidget>
 
@@ -193,6 +196,50 @@ bool grueprGlobal::loadRoster(QWidget *parent, const QString &startingDirectory,
     }
     while(rosterFile->readDataRow());
 
+    return true;
+}
+
+//////////////////
+// Write rows of values to a text (tab-delimited), csv, or xlsx file
+//////////////////
+bool grueprGlobal::writeTabularFile(const QList<QStringList> &rows, TabularFileFormat format, const QString &fileName)
+{
+    if(format == TabularFileFormat::xlsx) {
+        QXlsx::Document xlsx;
+        for(int row = 0; row < rows.size(); row++) {
+            const QStringList &rowValues = rows.at(row);
+            for(int col = 0; col < rowValues.size(); col++) {
+                xlsx.write(row + 1, col + 1, rowValues.at(col));   // QXlsx rows/columns are 1-indexed
+            }
+        }
+        return xlsx.saveAs(fileName);
+    }
+
+    QFile saveFile(fileName);
+    if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
+    QTextStream out(&saveFile);
+    const QChar delimiter = (format == TabularFileFormat::csv) ? QChar(',') : QChar('\t');
+    for(const auto &rowValues : rows) {
+        QStringList outRow;
+        outRow.reserve(rowValues.size());
+        for(const auto &value : rowValues) {
+            // CSV requires quoting (and doubling any embedded quotes) for any field containing the
+            // delimiter, a quote, or a newline -- this matters in practice for multicategorical/
+            // multiordered attribute responses, which are themselves comma-joined lists (e.g. "A,C").
+            if(format == TabularFileFormat::csv && (value.contains(',') || value.contains('"') || value.contains('\n'))) {
+                QString escaped = value;
+                escaped.replace('"', "\"\"");
+                outRow << ('"' + escaped + '"');
+            }
+            else {
+                outRow << value;
+            }
+        }
+        out << outRow.join(delimiter) << "\n";
+    }
+    saveFile.close();
     return true;
 }
 

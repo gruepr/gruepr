@@ -107,7 +107,6 @@ private:
     QList<QStringList> createSpreadsheetFileContents(WhichFilesDialog::CustomFileOptions customFileOptions);
     static WhichFilesDialog::CustomFileOptions spreadsheetPreviewPreset();
     QString spreadsheetPreviewText();   // illustrative tabular preview shown in the hover tooltip, independent of the user's actual checkbox choices
-    bool writeTabularFile(const QList<QStringList> &rows, WhichFilesDialog::SaveFormat format, const QString &fileName);
     enum class PrintType{printer, printToPDF};
     void printFiles(const QStringList &fileContents, const QList<QStringList> &spreadsheetContents,
                      WhichFilesDialog::FileType filetype, PrintType printType);

@@ -9,8 +9,8 @@ namespace QXlsx { class Document; }
 
 /**
  * @brief The ExcelFile class corresponding to an Excel (.xlsx) file. Read-only: gruepr only ever
- * needs to import data from an xlsx file this way, never write one (team export writes xlsx
- * directly via QXlsx, see TeamsTabItem::writeTabularFile). Always reads the first/active sheet --
+ * needs to import data from an xlsx file this way, never write one (team/survey export writes xlsx
+ * directly via QXlsx, see grueprGlobal::writeTabularFile). Always reads the first/active sheet --
  * no multi-sheet selection UI.
  */
 class ExcelFile : public DataFile

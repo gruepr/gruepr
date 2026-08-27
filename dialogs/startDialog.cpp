@@ -148,8 +148,10 @@ StartDialog::StartDialog(QWidget *parent)
     }
     menuBar->addMenu(helpMenu);
 #endif
+#ifndef MAC_APP_STORE_BUILD
     // fire off the async version check — label will update when the reply arrives
     checkForNewVersion();
+#endif
 }
 
 
