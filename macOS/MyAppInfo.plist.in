@@ -8,6 +8,8 @@
 	<string>gruepr.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.gruepr.gruepr</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.education</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
