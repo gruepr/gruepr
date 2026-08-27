@@ -10,7 +10,7 @@
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-progressDialog::progressDialog(const QString &currSection, QWidget *chart, QWidget *parent)
+ProgressDialog::ProgressDialog(const QString &currSection, QWidget *chart, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window
@@ -77,9 +77,10 @@ progressDialog::progressDialog(const QString &currSection, QWidget *chart, QWidg
     adjustSize();
 }
 
-void progressDialog::setText(const QString &text, int generation, float score, bool autostopInProgress)
+void ProgressDialog::setText(const QString &text, int generation, float score, bool autostopInProgress)
 {
-    explanationText->setText(tr("Generation ") + QString::number(generation) + " - " + tr("Top Score = ") + QString::number(score));
+    explanationText->setText((generation == FINALIZING ? tr("Finalizing") : (tr("Generation ") + QString::number(generation)))
+                             + " - " + tr("Top Score = ") + QString::number(score));
     QString action = text;
 
     if (score > 99.5f) {
@@ -101,7 +102,7 @@ void progressDialog::setText(const QString &text, int generation, float score, b
     }
 }
 
-void progressDialog::highlightStopButton()
+void ProgressDialog::highlightStopButton()
 {
     stopHere->setFocus();
 
@@ -109,11 +110,16 @@ void progressDialog::highlightStopButton()
         return;
     }
 
-    connect(countdownToClose, &QTimer::timeout, this, &progressDialog::updateCountdown);
+    connect(countdownToClose, &QTimer::timeout, this, &ProgressDialog::updateCountdown);
     countdownToClose->start(std::chrono::seconds(1));
 }
 
-void progressDialog::updateCountdown()
+bool ProgressDialog::continuingManually() const
+{
+    return onlyStopManually->isChecked();
+}
+
+void ProgressDialog::updateCountdown()
 {
     if(onlyStopManually->isChecked()) {
         secsLeftToClose = SECSINCOUNTDOWNTIMER;
@@ -125,18 +131,17 @@ void progressDialog::updateCountdown()
     explanationText->setText(explanationText->text().replace(stopTime, tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
     if(secsLeftToClose == 0) {
         progressBar->setValue(PROGRESSBARMAX);
-        stopHere->animateClick();
     }
 }
 
-void progressDialog::reject()
+void ProgressDialog::reject()
 {
     // If closing the window with click on close or hitting 'Esc', stop the optimization, too
     stopHere->animateClick();
     QDialog::reject();
 }
 
-void progressDialog::statsButtonPushed(QWidget *chart)
+void ProgressDialog::statsButtonPushed(QWidget *chart)
 {
     graphShown = !graphShown;
 
@@ -162,7 +167,7 @@ void progressDialog::statsButtonPushed(QWidget *chart)
     adjustSize();
 }
 
-progressDialog::~progressDialog()
+ProgressDialog::~ProgressDialog()
 {
     countdownToClose->stop();
 }

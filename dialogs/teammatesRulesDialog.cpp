@@ -20,14 +20,14 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                                            int initialNumberGiven, gruepr *parent) :
     QDialog(parent),
     ui(new Ui::TeammatesRulesDialog),
-    m_type(typeOfTeammates),
-    m_typeText(typeToString(typeOfTeammates)),
+    teammateType(typeOfTeammates),
+    teammateTypeText(typeToString(typeOfTeammates)),
     numStudents(incomingStudents.size()),
     grueprParent(parent)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    setWindowTitle(tr("Select Students to ") + m_typeText);
+    setWindowTitle(tr("Select Students to ") + teammateTypeText);
     setSizeGripEnabled(true);
     setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
@@ -64,7 +64,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->valuesFrame->setStyleSheet(BLUEFRAME);
 
     // UI elements to show only when type is groupTogether
-    const bool isGroupTogether = (m_type == TypeOfTeammates::groupTogether);
+    const bool isGroupTogether = (teammateType == TypeOfTeammates::groupTogether);
     ui->numRequestsGrantedExplanation->setVisible(isGroupTogether);
     ui->numRequestsGrantedExplanation->setStyleSheet(LABEL12PTSTYLE);
     ui->numRequestsGrantedSpinBox->setVisible(isGroupTogether);
@@ -197,7 +197,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
     else {
         tableWidget->setColumnCount(1);
     }
-    tableWidget->setHorizontalHeaderItem(column, new QTableWidgetItem(m_typeText + "\n" + tr("Student #1")));
+    tableWidget->setHorizontalHeaderItem(column, new QTableWidgetItem(teammateTypeText + "\n" + tr("Student #1")));
     tableWidget->setRowCount(0);
     teammatesSpecified = false;     // assume no teammates specified until we find one
 
@@ -230,7 +230,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
         if (requestsInSurvey) {
             auto *stuPrefText = new QLabel(this);
             stuPrefText->setStyleSheet("QLabel {font-size: 10pt; font-family: 'DM Sans'; font-style: italic; color: black;}");
-            stuPrefText->setText(m_type == TypeOfTeammates::splitApart
+            stuPrefText->setText(teammateType == TypeOfTeammates::splitApart
                                      ? filteredStudent->prefNonTeammates
                                      : filteredStudent->prefTeammates);
             tableWidget->setCellWidget(row, 0, stuPrefText);
@@ -238,7 +238,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
 
         for (const auto studentBID : std::as_const(allIDs)) {
             bool printStudent = false;
-            if (m_type == TypeOfTeammates::groupTogether) {
+            if (teammateType == TypeOfTeammates::groupTogether) {
                 printStudent = std::find(filteredStudent->groupTogether.cbegin(), filteredStudent->groupTogether.cend(), studentBID) != filteredStudent->groupTogether.cend();
             }
             else {
@@ -260,7 +260,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                 if (tableWidget->columnCount() < column + 1) {
                     tableWidget->setColumnCount(column + 1);
                     tableWidget->setHorizontalHeaderItem(column, new QTableWidgetItem(
-                                                                     m_typeText + "\n" + tr("Teammate #") +
+                                                                     teammateTypeText + "\n" + tr("Teammate #") +
                                                                      QString::number(column + (requestsInSurvey ? 0 : 1))));
                 }
 
@@ -275,7 +275,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                         [this, filteredStudent, studentB, searchBarText] {
                             const int vPos = tableWidget->verticalScrollBar()->value();
                             const int hPos = tableWidget->horizontalScrollBar()->value();
-                            if (m_type == TypeOfTeammates::groupTogether)  {
+                            if (teammateType == TypeOfTeammates::groupTogether)  {
                                 std::erase(filteredStudent->groupTogether, studentB->ID);
                                 std::erase(studentB->groupTogether, filteredStudent->ID);
                             }
@@ -306,7 +306,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
         if (tableWidget->columnCount() < column + 1) {
             tableWidget->setColumnCount(column + 1);
             tableWidget->setHorizontalHeaderItem(column, new QTableWidgetItem(
-                                                             m_typeText + "\n" + tr("Teammate #") +
+                                                             teammateTypeText + "\n" + tr("Teammate #") +
                                                              QString::number(column + (requestsInSurvey ? 0 : 1))));
         }
 
@@ -348,7 +348,7 @@ void TeammatesRulesDialog::refreshDisplay(int verticalScrollPos, int horizontalS
                         showToast(this, tr("Cannot pair a student with themselves."));
                         return;
                     }
-                    if (m_type == TypeOfTeammates::groupTogether) {
+                    if (teammateType == TypeOfTeammates::groupTogether) {
                         if(std::find(filteredStudent->groupTogether.begin(), filteredStudent->groupTogether.end(), paired->ID) == filteredStudent->groupTogether.end()) {
                             filteredStudent->groupTogether.push_back(paired->ID);
                         }
@@ -449,7 +449,7 @@ void TeammatesRulesDialog::clearValues(bool verify)
     for (auto &student : students) {
         if ((sectionName == "") || (sectionName == student.section)) {
             for (int i = 0; i < numStudents; i++) {
-                if (m_type == TypeOfTeammates::groupTogether) {
+                if (teammateType == TypeOfTeammates::groupTogether) {
                     std::erase(student.groupTogether, i);
                 }
                 else {
@@ -520,7 +520,7 @@ void TeammatesRulesDialog::pairAllStudents(const QList<long long> &IDs, bool hub
             }
 
             //we have at least one specified teammate pair!
-            if(m_type == TypeOfTeammates::groupTogether) {
+            if(teammateType == TypeOfTeammates::groupTogether) {
                 if(std::find(student1->groupTogether.begin(), student1->groupTogether.end(), IDs[ID2]) == student1->groupTogether.end()) {
                     student1->groupTogether.push_back(IDs[ID2]);
                 }
@@ -641,7 +641,7 @@ bool TeammatesRulesDialog::loadStudentPrefs()
     for(int basestudent = 0; basestudent < numStudents; basestudent++) {
         if((sectionName == "") || (sectionName == students[basestudent].section)) {
             QStringList prefs;
-            if(m_type == TypeOfTeammates::splitApart) {
+            if(teammateType == TypeOfTeammates::splitApart) {
                 prefs = students[basestudent].prefNonTeammates.split('\n');
             }
             else {
@@ -816,7 +816,7 @@ bool TeammatesRulesDialog::loadExistingTeamset()
                         continue;
                     }
 
-                    if(m_type == TypeOfTeammates::groupTogether) {
+                    if(teammateType == TypeOfTeammates::groupTogether) {
                         if(std::find(students[index1].groupTogether.begin(), students[index1].groupTogether.end(), teamIDs[j]) == students[index1].groupTogether.end()) {
                             students[index1].groupTogether.push_back(teamIDs[j]);
                         }

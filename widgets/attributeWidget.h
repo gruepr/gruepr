@@ -67,9 +67,9 @@ protected:
     void paintEvent(QPaintEvent *) override;
 
 private:
-    int m_value;
-    int m_maxValue;
-    int m_barWidth;
+    int attributeValue;
+    int attributeMaxValue;
+    int barWidthInGraph;
 };
 
 #endif // ATTRIBUTEWIDGET_H

@@ -43,8 +43,11 @@
 //  - add a peer review system
 //
 //    INTERNAL:
+//  - move required / separated attributes into distinct criteria?
 //  - compile for webassembly, turn into a webapp
 //      - move from OpenMP to QThread or c++ threads?
+//  - move the teammates rules from studentrecord.groupTogether & .splitApart to living in the teammatescriterion
+//      - can then remove gruepr* from teammatescriterion.cpp
 //
 //    NETWORK IMPLEMENTATION:
 //  - enable in Google Forms various options -- must wait on new API functionality from Google

@@ -58,8 +58,8 @@ public:
 
 private:
     Ui::TeammatesRulesDialog *ui;
-    const TypeOfTeammates m_type;
-    const QString m_typeText;
+    const TypeOfTeammates teammateType;
+    const QString teammateTypeText;
 
     bool requestsInSurvey = false;
     const int numStudents;
@@ -79,7 +79,7 @@ private:
     // result may be shorter than names). hintName, if given, is shown in the fallback dialog as whose
     // preference this name came from.
     QList<long long> resolveNamesToIDs(const QStringList &names, const QString &hintName = "");
-    // Applies a groupTogether/splitApart pairing (per m_type) across IDs: hub-and-spoke pairs IDs[0]
+    // Applies a groupTogether/splitApart pairing (per teammateType) across IDs: hub-and-spoke pairs IDs[0]
     // with each other ID, all-pairs pairs every ID with every other ID.
     void pairAllStudents(const QList<long long> &IDs, bool hubAndSpoke);
 

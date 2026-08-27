@@ -96,11 +96,11 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
 
     //initialize timer
-    m_dragTimer.setInterval(50);
-    m_dragTimer.setSingleShot(false);
+    dragTimer.setInterval(50);
+    dragTimer.setSingleShot(false);
 
-    connect(&m_dragTimer, &QTimer::timeout, this, [this]() {
-        emit criteriaCardMoved(m_lastPos);
+    connect(&dragTimer, &QTimer::timeout, this, [this]() {
+        emit criteriaCardMoved(lastPosOfCard);
     });
 
     //initialize parts of section
@@ -413,10 +413,10 @@ void GroupingCriteriaCard::dragStarted() {
     auto *parentLayout = qobject_cast<QVBoxLayout*>(parentWidget()->layout());
     if (parentLayout != nullptr) {
         const int layoutIndex = parentLayout->indexOf(this);
-        m_dragPlaceholder = new QWidget(parentWidget());
-        m_dragPlaceholder->setFixedHeight(height());
-        m_dragPlaceholder->setStyleSheet("background-color: rgba(0, 0, 0, 0.05); border: 2px dashed rgba(0, 0, 0, 0.15); border-radius: 4px;");
-        parentLayout->insertWidget(layoutIndex, m_dragPlaceholder);
+        dragPlaceholder = new QWidget(parentWidget());
+        dragPlaceholder->setFixedHeight(height());
+        dragPlaceholder->setStyleSheet("background-color: rgba(0, 0, 0, 0.05); border: 2px dashed rgba(0, 0, 0, 0.15); border-radius: 4px;");
+        parentLayout->insertWidget(layoutIndex, dragPlaceholder);
     }
 
     this->hide();  // hide card from layout during drag so the gap appears naturally
@@ -424,9 +424,9 @@ void GroupingCriteriaCard::dragStarted() {
     drag->exec(Qt::MoveAction);
 
     // Remove placeholder
-    if (m_dragPlaceholder != nullptr) {
-        delete m_dragPlaceholder;
-        m_dragPlaceholder = nullptr;
+    if (dragPlaceholder != nullptr) {
+        delete dragPlaceholder;
+        dragPlaceholder = nullptr;
     }
 
     QApplication::restoreOverrideCursor();
@@ -452,9 +452,9 @@ void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasText()) {
         event->acceptProposedAction();
-        m_lastPos = mapToViewport(event->position());
-        if (!m_dragTimer.isActive()) {
-            m_dragTimer.start();
+        lastPosOfCard = mapToViewport(event->position());
+        if (!dragTimer.isActive()) {
+            dragTimer.start();
         }
         emit dragEnteredCard(this->priorityOrder);
     }
@@ -462,12 +462,12 @@ void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event)
 
 void GroupingCriteriaCard::dragMoveEvent(QDragMoveEvent *e)
 {
-    m_lastPos = mapToViewport(e->position()); // just refresh the cached pos
+    lastPosOfCard = mapToViewport(e->position()); // just refresh the cached pos
 }
 
 void GroupingCriteriaCard::dragLeaveEvent(QDragLeaveEvent* /*event*/)
 {
-    m_dragTimer.stop();
+    dragTimer.stop();
 }
 
 void GroupingCriteriaCard::dropEvent(QDropEvent *event)
@@ -475,7 +475,7 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event)
     // Get the widget ID (pointer stored in mime data)
     const QString widgetID = event->mimeData()->text();
     const auto *draggedFrame = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
-    m_dragTimer.stop();
+    dragTimer.stop();
     if (draggedFrame != this) {
         // Find the index of both frames in the layout
         const int draggedPriorityOrder = draggedFrame->getPriorityOrder();
@@ -519,7 +519,7 @@ void GroupingCriteriaCard::setPriorityOrder(int newPriorityOrder)
 
 void GroupingCriteriaCard::stopDragTimer()
 {
-    m_dragTimer.stop();
+    dragTimer.stop();
 }
 
 // --------------------------------------------------------------------------------

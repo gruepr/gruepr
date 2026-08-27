@@ -502,7 +502,7 @@ void TeamTreeWidget::resorting(int column)
 ///////////////////////////////////////////////////////////////////////
 
 TeamTreeHeaderView::TeamTreeHeaderView(Qt::Orientation orientation, TeamTreeWidget *parent)
-    :QHeaderView(orientation, parent), m_elideMode(Qt::ElideMiddle), m_lineCount(1), m_iconSize(ICONSIZE, ICONSIZE)
+    :QHeaderView(orientation, parent), elideMode(Qt::ElideMiddle), lineCount(1), iconSize(ICONSIZE, ICONSIZE)
 {
     setAttribute(Qt::WA_Hover);
     setMouseTracking(true);
@@ -517,22 +517,22 @@ TeamTreeHeaderView::TeamTreeHeaderView(Qt::Orientation orientation, TeamTreeWidg
 }
 
 void TeamTreeHeaderView::setElideMode(Qt::TextElideMode mode) {
-    m_elideMode = mode;
+    elideMode = mode;
     viewport()->update();
 }
 
 void TeamTreeHeaderView::setColumnElideMode(int column, Qt::TextElideMode mode) {
-    m_columnElideModes[column] = mode;
+    columnElideModes[column] = mode;
     viewport()->update();
 }
 
 void TeamTreeHeaderView::setColumnIcon(int column, const QIcon &icon) {
-    m_columnIcons[column] = icon;
+    columnIcons[column] = icon;
     viewport()->update();
 }
 
 void TeamTreeHeaderView::setIconSize(const QSize &size) {
-    m_iconSize = size;
+    iconSize = size;
     updateHeaderHeight();
     viewport()->update();
 }
@@ -545,7 +545,7 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
 
     // Get the full text
     const QString fullText = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
-    m_fullTexts[logicalIndex] = fullText;
+    fullTexts[logicalIndex] = fullText;
 
     // Prepare style option
     QStyleOptionHeader opt;
@@ -554,18 +554,18 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
     opt.section = logicalIndex;
 
     // Check if we have an icon
-    const bool hasIcon = m_columnIcons.contains(logicalIndex) && !m_columnIcons[logicalIndex].isNull();
+    const bool hasIcon = columnIcons.contains(logicalIndex) && !columnIcons[logicalIndex].isNull();
 
     // Calculate available text width
     int textWidth = rect.width() - 4; // padding
     if (hasIcon) {
-        textWidth -= (m_iconSize.width() + 4);
+        textWidth -= (iconSize.width() + 4);
     }
 
     // Get the elide mode for this section
-    Qt::TextElideMode columnElideMode = m_elideMode;
-    if (m_columnElideModes.contains(logicalIndex)) {
-        columnElideMode = m_columnElideModes[logicalIndex];
+    Qt::TextElideMode columnElideMode = elideMode;
+    if (columnElideModes.contains(logicalIndex)) {
+        columnElideMode = columnElideModes[logicalIndex];
     }
 
     // Check if text would be elided
@@ -574,25 +574,25 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
 
     // For middle eliding, switch to word wrap if text would be elided
     if (wouldElide) {
-        const int prevLineCount = m_lineCountPerColumn.value(logicalIndex, 1);
+        const int prevLineCount = lineCountPerColumn.value(logicalIndex, 1);
         const QString wrappedText = wrapText(logicalIndex, fullText, textWidth, fm);
         opt.text = wrappedText;
 
-        if (m_lineCountPerColumn.value(logicalIndex, 1) != prevLineCount) {
+        if (lineCountPerColumn.value(logicalIndex, 1) != prevLineCount) {
             QTimer::singleShot(0, const_cast<TeamTreeHeaderView*>(this),
                                &TeamTreeHeaderView::updateHeaderHeight);
         }
     }
     else {
         // Use normal eliding for other modes
-        m_lineCountPerColumn[logicalIndex] = 1;
+        lineCountPerColumn[logicalIndex] = 1;
         opt.text = fm.elidedText(fullText, columnElideMode, textWidth);
     }
     opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
 
     // Set icon in the option if we have one
     if (hasIcon) {
-        opt.icon = m_columnIcons[logicalIndex];
+        opt.icon = columnIcons[logicalIndex];
         opt.iconAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     }
 
@@ -602,8 +602,8 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
 
 QSize TeamTreeHeaderView::sectionSizeFromContents(int logicalIndex) const {
     QSize size = QHeaderView::sectionSizeFromContents(logicalIndex);
-    if (m_lineCountPerColumn.contains(logicalIndex) && m_lineCountPerColumn[logicalIndex] > 1) {
-        const int height = (fontMetrics().height() * m_lineCountPerColumn[logicalIndex]) + 12;
+    if (lineCountPerColumn.contains(logicalIndex) && lineCountPerColumn[logicalIndex] > 1) {
+        const int height = (fontMetrics().height() * lineCountPerColumn[logicalIndex]) + 12;
         size.setHeight(std::max(size.height(), height));
     }
     return size;
@@ -615,14 +615,14 @@ bool TeamTreeHeaderView::event(QEvent *e)
         const auto *const helpEvent = static_cast<QHelpEvent *>(e);
         const int column = logicalIndexAt(helpEvent->pos());
 
-        if (column >= 0 && m_fullTexts.contains(column)) {
-            const QString fullText = m_fullTexts[column];
+        if (column >= 0 && fullTexts.contains(column)) {
+            const QString fullText = fullTexts[column];
 
             // Only show tooltip if text is elided
             const QFontMetrics fm(font());
             int sectionWidth = sectionSize(column) - 4;
-            if (m_columnIcons.contains(column)) {
-                sectionWidth -= m_iconSize.width() + 4;
+            if (columnIcons.contains(column)) {
+                sectionWidth -= iconSize.width() + 4;
             }
 
             if (fm.horizontalAdvance(fullText) > sectionWidth) {
@@ -649,7 +649,7 @@ void TeamTreeHeaderView::updateHeaderHeight()
     }
 
     int maxLines = 1;
-    for (const auto lines : std::as_const(m_lineCountPerColumn)) {
+    for (const auto lines : std::as_const(lineCountPerColumn)) {
         maxLines = std::max(maxLines, lines);
     }
     const int maxHeight = std::min((fontMetrics().height() * maxLines) + 12, MAX_HEADER_HEIGHT);
@@ -698,7 +698,7 @@ QString TeamTreeHeaderView::wrapText(int logicalIndex, const QString &text, int 
         }
     }
 
-    m_lineCountPerColumn[logicalIndex] = finalLines.size();
+    lineCountPerColumn[logicalIndex] = finalLines.size();
     return finalLines.join("\n");
 }
 

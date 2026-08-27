@@ -359,14 +359,14 @@ void AttributeWidget::updateResponses(const std::map<QString, int> &responseCoun
 
 
 ResponseLabelBarGraph::ResponseLabelBarGraph(int value, int maxValue, int barWidth, QWidget *parent)
-    : QWidget(parent), m_value(value), m_barWidth(barWidth)
+    : QWidget(parent), attributeValue(value), barWidthInGraph(barWidth)
 {
     setFixedSize(barWidth, 20);
     if(maxValue == 0) {
-        m_maxValue = 1;
+        attributeMaxValue = 1;
         return;
     }
-    m_maxValue = maxValue;
+    attributeMaxValue = maxValue;
 }
 
 void ResponseLabelBarGraph::paintEvent(QPaintEvent *)
@@ -377,12 +377,12 @@ void ResponseLabelBarGraph::paintEvent(QPaintEvent *)
     const int barHeight = height();
 
     // Draw bar background
-    painter.fillRect(0, 0, m_barWidth, barHeight, QColor(Qt::white));
+    painter.fillRect(0, 0, barWidthInGraph, barHeight, QColor(Qt::white));
 
     // Draw filled portion
-    painter.fillRect(1, 1, 1 + (((m_barWidth * m_value) - 1) / m_maxValue), barHeight - 1, QColor(DEEPWATERHEX));   // using ceiling division
+    painter.fillRect(1, 1, 1 + (((barWidthInGraph * attributeValue) - 1) / attributeMaxValue), barHeight - 1, QColor(DEEPWATERHEX));   // using ceiling division
 
     // Draw border
     painter.setPen(OPENWATERHEX);
-    painter.drawRect(0, 0, m_barWidth, barHeight);
+    painter.drawRect(0, 0, barWidthInGraph, barHeight);
 }

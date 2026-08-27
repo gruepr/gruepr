@@ -104,13 +104,13 @@ private:
     inline static const int MAX_SECTION_WIDTH = 200;
     inline static const int MAX_HEADER_HEIGHT = 150;
 
-    Qt::TextElideMode m_elideMode;
-    QMap<int, Qt::TextElideMode> m_columnElideModes;
-    mutable QMap<int, QString> m_fullTexts;
-    QMap<int, QIcon> m_columnIcons;
-    mutable QMap<int, int> m_lineCountPerColumn;
-    int m_lineCount;
-    QSize m_iconSize;
+    Qt::TextElideMode elideMode;
+    QMap<int, Qt::TextElideMode> columnElideModes;
+    mutable QMap<int, QString> fullTexts;
+    QMap<int, QIcon> columnIcons;
+    mutable QMap<int, int> lineCountPerColumn;
+    int lineCount;
+    QSize iconSize;
     static const int ICONSIZE = 16;
     inline static const char TEAMTREEWIDGETHEADERSTYLE[] =
         "QHeaderView {border-top: none; border-left: none; border-right: 1px solid lightGray;"

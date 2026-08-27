@@ -7,20 +7,26 @@
 #include <QProgressBar>
 #include <QPushButton>
 
-class progressDialog : public QDialog
+class ProgressDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit progressDialog(const QString &currSection = "", QWidget *chart = nullptr, QWidget *parent = nullptr);
-    ~progressDialog() override;
-    progressDialog(const progressDialog&) = delete;
-    progressDialog operator= (const progressDialog&) = delete;
-    progressDialog(progressDialog&&) = delete;
-    progressDialog& operator= (progressDialog&&) = delete;
+    explicit ProgressDialog(const QString &currSection = "", QWidget *chart = nullptr, QWidget *parent = nullptr);
+    ~ProgressDialog() override;
+    ProgressDialog(const ProgressDialog&) = delete;
+    ProgressDialog operator= (const ProgressDialog&) = delete;
+    ProgressDialog(ProgressDialog&&) = delete;
+    ProgressDialog& operator= (ProgressDialog&&) = delete;
 
     void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
     void highlightStopButton();
+    bool continuingManually() const;
+
+    // Passed as setText()'s "generation" when there are no more generations left to run and a bounded
+    // final local search is instead refining the single best genome -- shows "Finalizing" in place of
+    // a generation number.
+    static constexpr int FINALIZING = -1;
 
 private slots:
     void statsButtonPushed(QWidget *chart);

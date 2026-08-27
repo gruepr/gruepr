@@ -102,14 +102,14 @@ private:
     QHBoxLayout *toggleLayout = nullptr;
     QPushButton *dragHandleButton = nullptr;
     QPushButton *lockButton = nullptr;
-    QWidget *m_dragPlaceholder = nullptr;
+    QWidget *dragPlaceholder = nullptr;
     QParallelAnimationGroup *toggleAnimation = nullptr;
     QSplitter *parentSplitter = nullptr;
     void refreshParentLayout();
     QWidget *contentArea = nullptr;
     int animationDuration = 100;
-    QTimer m_dragTimer;
-    QPoint m_lastPos;
+    QTimer dragTimer;
+    QPoint lastPosOfCard;
 };
 
 #endif // SECTION_H

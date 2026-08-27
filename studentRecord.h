@@ -89,7 +89,7 @@ public:
     QList<QList<int>>   attributeVals_discrete;         // categorical index or discrete integer value for multiple choice attributes; -1 = unknown
     QList<QList<float>> attributeVals_continuous;       // float value for timezone and numerical attributes; empty = unknown
     QStringList assignmentPreferences;                  // ranked assignment preference option names, index 0 = 1st choice
-    QString section;									// section data stored as text
+    QString section;                                    // section data stored as text
     qsizetype numScheduleDays = 0;
     qsizetype numScheduleTimesPerDay = 0;
     ScheduleAvailabilityTable unavailable;              // true if this is a busy block during week; stored flat: day * numTimesPerDay + time
@@ -100,7 +100,7 @@ public:
     std::vector<long long> groupTogether;               // unique student IDs that this student should be placed on a team with
     QString prefNonTeammates;
     std::vector<long long> splitApart;                  // unique student IDs that this student should be prevented from being on a team with
-    QString notes;										// any special notes for this student
+    QString notes;                                      // any special notes for this student
     QStringList attributeResponse;                      // the text of the response to each attribute question
     QString tooltip;
 

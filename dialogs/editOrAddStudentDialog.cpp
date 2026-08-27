@@ -642,12 +642,12 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
         rowHeader->setText(dataOptions->timeNames.at(time));
         adjustScheduleWindowGrid->addWidget(rowHeader, gridrow, gridcolumn++, 1, 1);
         for(int day = 0; day < numDays; day++) {
-            const int idx = day * numTimes + time;
-            checkBox[idx] = new QCheckBox(adjustScheduleWindow);
-            checkBox[idx]->setStyleSheet(CHECKBOXSTYLE);
-            checkBox[idx]->setChecked(!windowUnavailability[idx]);
-            adjustScheduleWindowGrid->addWidget(checkBox[idx], gridrow, gridcolumn++, 1, 1);
-            connect(checkBox[idx], &QCheckBox::clicked, adjustScheduleWindow, [&windowUnavailability, idx](bool checked){windowUnavailability[idx] = !checked;});
+            const int i = day * numTimes + time;
+            checkBox[i] = new QCheckBox(adjustScheduleWindow);
+            checkBox[i]->setStyleSheet(CHECKBOXSTYLE);
+            checkBox[i]->setChecked(!windowUnavailability[i]);
+            adjustScheduleWindowGrid->addWidget(checkBox[i], gridrow, gridcolumn++, 1, 1);
+            connect(checkBox[i], &QCheckBox::clicked, adjustScheduleWindow, [&windowUnavailability, i](bool checked){windowUnavailability[i] = !checked;});
         }
         gridrow++;
     }
@@ -661,9 +661,9 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     connect(invertAllButton, &QPushButton::clicked, adjustScheduleWindow, [&windowUnavailability, &checkBox, numDays, numTimes]()
             {for(int day = 0; day < numDays; day++) {
                     for(int time = 0; time < numTimes; time++) {
-                        const int idx = day * numTimes + time;
-                        windowUnavailability[idx] = !windowUnavailability[idx];
-                        checkBox[idx]->toggle();
+                        const int i = day * numTimes + time;
+                        windowUnavailability[i] = !windowUnavailability[i];
+                        checkBox[i]->toggle();
                     }
                 }
             });
