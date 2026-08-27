@@ -109,8 +109,16 @@ jobs:
       # --- Build the signed App Store installer package ---
       - name: Build installer package
         run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          INSTALLER_ID=$(security find-identity -v "$KEYCHAIN_PATH" | grep "Mac Installer Distribution" | sed -E 's/.*"(.*)"/\1/')
+          if [ -z "$INSTALLER_ID" ]; then
+            echo "Could not find a Mac Installer Distribution identity in the keychain:" >&2
+            security find-identity -v "$KEYCHAIN_PATH" >&2
+            exit 1
+          fi
+
           productbuild --component gruepr.app /Applications \
-            --sign "Mac Installer Distribution: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            --sign "$INSTALLER_ID" \
             gruepr_appstore.pkg
 
       # --- Cleanup keychain ---
