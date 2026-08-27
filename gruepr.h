@@ -124,7 +124,7 @@ private:
     QFuture< QList<int> > future;                                 // needed so that optimization can happen in a separate thread
     QFutureWatcher< QList<int> > futureWatcher;                   // used for signaling of optimization completion
     ScoreLineGraph *progressChart = nullptr;
-    progressDialog *progressWindow = nullptr;
+    ProgressDialog *progressWindow = nullptr;
     static GenomeScore getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
                                 QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
