@@ -65,6 +65,7 @@ jobs:
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           KEYCHAIN_PASSWORD=$(openssl rand -hex 12)
+          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> "$GITHUB_ENV"
 
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
@@ -79,7 +80,7 @@ jobs:
           echo "${{ secrets.APPLE_INSTALLER_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/installer.p12
           security import $RUNNER_TEMP/installer.p12 \
             -P "${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}" \
-            -T /usr/bin/productbuild -t cert -f pkcs12 \
+            -T /usr/bin/productbuild -T /usr/bin/productsign -T /usr/bin/pkgbuild -t cert -f pkcs12 \
             -k "$KEYCHAIN_PATH"
 
           security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -94,6 +95,8 @@ jobs:
       # --- Sign the app (inside-out: nested binaries/frameworks first, then the sandboxed bundle) ---
       - name: Sign app
         run: |
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$RUNNER_TEMP/app-signing.keychain-db"
+
           SIGN_ID="Apple Distribution: ${{ secrets.APPLE_SIGNING_IDENTITY }}"
 
           for dir in gruepr.app/Contents/Frameworks gruepr.app/Contents/PlugIns; do
@@ -110,6 +113,8 @@ jobs:
       - name: Build installer package
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
           INSTALLER_ID=$(security find-identity -v "$KEYCHAIN_PATH" | grep -E "Mac Installer Distribution|3rd Party Mac Developer Installer" | sed -E 's/.*"(.*)"/\1/')
           if [ -z "$INSTALLER_ID" ]; then
             echo "Could not find a Mac Installer Distribution / 3rd Party Mac Developer Installer identity in the keychain:" >&2
@@ -117,7 +122,7 @@ jobs:
             exit 1
           fi
 
-          productbuild --component gruepr.app /Applications \
+          timeout 120 productbuild --component gruepr.app /Applications \
             --sign "$INSTALLER_ID" \
             gruepr_appstore.pkg
 
