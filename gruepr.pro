@@ -41,10 +41,16 @@ exists(local_secrets.pri): include(local_secrets.pri)
 # set application properties
 VERSION = $$gruepr_version
 # Mac App Store build number (CFBundleVersion) must strictly increase on every upload, even
-# across repeated test uploads of the same marketing version -- GITHUB_RUN_NUMBER auto-increments
-# per workflow run; falls back to 1 for local builds, which never get uploaded anyway.
-BUILD_NUMBER = $$(GITHUB_RUN_NUMBER)
-isEmpty(BUILD_NUMBER): BUILD_NUMBER = 1
+# across repeated test uploads of the same marketing version. Apple compares build numbers
+# component-by-component (padding the shorter one with zeros), so a bare run number could
+# compare as *lower* than a previously-accepted "13.2" (e.g. "12" pads to "12.0" < "13.2").
+# Prefixing with the marketing version's major.minor keeps every build strictly increasing,
+# both across repeated test uploads of the same version and across future version bumps.
+# GITHUB_RUN_NUMBER auto-increments per workflow run; falls back to 1 for local builds, which
+# never get uploaded anyway.
+BUILD_RUN_NUMBER = $$(GITHUB_RUN_NUMBER)
+isEmpty(BUILD_RUN_NUMBER): BUILD_RUN_NUMBER = 1
+BUILD_NUMBER = $$section(gruepr_version, '.', 0, 1).$$BUILD_RUN_NUMBER
 QMAKE_TARGET_COPYRIGHT = $$copyright_year
 QMAKE_TARGET_COMPANY = gruepr
 QMAKE_TARGET_PRODUCT = gruepr

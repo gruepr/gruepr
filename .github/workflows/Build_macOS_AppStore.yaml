@@ -42,6 +42,9 @@ jobs:
         run: |
           GRUEPR_VERSION=$(grep -m1 '^gruepr_version' gruepr.pro | sed 's/.*= *//')
           echo "version=$GRUEPR_VERSION" >> "$GITHUB_OUTPUT"
+          # Matches gruepr.pro's BUILD_NUMBER = $$section(gruepr_version, '.', 0, 1) -- keep
+          # this in sync with that so --bundle-version always matches what's baked into the plist.
+          echo "major_minor=$(echo "$GRUEPR_VERSION" | cut -d. -f1,2)" >> "$GITHUB_OUTPUT"
 
       # --- Build universal binary ---
       - name: Build universal binary
@@ -160,7 +163,7 @@ jobs:
           xcrun altool --upload-package gruepr_appstore.pkg --type macos \
             --apple-id "1628354482" \
             --bundle-id com.gruepr.gruepr \
-            --bundle-version "${{ github.run_number }}" \
+            --bundle-version "${{ steps.version.outputs.major_minor }}.${{ github.run_number }}" \
             --bundle-short-version-string "${{ steps.version.outputs.version }}" \
             --apiKey "${{ secrets.APPLE_API_KEY_ID }}" \
             --apiIssuer "${{ secrets.APPLE_API_ISSUER_ID }}"
