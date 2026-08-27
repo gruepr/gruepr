@@ -1637,7 +1637,7 @@ void gruepr::startOptimization()
                                                                 QString::number(numSectionsToTeam) + ": " +teamingOptions->sectionName) : "");
         progressWindow = new ProgressDialog(sectionName, progressChart, this);
         progressWindow->show();
-        connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+        connect(progressWindow, &ProgressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
                                                                          connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
                                                                          optimizationStoppedmutex.lock();
                                                                          optimizationStopped = true;
