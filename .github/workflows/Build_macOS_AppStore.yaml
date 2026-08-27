@@ -111,8 +111,13 @@ jobs:
           done
           find gruepr.app/Contents/Frameworks -maxdepth 1 -name "*.framework" -exec codesign --force --options runtime --sign "$SIGN_ID" {} \;
 
+          # The provisioning profile embeds application-identifier = <TEAMID>.com.gruepr.gruepr;
+          # the code signature needs the same entitlement or the build is rejected by TestFlight.
+          cp macOS/gruepr.entitlements "$RUNNER_TEMP/gruepr.entitlements"
+          plutil -insert application-identifier -string "${{ secrets.APPLE_TEAM_ID }}.com.gruepr.gruepr" "$RUNNER_TEMP/gruepr.entitlements"
+
           codesign --force --options runtime \
-            --entitlements macOS/gruepr.entitlements \
+            --entitlements "$RUNNER_TEMP/gruepr.entitlements" \
             --sign "$SIGN_ID" \
             gruepr.app
 
