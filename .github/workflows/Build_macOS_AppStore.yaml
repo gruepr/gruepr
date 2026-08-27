@@ -119,7 +119,7 @@ jobs:
           # com.apple.application-identifier (not the bare "application-identifier" used
           # inside the provisioning profile itself), or the build is rejected by TestFlight.
           cp macOS/gruepr.entitlements "$RUNNER_TEMP/gruepr.entitlements"
-          plutil -insert com.apple.application-identifier -string "${{ secrets.APPLE_TEAM_ID }}.com.gruepr.gruepr" "$RUNNER_TEMP/gruepr.entitlements"
+          plutil -insert com\\.apple\\.application-identifier -string "${{ secrets.APPLE_TEAM_ID }}.com.gruepr.gruepr" "$RUNNER_TEMP/gruepr.entitlements"
 
           codesign --force --options runtime \
             --entitlements "$RUNNER_TEMP/gruepr.entitlements" \
