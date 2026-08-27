@@ -126,8 +126,7 @@ jobs:
           echo "${{ secrets.APPLE_API_KEY }}" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
 
           xcrun altool --upload-package gruepr_appstore.pkg --type macos \
-            --apple-id "REPLACE_WITH_NUMERIC_APPLE_ID" \
-            --asc-public-id "REPLACE_WITH_ASC_PUBLIC_ID" \
+            --apple-id "1628354482" \
             --bundle-id com.gruepr.gruepr \
             --bundle-version "${{ steps.version.outputs.version }}" \
             --bundle-short-version-string "${{ steps.version.outputs.version }}" \
