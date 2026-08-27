@@ -1635,7 +1635,7 @@ void gruepr::startOptimization()
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
         const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " +
                                                                 QString::number(numSectionsToTeam) + ": " +teamingOptions->sectionName) : "");
-        progressWindow = new progressDialog(sectionName, progressChart, this);
+        progressWindow = new ProgressDialog(sectionName, progressChart, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
                                                                          connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
