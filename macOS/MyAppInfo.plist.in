@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleExecutable</key>
 	<string>gruepr</string>
+	<key>CFBundleName</key>
+	<string>gruepr</string>
+	<key>CFBundleDisplayName</key>
+	<string>gruepr</string>
 	<key>CFBundleIconFile</key>
 	<string>gruepr.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -27,7 +31,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleVersion</key>
-	<string>$$VERSION</string>
+	<string>$$BUILD_NUMBER</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$$VERSION</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>

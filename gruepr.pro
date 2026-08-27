@@ -40,6 +40,11 @@ exists(local_secrets.pri): include(local_secrets.pri)
 
 # set application properties
 VERSION = $$gruepr_version
+# Mac App Store build number (CFBundleVersion) must strictly increase on every upload, even
+# across repeated test uploads of the same marketing version -- GITHUB_RUN_NUMBER auto-increments
+# per workflow run; falls back to 1 for local builds, which never get uploaded anyway.
+BUILD_NUMBER = $$(GITHUB_RUN_NUMBER)
+isEmpty(BUILD_NUMBER): BUILD_NUMBER = 1
 QMAKE_TARGET_COPYRIGHT = $$copyright_year
 QMAKE_TARGET_COMPANY = gruepr
 QMAKE_TARGET_PRODUCT = gruepr

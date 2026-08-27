@@ -160,7 +160,7 @@ jobs:
           xcrun altool --upload-package gruepr_appstore.pkg --type macos \
             --apple-id "1628354482" \
             --bundle-id com.gruepr.gruepr \
-            --bundle-version "${{ steps.version.outputs.version }}" \
+            --bundle-version "${{ github.run_number }}" \
             --bundle-short-version-string "${{ steps.version.outputs.version }}" \
             --apiKey "${{ secrets.APPLE_API_KEY_ID }}" \
             --apiIssuer "${{ secrets.APPLE_API_ISSUER_ID }}"
