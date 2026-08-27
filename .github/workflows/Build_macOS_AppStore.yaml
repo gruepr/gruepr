@@ -77,12 +77,12 @@ jobs:
           # issues that a single combined import avoids.
           echo "${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/distribution.p12
           echo "${{ secrets.APPLE_INSTALLER_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/installer.p12
-          openssl pkcs12 -legacy -in $RUNNER_TEMP/distribution.p12 -out $RUNNER_TEMP/distribution.pem -nodes -passin pass:"${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}"
-          openssl pkcs12 -legacy -in $RUNNER_TEMP/installer.p12 -out $RUNNER_TEMP/installer.pem -nodes -passin pass:"${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}"
+          openssl pkcs12 -in $RUNNER_TEMP/distribution.p12 -out $RUNNER_TEMP/distribution.pem -nodes -passin pass:"${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}"
+          openssl pkcs12 -in $RUNNER_TEMP/installer.p12 -out $RUNNER_TEMP/installer.pem -nodes -passin pass:"${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}"
           cat $RUNNER_TEMP/distribution.pem $RUNNER_TEMP/installer.pem > $RUNNER_TEMP/combined.pem
 
           COMBINED_PASSWORD=$(openssl rand -hex 12)
-          openssl pkcs12 -legacy -export -in $RUNNER_TEMP/combined.pem -out $RUNNER_TEMP/combined.p12 -passout pass:"$COMBINED_PASSWORD"
+          openssl pkcs12 -export -in $RUNNER_TEMP/combined.pem -out $RUNNER_TEMP/combined.p12 -passout pass:"$COMBINED_PASSWORD"
 
           security import $RUNNER_TEMP/combined.p12 \
             -P "$COMBINED_PASSWORD" \
