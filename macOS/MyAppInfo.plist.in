@@ -25,13 +25,13 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleVersion</key>
-	<string>$${VERSION}</string>
+	<string>$$VERSION</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$${VERSION}</string>
+	<string>$$VERSION</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>© $${copyright_year}</string>
+	<string>© $$copyright_year</string>
 	<key>NSRequiresAquaSystemAppearance</key>
         <true/>
 </dict>

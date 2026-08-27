@@ -7,7 +7,7 @@ bench/*
 test_surveys/*
 prev_versions/*
 macOS/*
-!macOS/MyAppInfo.plist
+!macOS/MyAppInfo.plist.in
 !macOS/DMG_background.png
 !macOS/gruepr.entitlements
 windows/*

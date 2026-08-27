@@ -49,7 +49,12 @@ win32: RC_ICONS = icons_new\icons.ico
 macx: ICON = icons_new\gruepr.icns
 
 # set mac info.plist and bundle
-macx: QMAKE_INFO_PLIST = macOS\MyAppInfo.plist
+macx {
+    plist.input = macOS/MyAppInfo.plist.in
+    plist.output = $$OUT_PWD/MyAppInfo.plist
+    QMAKE_SUBSTITUTES += plist
+    QMAKE_INFO_PLIST = $$OUT_PWD/MyAppInfo.plist
+}
 macx: QMAKE_TARGET_BUNDLE_PREFIX = com.gruepr
 
 DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060500
