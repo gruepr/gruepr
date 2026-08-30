@@ -33,8 +33,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - Added exhaustive search to improve best genome before finalizing the results
-//  - prepared for mac app store submission
-//  - internal code / style cleanup
+//  - Tweaked the memetic component of the optimization process
+//  - Prepared for mac app store submission
+//  - Internal code / style cleanup
 //
 // TO DO:
 //

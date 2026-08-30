@@ -2401,7 +2401,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             return (genomeScores[i] > genomeScores[j]);
         });
 
-        // 6. Fix selected gene(s) from within a sample of genomes (multi-threaded using OpenMP):
+        // 6. Improve selected gene(s) from within a sample of genomes (multi-threaded using OpenMP):
         // non-elites get repairBrokenGene() (stop at the first improving 2-team swap targeting their
         // current single worst team); elites get exhaustiveSearch() (up to two full passes of 2-team
         // swaps over every team pair). In either case, uses attempt2TeamSwap(), which keeps a swap if
