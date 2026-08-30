@@ -12,7 +12,8 @@ class ProgressDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ProgressDialog(const QString &currSection = "", QWidget *chart = nullptr, QWidget *parent = nullptr);
+    explicit ProgressDialog(const QString &currSection = "", QWidget *chart = nullptr, QWidget *parent = nullptr,
+                            int countdownSeconds = 6);
     ~ProgressDialog() override;
     ProgressDialog(const ProgressDialog&) = delete;
     ProgressDialog operator= (const ProgressDialog&) = delete;
@@ -46,7 +47,7 @@ private:
     QPushButton *stopHere = nullptr;
     QPushButton *showStatsButton = nullptr;
     QTimer *countdownToClose = nullptr;
-    inline static const int SECSINCOUNTDOWNTIMER = 6;
+    const int SECSINCOUNTDOWNTIMER;
     int secsLeftToClose = SECSINCOUNTDOWNTIMER;
     inline static const int CHARTHEIGHT = 400;
     inline static const QSize ICONSIZE = QSize(30,30);

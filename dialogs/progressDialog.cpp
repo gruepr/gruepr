@@ -10,8 +10,8 @@
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProgressDialog::ProgressDialog(const QString &currSection, QWidget *chart, QWidget *parent)
-    :QDialog (parent)
+ProgressDialog::ProgressDialog(const QString &currSection, QWidget *chart, QWidget *parent, int countdownSeconds)
+    :QDialog (parent), SECSINCOUNTDOWNTIMER(countdownSeconds)
 {
     //Set up window
     setWindowTitle(currSection.isEmpty() ? tr("Grueping...") : tr("Grueping ") + currSection + "...");

@@ -33,9 +33,7 @@
 #include <QtConcurrentRun>
 
 gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProgressDialog *progressDialog) :
-    QMainWindow(),
-    students(std::move(_students)),
-    dataOptions(new DataOptions(std::move(_dataOptions))),
+    QMainWindow(), students(std::move(_students)), dataOptions(new DataOptions(std::move(_dataOptions))),
     ui(new Ui::gruepr)
 {
     //Setup the main window
@@ -43,15 +41,15 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProg
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons_new/icon.svg"));
     setWindowTitle(tr("gruepr - Form teams"));
-    qRegisterMetaType<QList<float> >("QList<float>");
+    qRegisterMetaType<QList<float>>("QList<float>");
 
     ui->dataSourceFrame->setStyleSheet(DATASOURCEFRAMESTYLE);
     ui->dataSourcePrelabel->setStyleSheet(DATASOURCEPRELABELSTYLE);
     ui->dataSourceLabel->setStyleSheet(DATASOURCELABELSTYLE);
 
     auto *splitter = new QSplitter(Qt::Horizontal);
-    splitter->setStyleSheet("QSplitter::handle {border: 1px solid lightgrey; border-radius: 4px; background-color: " OPENWATERHEX "; "
-                                                "image: url(:/icons_new/drag-handle.png);}");
+    splitter->setStyleSheet("QSplitter::handle {border: 1px solid lightgrey; border-radius: 4px; background-color: "
+                                                OPENWATERHEX "; image: url(:/icons_new/drag-handle.png);}");
     splitter->setHandleWidth(8);
 
     auto *settingTeamCriteriaWidget = new QWidget(this);
@@ -117,7 +115,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProg
     criteriaCardsList.clear();
 
     //Section Criteria Card
-    if (dataOptions->sectionIncluded) {
+    if(dataOptions->sectionIncluded) {
         sectionCriteriaCard = new GroupingCriteriaCard(Criterion::CriteriaType::section, dataOptions, teamingOptions, this,
                                                        QString("Section"), false);
         const auto &sectionCriterion = qobject_cast<SectionCriterion*>(sectionCriteriaCard->criterion);
@@ -150,32 +148,32 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProg
         const QPoint centerOfCriteriaButton = addNewCriteriaCardButton->mapToGlobal(addNewCriteriaCardButton->rect().center());
         addNewCriteriaMenu->popup(QPoint(centerOfCriteriaButton.x() - addNewCriteriaMenu->sizeHint().width()/1.8, centerOfCriteriaButton.y()+10));
     });
-    if (dataOptions->genderIncluded){
+    if(dataOptions->genderIncluded) {
         genderMenuAction = addNewCriteriaMenu->addAction(tr("Gender"));
-        connect(genderMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
+        connect(genderMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this]() {
             gruepr::addCriteriaCard(Criterion::CriteriaType::genderIdentity);});
     }
-    if (dataOptions->URMIdentityIncluded){
+    if(dataOptions->URMIdentityIncluded) {
         urmMenuAction = addNewCriteriaMenu->addAction(tr("Racial/Ethnic/Cultural Identity"));
-        connect(urmMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
+        connect(urmMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this]() {
             gruepr::addCriteriaCard(Criterion::CriteriaType::urmIdentity);});
     }
-    if (dataOptions->numAttributes > 0){
+    if(dataOptions->numAttributes > 0) {
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
             QAction *currentAttributeAction = addNewCriteriaMenu->addAction(dataOptions->attributeQuestionText[attribute]);
-            connect(currentAttributeAction, &QAction::triggered, addNewCriteriaCardButton, [this, attribute](){
+            connect(currentAttributeAction, &QAction::triggered, addNewCriteriaCardButton, [this, attribute]() {
                 gruepr::addCriteriaCard(Criterion::CriteriaType::attributeQuestion, attribute);});
             attributeMenuActions.append(currentAttributeAction);
         }
     }
     if(!dataOptions->assignmentPreferenceFields.empty()) {
         assignmentPreferenceMenuAction = addNewCriteriaMenu->addAction(tr("Team Assignment Preferences"));
-        connect(assignmentPreferenceMenuAction, &QAction::triggered, this, [this](){
+        connect(assignmentPreferenceMenuAction, &QAction::triggered, this, [this]() {
             gruepr::addCriteriaCard(Criterion::CriteriaType::assignmentPreference);});
     }
-    if (!dataOptions->scheduleField.empty()){
+    if(!dataOptions->scheduleField.empty()) {
         scheduleMenuAction = new QAction("Meeting Times", this);
-        connect(scheduleMenuAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::scheduleMeetingTimes);});
+        connect(scheduleMenuAction, &QAction::triggered, this, [this]() {gruepr::addCriteriaCard(Criterion::CriteriaType::scheduleMeetingTimes);});
         addNewCriteriaMenu->addAction(scheduleMenuAction);
     }
     groupTogetherMenuAction = addNewCriteriaMenu->addAction("Students to group on to the same team");
@@ -213,35 +211,36 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProg
 
     loadUI(progressDialog);
     // Restore additional criteria cards from previous work (savedCriteriaCards is empty if not loading from prevWork)
-    for (const auto &cardJsonVal : std::as_const(savedCriteriaCards)) {
+    for(const auto &cardJsonVal : std::as_const(savedCriteriaCards)) {
         const QJsonObject cardJson = cardJsonVal.toObject();
         auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
         const int typeInt = Criterion::resolveCriteriaTypeKey(criteriaTypeEnum, cardJson["criteriaType"].toString());
-        if (typeInt == -1) {
+        if(typeInt == -1) {
             continue;
         }
         const auto type = static_cast<Criterion::CriteriaType>(typeInt);
-        if (type == Criterion::CriteriaType::section || type == Criterion::CriteriaType::teamSize) {
+        if(type == Criterion::CriteriaType::section || type == Criterion::CriteriaType::teamSize) {
             continue; // already created
         }
 
-        if (type == Criterion::CriteriaType::attributeQuestion) {
+        if(type == Criterion::CriteriaType::attributeQuestion) {
             addCriteriaCard(type, cardJson["attributeIndex"].toInt());
 
-        } else {
+        }
+        else {
             addCriteriaCard(type);
         }
 
         // Apply saved settings to the just-added card's criterion
         GroupingCriteriaCard *addedCard = criteriaCardsList.last();
-        if (cardJson.contains("settings")) {
+        if(cardJson.contains("settings")) {
             addedCard->criterion->settingsFromJson(cardJson["settings"].toObject());
         }
 
         // Refresh the attribute widget UI to reflect restored settings
-        if (type == Criterion::CriteriaType::attributeQuestion) {
+        if(type == Criterion::CriteriaType::attributeQuestion) {
             auto *attributeCriterion = qobject_cast<AttributeCriterion*>(addedCard->criterion);
-            if (attributeCriterion != nullptr && attributeCriterion->attributeWidget != nullptr) {
+            if(attributeCriterion != nullptr && attributeCriterion->attributeWidget != nullptr) {
                 attributeCriterion->attributeWidget->setValues(false);
             }
         }
@@ -308,21 +307,24 @@ gruepr::~gruepr()
     delete ui;
 }
 
-void gruepr::doAutoScroll(QPoint point){
+void gruepr::doAutoScroll(QPoint point)
+{
     const int margin = 30, step = 10;
         const QRect area = ui->teamingOptionsScrollArea->viewport()->rect();
-        if (point.y() < area.top() + margin) {
+        if(point.y() < area.top() + margin) {
             ui->teamingOptionsScrollArea->verticalScrollBar()->setValue(
                 ui->teamingOptionsScrollArea->verticalScrollBar()->value() - step
             );
-        } else if (point.y() > area.bottom() - margin) {
+        }
+        else if(point.y() > area.bottom() - margin) {
             ui->teamingOptionsScrollArea->verticalScrollBar()->setValue(
                 ui->teamingOptionsScrollArea->verticalScrollBar()->value() + step
             );
         }
 }
 
-void gruepr::initializeCriteriaCardPriorities(){
+void gruepr::initializeCriteriaCardPriorities()
+{
     int count = 0;
     for(auto &criteriaCard : criteriaCardsList) {
         criteriaCard->setPriorityOrder(count);
@@ -335,7 +337,7 @@ void gruepr::initializeCriteriaCardPriorities(){
 void gruepr::moveCriteriaCard(int draggedIndex, int targetIndex) {
     QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
     layout->setSpacing(5);
-    if (draggedIndex < 0 || targetIndex < 0 ||
+    if(draggedIndex < 0 || targetIndex < 0 ||
         draggedIndex >= criteriaCardsList.size() ||
         targetIndex > criteriaCardsList.size() ||   // note: > not >=, to allow end position
         draggedIndex == targetIndex) {
@@ -347,10 +349,11 @@ void gruepr::moveCriteriaCard(int draggedIndex, int targetIndex) {
     GroupingCriteriaCard* draggedCard = criteriaCardsList.takeAt(draggedIndex);
 
     int insertIndex;
-    if (targetIndex == criteriaCardsList.size() + 1) {
+    if(targetIndex == criteriaCardsList.size() + 1) {
         // Was the end position; after takeAt, list shrank by 1
         insertIndex = criteriaCardsList.size();
-    } else {
+    }
+    else {
         insertIndex = (draggedIndex < targetIndex) ? targetIndex - 1 : targetIndex;
     }
 
@@ -359,28 +362,28 @@ void gruepr::moveCriteriaCard(int draggedIndex, int targetIndex) {
     initializeCriteriaCardPriorities();
     refreshCriteriaLayout();
 
-    for (auto *card : std::as_const(criteriaCardsList)) {
+    for(auto *card : std::as_const(criteriaCardsList)) {
         card->stopDragTimer();
     }
 }
 
 bool gruepr::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == bottomDropZone) {
-        if (event->type() == QEvent::DragEnter) {
+    if(watched == bottomDropZone) {
+        if(event->type() == QEvent::DragEnter) {
             auto *e = static_cast<QDragEnterEvent*>(event);
-            if (e->mimeData()->hasText()) {
+            if(e->mimeData()->hasText()) {
                 e->acceptProposedAction();
                 showDropIndicator(criteriaCardsList.size());
             }
             return true;
         }
-        if (event->type() == QEvent::DragMove) {
+        if(event->type() == QEvent::DragMove) {
             auto *e = static_cast<QDragMoveEvent*>(event);
             e->acceptProposedAction();
             return true;
         }
-        if (event->type() == QEvent::Drop) {
+        if(event->type() == QEvent::Drop) {
             auto *e = static_cast<QDropEvent*>(event);
             const QString widgetID = e->mimeData()->text();
             const auto *draggedCard = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
@@ -395,24 +398,24 @@ bool gruepr::eventFilter(QObject *watched, QEvent *event)
 
 void gruepr::showDropIndicator(int targetIndex) {
     auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
-    if (layout == nullptr) {
+    if(layout == nullptr) {
         return;
     }
 
     layout->removeWidget(dropIndicator);
 
-    if (targetIndex >= 0 && targetIndex < criteriaCardsList.size()) {
+    if(targetIndex >= 0 && targetIndex < criteriaCardsList.size()) {
         // Insert indicator above the target card
         const int layoutIndex = layout->indexOf(criteriaCardsList[targetIndex]);
-        if (layoutIndex >= 0) {
+        if(layoutIndex >= 0) {
             layout->insertWidget(layoutIndex, dropIndicator);
             dropIndicator->show();
         }
     }
-    else if (targetIndex == criteriaCardsList.size()) {
+    else if(targetIndex == criteriaCardsList.size()) {
         // Insert indicator after the last card (above the bottom drop zone)
         const int layoutIndex = layout->indexOf(bottomDropZone);
-        if (layoutIndex >= 0) {
+        if(layoutIndex >= 0) {
             layout->insertWidget(layoutIndex, dropIndicator);
             dropIndicator->show();
         }
@@ -424,18 +427,19 @@ void gruepr::showBottomDropZone() {
 }
 
 void gruepr::hideDropIndicator() {
-    if (dropIndicator == nullptr) {
+    if(dropIndicator == nullptr) {
         return;
     }
     auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
-    if (layout != nullptr) {
+    if(layout != nullptr) {
         layout->removeWidget(dropIndicator);
     }
     dropIndicator->hide();
     bottomDropZone->hide();
 }
 
-void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
+void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType)
+{
     // Note: standard drag/drop/delete signals are connected automatically in GroupingCriteriaCard constructor
     switch(criteriaType) {
         case Criterion::CriteriaType::genderIdentity: {
@@ -472,7 +476,7 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             break;
         }
         case Criterion::CriteriaType::scheduleMeetingTimes: {
-            if (meetingScheduleCriteriaCard == nullptr){
+            if(meetingScheduleCriteriaCard == nullptr) {
                 meetingScheduleCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                                        QString("Number of weekly meeting times"), true);
                 criteriaCardsList.append(meetingScheduleCriteriaCard);
@@ -484,16 +488,16 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
         }
         case Criterion::CriteriaType::groupTogether:
         case Criterion::CriteriaType::splitApart: {
-            if (!teammateRulesExistence.contains(criteriaType)) {
+            if(!teammateRulesExistence.contains(criteriaType)) {
                 teammateRulesExistence.append(criteriaType);
                 const QString typeString = (criteriaType == Criterion::CriteriaType::groupTogether) ? tr("group together") : tr("split apart");
                 auto *teammatesCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                                tr("Students to ") + typeString, true);
                 criteriaCardsList.append(teammatesCard);
-                if (criteriaType == Criterion::CriteriaType::groupTogether && groupTogetherMenuAction != nullptr) {
+                if(criteriaType == Criterion::CriteriaType::groupTogether && groupTogetherMenuAction != nullptr) {
                     groupTogetherMenuAction->setVisible(false);
                 }
-                else if (criteriaType == Criterion::CriteriaType::splitApart && splitApartMenuAction != nullptr) {
+                else if(criteriaType == Criterion::CriteriaType::splitApart && splitApartMenuAction != nullptr) {
                     splitApartMenuAction->setVisible(false);
                 }
             }
@@ -510,8 +514,8 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
 
 void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute)
 {
-    if (criteriaType == Criterion::CriteriaType::attributeQuestion && (attribute < dataOptions->numAttributes)) {
-        if (!addedAttributeNumbersList.contains(attribute)) {
+    if(criteriaType == Criterion::CriteriaType::attributeQuestion && (attribute < dataOptions->numAttributes)) {
+        if(!addedAttributeNumbersList.contains(attribute)) {
             GroupingCriteriaCard *currentAttributeCard = initializedAttributeCriteriaCards[attribute];
             addedAttributeNumbersList.append(attribute);
             criteriaCardsList.append(currentAttributeCard);
@@ -527,8 +531,8 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute
 void gruepr::populateCriterionTypes()
 {
     teamingOptions->criteria.clear();
-    for (auto *const criteriaCard : std::as_const(criteriaCardsList)) {
-        if (criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
+    for(auto *const criteriaCard : std::as_const(criteriaCardsList)) {
+        if(criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
             criteriaCard->criterion->criteriaType == Criterion::CriteriaType::teamSize) {
             continue;
         }
@@ -614,16 +618,17 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
     refreshCriteriaLayout();
 }
 
-void gruepr::refreshCriteriaLayout(){
+void gruepr::refreshCriteriaLayout()
+{
     auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
     while (layout->count() > 1) {
         auto *item = layout->takeAt(1);
-        if (item->spacerItem() != nullptr) {
+        if(item->spacerItem() != nullptr) {
             delete item;
         }
     }
-    for (auto *const criteriaCard : std::as_const(criteriaCardsList)) {
-        if (criteriaCard->criterion->precedence == Criterion::Precedence::fixed) {
+    for(auto *const criteriaCard : std::as_const(criteriaCardsList)) {
+        if(criteriaCard->criterion->precedence == Criterion::Precedence::fixed) {
             criteriaCard->setStyleSheet(QString(FIXEDCRITERIAFRAME) + LABEL10PTFIXEDSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
                                         DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
@@ -670,8 +675,8 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
         _teams[teamnum].score = teamScores[teamnum];
     }
 
-/*  for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++){
-        for (int team = 0; team <_numTeams; team++){
+/*  for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
+        for(int team = 0; team <_numTeams; team++) {
             const float actualScore = criteriaScores[criterion][team]/_teamingOptions->weights[criterion];
             qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
             qDebug() << "team:" << team;
@@ -685,7 +690,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
 
 QStringList gruepr::getTeamTabNames() const {
     QStringList names;
-    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
+    for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
         names << ui->dataDisplayTabWidget->tabText(tab);
     }
     return names;
@@ -693,12 +698,12 @@ QStringList gruepr::getTeamTabNames() const {
 
 QList<QList<long long>> gruepr::getTeamSetData(const QString &tabName) const {
     QList<QList<long long>> teamIDLists;
-    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
-        if (ui->dataDisplayTabWidget->tabText(tab) == tabName) {
+    for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
+        if(ui->dataDisplayTabWidget->tabText(tab) == tabName) {
             const auto *teamTab = qobject_cast<TeamsTabItem*>(ui->dataDisplayTabWidget->widget(tab));
-            if (teamTab != nullptr) {
+            if(teamTab != nullptr) {
                 teamIDLists.reserve(teamTab->getTeams().size());
-                for (const auto &team : teamTab->getTeams()) {
+                for(const auto &team : teamTab->getTeams()) {
                     teamIDLists << team.studentIDs;
                 }
             }
@@ -744,7 +749,7 @@ void gruepr::changeSection(int index)
     ui->studentTable->clearSortIndicator();
 
     // update the response counts in the attribute tabs
-    if (!attributeWidgets.isEmpty()){ //check if user has added any attributes
+    if(!attributeWidgets.isEmpty()) { //check if user has added any attributes
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
             const QString currentAttributeQuestionText = dataOptions->attributeQuestionText.at(attribute);
                 //do attribute widgets correspond to the attribute number?
@@ -1395,13 +1400,13 @@ void gruepr::changeIdealTeamSize()
 
             // And what are the team sizes when desiredTeamSize represents a minimum size?
             teamingOptions->largerTeamsNumTeams = teamingOptions->numTeamsDesired;
-            for(int student = 0; student < numStudentsBeingTeamed; student++) {	// run through every student
+            for(int student = 0; student < numStudentsBeingTeamed; student++) {
                 // add one student to each team in turn until we run out of students
                 (teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams])++;
                 largerTeamsSizeA = teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams];     // the larger of the two team sizes
                 numLargerATeams = (student%teamingOptions->largerTeamsNumTeams)+1;                                    // the number of larger teams
             }
-            largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
+            largerTeamsSizeB = largerTeamsSizeA - 1;                    // the smaller of the two (uneven) team sizes
 
             // Add first option to selection box
             const QString smallerTeamOption = writeTeamSizeOption(numSmallerATeams, smallerTeamsSizeA,
@@ -1534,7 +1539,7 @@ void gruepr::chooseTeamSizes(int index)
         teamingOptions->numTeamsDesired = teamingOptions->smallerTeamsNumTeams;
         setTeamSizes(teamingOptions->smallerTeamsSizes);
     }
-    else if (index == 1) {
+    else if(index == 1) {
         // Larger teams desired
         teamingOptions->numTeamsDesired = teamingOptions->largerTeamsNumTeams;
         setTeamSizes(teamingOptions->largerTeamsSizes);
@@ -1549,8 +1554,8 @@ void gruepr::startOptimization()
     teamingOptions->criteria.clear();
     float weight = 10;
     float sumOfWeights = 0;
-    for (auto *const criteriaCard : std::as_const(criteriaCardsList)){
-        if (criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
+    for(auto *const criteriaCard : std::as_const(criteriaCardsList)) {
+        if(criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
             criteriaCard->criterion->criteriaType == Criterion::CriteriaType::teamSize) {
             continue;
         }
@@ -1566,7 +1571,7 @@ void gruepr::startOptimization()
         normFactor = 0;
     }
     // convert weights to realWeights
-    for (auto *criterion : std::as_const(teamingOptions->criteria)) {
+    for(auto *criterion : std::as_const(teamingOptions->criteria)) {
         criterion->weight *= normFactor;
     }
 
@@ -1606,7 +1611,7 @@ void gruepr::startOptimization()
         // than once upfront against the whole (possibly multi-section) roster, since students.data()
         // is the ORIGINAL unfiltered array and studentIndexes is what actually scopes it to the
         // students active in this run.
-        for (auto *criterion : std::as_const(teamingOptions->criteria)) {
+        for(auto *criterion : std::as_const(teamingOptions->criteria)) {
             criterion->prepareForOptimization(students.constData(), studentIndexes.constData(), numActiveStudents, dataOptions);
         }
 
@@ -1635,17 +1640,22 @@ void gruepr::startOptimization()
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
         const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " +
                                                                 QString::number(numSectionsToTeam) + ": " +teamingOptions->sectionName) : "");
-        progressWindow = new ProgressDialog(sectionName, progressChart, this);
+        progressWindow = new ProgressDialog(sectionName, progressChart, this, FINAL_LOCAL_SEARCH_TIME / 1000);
         progressWindow->show();
-        connect(progressWindow, &ProgressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-                                                                         connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
-                                                                         optimizationStoppedmutex.lock();
-                                                                         optimizationStopped = true;
-                                                                         optimizationStoppedmutex.unlock();
+        connect(progressWindow, &ProgressDialog::letsStop, this, [this] {
+                                                                        optimizationStoppedmutex.lock();
+                                                                        const bool alreadyStopped = optimizationStopped;
+                                                                        optimizationStopped = true;
+                                                                        optimizationStoppedmutex.unlock();
+                                                                        if(!alreadyStopped) {
+                                                                            QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+                                                                        }
                                                                         });
+        connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
 
         // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
         optimizationStopped = false;
+        continueIndefinitely = false;
         future = QtConcurrent::run(&gruepr::optimizeTeams, this, studentIndexes);       // spin optimization off into a separate thread
         futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
         multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
@@ -1673,14 +1683,36 @@ void gruepr::updateOptimizationProgress(const float maxScore, const int generati
 {
     progressChart->addScore(maxScore);
 
-    if(generation > GA::MAX_GENERATIONS) {
-        progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
-                                generation, maxScore, true);
+    // Refresh the thread-safe mirror of the "keep optimizing" checkbox every generation -- this is the
+    // only place it's safe to read the checkbox itself (main thread), and optimizeTeams()'s own loop
+    // condition (worker thread) needs a current value each time it checks.
+    optimizationStoppedmutex.lock();
+    continueIndefinitely = progressWindow->continuingManually();
+    optimizationStoppedmutex.unlock();
+
+    if(generation == ProgressDialog::FINALIZING) {
+        // finalGenomeHillClimb() reporting its own periodic progress -- the transition into it has
+        // already happened (decided by optimizeTeams()'s own loop condition), so just keep the display
+        // live, not trigger anything.
+        progressWindow->setText(tr("Refining best solution..."), generation, maxScore, true);
         progressWindow->highlightStopButton();
     }
+    else if(generation > GA::MAX_GENERATIONS) {
+        // Only show this message when continuing manually -- otherwise optimizeTeams()'s loop is about
+        // to exit and hand off to finalizing on its own, and this message would only ever be visible
+        // for the ~200ms until the first FINALIZING update overwrites it.
+        if(progressWindow->continuingManually()) {
+            progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
+                                    generation, maxScore, true);
+            progressWindow->highlightStopButton();
+        }
+    }
     else if((generation >= GA::MIN_GENERATIONS) && (scoreStability > GA::MIN_SCORE_STABILITY)) {
-        progressWindow->setText(tr("Score appears to be stable!"), generation, maxScore, true);
-        progressWindow->highlightStopButton();
+        // Same reasoning as above.
+        if(progressWindow->continuingManually()) {
+            progressWindow->setText(tr("Score appears to be stable!"), generation, maxScore, true);
+            progressWindow->highlightStopButton();
+        }
     }
     else {
         progressWindow->setText(tr("Please wait while your grueps are created!"), generation, maxScore, false);
@@ -1885,7 +1917,7 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
     }
 
     //Initialize all cards, but do not add them to the layout
-    for (int attribute = 0; attribute < dataOptions->numAttributes; attribute++){
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const QString title = "Attribute: "+ dataOptions->attributeQuestionText.at(attribute);
         initializedAttributeCriteriaCards << new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, dataOptions,
                                                                       teamingOptions, this, title, true, attribute);
@@ -1897,7 +1929,7 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
     }
 
     //Warn about duplicates
-    const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){
+    const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student) {
         return student.duplicateRecord;
     });
     if(anyDuplicates) {
@@ -1944,12 +1976,12 @@ void gruepr::saveState()
         }
         content["teamsets"] = teamsetjsons;
         QJsonArray criteriacardsjsons;
-        for (const auto *card : std::as_const(criteriaCardsList)) {
+        for(const auto *card : std::as_const(criteriaCardsList)) {
             QJsonObject cardjson;
             auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
             cardjson["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(card->criterion->criteriaType));
             cardjson["settings"] = card->criterion->settingsToJson();
-            if (card->criterion->criteriaType == Criterion::CriteriaType::attributeQuestion) {
+            if(card->criterion->criteriaType == Criterion::CriteriaType::attributeQuestion) {
                 const auto *attrCriterion = qobject_cast<AttributeCriterion*>(card->criterion);
                 cardjson["attributeIndex"] = attrCriterion->attributeIndex;
             }
@@ -2031,7 +2063,7 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
     ui->studentTable->setSortingEnabled(false);
 
     const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(),
-                                           [](const StudentRecord &s){ return !s.deleted && s.duplicateRecord; });
+                                           [](const StudentRecord &s) { return !s.deleted && s.duplicateRecord; });
 
     // Build duplicate group sort keys so clicking the status column clusters likely duplicates
     QHash<long long, QString> duplicateSortKeys;
@@ -2261,10 +2293,10 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         teamStartPositions[team + 1] = teamStartPositions[team] + teamSizes[team];
     }
 
-    // Create a log-spaced set of genome indexes (denser near rank 0) for exhaustiveRepairGenome()
+    // Create a log-spaced set of genome indexes (denser near rank 0) for repairBrokenGene()/exhaustiveSearch()
     const auto repairRanks = chooseIndexesToRepair(populationSize, NUM_GENOMES_TO_REPAIR);
-    // repairHints[genome] = {negativeTeamCount, worstTeamIndex}, filled during the main scoring pass for use in the repair step
-    auto repairHints = std::make_unique<std::pair<int,int>[]>(populationSize);
+    // worstTeam[genome], filled during the main scoring pass for use in the repair step
+    auto worstTeam = std::make_unique<int[]>(populationSize);
 
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
@@ -2299,136 +2331,144 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         {return (genomeScores[i] > genomeScores[j]);});
     emit generationComplete(genomeScores[orderedIndex[0]].score, 0, 0);
 
-    float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
+    float bestScores[GA::GENERATIONS_OF_STABILITY]={0};     // historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
     int generation = 0;
     bool localOptimizationStopped = false;
+    bool localContinueIndefinitely = false;
 
-    // now optimize
-    do {        // allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
-        do {        // keep optimizing until reach stability or maxGenerations
+    // now optimize -- keep running generations while below MIN_GENERATIONS, or (below MAX_GENERATIONS
+    // and not yet stable), or the user has checked "continue optimizing until I press end"; stop the
+    // instant a genuine user stop request comes in, regardless of any of that.
+    do {
 
-            // 1. Clone the elites from genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
-            for(int genome = 0; genome < GA::NUM_ELITES; genome++) {
-                GA::clone(genePool[orderedIndex[genome]], ancestors[orderedIndex[genome]], orderedIndex[genome],
-                         nextGenGenePool[genome], nextGenAncestors[genome], numActiveStudents);
-            }
-
-            // 2. Create the rest of population in nextGenGenePool by mating (multi-threaded using OpenMP)
-#pragma omp parallel \
-            default(none) \
-            shared(genePool, nextGenGenePool, ancestors, nextGenAncestors, orderedIndex, \
-                   teamStartPositions, sharedNumTeams, sharedNumActiveStudents, populationSize)
-            {
-                const int *threadMom = nullptr, *threadDad = nullptr;
-#pragma omp for
-                for(int genome = GA::NUM_ELITES; genome < populationSize; genome++) {
-                    //get a couple of parents
-                    GA::tournamentSelectParents(genePool.data(), orderedIndex.get(), ancestors.data(),
-                                                threadMom, threadDad, nextGenAncestors[genome]);
-
-                    //mate them and put child in nextGenGenePool
-                    GA::mate(threadMom, threadDad, teamStartPositions.get(), sharedNumTeams,
-                            nextGenGenePool[genome], sharedNumActiveStudents);
-                }
-            }
-
-            // 3. Swap pointers to make nextGen's genePool and ancestors into this gen's genePool and ancestors
-            swap(genePool, nextGenGenePool);
-            swap(ancestors, nextGenAncestors);
-
-            generation++;
-
-            // 4. Calculate the score for every genome in this generation (multi-threaded using OpenMP)
-#pragma omp parallel \
-            default(none) \
-            shared(genomeScores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, repairHints, populationSize)
-            {
-                QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
-                QList<float> penaltyPoints(sharedNumTeams);
-                QList<float> teamScoresScratch(sharedNumTeams);
-#pragma omp for
-                for(int genome = 0; genome < populationSize; genome++) {
-                    genomeScores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
-                                                          sharedTeamingOptions, sharedDataOptions, teamScoresScratch.data(),
-                                                          criteriaScores, penaltyPoints);
-                    int worstTeam = 0, negativeTeamCount = 0;
-                    for(int team = 0; team < sharedNumTeams; team++) {
-                        if(teamScoresScratch[team] < teamScoresScratch[worstTeam]) {
-                            worstTeam = team;
-                        }
-                        if(teamScoresScratch[team] <= 0.0f) {
-                            negativeTeamCount++;
-                        }
-                    }
-                    repairHints[genome] = {negativeTeamCount, worstTeam};
-                }
-            }
-
-            // 5. Get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j)
-                {return (genomeScores[i] > genomeScores[j]);});
-
-            // 6. Repair 1 broken gene each from within a sample of genomes (multi-threaded using OpenMP):
-            // for each selected genome's current worst team, exhaustively try swapping its teammates
-            // against students on every other team until a swap reduces the genome's negative-team
-            // count. For the elite genomes specifically (always among the sample, since they're always
-            // ranked 0..NUM_ELITES-1), once there's no negative team left to fix, the same search
-            // keeps going to squeeze further improvement out of an already-clean genome.
-#pragma omp parallel \
-            default(none) \
-            shared(genomeScores, sharedStudents, genePool, orderedIndex, repairRanks, repairHints, \
-                   sharedNumTeams, teamSizes, teamStartPositions, sharedTeamingOptions, sharedDataOptions)
-            {
-#pragma omp for
-                for(int sample = 0; sample < int(repairRanks.size()); sample++) {
-                    const int genome = orderedIndex[repairRanks[sample]];
-                    const auto &hint = repairHints[genome];
-                    const bool isElite = repairRanks[sample] < GA::NUM_ELITES;
-                    genomeScores[genome] = exhaustiveRepairGenome(sharedStudents.constData(), genePool[genome], sharedNumTeams,
-                                                                  teamSizes.data(), teamStartPositions.get(),
-                                                                  sharedTeamingOptions, sharedDataOptions,
-                                                                  hint.first, hint.second, genomeScores[genome], isElite);
-                }
-            }
-
-            // 7. Re-sort genome indexes by score now that the repair step above changed some of them
-            std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j)
-                {return (genomeScores[i] > genomeScores[j]);});
-
-            // 8. Determine the best score, save in historical record, and calculate score stability
-            const float maxScoreInThisGeneration = genomeScores[orderedIndex[0]].score;
-            const float maxScoreFromGenerationsAgo = bestScores[(generation+1) % (GA::GENERATIONS_OF_STABILITY)];
-            bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;	//best scores from most recent generations, wrap storage location
-
-            const float delta = maxScoreInThisGeneration - maxScoreFromGenerationsAgo;
-            if(delta <= 0.0001F) {
-                scoreStability = 2 * GA::MIN_SCORE_STABILITY;
-            }
-            else {
-                scoreStability = std::abs(maxScoreInThisGeneration) / delta;
-            }
-            emit generationComplete(maxScoreInThisGeneration, generation, scoreStability);
-
-            optimizationStoppedmutex.lock();
-            localOptimizationStopped = optimizationStopped;
-            optimizationStoppedmutex.unlock();
+        // 1. Clone the elites from genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
+        for(int genome = 0; genome < GA::NUM_ELITES; genome++) {
+            GA::clone(genePool[orderedIndex[genome]], ancestors[orderedIndex[genome]], orderedIndex[genome],
+                      nextGenGenePool[genome], nextGenAncestors[genome], numActiveStudents);
         }
-        while(!localOptimizationStopped && ((generation < GA::MIN_GENERATIONS) ||
-                                            ((generation < GA::MAX_GENERATIONS) && (scoreStability < GA::MIN_SCORE_STABILITY))));
 
-        if(localOptimizationStopped || teamingOptions->criteria.empty()) { //if no criteria to group by, return immediately
-            keepOptimizing = false;
-            emit turnOffBusyCursor();
+        // 2. Create the rest of population in nextGenGenePool by mating (multi-threaded using OpenMP)
+#pragma omp parallel \
+        default(none) \
+        shared(genePool, nextGenGenePool, ancestors, nextGenAncestors, orderedIndex, \
+               teamStartPositions, sharedNumTeams, sharedNumActiveStudents, populationSize)
+        {
+            const int *threadMom = nullptr, *threadDad = nullptr;
+#pragma omp for
+            for(int genome = GA::NUM_ELITES; genome < populationSize; genome++) {
+                //get a couple of parents
+                GA::tournamentSelectParents(genePool.data(), orderedIndex.get(), ancestors.data(),
+                                            threadMom, threadDad, nextGenAncestors[genome]);
+
+                //mate them and put child in nextGenGenePool
+                GA::mate(threadMom, threadDad, teamStartPositions.get(), sharedNumTeams,
+                        nextGenGenePool[genome], sharedNumActiveStudents);
+            }
+        }
+
+        // 3. Swap pointers to make nextGen's genePool and ancestors into this gen's genePool and ancestors
+        swap(genePool, nextGenGenePool);
+        swap(ancestors, nextGenAncestors);
+
+        generation++;
+
+        // 4. Calculate the score for every genome in this generation (multi-threaded using OpenMP)
+#pragma omp parallel \
+        default(none) \
+        shared(genomeScores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, worstTeam, populationSize)
+        {
+            QList<QList<float>> criteriaScores(sharedTeamingOptions->criteria.size(), QList<float>(sharedNumTeams));
+            QList<float> penaltyPoints(sharedNumTeams);
+            QList<float> teamScoresScratch(sharedNumTeams);
+#pragma omp for
+            for(int genome = 0; genome < populationSize; genome++) {
+                genomeScores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes.data(),
+                                                      sharedTeamingOptions, sharedDataOptions, teamScoresScratch.data(),
+                                                      criteriaScores, penaltyPoints);
+                int currentWorstTeam = 0;
+                for(int team = 0; team < sharedNumTeams; team++) {
+                    if(teamScoresScratch[team] < teamScoresScratch[currentWorstTeam]) {
+                        currentWorstTeam = team;
+                    }
+                }
+                worstTeam[genome] = currentWorstTeam;
+            }
+        }
+
+        // 5. Get genome indexes in order of score, largest to smallest
+        std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j) {
+            return (genomeScores[i] > genomeScores[j]);
+        });
+
+        // 6. Fix selected gene(s) from within a sample of genomes (multi-threaded using OpenMP):
+        // non-elites get repairBrokenGene() (stop at the first improving 2-team swap targeting their
+        // current single worst team); elites get exhaustiveSearch() (up to two full passes of 2-team
+        // swaps over every team pair). In either case, uses attempt2TeamSwap(), which keeps a swap if
+        // it reduces the number of broken genes (i.e., negative scoring teams) or, if there are no
+        // negative teams, weak-Pareto improves the scores of the two teams participating in the swap.
+#pragma omp parallel \
+        default(none) \
+        shared(genomeScores, genePool, orderedIndex, repairRanks, worstTeam, teamSizes, teamStartPositions)
+        {
+#pragma omp for
+            for(int sample = 0; sample < int(repairRanks.size()); sample++) {
+                const int genome = orderedIndex[repairRanks[sample]];
+                const bool isElite = repairRanks[sample] < GA::NUM_ELITES;
+                if(isElite) {
+                    genomeScores[genome] = exhaustiveSearch(genePool[genome], teamSizes.data(), teamStartPositions.get());
+                }
+                else {
+                    genomeScores[genome] = repairBrokenGene(genePool[genome], teamSizes.data(), teamStartPositions.get(),
+                                                            worstTeam[genome], genomeScores[genome]);
+                }
+            }
+        }
+
+        // 7. Re-sort genome indexes by score now that the repair step above changed some of them
+        std::sort(orderedIndex.get(), orderedIndex.get() + populationSize, [&genomeScores](const int i, const int j) {
+            return (genomeScores[i] > genomeScores[j]);
+        });
+
+        // 8. Determine the best score, save in historical record, and calculate score stability
+        const float maxScoreInThisGeneration = genomeScores[orderedIndex[0]].score;
+        const float maxScoreFromGenerationsAgo = bestScores[(generation+1) % (GA::GENERATIONS_OF_STABILITY)];
+        bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;     //best scores from most recent generations, wrap storage location
+
+        const float delta = maxScoreInThisGeneration - maxScoreFromGenerationsAgo;
+        if(delta <= 0.0001F) {
+            scoreStability = 2 * GA::MIN_SCORE_STABILITY;
         }
         else {
-            keepOptimizing = true;
+            scoreStability = std::abs(maxScoreInThisGeneration) / delta;
         }
-    }
-    while(keepOptimizing);
+        emit generationComplete(maxScoreInThisGeneration, generation, scoreStability);
+
+        optimizationStoppedmutex.lock();
+        localOptimizationStopped = optimizationStopped;
+        localContinueIndefinitely = continueIndefinitely;
+        optimizationStoppedmutex.unlock();
+    } while(!localOptimizationStopped &&
+            ((generation < GA::MIN_GENERATIONS) ||
+             ((generation < GA::MAX_GENERATIONS) && (scoreStability < GA::MIN_SCORE_STABILITY)) ||
+             localContinueIndefinitely));
 
     finalGeneration = generation;
     teamSetScore = bestScores[generation % (GA::GENERATIONS_OF_STABILITY)];
+
+    // Finalize by hill-climbing the single best genome for a set amount of time -- but only if the
+    // loop above ended on its own (stability/max-generations), not because the user asked to stop.
+    if(!localOptimizationStopped && !teamingOptions->criteria.empty()) {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(FINAL_LOCAL_SEARCH_TIME);
+        teamSetScore = finalGenomeHillClimb(genePool[orderedIndex[0]], teamSizes.data(), teamStartPositions.get(), deadline).score;
+    }
+
+    optimizationStoppedmutex.lock();
+    const bool stoppedAtEnd = optimizationStopped;
+    optimizationStoppedmutex.unlock();
+    if(stoppedAtEnd) {
+        emit turnOffBusyCursor();
+    }
 
     //copy best team set into a QList to return
     QList<int> bestTeamSet;
@@ -2446,7 +2486,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 // Calculate score for one teamset (one genome)
 // Returns the total net score (which is, typically, the harmonic mean of all team scores)
 // Modifies the teamScores[] to give scores for each individual team in the genome, too
-// This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
+// This is a static function, and parameters have a leading underscore to differentiate from gruepr member variables
 //////////////////
 GenomeScore gruepr::getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                    const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
@@ -2465,7 +2505,7 @@ GenomeScore gruepr::getGenomeScore(const StudentRecord *const _students, const i
         _teamScores[team] = 0;
     }
 
-    for (int criterion = 0; criterion < _teamingOptions->criteria.size(); criterion++) {
+    for(int criterion = 0; criterion < _teamingOptions->criteria.size(); criterion++) {
         _teamingOptions->criteria[criterion]->calculateScore(_students, _teammates, _numTeams, _teamSizes,
                                                              _teamingOptions, _dataOptions, _criteriaScores[criterion], _penaltyPoints);
     }
@@ -2540,11 +2580,98 @@ GenomeScore gruepr::aggregateTeamScores(const float _teamScores[], const int _te
 
 
 //////////////////
+// Scores an arbitrary subset of teams (by team index, not necessarily contiguous or all teams) in
+// isolation from the rest of the genome -- gathers each listed team's members into a scratch
+// sub-genome and scores that. Used to cheaply evaluate a candidate swap's effect on just the handful of
+// teams it touches, without rescoring the whole genome.
+//////////////////
+GenomeScore gruepr::getSubGenomeScore(const StudentRecord *const _students, const int _teammates[],
+                                      const int _teamStartPositions[], const std::vector<int> &_teamIndices,
+                                      const TeamingOptions *const _teamingOptions,
+                                      const DataOptions *const _dataOptions, QList<float> &_subTeamScores)
+{
+    const int numSubTeams = int(_teamIndices.size());
+    const int numCrits = _teamingOptions->criteria.size();
+
+    thread_local std::vector<int> subTeammates;
+    thread_local QList<int> subTeamSizes;
+    thread_local QList<QList<float>> subCriteriaScores;
+    thread_local QList<float> subPenaltyPoints;
+
+    if(subTeamSizes.size() != numSubTeams) {
+        subTeamSizes.resize(numSubTeams);
+    }
+    if(subCriteriaScores.size() != numCrits) {
+        subCriteriaScores.resize(numCrits);
+    }
+    for(auto &c : subCriteriaScores) {
+        if(c.size() != numSubTeams) {
+            c.resize(numSubTeams);
+        }
+    }
+    if(subPenaltyPoints.size() != numSubTeams) {
+        subPenaltyPoints.resize(numSubTeams);
+    }
+    if(_subTeamScores.size() != numSubTeams) {
+        _subTeamScores.resize(numSubTeams);
+    }
+
+    int totalSize = 0;
+    for(int i = 0; i < numSubTeams; i++) {
+        subTeamSizes[i] = _teamStartPositions[_teamIndices[i] + 1] - _teamStartPositions[_teamIndices[i]];
+        totalSize += subTeamSizes[i];
+    }
+    subTeammates.resize(totalSize);
+    int offset = 0;
+    for(int i = 0; i < numSubTeams; i++) {
+        const int start = _teamStartPositions[_teamIndices[i]];
+        std::copy(_teammates + start, _teammates + start + subTeamSizes[i], subTeammates.begin() + offset);
+        offset += subTeamSizes[i];
+    }
+
+    return getGenomeScore(_students, subTeammates.data(), numSubTeams, subTeamSizes.data(), _teamingOptions, _dataOptions,
+                          _subTeamScores.data(), subCriteriaScores, subPenaltyPoints);
+}
+
+
+//////////////////
+// Full-genome rescore, needed whenever a move is being kept -- getSubGenomeScore() is only a cheap
+// heuristic for whether a candidate move is worth keeping (some criteria, e.g.
+// AssignmentPreferenceCriterion, can't be accurately evaluated from just a subset of teams), so once a
+// move is accepted the real, whole-genome score is needed. Also returns the per-team scores in
+// teamScores.
+//////////////////
+GenomeScore gruepr::rescoreGenome(const int teammates[], const int teamSizes[], QList<float> &teamScores)
+{
+    const int numCrits = teamingOptions->criteria.size();
+    thread_local QList<QList<float>> criteriaScores;
+    thread_local QList<float> penaltyPoints;
+    if(criteriaScores.size() != numCrits) {
+        criteriaScores.resize(numCrits);
+    }
+    for(auto &c : criteriaScores) {
+        if(c.size() != numTeams) {
+            c.resize(numTeams);
+        }
+    }
+    if(penaltyPoints.size() != numTeams) {
+        penaltyPoints.resize(numTeams);
+    }
+    if(teamScores.size() != numTeams) {
+        teamScores.resize(numTeams);
+    }
+
+    return getGenomeScore(students.constData(), teammates, numTeams, teamSizes, teamingOptions, dataOptions,
+                          teamScores.data(), criteriaScores, penaltyPoints);
+}
+
+
+//////////////////
 // Create a log-spaced set of indexes in [0, populationSize), denser near rank 0 (rank 0 = top-scoring
 // genome). Clamping each computed index to at least (previous + 1) makes the sequence purely
 // consecutive (0, 1, 2, 3, ...) for as long as the raw exponential value stays below that floor, only
 // diverging into sparser spacing once the exponential curve overtakes it -- a dense, gap-free run at
-// the top (every genome with a real shot at tournament selection) followed by increasingly sparse
+// the top (every genome with a strong shot at tournament selection) followed by increasingly sparse
 // coverage reaching all the way to the bottom of the population, rather than clustering the whole
 // sample near the top.
 //////////////////
@@ -2564,156 +2691,194 @@ std::vector<int> gruepr::chooseIndexesToRepair(const int populationSize, const i
 
 
 //////////////////
-// Single-pass exhaustive repair: any penalty from any criterion sends a team's score to be a
-// negative value, so a genome's negative-scoring teams are "broken". For the genome's CURRENT
-// worst-scoring team, tries swapping each of its members against every member of every other team in
-// turn, stopping at the first swap that decreases the genome's negative-team count. The goal is to cheaply
-// surface one more compliant team per call, with the repeated per-generation application accumulating
-// improvement over time.
-//
-// A completed swap only ever moves one student out of the worst team and one out of the other team. So
-// checking whether a candidate swap helps only needs those two teams' scores. Thus, the check is by
-// scoring via the same getGenomeScore used everywhere else, just scoped down to numTeams=2.
-// negativeTeams/worstTeam/currentScore are the genome's own per-team scoring results -- always
-// supplied by the caller as a byproduct of its own scoring pass (see optimizeTeams step 4), since this
-// is the only caller and it always has them on hand.
-//
-// isElite genomes with negativeTeams == 0 behave differently: rather than stopping, the same worst-team
-// target is used to keep evolving the genome. Every candidate swap for that team is tried exhaustively,
-// and any swap that leaves BOTH teams' own scores higher than before is kept, and the scan continues.
+// Given exactly two teams, exhaustively tries every position pair between them. Self-sufficiently
+// chooses the acceptance rule from the two teams' own current scores: if either is negative, accepts a
+// swap that reduces the negative-team count between these two; if both are positive, accepts via
+// weak-Pareto (neither score drops, at least one strictly rises). Stops and returns true at the first
+// acceptance, leaving teammates in the improved state and reporting the accepted positions in
+// acceptedPosA/acceptedPosB so the caller can undo the move if a later full-genome rescore reveals it
+// was actually a net regression (some criteria, e.g. AssignmentPreferenceCriterion, aren't visible to
+// this function's own cheap sub-genome check); returns false if nothing found across all positions
+// (teammates unchanged, since every rejected trial is reverted).
 //////////////////
-GenomeScore gruepr::exhaustiveRepairGenome(const StudentRecord *const _students, int _teammates[], const int _numTeams,
-                                           const int _teamSizes[], const int _teamStartPositions[],
-                                           const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                           const int negativeTeams, const int worstTeam, const GenomeScore &currentScore,
-                                           const bool isElite)
+bool gruepr::attempt2TeamSwap(int teammates[], const int teamStartPositions[], const int teamA, const int teamB,
+                              int &acceptedPosA, int &acceptedPosB)
 {
-    if(negativeTeams == 0 && !isElite) {
-        return currentScore;   // nothing to fix, and not an elite -- zero rescoring, zero allocation
-    }
+    thread_local std::vector<int> pairTeamIndices(2);
+    pairTeamIndices[0] = teamA;
+    pairTeamIndices[1] = teamB;
 
-    const int numCrits = _teamingOptions->criteria.size();
+    // A team of size 1 scoring exactly 0 is an unpenalized singleton, not a broken team -- matches
+    // aggregateTeamScores()'s own "ignore unpenalized teams of one" rule.
+    const auto isBroken = [](const float score, const int teamSize) {
+        return score <= 0.0f && !(teamSize == 1 && score == 0.0f);
+    };
+    const int teamASize = teamStartPositions[teamA + 1] - teamStartPositions[teamA];
+    const int teamBSize = teamStartPositions[teamB + 1] - teamStartPositions[teamB];
 
-    thread_local std::vector<int> subTeammates;
-    thread_local QList<QList<float>> subCriteriaScores;
-    thread_local QList<float> subPenaltyPoints;
-    thread_local QList<float> subScores;
-    if(subCriteriaScores.size() != numCrits) {
-        subCriteriaScores.resize(numCrits);
-    }
-    for(auto &c : subCriteriaScores) {
-        if(c.size() != 2) {
-            c.resize(2);
+    thread_local QList<float> beforeScores;
+    thread_local QList<float> afterScores;
+    getSubGenomeScore(students.constData(), teammates, teamStartPositions, pairTeamIndices, teamingOptions, dataOptions, beforeScores);
+    const bool eitherNegative = isBroken(beforeScores[0], teamASize) || isBroken(beforeScores[1], teamBSize);
+    const int negativeCountBefore = (isBroken(beforeScores[0], teamASize) ? 1 : 0) + (isBroken(beforeScores[1], teamBSize) ? 1 : 0);
+
+    for(int posA = teamStartPositions[teamA]; posA < teamStartPositions[teamA + 1]; posA++) {
+        for(int posB = teamStartPositions[teamB]; posB < teamStartPositions[teamB + 1]; posB++) {
+            std::swap(teammates[posA], teammates[posB]);
+            getSubGenomeScore(students.constData(), teammates, teamStartPositions, pairTeamIndices, teamingOptions, dataOptions, afterScores);
+
+            bool accept;
+            if(eitherNegative) {
+                const int negativeCountAfter = (isBroken(afterScores[0], teamASize) ? 1 : 0) + (isBroken(afterScores[1], teamBSize) ? 1 : 0);
+                accept = negativeCountAfter < negativeCountBefore;
+            }
+            else {
+                accept = afterScores[0] >= beforeScores[0] && afterScores[1] >= beforeScores[1] &&
+                         (afterScores[0] > beforeScores[0] || afterScores[1] > beforeScores[1]);
+            }
+
+            if(accept) {
+                acceptedPosA = posA;
+                acceptedPosB = posB;
+                return true;
+            }
+            std::swap(teammates[posA], teammates[posB]);   // revert
         }
     }
-    if(subPenaltyPoints.size() != 2) {
-        subPenaltyPoints.resize(2);
+    return false;
+}
+
+
+//////////////////
+// For non-elites: anchor on the genome's current worst team and try attempt2TeamSwap() against every
+// other team, stopping at the very first swap that appears beneficial.
+// Rescores the whole genome if a swap actually landed, undoing it if the total genome score decreases.
+//////////////////
+GenomeScore gruepr::repairBrokenGene(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                     const int worstTeam, const GenomeScore &currentScore)
+{
+    thread_local QList<float> teamScoresScratch;
+
+    for(int otherTeam = 0; otherTeam < numTeams; otherTeam++) {
+        if(otherTeam == worstTeam) {
+            continue;
+        }
+        int acceptedPosA, acceptedPosB;
+        if(attempt2TeamSwap(teammates, teamStartPositions, worstTeam, otherTeam, acceptedPosA, acceptedPosB)) {
+            const GenomeScore newScore = rescoreGenome(teammates, teamSizes, teamScoresScratch);
+            if(newScore < currentScore) {
+                std::swap(teammates[acceptedPosA], teammates[acceptedPosB]);   // undo -- net regression once all criteria are considered
+                continue;
+            }
+            return newScore;
+        }
     }
-    if(subScores.size() != 2) {
-        subScores.resize(2);
-    }
-    const auto scoreTwoTeams = [&](const int teamAIdx, const int teamBIdx) {
-        const int aStart = _teamStartPositions[teamAIdx], aSize = _teamStartPositions[teamAIdx + 1] - aStart;
-        const int bStart = _teamStartPositions[teamBIdx], bSize = _teamStartPositions[teamBIdx + 1] - bStart;
-        subTeammates.resize(size_t(aSize) + bSize);
-        std::copy(_teammates + aStart, _teammates + aStart + aSize, subTeammates.begin());
-        std::copy(_teammates + bStart, _teammates + bStart + bSize, subTeammates.begin() + aSize);
-        const QList<int> subTeamSizes = {aSize, bSize};
-        getGenomeScore(_students, subTeammates.data(), 2, subTeamSizes.data(), _teamingOptions, _dataOptions,
-                       subScores.data(), subCriteriaScores, subPenaltyPoints);
+    return currentScore;
+}
+
+
+//////////////////
+// For elites: up to two full passes of 2-team swaps, rescoring on every acceptance.
+// Every team as anchor against every other team via attempt2TeamSwap(). The second pass only runs
+// if the first found at least one swap; a third pass essentially never finds anything in practice.
+//////////////////
+GenomeScore gruepr::exhaustiveSearch(int teammates[], const int teamSizes[], const int teamStartPositions[])
+{
+    thread_local QList<float> teamScoresScratch;
+
+    GenomeScore score = rescoreGenome(teammates, teamSizes, teamScoresScratch);
+
+    constexpr int MAX_PASSES = 2;
+    int pass = 0;
+    int swapsThisPass;
+    do {
+        swapsThisPass = 0;
+        for(int anchorTeam = 0; anchorTeam < numTeams; anchorTeam++) {
+            for(int otherTeam = 0; otherTeam < numTeams; otherTeam++) {
+                if(otherTeam == anchorTeam) {
+                    continue;
+                }
+                int acceptedPosA, acceptedPosB;
+                if(attempt2TeamSwap(teammates, teamStartPositions, anchorTeam, otherTeam, acceptedPosA, acceptedPosB)) {
+                    const GenomeScore newScore = rescoreGenome(teammates, teamSizes, teamScoresScratch);
+                    if(newScore < score) {
+                        std::swap(teammates[acceptedPosA], teammates[acceptedPosB]);   // undo -- net regression once all criteria are considered
+                    }
+                    else {
+                        score = newScore;
+                        swapsThisPass++;
+                    }
+                }
+            }
+        }
+        pass++;
+    } while(swapsThisPass > 0 && pass < MAX_PASSES);
+
+    return score;
+}
+
+
+//////////////////
+// Once the main generation loop stops on its own, repeats full passes of 2-team swaps (every team as
+// anchor against every other team via attempt2TeamSwap()) on just the single best genome, until the
+// deadline runs out, a pass finds nothing more, or optimizationStopped is set (a genuine user stop
+// request received during finalizing itself -- note that reaching this function at all already
+// guarantees optimizationStopped was false when it started, since the transition from the main
+// generation loop into finalizing is decided purely by generation/stability/checkbox state, never by
+// the stop flag -- see optimizeTeams). Periodically reports the current score back so the progress
+// dialog's display stays live during the search.
+//////////////////
+GenomeScore gruepr::finalGenomeHillClimb(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                         const std::chrono::steady_clock::time_point deadline)
+{
+    const auto timeUp = [this, deadline] {
+        optimizationStoppedmutex.lock();
+        const bool stopped = optimizationStopped;
+        optimizationStoppedmutex.unlock();
+        return stopped || std::chrono::steady_clock::now() >= deadline;
     };
 
-    bool found = false;
-    //int finalNegativeTeams = negativeTeams;
-    GenomeScore finalScore = currentScore;
+    thread_local QList<float> teamScoresScratch;
 
-    if(negativeTeams == 0) {        // Elite genome, so exhaustive, keep-every-improving-swap continuation.
-        for(int posA = _teamStartPositions[worstTeam]; posA < _teamStartPositions[worstTeam + 1]; posA++) {
-            for(int otherTeam = 0; otherTeam < _numTeams; otherTeam++) {
-                if(otherTeam == worstTeam) {
-                    continue;
-                }
-                for(int posB = _teamStartPositions[otherTeam]; posB < _teamStartPositions[otherTeam + 1]; posB++) {
-                    scoreTwoTeams(worstTeam, otherTeam);
-                    const float worstScoreBefore = subScores[0];
-                    const float otherScoreBefore = subScores[1];
+    GenomeScore currentScore = rescoreGenome(teammates, teamSizes, teamScoresScratch);
+    auto lastEmitTime = std::chrono::steady_clock::now() - std::chrono::milliseconds(1000);   // force an emission on the first iteration
+    const auto reportProgress = [&] {
+        const auto now = std::chrono::steady_clock::now();
+        if(now - lastEmitTime >= std::chrono::milliseconds(200)) {
+            emit generationComplete(currentScore.score, ProgressDialog::FINALIZING, 2 * GA::MIN_SCORE_STABILITY);
+            lastEmitTime = now;
+        }
+    };
 
-                    std::swap(_teammates[posA], _teammates[posB]);
-                    scoreTwoTeams(worstTeam, otherTeam);
+    bool anyAcceptedThisPass;
+    do {
+        anyAcceptedThisPass = false;
 
-                    if(subScores[0] > worstScoreBefore && subScores[1] > otherScoreBefore) {
-                        found = true;   // keep this swap, keep scanning
+        int anchorTeam = 0;
+        while(anchorTeam < numTeams && !timeUp()) {
+            int otherTeam = 0;
+            while(otherTeam < numTeams && !timeUp()) {
+                if(otherTeam != anchorTeam) {
+                    int acceptedPosA, acceptedPosB;
+                    if(attempt2TeamSwap(teammates, teamStartPositions, anchorTeam, otherTeam, acceptedPosA, acceptedPosB)) {
+                        const GenomeScore newScore = rescoreGenome(teammates, teamSizes, teamScoresScratch);
+                        if(newScore < currentScore) {
+                            std::swap(teammates[acceptedPosA], teammates[acceptedPosB]);   // undo -- net regression once all criteria are considered
+                        }
+                        else {
+                            anyAcceptedThisPass = true;
+                            currentScore = newScore;
+                        }
                     }
-                    else {
-                        std::swap(_teammates[posA], _teammates[posB]);   // revert
-                    }
+                    reportProgress();
                 }
+                otherTeam++;
             }
+            anchorTeam++;
         }
-    }
-    else {
-        for(int posA = _teamStartPositions[worstTeam]; posA < _teamStartPositions[worstTeam + 1] && !found; posA++) {
-            for(int otherTeam = 0; otherTeam < _numTeams && !found; otherTeam++) {
-                if(otherTeam == worstTeam) {
-                    continue;
-                }
-                scoreTwoTeams(worstTeam, otherTeam);
-                const int negCountBefore = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
+    } while(anyAcceptedThisPass && !timeUp());
 
-                for(int posB = _teamStartPositions[otherTeam]; posB < _teamStartPositions[otherTeam + 1] && !found; posB++) {
-                    std::swap(_teammates[posA], _teammates[posB]);
-
-                    scoreTwoTeams(worstTeam, otherTeam);
-                    const int negCountAfter = (subScores[0] <= 0.0f ? 1 : 0) + (subScores[1] <= 0.0f ? 1 : 0);
-                    const int newNegativeTeams = negativeTeams - negCountBefore + negCountAfter;
-
-                    if(newNegativeTeams < negativeTeams) {
-                        found = true;
-                        //finalNegativeTeams = newNegativeTeams;
-                    }
-                    else {
-                        std::swap(_teammates[posA], _teammates[posB]);   // revert
-                    }
-                }
-            }
-        }
-    }
-
-    // Rescore the whole genome when a swap actually landed
-    if(found) {
-        thread_local QList<QList<float>> criteriaScores;
-        thread_local QList<float> penaltyPoints;
-        thread_local QList<float> teamScores;
-        if(criteriaScores.size() != numCrits) {
-            criteriaScores.resize(numCrits);
-        }
-        for(auto &c : criteriaScores) {
-            if(c.size() != _numTeams) {
-                c.resize(_numTeams);
-            }
-        }
-        if(penaltyPoints.size() != _numTeams) {
-            penaltyPoints.resize(_numTeams);
-        }
-        if(teamScores.size() != _numTeams) {
-            teamScores.resize(_numTeams);
-        }
-
-        finalScore = getGenomeScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions,
-                                    teamScores.data(), criteriaScores, penaltyPoints);
-        //int confirmNegativeTeams = 0;
-        //for(int team = 0; team < _numTeams; team++) {
-        //    if(teamScores[team] <= 0) {
-        //        confirmNegativeTeams++;
-        //    }
-        //}
-        //if(confirmNegativeTeams != finalNegativeTeams) {
-        //    qWarning("gruepr::exhaustiveRepairGenome: incremental negativeTeams=%d, full-rescore negativeTeams=%d",
-        //             finalNegativeTeams, confirmNegativeTeams);
-        //}
-    }
-
-    return finalScore;
+    return currentScore;
 }
 
 

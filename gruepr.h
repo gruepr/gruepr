@@ -16,6 +16,7 @@
 #include <QMainWindow>
 #include <QProgressDialog>
 #include <QSpinBox>
+#include <chrono>
 #include <compare>
 #include <vector>
 
@@ -39,7 +40,8 @@ struct GenomeScore {
 };
 
 /**
- * @brief Responsible for main Gruepr functionality
+ * @brief Responsible for main Gruepr functionality: UI, scoring genomes and running the optimization,
+ * additions to the generic genetic algorithm
  */
 class gruepr : public QMainWindow
 {
@@ -126,30 +128,63 @@ private:
     ScoreLineGraph *progressChart = nullptr;
     ProgressDialog *progressWindow = nullptr;
     static GenomeScore getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                                QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
+                                      const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
+                                      QList<QList<float> > &_criteriaScores, QList<float> &_penaltyPoints);
     static GenomeScore aggregateTeamScores(const float _teamScores[], const int _teamSizes[], const int _numTeams);
 
-    // Single-pass exhaustive repair of a genome's most damaged gene (lowest scoring negative team).
-    // Every generation, a log-spaced sample of genomes (denser near rank 0) gets a single-pass
-    // exhaustiveRepairGenome() repair targeting its current worst-scoring team. For elite genomes
-    // that already have no negative teams, the same worst-team target is instead used to keep
-    // evolving the genome further.
+    // Scores an arbitrary subset of teams in isolation from the rest of the genome. Used
+    // to cheaply evaluate a candidate swap's effect on just the handful of teams it
+    // touches, without rescoring the whole genome.
+    static GenomeScore getSubGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _teamStartPositions[],
+                                         const std::vector<int> &_teamIndices, const TeamingOptions *const _teamingOptions,
+                                         const DataOptions *const _dataOptions, QList<float> &_subTeamScores);
+    // Full-genome rescore, needed whenever a move is being kept (some criteria, e.g.
+    // AssignmentPreferenceCriterion, can't be accurately evaluated from just a subset of teams).
+    GenomeScore rescoreGenome(const int teammates[], const int teamSizes[], QList<float> &teamScores);
+
+    // Select which genomes will receive the repair/exhaustive-search process below
     static constexpr int NUM_GENOMES_TO_REPAIR = 500;
-    // Select which genomes will receive the exhaustiveRepair process
     static std::vector<int> chooseIndexesToRepair(const int populationSize, const int numSamples);
-    static GenomeScore exhaustiveRepairGenome(const StudentRecord *const _students, int _teammates[], const int _numTeams,
-                                              const int _teamSizes[], const int _teamStartPositions[],
-                                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                              const int negativeTeams, const int worstTeam, const GenomeScore &currentScore,
-                                              const bool isElite);
+
+    // Given exactly two teams, exhaustively tries every position swap between them, choosing the
+    // acceptance rule from the given teams' own current scores: if either is negative, accept a swap
+    // that reduces the negative-team count among just these teams; if both are positive, accept via
+    // weak-Pareto (neither drops, at least one strictly rises). Stops and returns true at the first
+    // acceptance, leaving teammates improved and reporting the accepted positions in
+    // acceptedPosA/acceptedPosB so the caller can undo the move if a full-genome rescore later reveals
+    // it was actually a net regression; returns false if nothing found (teammates unchanged -- every
+    // rejected trial is reverted).
+    bool attempt2TeamSwap(int teammates[], const int teamStartPositions[], const int teamA, const int teamB,
+                          int &acceptedPosA, int &acceptedPosB);
+
+    // Every generation, a log-spaced sample of genomes (denser near rank 0) gets one of these two:
+    // non-elites get repairBrokenGene() (stop at the first improving 2-team swap targeting their current
+    // worst team). Elites get exhaustiveSearch() (up to two full passes of 2-team swaps, every team
+    // as anchor against every other team via attempt2TeamSwap()).
+    GenomeScore repairBrokenGene(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                const int worstTeam, const GenomeScore &currentScore);
+    GenomeScore exhaustiveSearch(int teammates[], const int teamSizes[], const int teamStartPositions[]);
+
+    // Once the main optimization loop stops, spend up to this many more milliseconds on just the single
+    // best genome: repeated full passes of 2-team swaps (attempt2TeamSwap(), every team as anchor against
+    // every other team), until the deadline runs out or a pass finds nothing more.
+    static constexpr int FINAL_LOCAL_SEARCH_TIME = 10000;
+    GenomeScore finalGenomeHillClimb(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                     const std::chrono::steady_clock::time_point deadline);
 
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
     bool multipleSectionsInProgress = false;
+    // Set only by a genuine user stop request (button click, or window-close/Escape) -- means abort
+    // everything immediately (both the main generation loop and the finalizing search) and build
+    // results from whatever the current best genome is. Never set internally by the phase transition
+    // from normal GA to finalizing, which is decided purely by generation/stability/checkbox state.
     bool optimizationStopped = false;
-    bool keepOptimizing = false;
+    // Thread-safe mirror of progressDialog's "Continue optimizing until I press end" checkbox, refreshed
+    // once per generation by updateOptimizationProgress() (which runs on the main thread), since
+    // optimizeTeams()'s own loop (worker thread) can't safely call a QCheckBox method directly.
+    bool continueIndefinitely = false;
     inline const static float MINIMUM_PENALTY = 1.01f;            // ensures that even the smallest penalty to a team makes that team have negative score
 
         // reporting results

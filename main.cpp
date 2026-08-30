@@ -32,6 +32,9 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - Added exhaustive search to improve best genome before finalizing the results
+//  - prepared for mac app store submission
+//  - internal code / style cleanup
 //
 // TO DO:
 //
