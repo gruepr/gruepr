@@ -133,8 +133,10 @@ bool customResponseOptionsDialog::stripPrecedingOrderNumbers(QStringList &option
     }
 
     if(allStartedWithOrderNumbers) {
+        i = 0;
         for(auto &option : options) {
             option = option.sliced((QString::number(i+1) + ". ").size());
+            i++;
         }
     }
 

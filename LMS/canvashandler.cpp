@@ -243,9 +243,9 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(int courseID) {
                               {}, intInSubArrayParams);
     QStringList firstNames, lastNames;
     for(const auto &studentName : studentNames) {
-        auto names = studentName.split(',');
-        firstNames << (names.at(1).isEmpty()? "" : names.at(1).trimmed());
-        lastNames << (names.at(0).isEmpty()? "" : names.at(0).trimmed());
+        const auto names = studentName.split(',');
+        lastNames << (names.isEmpty() ? "" : names.at(0).trimmed());
+        firstNames << (names.size() > 1 ? names.at(1).trimmed() : "");
     }
 
     // Next get the name and CanvasID# of every section in the class
@@ -811,9 +811,9 @@ QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentAcc
     connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
 
     connect(canvasURL, &QLineEdit::textChanged, buttonBox, [buttonBox, canvasURL, canvasToken]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   !(canvasURL->text().isEmpty()) && !(canvasToken->text().isEmpty()));});
+                                                   !(canvasURL->text().isEmpty()) && canvasURL->text().contains('.') && !(canvasToken->text().isEmpty()));});
     connect(canvasToken, &QLineEdit::textChanged, buttonBox, [buttonBox, canvasURL, canvasToken]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   !(canvasURL->text().isEmpty()) && !(canvasToken->text().isEmpty()));});
+                                                   !(canvasURL->text().isEmpty()) && canvasURL->text().contains('.') && !(canvasToken->text().isEmpty()));});
 
     auto *vLayout = new QVBoxLayout;
     vLayout->addWidget(instructions);

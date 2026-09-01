@@ -2,7 +2,8 @@
 #include <QJsonArray>
 
 
-TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord, const QList<StudentRecord> &students) :
+TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions,
+                       const QJsonObject &jsonTeamRecord, const QList<StudentRecord> &students) :
     teamSetDataOptions(teamSetDataOptions)
 {
     LMSID = jsonTeamRecord["LMSID"].toInt();
@@ -36,8 +37,9 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
         }
     }
     else {
-        // this is for backwards compatability--teamRecord formerly saved the students as their indexes in the students array rather than IDs
-        // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
+        // this is for backwards compatability--teamRecord formerly saved the students as their indexes in the
+        // students array rather than IDs.  In order to use work saved from prev. versions of gruepr, now must
+        // convert these indexes to the IDs
         const QJsonArray studentIndexesArray = jsonTeamRecord["studentIndexes"].toArray();
         for (const auto &val : studentIndexesArray) {
             studentIDs << students.at(val.toInt()).ID;
@@ -50,7 +52,8 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
 {
     QString toolTipText = "<html>";
     toolTipText += QObject::tr("Team ") + name + "<br>" +
-                   (score <= 0 ? "<span style=\"color: red; font-weight: bold;\">" : "") + QString::number(score, 'f', 1) + " % compatibility score" +
+                   (score <= 0 ? "<span style=\"color: red; font-weight: bold;\">" : "") +
+                                 QString::number(score, 'f', 1) + " % compatibility score" +
                    (score <= 0 ? "</span>" : "") + "<br>";
     if(!assignedOption.isEmpty()) {
         toolTipText += QObject::tr("Assignment: ") + "<b>" + assignedOption + "</b><br>";
@@ -75,28 +78,36 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
             genderPluralOptions = QString(PRONOUNS).split('/');
         }
         if(numWomen > 0) {
-            toolTipText += QString::number(numWomen) + " " + ((numWomen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::woman))) : (genderPluralOptions.at(static_cast<int>(Gender::woman))));
+            toolTipText += QString::number(numWomen) + " " + ((numWomen == 1)?
+                            (genderSingularOptions.at(static_cast<int>(Gender::woman))) :
+                            (genderPluralOptions.at(static_cast<int>(Gender::woman))));
             if(numMen > 0 || numNonbinary > 0 || numUnknown > 0) {
                 toolTipText += ", ";
             }
         }
         if(numMen > 0) {
-            toolTipText += QString::number(numMen) + " " + ((numMen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::man))) : (genderPluralOptions.at(static_cast<int>(Gender::man))));
+            toolTipText += QString::number(numMen) + " " + ((numMen == 1)?
+                            (genderSingularOptions.at(static_cast<int>(Gender::man))) :
+                            (genderPluralOptions.at(static_cast<int>(Gender::man))));
             if(numNonbinary > 0 || numUnknown > 0) {
                 toolTipText += ", ";
             }
         }
         if(numNonbinary > 0) {
-            toolTipText += QString::number(numNonbinary) + " " + ((numNonbinary == 1)? (genderSingularOptions.at(static_cast<int>(Gender::nonbinary))) : (genderPluralOptions.at(static_cast<int>(Gender::nonbinary))));
+            toolTipText += QString::number(numNonbinary) + " " + ((numNonbinary == 1)?
+                            (genderSingularOptions.at(static_cast<int>(Gender::nonbinary))) :
+                            (genderPluralOptions.at(static_cast<int>(Gender::nonbinary))));
             if(numUnknown > 0) {
                 toolTipText += ", ";
             }
         }
         if(numUnknown > 0) {
-            toolTipText += QString::number(numUnknown) + " " + ((numUnknown == 1)? (genderSingularOptions.at(static_cast<int>(Gender::unknown))) : (genderPluralOptions.at(static_cast<int>(Gender::unknown))));
+            toolTipText += QString::number(numUnknown) + " " + ((numUnknown == 1)?
+                            (genderSingularOptions.at(static_cast<int>(Gender::unknown))) :
+                            (genderPluralOptions.at(static_cast<int>(Gender::unknown))));
         }
     }
-    const int numAttributesWOTimezone = teamSetDataOptions->numAttributes - (teamSetDataOptions->timezoneIncluded? 1 : 0);
+    const int numAttributesWOTimezone = teamSetDataOptions->numAttributes - (teamSetDataOptions->timezoneIncluded? 1:0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         const auto type = teamSetDataOptions->attributeType[attribute];
         toolTipText += "<br>" + QObject::tr("Q") + QString::number(attribute + 1) + ":  ";
@@ -186,7 +197,8 @@ void TeamRecord::createTooltip(const QList<StudentRecord> &students)
     }
 
     if(!teamSetDataOptions->dayNames.isEmpty()) {
-        toolTipText += "<br>--<br>" + QObject::tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
+        toolTipText += "<br>--<br>" + QObject::tr("Availability:") +
+                       "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
         for(const auto &dayName : teamSetDataOptions->dayNames) {
             // using first 3 characters in day name as abbreviation
@@ -288,7 +300,9 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     for(int day = 0; day < numDays; day++) {
         for(int time = 0; time < numTimes; time++) {
             int blocks = 0;
-            while((numStudentsAvailable[day * numTimes + time] == numStudentsWithoutAmbiguousSchedules) && (blocks < meetingBlockSize)) {
+            while((time < numTimes) &&
+                  (numStudentsAvailable[day * numTimes + time] == numStudentsWithoutAmbiguousSchedules) &&
+                  (blocks < meetingBlockSize)) {
                 blocks++;
                 if(blocks < meetingBlockSize) {
                     time++;

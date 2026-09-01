@@ -65,8 +65,10 @@ findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &stude
         i++;
     }
     currSurveyName = namesList->currentText();
-    currSurveyEmail = students[namesList->currentData().toInt()].email;
-    currSurveyID = students[namesList->currentData().toInt()].ID;
+    if(!students.isEmpty()) {
+        currSurveyEmail = students[namesList->currentData().toInt()].email;
+        currSurveyID = students[namesList->currentData().toInt()].ID;
+    }
 
     if(!addStudentOption) {
         theGrid->addWidget(namesList, row++, 0, 1, -1, Qt::AlignLeft);

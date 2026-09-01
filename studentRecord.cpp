@@ -418,10 +418,10 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                     }
                 }
                 int timeindex = 0;
-                while((actualtime > hoursForEachTimeName.key(dataOptions.timeNames.at(timeindex))) && (timeindex < numScheduleTimesPerDay)) {
+                while((timeindex < numScheduleTimesPerDay) && (actualtime > hoursForEachTimeName.key(dataOptions.timeNames.at(timeindex)))) {
                     timeindex++;
                 }
-                if((actualday < 0) || (actualday >= numScheduleDays) || (timeindex < 0) || (timeindex > numScheduleTimesPerDay)) {
+                if((actualday < 0) || (actualday >= numScheduleDays) || (timeindex < 0) || (timeindex >= numScheduleTimesPerDay)) {
                     continue;   // something went wrong in figuring out where to put this value in the array!
                 }
 
