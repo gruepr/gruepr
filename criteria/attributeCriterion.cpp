@@ -121,6 +121,16 @@ void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*
     }
 }
 
+float AttributeCriterion::achievableMaxGiniSimpson(int k, int n)
+{
+    if((k <= 1) || (n <= 0)) {
+        return 0.0f;
+    }
+    const int q = n / k, r = n % k;
+    const float sumSq = r * float(q + 1) * (q + 1) + (k - r) * float(q) * q;
+    return 1.0f - sumSq / (float(n) * n);
+}
+
 void AttributeCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
                                         const TeamingOptions *const /*teamingOptions*/, const DataOptions *const dataOptions,
                                         QList<float> &criteriaScores, QList<float> &penaltyPoints) const
@@ -308,35 +318,41 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
         else {
             // Discrete types: ordered/multiordered, categorical/multicategorical
             if((weight > 0) && !discreteLevels.empty()) {
+                // Single pass: count distinct values touched and accumulate sum of squared run-lengths
+                // for the Gini-Simpson evenness term.
+                const int numValues = static_cast<int>(discreteLevels.size());
+                int numUniqueVals = 0, prevVal = -1, runLength = 0;
+                float sumSqCounts = 0.0f;
+                for(const auto v : discreteLevels) {
+                    if(v != prevVal) {
+                        sumSqCounts += static_cast<float>(runLength) * runLength;  // adds 0 on the first value
+                        numUniqueVals++;
+                        runLength = 0;
+                        prevVal = v;
+                    }
+                    runLength++;
+                }
+                sumSqCounts += static_cast<float>(runLength) * runLength;
+
+                // Evenness of the split among touched values, normalized against the best split
+                // achievable for this many entries.
+                const float giniSimpsonLocal = 1.0f - sumSqCounts / (static_cast<float>(numValues) * numValues);
+                const float evennessNormalized = numUniqueVals > 1
+                                                     ? giniSimpsonLocal / achievableMaxGiniSimpson(numUniqueVals, numValues)
+                                                     : 0.0f;
+                const float uniquePart = cachedNumAttributeLevels > 1 ?
+                                            static_cast<float>(numUniqueVals - 1) / (cachedNumAttributeLevels - 1) : 0.0f;
+
                 if((type == DataOptions::AttributeType::ordered) ||
                     (type == DataOptions::AttributeType::multiordered)) {
-                    // Score weighted toward range, with a lesser contribution from unique-value count
                     const int rangeOfVals = discreteLevels.back() - discreteLevels.front();
-                    int numUniqueVals = 0, prevVal = -1;
-                    for(const auto v : discreteLevels) {
-                        if(v != prevVal) {
-                            numUniqueVals++;
-                        }
-                        prevVal = v;
-                    }
                     const float rangePart = cachedRangeAttributeLevels > 0 ?
                                                 static_cast<float>(rangeOfVals) / cachedRangeAttributeLevels : 0.0f;
-                    const float uniquePart = cachedNumAttributeLevels > 1 ?
-                                                static_cast<float>(numUniqueVals - 1) / (cachedNumAttributeLevels - 1) : 0.0f;
-                    criteriaScores[team] = 0.75f * rangePart + 0.25f * uniquePart;
+                    criteriaScores[team] = RANGE_WEIGHT * rangePart + UNIQUE_WEIGHT * uniquePart + EVENNESS_WEIGHT * evennessNormalized;
                 }
                 else {
-                    // categorical / multicategorical: maximise unique values
-                    int numUniqueVals = 0, prevVal = -1;
-                    for(const auto v : discreteLevels) {
-                        if(v != prevVal) {
-                            numUniqueVals++;
-                        }
-                        prevVal = v;
-                    }
-                    criteriaScores[team] = cachedNumAttributeLevels > 1
-                                               ? static_cast<float>(numUniqueVals - 1) / (cachedNumAttributeLevels - 1)
-                                               : 0.0f;
+                    // categorical / multicategorical: no range concept, just coverage + evenness
+                    criteriaScores[team] = UNIQUE_WEIGHT_CAT * uniquePart + EVENNESS_WEIGHT_CAT * evennessNormalized;
                 }
 
                 // Calculation above assumes diverse = +1, similar = 0; flip if needed

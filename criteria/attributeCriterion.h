@@ -48,6 +48,20 @@ private:
     int cachedNumAttributeLevels = 0;
     float cachedRangeAttributeLevels = 0.0f;
     float cachedOverallMean = 0.0f;
+
+    // Best-achievable Gini-Simpson (1 - sum of squared proportions) for splitting n entries evenly
+    // into k groups.
+    static float achievableMaxGiniSimpson(int k, int n);
+
+    // Ordered/multiordered "similar"/"diverse": blend of range covered, distinct values touched, and
+    // evenness of the split, in that priority order.
+    static constexpr float RANGE_WEIGHT = 0.5f;
+    static constexpr float UNIQUE_WEIGHT = 0.3f;
+    static constexpr float EVENNESS_WEIGHT = 0.2f;
+    // Categorical/multicategorical "similar"/"diverse": blend of distinct values touched and evenness
+    // (no range concept applies).
+    static constexpr float UNIQUE_WEIGHT_CAT = 0.6f;
+    static constexpr float EVENNESS_WEIGHT_CAT = 0.4f;
 };
 
 #endif // ATTRIBUTECRITERION_H
