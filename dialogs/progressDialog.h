@@ -47,8 +47,8 @@ private:
     QPushButton *stopHere = nullptr;
     QPushButton *showStatsButton = nullptr;
     QTimer *countdownToClose = nullptr;
-    const int SECSINCOUNTDOWNTIMER;
-    int secsLeftToClose = SECSINCOUNTDOWNTIMER;
+    const int secsInCountdownTimer;
+    int secsLeftToClose = secsInCountdownTimer;
     inline static const int CHARTHEIGHT = 400;
     inline static const QSize ICONSIZE = QSize(30,30);
     inline static const int PROGRESSBARMAX = 125;

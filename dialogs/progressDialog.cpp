@@ -11,7 +11,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ProgressDialog::ProgressDialog(const QString &currSection, QWidget *chart, QWidget *parent, int countdownSeconds)
-    :QDialog (parent), SECSINCOUNTDOWNTIMER(countdownSeconds)
+    :QDialog (parent), secsInCountdownTimer(countdownSeconds)
 {
     //Set up window
     setWindowTitle(currSection.isEmpty() ? tr("Grueping...") : tr("Grueping ") + currSection + "...");
@@ -89,7 +89,7 @@ void ProgressDialog::setText(const QString &text, int generation, float score, b
 
     if(autostopInProgress && !onlyStopManually->isChecked()) {
         action += tr("\nOptimization will end in ") + QString::number(secsLeftToClose) + tr(" seconds.");
-        score = PROGRESSBARMAX - ((PROGRESSBARMAX - score) * secsLeftToClose / SECSINCOUNTDOWNTIMER);
+        score = PROGRESSBARMAX - ((PROGRESSBARMAX - score) * secsLeftToClose / secsInCountdownTimer);
     }
     actionText->setText(action);
     progressBar->setValue(score);
@@ -122,15 +122,17 @@ bool ProgressDialog::continuingManually() const
 void ProgressDialog::updateCountdown()
 {
     if(onlyStopManually->isChecked()) {
-        secsLeftToClose = SECSINCOUNTDOWNTIMER;
+        secsLeftToClose = secsInCountdownTimer;
         return;
     }
 
     secsLeftToClose--;
     static const QRegularExpression stopTime(tr("stop in ") + "\\d*");
     explanationText->setText(explanationText->text().replace(stopTime, tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
-    if(secsLeftToClose == 0) {
+    if(secsLeftToClose <= 0) {
+        secsLeftToClose = 0;
         progressBar->setValue(PROGRESSBARMAX);
+        countdownToClose->stop();
     }
 }
 

@@ -85,8 +85,10 @@ findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &stude
 
         connect(namesList, &QComboBox::currentTextChanged, this,
                     [this, students](const QString &currText){currSurveyName = currText;
-                                                              currSurveyEmail = students[namesList->currentData().toInt()].email;
-                                                              currSurveyID = students[namesList->currentData().toInt()].ID;});
+                                                              if(!students.isEmpty()) {
+                                                                  currSurveyEmail = students[namesList->currentData().toInt()].email;
+                                                                  currSurveyID = students[namesList->currentData().toInt()].ID;
+                                                              }});
     }
     else {
         // buttons
