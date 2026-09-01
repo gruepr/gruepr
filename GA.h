@@ -84,9 +84,9 @@ public:
 
     static constexpr int MAX_RECORDS = 1000;            // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow as value gets bigger)
 
-    static constexpr int MIN_GENERATIONS = 50;          // will keep optimizing for at least minGenerations
+    static constexpr int MIN_GENERATIONS = 30;          // will keep optimizing for at least minGenerations
     static constexpr int MAX_GENERATIONS = 1000;        // will keep optimizing for at most maxGenerations
-    static constexpr int GENERATIONS_OF_STABILITY = 25; // after minGenerations, if score has not improved for generationsOfStability, stop optimizing
+    static constexpr int GENERATIONS_OF_STABILITY = 15; // after minGenerations, if score has not improved for generationsOfStability, stop optimizing
     static constexpr int MIN_SCORE_STABILITY = 100;     // will keep optimizing until scoreStability (current score divided by range of scores within generationsOfStability) exceeds this
 
     static constexpr int NUMGENERATIONSOFANCESTORS = 3; // how many generations of ancestors to look back when preventing the selection of related mates:

@@ -14,6 +14,7 @@
 #include "widgets/teamsTabItem.h"
 #include <cmath>
 #include <memory>
+#include <omp.h>
 #include <random>
 #include <utility>
 #include <vector>
@@ -1640,7 +1641,7 @@ void gruepr::startOptimization()
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
         const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " +
                                                                 QString::number(numSectionsToTeam) + ": " +teamingOptions->sectionName) : "");
-        progressWindow = new ProgressDialog(sectionName, progressChart, this, FINAL_LOCAL_SEARCH_TIME / 1000);
+        progressWindow = new ProgressDialog(sectionName, progressChart, this, (MIN_FINAL_LOCAL_SEARCH_TIME + 1000 * numTeams / 3) / 1000);
         progressWindow->show();
         connect(progressWindow, &ProgressDialog::letsStop, this, [this] {
                                                                         optimizationStoppedmutex.lock();
@@ -2459,7 +2460,10 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // Finalize by hill-climbing the single best genome for a set amount of time -- but only if the
     // loop above ended on its own (stability/max-generations), not because the user asked to stop.
     if(!localOptimizationStopped && !teamingOptions->criteria.empty()) {
-        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(FINAL_LOCAL_SEARCH_TIME);
+        // base budget plus a per-team allowance, since every ejection-chain lap and kick reconverge
+        // pass costs roughly proportional to numTeams
+        const int searchTimeMs = MIN_FINAL_LOCAL_SEARCH_TIME + 1000 * numTeams / 3;
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(searchTimeMs);
         teamSetScore = finalGenomeHillClimb(genePool[orderedIndex[0]], teamSizes.data(), teamStartPositions.get(), deadline).score;
     }
 
@@ -2828,8 +2832,10 @@ GenomeScore gruepr::exhaustiveSearch(int teammates[], const int teamSizes[], con
 // the stop flag -- see optimizeTeams). Periodically reports the current score back so the progress
 // dialog's display stays live during the search.
 //////////////////
-GenomeScore gruepr::finalGenomeHillClimb(int teammates[], const int teamSizes[], const int teamStartPositions[],
-                                         const std::chrono::steady_clock::time_point deadline)
+GenomeScore gruepr::reconvergeViaSwaps(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                       GenomeScore currentScore, QList<float> &teamScores,
+                                       const GenomeScore &bestScoreForDisplay,
+                                       const std::chrono::steady_clock::time_point deadline)
 {
     const auto timeUp = [this, deadline] {
         optimizationStoppedmutex.lock();
@@ -2838,18 +2844,16 @@ GenomeScore gruepr::finalGenomeHillClimb(int teammates[], const int teamSizes[],
         return stopped || std::chrono::steady_clock::now() >= deadline;
     };
 
-    thread_local QList<float> teamScoresScratch;
-
-    GenomeScore currentScore = rescoreGenome(teammates, teamSizes, teamScoresScratch);
     auto lastEmitTime = std::chrono::steady_clock::now() - std::chrono::milliseconds(1000);   // force an emission on the first iteration
     const auto reportProgress = [&] {
         const auto now = std::chrono::steady_clock::now();
-        if(now - lastEmitTime >= std::chrono::milliseconds(200)) {
-            emit generationComplete(currentScore.score, ProgressDialog::FINALIZING, 2 * GA::MIN_SCORE_STABILITY);
+        if(now - lastEmitTime >= std::chrono::milliseconds(500)) {
+            emit generationComplete(bestScoreForDisplay.score, ProgressDialog::FINALIZING, 2 * GA::MIN_SCORE_STABILITY);
             lastEmitTime = now;
         }
     };
 
+    thread_local QList<float> teamScoresBeforeTrial;
     bool anyAcceptedThisPass;
     do {
         anyAcceptedThisPass = false;
@@ -2861,9 +2865,11 @@ GenomeScore gruepr::finalGenomeHillClimb(int teammates[], const int teamSizes[],
                 if(otherTeam != anchorTeam) {
                     int acceptedPosA, acceptedPosB;
                     if(attempt2TeamSwap(teammates, teamStartPositions, anchorTeam, otherTeam, acceptedPosA, acceptedPosB)) {
-                        const GenomeScore newScore = rescoreGenome(teammates, teamSizes, teamScoresScratch);
+                        teamScoresBeforeTrial = teamScores;   // cheap snapshot, in case this trial is rejected
+                        const GenomeScore newScore = rescoreGenome(teammates, teamSizes, teamScores);
                         if(newScore < currentScore) {
                             std::swap(teammates[acceptedPosA], teammates[acceptedPosB]);   // undo -- net regression once all criteria are considered
+                            teamScores = teamScoresBeforeTrial;   // teamScores must match the reverted teammates
                         }
                         else {
                             anyAcceptedThisPass = true;
@@ -2879,6 +2885,311 @@ GenomeScore gruepr::finalGenomeHillClimb(int teammates[], const int teamSizes[],
     } while(anyAcceptedThisPass && !timeUp());
 
     return currentScore;
+}
+
+GenomeScore gruepr::scoreHypotheticalTeam(const int members[], const int size)
+{
+    thread_local QList<QList<float>> critScoresBuf;
+    thread_local QList<float> penaltyBuf;
+    thread_local float teamScoreBuf[1];
+
+    const int numCrits = teamingOptions->criteria.size();
+    if(critScoresBuf.size() != numCrits) {
+        critScoresBuf.resize(numCrits);
+    }
+    for(auto &c : critScoresBuf) {
+        if(c.size() != 1) {
+            c.resize(1);
+        }
+    }
+    if(penaltyBuf.size() != 1) {
+        penaltyBuf.resize(1);
+    }
+
+    return getGenomeScore(students.constData(), members, 1, &size, teamingOptions, dataOptions,
+                          teamScoreBuf, critScoresBuf, penaltyBuf);
+}
+
+GenomeScore gruepr::attemptEjectionChain(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                         const int startTeam, const GenomeScore &scoreBeforeChain,
+                                         QList<float> &teamScores, const int maxChainLength)
+{
+    thread_local std::vector<int> scratchMembers;
+    thread_local std::vector<int> baseWithoutEjectee;
+    thread_local std::vector<std::pair<int,int>> swapLog;
+    swapLog.clear();
+
+    int focalTeam = startTeam;
+    for(int link = 0; link < maxChainLength; link++) {
+        const int focalStart = teamStartPositions[focalTeam];
+        const int focalSize = teamSizes[focalTeam];
+
+        int bestEjectPos;
+        float bestScoreWithoutEjectee;
+
+        if(focalSize == 1) {
+            // no choice to make -- the lone member is automatically the ejectee, and the bar the
+            // candidate search must beat is simply this team's actual current (one-member) score
+            bestEjectPos = focalStart;
+            bestScoreWithoutEjectee = scoreHypotheticalTeam(&teammates[focalStart], 1).score;
+        }
+        else {
+            scratchMembers.assign(teammates + focalStart, teammates + focalStart + focalSize);
+            const float currentTeamScore = scoreHypotheticalTeam(scratchMembers.data(), focalSize).score;
+
+            // leave-one-out gate: find the member whose removal helps this team most
+            bestEjectPos = -1;
+            bestScoreWithoutEjectee = currentTeamScore;
+            for(int i = 0; i < focalSize; i++) {
+                scratchMembers.clear();
+                for(int j = 0; j < focalSize; j++) {
+                    if(j != i) {
+                        scratchMembers.push_back(teammates[focalStart + j]);
+                    }
+                }
+                const float scoreWithoutI = scoreHypotheticalTeam(scratchMembers.data(), focalSize - 1).score;
+                if(scoreWithoutI > bestScoreWithoutEjectee) {
+                    bestScoreWithoutEjectee = scoreWithoutI;
+                    bestEjectPos = focalStart + i;
+                }
+            }
+
+            if(bestEjectPos == -1) {
+                break;   // natural stop -- no beneficial removal found for this team
+            }
+        }
+
+        // candidate search: find whichever other team's member helps most if inserted in the ejectee's place
+        baseWithoutEjectee.clear();
+        for(int j = 0; j < focalSize; j++) {
+            if(focalStart + j != bestEjectPos) {
+                baseWithoutEjectee.push_back(teammates[focalStart + j]);
+            }
+        }
+
+        int bestCandidatePos = -1;
+        float bestScoreWithCandidate = bestScoreWithoutEjectee;
+        for(int otherTeam = 0; otherTeam < numTeams; otherTeam++) {
+            if(otherTeam == focalTeam) {
+                continue;
+            }
+            const int otherStart = teamStartPositions[otherTeam];
+            const int otherSize = teamSizes[otherTeam];
+            for(int p = 0; p < otherSize; p++) {
+                scratchMembers = baseWithoutEjectee;
+                scratchMembers.push_back(teammates[otherStart + p]);
+                const float candidateScore = scoreHypotheticalTeam(scratchMembers.data(), focalSize).score;
+                if(candidateScore > bestScoreWithCandidate) {
+                    bestScoreWithCandidate = candidateScore;
+                    bestCandidatePos = otherStart + p;
+                }
+            }
+        }
+
+        if(bestCandidatePos == -1) {
+            break;   // ejecting alone looked better than any replacement -- nothing to swap in
+        }
+
+        std::swap(teammates[bestEjectPos], teammates[bestCandidatePos]);
+        swapLog.emplace_back(bestEjectPos, bestCandidatePos);
+
+        // whichever team owns bestCandidatePos now holds the ejectee -- that's the next link's focal team
+        for(int t = 0; t < numTeams; t++) {
+            if((bestCandidatePos >= teamStartPositions[t]) && (bestCandidatePos < teamStartPositions[t] + teamSizes[t])) {
+                focalTeam = t;
+                break;
+            }
+        }
+    }
+
+    if(swapLog.empty()) {
+        return scoreBeforeChain;
+    }
+
+    const GenomeScore afterChainScore = rescoreGenome(teammates, teamSizes, teamScores);
+    if(afterChainScore > scoreBeforeChain) {
+        return afterChainScore;
+    }
+
+    for(auto it = swapLog.rbegin(); it != swapLog.rend(); ++it) {
+        std::swap(teammates[it->first], teammates[it->second]);
+    }
+    rescoreGenome(teammates, teamSizes, teamScores);   // resync teamScores to the restored genome
+    return scoreBeforeChain;
+}
+
+GenomeScore gruepr::finalGenomeHillClimb(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                         const std::chrono::steady_clock::time_point deadline)
+{
+    const auto timeUp = [this, deadline] {
+        optimizationStoppedmutex.lock();
+        const bool stopped = optimizationStopped;
+        optimizationStoppedmutex.unlock();
+        return stopped || std::chrono::steady_clock::now() >= deadline;
+    };
+
+    thread_local QList<float> teamScoresScratch;
+    GenomeScore bestScore = rescoreGenome(teammates, teamSizes, teamScoresScratch);
+    bestScore = reconvergeViaSwaps(teammates, teamSizes, teamStartPositions, bestScore, teamScoresScratch, bestScore, deadline);
+
+    if(numTeams < 2) {
+        return bestScore;
+    }
+
+    const int totalStudents = teamStartPositions[numTeams - 1] + teamSizes[numTeams - 1];
+    std::vector<int> bestTeammates;
+    bestTeammates.assign(teammates, teammates + totalStudents);
+
+    // one slot per thread, reused round after round by both phases below -- each thread works on its
+    // own private copy of the current best genome, so no thread ever touches another's state
+    const int numThreads = omp_get_max_threads();
+    std::vector<std::vector<int>> candidateTeammates(numThreads, std::vector<int>(totalStudents));
+    std::vector<QList<float>> candidateTeamScores(numThreads);
+    std::vector<GenomeScore> candidateScores(numThreads);
+
+    // local copy of the member variable -- OpenMP data-sharing clauses can't bind to a class member
+    const int sharedNumTeams = numTeams;
+
+    // Phase 1 (ejection chain) setup
+    const int maxChainLength = numTeams;
+    const int numStarts = std::min(numThreads, sharedNumTeams);
+    std::vector<int> teamsByScore(numTeams);
+    std::vector<int> startTeamForThread(numStarts);
+
+    // Phase 2 (kick) setup
+    const int averageTeamSize = totalStudents / numTeams;
+    const int baseKickSize = std::max(1, averageTeamSize / 2);
+    const int maxKickSize = baseKickSize * 3;
+    std::vector<int> brokenTeams;
+    const auto isBroken = [](const float score, const int teamSize) {
+        return (score <= 0.0f) && !((teamSize == 1) && (score == 0.0f));
+    };
+
+    // Alternate: run the ejection chain to completion (cheap and deterministic, so it's worth fully
+    // exhausting every time), then kick just until the first improvement breaks the resulting dead end,
+    // then go back to the ejection chain to exploit whatever that kick just opened up, and so on.
+    while(!timeUp()) {
+        // ---- Phase 1: ejection chain to completion ----
+        int batchOffset = 0;
+        while(!timeUp()) {
+            // rank teams worst-to-best; this round's batch is a rotating window into that ranking
+            for(int t = 0; t < numTeams; t++) {
+                teamsByScore[t] = t;
+            }
+            std::sort(teamsByScore.begin(), teamsByScore.end(), [](const int a, const int b) {
+                return teamScoresScratch[a] < teamScoresScratch[b];
+            });
+            for(int i = 0; i < numStarts; i++) {
+                startTeamForThread[i] = teamsByScore[(batchOffset + i) % sharedNumTeams];
+            }
+
+#pragma omp parallel \
+            default(none) \
+            shared(candidateTeammates, candidateTeamScores, candidateScores, bestTeammates, bestScore, \
+                   startTeamForThread, numStarts, teamSizes, teamStartPositions, sharedNumTeams, totalStudents, deadline, maxChainLength)
+            {
+                const int threadNum = omp_get_thread_num();
+                if(threadNum < numStarts) {
+                    std::vector<int> &myTeammates = candidateTeammates[threadNum];
+                    std::copy(bestTeammates.begin(), bestTeammates.end(), myTeammates.begin());
+                    candidateScores[threadNum] = attemptEjectionChain(myTeammates.data(), teamSizes, teamStartPositions,
+                                                                       startTeamForThread[threadNum], bestScore,
+                                                                       candidateTeamScores[threadNum], maxChainLength);
+                }
+                else {
+                    candidateScores[threadNum] = bestScore;
+                }
+            }
+
+            int bestThread = 0;
+            for(int th = 0; th < numStarts; th++) {
+                if(candidateScores[th] > candidateScores[bestThread]) {
+                    bestThread = th;
+                }
+            }
+
+            if(candidateScores[bestThread] > bestScore) {
+                bestScore = candidateScores[bestThread];
+                bestTeammates = candidateTeammates[bestThread];
+                teamScoresScratch = candidateTeamScores[bestThread];
+                batchOffset = 0;
+            }
+            else {
+                batchOffset += numStarts;
+                if(batchOffset >= sharedNumTeams) {
+                    break;   // full lap through every team, no improvement anywhere -- a genuine dead end
+                }
+            }
+        }
+
+        if(timeUp()) {
+            break;
+        }
+
+        // ---- Phase 2: kick until the first improvement, then hand back to the ejection chain ----
+        int kickSize = baseKickSize;
+        while(!timeUp()) {
+            brokenTeams.clear();
+            for(int t = 0; t < numTeams; t++) {
+                if(isBroken(teamScoresScratch[t], teamSizes[t])) {
+                    brokenTeams.push_back(t);
+                }
+            }
+
+#pragma omp parallel \
+            default(none) \
+            shared(candidateTeammates, candidateTeamScores, candidateScores, bestTeammates, bestScore, \
+                   brokenTeams, kickSize, teamSizes, teamStartPositions, sharedNumTeams, totalStudents, deadline)
+            {
+                const int threadNum = omp_get_thread_num();
+                std::vector<int> &myTeammates = candidateTeammates[threadNum];
+                std::copy(bestTeammates.begin(), bestTeammates.end(), myTeammates.begin());
+
+                thread_local std::mt19937 kickRNG{std::random_device{}()};
+                std::uniform_int_distribution<int> randTeam(0, sharedNumTeams - 1);
+
+                for(int k = 0; k < kickSize; k++) {
+                    int teamA;
+                    if(!brokenTeams.empty()) {
+                        std::uniform_int_distribution<int> randBrokenIndex(0, int(brokenTeams.size()) - 1);
+                        teamA = brokenTeams[randBrokenIndex(kickRNG)];
+                    }
+                    else {
+                        teamA = randTeam(kickRNG);
+                    }
+                    int teamB;
+                    do {
+                        teamB = randTeam(kickRNG);
+                    } while(teamB == teamA);
+
+                    GA::mutate(myTeammates.data(), teamStartPositions[teamA], teamStartPositions[teamA] + teamSizes[teamA],
+                              teamStartPositions[teamB], teamStartPositions[teamB] + teamSizes[teamB]);
+                }
+
+                const GenomeScore afterKickScore = rescoreGenome(myTeammates.data(), teamSizes, candidateTeamScores[threadNum]);
+                candidateScores[threadNum] = reconvergeViaSwaps(myTeammates.data(), teamSizes, teamStartPositions,
+                                                                afterKickScore, candidateTeamScores[threadNum], bestScore, deadline);
+            }
+
+            int bestThread = 0;
+            for(int th = 0; th < numThreads; th++) {
+                if(candidateScores[th] > candidateScores[bestThread]) {
+                    bestThread = th;
+                }
+            }
+
+            if(candidateScores[bestThread] > bestScore) {
+                bestScore = candidateScores[bestThread];
+                bestTeammates = candidateTeammates[bestThread];
+                teamScoresScratch = candidateTeamScores[bestThread];
+                break;   // found the escape -- go exploit it with the ejection chain
+            }
+            kickSize = std::min(kickSize + 1, maxKickSize);
+        }
+    }
+
+    std::copy(bestTeammates.begin(), bestTeammates.end(), teammates);
+    return bestScore;
 }
 
 

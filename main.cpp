@@ -32,10 +32,11 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - Added exhaustive search to improve best genome before finalizing the results
+//  - Added complex finalizing stage to improve the best genome after the genetic algorithm completes
 //  - Tweaked the memetic component of the optimization process
+//  - Modified the attribute criterion scoring to differentiate the spread of multiple values within the team
+//  - Code audit: code style cleanup and potential crash mitigation
 //  - Prepared for mac app store submission
-//  - Internal code / style cleanup
 //
 // TO DO:
 //

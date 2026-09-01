@@ -165,10 +165,37 @@ private:
                                 const int worstTeam, const GenomeScore &currentScore);
     GenomeScore exhaustiveSearch(int teammates[], const int teamSizes[], const int teamStartPositions[]);
 
-    // Once the main optimization loop stops, spend up to this many more milliseconds on just the single
-    // best genome: repeated full passes of 2-team swaps (attempt2TeamSwap(), every team as anchor against
-    // every other team), until the deadline runs out or a pass finds nothing more.
-    static constexpr int FINAL_LOCAL_SEARCH_TIME = 10000;
+    // Full pass(es) of 2-team swaps (attempt2TeamSwap(), every team as anchor against every other team),
+    // repeated until a pass finds nothing more or time runs out. bestScoreForDisplay is only used for the
+    // periodic progress emission, not the swap logic itself.
+    GenomeScore reconvergeViaSwaps(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                   GenomeScore currentScore, QList<float> &teamScores,
+                                   const GenomeScore &bestScoreForDisplay,
+                                   const std::chrono::steady_clock::time_point deadline);
+
+    // Scores an arbitrary list of students as a single hypothetical team in isolation, via the same
+    // getGenomeScore() machinery used for the whole genome (numTeams=1). Used by attemptEjectionChain()
+    // to evaluate leave-one-out removals and candidate replacements without touching the real genome.
+    GenomeScore scoreHypotheticalTeam(const int members[], const int size);
+
+    // Ejection chain: starting at startTeam, finds the member whose removal most helps that team
+    // (leave-one-out over scoreHypotheticalTeam()), then finds whichever other team's member would help
+    // most if inserted in their place, swaps them, and continues the chain from the team that just
+    // received the ejected member. Stops when a leave-one-out check finds no beneficial removal, or
+    // maxChainLength links are reached. Every swap is logged and, once the chain stops, undone in
+    // reverse if a final full-genome rescore shows the whole chain was a net regression relative to
+    // scoreBeforeChain -- unlike attempt2TeamSwap, this accept/reject happens once for the whole chain,
+    // not per link, since an individual link may look neutral or worse in isolation.
+    GenomeScore attemptEjectionChain(int teammates[], const int teamSizes[], const int teamStartPositions[],
+                                     const int startTeam, const GenomeScore &scoreBeforeChain,
+                                     QList<float> &teamScores, const int maxChainLength);
+
+    // Once the main optimization loop stops, spend at least this many more milliseconds (plus a per-team
+    // allowance added at the call site) on just the single best genome: reconvergeViaSwaps(), then
+    // repeated rounds of an ejection chain attempted from each of several distinct low-scoring teams in
+    // parallel, keeping only chains that beat the best score found so far and reverting otherwise, until
+    // the deadline runs out.
+    static constexpr int MIN_FINAL_LOCAL_SEARCH_TIME = 5000;
     GenomeScore finalGenomeHillClimb(int teammates[], const int teamSizes[], const int teamStartPositions[],
                                      const std::chrono::steady_clock::time_point deadline);
 
