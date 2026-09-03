@@ -144,12 +144,6 @@ jobs:
             --sign "$INSTALLER_ID" \
             gruepr_appstore.pkg
 
-      # --- If packaging failed/hung, open an SSH debug session into this exact runner state ---
-      - name: Debug via tmate on failure
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-
       # --- Cleanup keychain ---
       - name: Cleanup keychain
         if: always()
