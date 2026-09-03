@@ -1,3 +1,11 @@
+## v13.2.0 — 2026-09-03
+
+- Added complex finalizing stage to improve the best genome after the genetic algorithm completes
+- Tweaked the memetic component of the optimization process
+- Modified the attribute criterion scoring to differentiate the spread of multiple values within the team
+- Code audit: code style cleanup and potential crash mitigation
+- Prepared for mac app store submission
+
 ## v13.1.1 — 2026-08-25
 
 - Bugfix: several small issues that might affect Canvas connections
