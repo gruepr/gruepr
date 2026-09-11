@@ -192,9 +192,9 @@ package to edit it.
    |-|-|-|
    |**Package URL**|`https://www.gruepr.com/downloads/vX.Y/install_gruepr.exe`|**Yes** — point at the new version's folder|
    |**Architecture**|x64|No|
+   |**Installer parameters**|`/S` (NSIS's silent-install switch — capital S)|No|
    |**Languages**|English (`en`)|No|
    |**App type**|EXE|No|
-   |**Installer parameters**|`/S` (NSIS's silent-install switch — capital S)|No|
    |**Installer handling** (return codes)|Optional — leave as set|No|
 
    The installer at that URL is already hosted for you: Part D's deploy publishes it to
@@ -232,7 +232,7 @@ can take a few minutes after upload to finish processing before it's selectable.
 `// DONE:`-derived text from the GitHub draft (Part C) rather than rewriting it.
 23. Click **Save**, then **Add for Review** / **Submit for Review**. Apple's review
 typically takes 1-2 days. Watch for a Resolution Center message if it's rejected —
-the most common one so far has been the automated entitlement scanner flagging
+the one that came up so far has been the automated entitlement scanner flagging
 `com.apple.security.network.server` (used for the OAuth loopback redirect handler in
 `LMS/LMS.h`); replying with a technical explanation of that listener (loopback-only,
 single-use, closes after catching the redirect) and updating the App Review Notes

@@ -18,6 +18,7 @@
 #include <random>
 #include <utility>
 #include <vector>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -2131,6 +2132,8 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
     ui->studentTable->setRowCount(students.size());
     numActiveStudents = 0;
     const QIcon duplicateIcon(":/icons_new/important_yellow.png");
+    QElapsedTimer progressUpdateTimer;
+    progressUpdateTimer.start();
     for(const auto &student : std::as_const(students)) {
         column = 0;
         if((numActiveStudents < students.size()) &&            // make sure student exists, hasn't been deleted, and is in the section(s) being teamed
@@ -2169,6 +2172,7 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
             if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
                 auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime,
                                                               QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
+                timestamp->setSortKey(student.surveyTimestamp);
                 ui->studentTable->setItem(numActiveStudents, column++, timestamp);
                 items << timestamp;
             }
@@ -2219,8 +2223,9 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
 
             numActiveStudents++;
 
-            if(progressDialog != nullptr) {
+            if((progressDialog != nullptr) && (progressUpdateTimer.elapsed() >= PROGRESS_UPDATE_INTERVAL_MS)) {
                 progressDialog->setValue(progressStart + (numActiveStudents * (progressEnd - progressStart)) / students.size());
+                progressUpdateTimer.restart();
             }
         }
     }

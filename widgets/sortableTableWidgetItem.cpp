@@ -1,5 +1,6 @@
 #include "sortableTableWidgetItem.h"
 #include <QDateTime>
+#include <QLocale>
 
 
 //////////////////
@@ -19,9 +20,21 @@ void SortableTableWidgetItem::setSortKey(const QString &key)
 }
 
 
+void SortableTableWidgetItem::setSortKey(const QDateTime &key)
+{
+    datetimeSortKey = key;
+}
+
+
 bool SortableTableWidgetItem::operator <(const QTableWidgetItem &other) const
 {
     if(sortType == SortType::datetime) {
+        const auto *const otherItem = dynamic_cast<const SortableTableWidgetItem *>(&other);
+        if(datetimeSortKey.isValid() && (otherItem != nullptr) && otherItem->datetimeSortKey.isValid()) {
+            return datetimeSortKey < otherItem->datetimeSortKey;
+        }
+        // no stored key, so fall back to parsing the displayed text -- correct, but slow enough
+        // that it should not be relied on for a table of any size
         return QLocale::system().toDateTime(text(), QLocale::ShortFormat) < QLocale::system().toDateTime(other.text(), QLocale::ShortFormat);
     }
 

@@ -9,6 +9,7 @@
 #include "widgets/styledComboBox.h"
 #include <QCollator>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFileDialog>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -619,9 +620,15 @@ bool loadDataDialog::getFromPrevWork()
     students.reserve(studentjsons.size());
     int i = 2;
     loadingProgressDialog->setMaximum(studentjsons.size() + 3);
+    QElapsedTimer progressUpdateTimer;
+    progressUpdateTimer.start();
     for(const auto &studentjson : studentjsons) {
         students.emplaceBack(studentjson.toObject());
-        loadingProgressDialog->setValue(i++);
+        i++;
+        if(progressUpdateTimer.elapsed() >= PROGRESS_UPDATE_INTERVAL_MS) {
+            loadingProgressDialog->setValue(i);
+            progressUpdateTimer.restart();
+        }
     }
     dataOptions = std::make_unique<DataOptions>(content["dataoptions"].toObject());
     source = DataOptions::DataSource::fromPrevWork;
@@ -873,6 +880,8 @@ bool loadDataDialog::readData()
         }
     }
     loadingProgressDialog->setValue(2);
+    QElapsedTimer progressUpdateTimer;
+    progressUpdateTimer.start();
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
     surveyFile->readDataRow(DataFile::ReadLocation::beginningOfFile);    // put cursor back to beginning and read first row
@@ -940,7 +949,10 @@ bool loadDataDialog::readData()
 
         numStudents++;
         students << currStudent;
-        loadingProgressDialog->setValue(2 + numStudents);
+        if(progressUpdateTimer.elapsed() >= PROGRESS_UPDATE_INTERVAL_MS) {
+            loadingProgressDialog->setValue(2 + numStudents);
+            progressUpdateTimer.restart();
+        }
     } while(surveyFile->readDataRow() && numStudents < MAX_STUDENTS);
 
     if(numStudents < MIN_STUDENTS) {
