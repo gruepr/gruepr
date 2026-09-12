@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QDesktopServices>
+#include <QFontMetrics>
 #include <QGridLayout>
 #include <QJsonDocument>
 #include <QMenu>
@@ -152,6 +153,13 @@ StartDialog::StartDialog(QWidget *parent)
     // fire off the async version check — label will update when the reply arrives
     checkForNewVersion();
 #endif
+
+    // Cache the glyphs used throughout gruepr once, shortly after this window is up.
+    QTimer::singleShot(GLYPHWARMUPDELAY, this, []{
+        const QFontMetricsF fm{QFont("DM Sans", LITTLEFONTSIZE)};
+        fm.horizontalAdvance(QString(QChar(LEFTARROW)) + QChar(LEFTDOUBLEARROW) + QChar(RIGHTARROW) +
+                             QChar(RIGHTDOUBLEARROW) + QChar(RIGHTARROWTOEND) + QChar(LEFTRIGHTARROW) + QChar(BULLET));
+    });
 }
 
 

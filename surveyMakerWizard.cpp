@@ -750,6 +750,9 @@ AttributePage::AttributePage(QWidget *parent)
     sampleQuestionsLayout->addWidget(sampleQuestionsButton, 0, Qt::AlignRight | Qt::AlignVCenter);
     questionLayout->addSpacing(10);
     questionLayout->addWidget(sampleQuestionsFrame);
+    // questions are built on demand in createQuestion(), which inserts each one here rather than
+    // appending, since the "create another question" button and the stretch come after them
+    firstQuestionItemIndex = questionLayout->count();
 
     questionTexts.reserve(MAX_ATTRIBUTES);
     questionResponses.reserve(MAX_ATTRIBUTES);
@@ -759,53 +762,12 @@ AttributePage::AttributePage(QWidget *parent)
     registerField("multiChoiceQuestionResponses", this, "questionResponses", "questionResponsesChanged");
     registerField("multiChoiceQuestionMultis", this, "questionMultis", "questionMultisChanged");
 
+    // these are the wizard's field values, so they always hold a full set of defaults whether or not
+    // the corresponding question widget has been created yet
     for(int i = 0; i < (MAX_ATTRIBUTES - 1); i++) {
-        //add the question
-        spacers << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        questionLayout->addSpacerItem(spacers.last());
-        attributeQuestions << new SurveyMakerAttributeQuestion(i + 1);
-        questionLayout->addWidget(attributeQuestions.last());
-        attributeQuestions.last()->hide();
-
-        //add the preview
-        questionPreviews << new QWidget;
-        questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
-        questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
-        questionPreviewLayouts << new QVBoxLayout;
-        questionPreviews.last()->setLayout(questionPreviewLayouts.last());
-        const QString fillInQuestion = "[" + tr("Question") + " " + QString::number(i + 1) + "]";
-        questionPreviewTopLabels << new QLabel(fillInQuestion);
-        questionPreviewTopLabels.last()->setStyleSheet(LABEL12PTSTYLE);
-        questionPreviewTopLabels.last()->setWordWrap(true);
-        questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
-        questionPreviewLayouts.last()->addWidget(attributeQuestions.last()->previewWidget);
-        previewSeparators << new QFrame;
-        previewSeparators.last()->setStyleSheet("border-color: " DEEPWATERHEX);
-        previewSeparators.last()->setLineWidth(1);
-        previewSeparators.last()->setMidLineWidth(1);
-        previewSeparators.last()->setFrameShape(QFrame::HLine);
-        previewSeparators.last()->setFrameShadow(QFrame::Plain);
-        questionPreviewLayouts.last()->addWidget(previewSeparators.last());
-        previewLayout->insertWidget(i, questionPreviews.last());
-        questionPreviews.last()->hide();
-
-        //connect question to delete action and to updating the wizard fields and the preview
-        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
         questionTexts << "";
-        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
-            QString textWOQuotes = newText;
-            textWOQuotes.replace('"', '\'');
-            questionTexts[i] = textWOQuotes;
-            questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
-        });
         questionResponses << QStringList({""});
-        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){
-            questionResponses[i] = newResponses;
-        });
         questionMultis << false;
-        connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::multiChanged, this, [this, i](const bool newMulti){
-            questionMultis[i] = newMulti;
-        });
     }
 
     addQuestionButtonFrame = new QFrame(this);
@@ -822,6 +784,55 @@ AttributePage::AttributePage(QWidget *parent)
     questionLayout->addItem(stretch);
 
     addQuestion();
+}
+
+// build one attribute question and its preview; questions are always created in order, lowest first
+void AttributePage::createQuestion(const int questionNum)
+{
+    //add the question
+    spacers << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    questionLayout->insertSpacerItem(firstQuestionItemIndex + (2 * questionNum), spacers.last());
+    attributeQuestions << new SurveyMakerAttributeQuestion(questionNum + 1);
+    questionLayout->insertWidget(firstQuestionItemIndex + (2 * questionNum) + 1, attributeQuestions.last());
+    attributeQuestions.last()->hide();
+
+    //add the preview
+    questionPreviews << new QWidget;
+    questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
+    questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
+    questionPreviewLayouts << new QVBoxLayout;
+    questionPreviews.last()->setLayout(questionPreviewLayouts.last());
+    const QString fillInQuestion = "[" + tr("Question") + " " + QString::number(questionNum + 1) + "]";
+    questionPreviewTopLabels << new QLabel(fillInQuestion);
+    questionPreviewTopLabels.last()->setStyleSheet(LABEL12PTSTYLE);
+    questionPreviewTopLabels.last()->setWordWrap(true);
+    questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
+    questionPreviewLayouts.last()->addWidget(attributeQuestions.last()->previewWidget);
+    previewSeparators << new QFrame;
+    previewSeparators.last()->setStyleSheet("border-color: " DEEPWATERHEX);
+    previewSeparators.last()->setLineWidth(1);
+    previewSeparators.last()->setMidLineWidth(1);
+    previewSeparators.last()->setFrameShape(QFrame::HLine);
+    previewSeparators.last()->setFrameShadow(QFrame::Plain);
+    questionPreviewLayouts.last()->addWidget(previewSeparators.last());
+    previewLayout->insertWidget(questionNum, questionPreviews.last());
+    questionPreviews.last()->hide();
+
+    //connect question to delete action and to updating the wizard fields and the preview
+    const int i = questionNum;
+    connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
+    connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
+        QString textWOQuotes = newText;
+        textWOQuotes.replace('"', '\'');
+        questionTexts[i] = textWOQuotes;
+        questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
+    });
+    connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){
+        questionResponses[i] = newResponses;
+    });
+    connect(attributeQuestions.last(), &SurveyMakerAttributeQuestion::multiChanged, this, [this, i](const bool newMulti){
+        questionMultis[i] = newMulti;
+    });
 }
 
 void AttributePage::initializePage()
@@ -892,7 +903,7 @@ void AttributePage::setQuestionTexts(const QList<QString> &newQuestionTexts)
         attributeQuestions[i]->setQuestion(textWOQuotes);
         i++;
     }
-    while(i < (MAX_ATTRIBUTES - 1)) {
+    while(i < attributeQuestions.size()) {      // only questions already built need clearing; the rest are blank by construction
         attributeQuestions[i++]->setQuestion("");
     }
     emit questionTextsChanged(questionTexts);
@@ -913,7 +924,7 @@ void AttributePage::setQuestionResponses(const QList<QList<QString>> &newQuestio
         attributeQuestions[i]->setResponses(newQuestionResponse);
         i++;
     }
-    while(i < MAX_ATTRIBUTES-1) {
+    while(i < attributeQuestions.size()) {      // only questions already built need clearing; the rest are blank by construction
         attributeQuestions[i++]->setResponses(QStringList({""}));
     }
     emit questionResponsesChanged(questionResponses);
@@ -934,7 +945,7 @@ void AttributePage::setQuestionMultis(const QList<bool> &newQuestionMultis)
         attributeQuestions[i]->setMulti(newQuestionMulti);
         i++;
     }
-    while(i < MAX_ATTRIBUTES-1) {
+    while(i < attributeQuestions.size()) {      // only questions already built need clearing; the rest are blank by construction
         attributeQuestions[i++]->setMulti(false);
     }
     emit questionMultisChanged(questionMultis);
@@ -947,6 +958,10 @@ QList<bool> AttributePage::getQuestionMultis() const
 
 void AttributePage::addQuestion()
 {
+    while(attributeQuestions.size() <= numQuestions) {
+        createQuestion(int(attributeQuestions.size()));
+    }
+
     spacers[numQuestions]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
     attributeQuestions[numQuestions]->show();
     questionPreviews[numQuestions]->show();
@@ -1958,7 +1973,8 @@ void CourseInfoPage::update()
     uploadButton->setEnabled(selectFromRosterSwitch->isEnabled() && selectFromRosterSwitch->value());
 
     numPrefTeammates = numPrefTeammatesSpinBox->value();
-    questionPreviewTopLabels[wantToAvoid]->setHidden(questions[wantToWorkWith]->getValue() && questions[wantToAvoid]->getValue());  //don't need two labels if both questions on
+    //don't need two labels if both questions on
+    questionPreviewTopLabels[wantToAvoid]->setHidden(questions[wantToWorkWith]->getValue() && questions[wantToAvoid]->getValue());
     if(!selectFromRosterSwitch->value()) {
         setStudentNames({});
     }
@@ -2030,7 +2046,8 @@ QString CourseInfoPage::generateTeammateQuestion(bool wantToWorkWith, bool typin
     QString question;
     question += typingNames ? PREFTEAMMATEQUESTION1TYPE : PREFTEAMMATEQUESTION1SELECT;
 
-    question += numClassmates == 1 ? PREFTEAMMATEQUESTION2AMATE : PREFTEAMMATEQUESTION2MULTIA + QString::number(numClassmates) + PREFTEAMMATEQUESTION2MULTIB;
+    question += numClassmates == 1 ? PREFTEAMMATEQUESTION2AMATE :
+                                     PREFTEAMMATEQUESTION2MULTIA + QString::number(numClassmates) + PREFTEAMMATEQUESTION2MULTIB;
 
     question += wantToWorkWith ? PREFTEAMMATEQUESTION3YES : PREFTEAMMATEQUESTION3NO;
 
@@ -2128,50 +2145,18 @@ FreeResponsePage::FreeResponsePage(QWidget *parent)
     freeResponseInfoLayout->addWidget(freeResponseInfoLabel, 1, Qt::AlignVCenter);
     questionLayout->addSpacing(10);
     questionLayout->addWidget(freeResponseInfoFrame);
+    // questions are built on demand in createQuestion(), which inserts each one here rather than
+    // appending, since the "create another question" button and the stretch come after them
+    firstQuestionItemIndex = questionLayout->count();
 
     questionTexts.reserve(MAX_NOTES);
     registerField("freeResponseNumQuestions", this, "numQuestions", "numQuestionsChanged");
     registerField("freeResponseQuestionTexts", this, "questionTexts", "questionTextsChanged");
 
+    // this is the wizard's field value, so it always holds a full set of defaults whether or not
+    // the corresponding question widget has been created yet
     for(int i = 0; i < MAX_NOTES; i++) {
-        //add the question
-        spacers << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        questionLayout->addSpacerItem(spacers.last());
-        freeResponseQuestions << new SurveyMakerFreeResponseQuestion(i + 1);
-        questionLayout->addWidget(freeResponseQuestions.last());
-        freeResponseQuestions.last()->hide();
-
-        //add the preview
-        questionPreviews << new QWidget;
-        questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
-        questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
-        questionPreviewLayouts << new QVBoxLayout;
-        questionPreviews.last()->setLayout(questionPreviewLayouts.last());
-        const QString fillInQuestion = "[" + tr("Question") + " " + QString::number(i + 1) + "]";
-        questionPreviewTopLabels << new QLabel(fillInQuestion);
-        questionPreviewTopLabels.last()->setStyleSheet(LABEL12PTSTYLE);
-        questionPreviewTopLabels.last()->setWordWrap(true);
-        questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
-        questionPreviewLayouts.last()->addWidget(freeResponseQuestions.last()->previewWidget);
-        previewSeparators << new QFrame;
-        previewSeparators.last()->setStyleSheet("border-color: " DEEPWATERHEX);
-        previewSeparators.last()->setLineWidth(1);
-        previewSeparators.last()->setMidLineWidth(1);
-        previewSeparators.last()->setFrameShape(QFrame::HLine);
-        previewSeparators.last()->setFrameShadow(QFrame::Plain);
-        questionPreviewLayouts.last()->addWidget(previewSeparators.last());
-        previewLayout->insertWidget(i, questionPreviews.last());
-        questionPreviews.last()->hide();
-
-        //connect question to delete action and to updating the wizard fields and the preview
-        connect(freeResponseQuestions.last(), &SurveyMakerFreeResponseQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
         questionTexts << "";
-        connect(freeResponseQuestions.last(), &SurveyMakerFreeResponseQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
-            QString textWOQuotes = newText;
-            textWOQuotes.replace('"', '\'');
-            questionTexts[i] = textWOQuotes;
-            questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
-        });
     }
 
     addQuestionButtonFrame = new QFrame(this);
@@ -2188,6 +2173,49 @@ FreeResponsePage::FreeResponsePage(QWidget *parent)
     questionLayout->addItem(stretch);
 
     addQuestion();
+}
+
+// build one free response question and its preview; questions are always created in order, lowest first
+void FreeResponsePage::createQuestion(const int questionNum)
+{
+    //add the question
+    spacers << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    questionLayout->insertSpacerItem(firstQuestionItemIndex + (2 * questionNum), spacers.last());
+    freeResponseQuestions << new SurveyMakerFreeResponseQuestion(questionNum + 1);
+    questionLayout->insertWidget(firstQuestionItemIndex + (2 * questionNum) + 1, freeResponseQuestions.last());
+    freeResponseQuestions.last()->hide();
+
+    //add the preview
+    questionPreviews << new QWidget;
+    questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
+    questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
+    questionPreviewLayouts << new QVBoxLayout;
+    questionPreviews.last()->setLayout(questionPreviewLayouts.last());
+    const QString fillInQuestion = "[" + tr("Question") + " " + QString::number(questionNum + 1) + "]";
+    questionPreviewTopLabels << new QLabel(fillInQuestion);
+    questionPreviewTopLabels.last()->setStyleSheet(LABEL12PTSTYLE);
+    questionPreviewTopLabels.last()->setWordWrap(true);
+    questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
+    questionPreviewLayouts.last()->addWidget(freeResponseQuestions.last()->previewWidget);
+    previewSeparators << new QFrame;
+    previewSeparators.last()->setStyleSheet("border-color: " DEEPWATERHEX);
+    previewSeparators.last()->setLineWidth(1);
+    previewSeparators.last()->setMidLineWidth(1);
+    previewSeparators.last()->setFrameShape(QFrame::HLine);
+    previewSeparators.last()->setFrameShadow(QFrame::Plain);
+    questionPreviewLayouts.last()->addWidget(previewSeparators.last());
+    previewLayout->insertWidget(questionNum, questionPreviews.last());
+    questionPreviews.last()->hide();
+
+    //connect question to delete action and to updating the wizard fields and the preview
+    const int i = questionNum;
+    connect(freeResponseQuestions.last(), &SurveyMakerFreeResponseQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
+    connect(freeResponseQuestions.last(), &SurveyMakerFreeResponseQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
+        QString textWOQuotes = newText;
+        textWOQuotes.replace('"', '\'');
+        questionTexts[i] = textWOQuotes;
+        questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
+    });
 }
 
 void FreeResponsePage::initializePage()
@@ -2252,7 +2280,7 @@ void FreeResponsePage::setQuestionTexts(const QList<QString> &newQuestionTexts)
         freeResponseQuestions[i]->setQuestion(textWOQuotes);
         i++;
     }
-    while(i < MAX_NOTES) {
+    while(i < freeResponseQuestions.size()) {   // only questions already built need clearing; the rest are blank by construction
         freeResponseQuestions[i++]->setQuestion("");
     }
     emit questionTextsChanged(questionTexts);
@@ -2265,6 +2293,10 @@ QList<QString> FreeResponsePage::getQuestionTexts() const
 
 void FreeResponsePage::addQuestion()
 {
+    while(freeResponseQuestions.size() <= numQuestions) {
+        createQuestion(int(freeResponseQuestions.size()));
+    }
+
     spacers[numQuestions]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
     freeResponseQuestions[numQuestions]->show();
     questionPreviews[numQuestions]->show();
@@ -2306,13 +2338,19 @@ void FreeResponsePage::deleteAQuestion(int questionNum)
 PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::previewexport, parent)
 {
-    const int lastPageIndex = qobject_cast<SurveyMakerWizard *>(wizard())->numPages - 1;
+    constexpr int lastPageIndex = SurveyMakerWizard::previewexport;
     for(int sectionNum = 0; sectionNum < lastPageIndex; sectionNum++) {
         preSectionSpacer << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         questionLayout->addItem(preSectionSpacer.last());
-        section << new SurveyMakerPreviewSection(sectionNum, SurveyMakerWizard::pageNames[sectionNum], SurveyMakerWizard::numOfQuestionsInPage[sectionNum], this);
+        section << new SurveyMakerPreviewSection(sectionNum, SurveyMakerWizard::pageNames[sectionNum],
+                                                 SurveyMakerWizard::numOfQuestionsInPage[sectionNum], this);
         questionLayout->addWidget(section.last());
-        connect(section.last(), &SurveyMakerPreviewSection::editRequested, this, [this, lastPageIndex](int pageNum){while(pageNum < lastPageIndex){wizard()->back(); pageNum++;}});
+        connect(section.last(), &SurveyMakerPreviewSection::editRequested, this, [this](int pageNum){
+            while(pageNum < lastPageIndex){
+                wizard()->back();
+                pageNum++;
+            }
+        });
     }
 
     auto *saveExportFrame = new QFrame;
@@ -2337,12 +2375,16 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     helpLayout->addWidget(helpLabel, 1, Qt::AlignVCenter);
     const QString helpText = tr("<html><span style=\"color: black;\">gruepr offers the following ways to use the survey you've created:"
                                 "<ul>"
-                                "<li><u>Google Form in Your Google Drive</u> Send your students the link, and gruepr can download the results.</li>"
-                                "<li><u>Survey in Your Canvas Course</u> Publish it in the Canvas page your class already uses, and gruepr can download the results.</li>"
+                                "<li><u>Google Form in Your Google Drive</u> Send your students the link, "
+                                "and gruepr can download the results.</li>"
+                                "<li><u>Survey in Your Canvas Course</u> Publish it in the Canvas page your class "
+                                "already uses, and gruepr can download the results.</li>"
                                 "<li><u>Text Files on Your Computer</u>  Use your own survey instrument. "
-                                " One file lists your survey questions, and another is preformatted for you to (1) open in Excel, Numbers, or Sheets,"
+                                " One file lists your survey questions, and another is preformatted for you to "
+                                "(1) open in Excel, Numbers, or Sheets,"
                                 " (2) fill in your students' responses, and then (3) open in gruepr.</li>"
-                                "<li><u>gruepr Survey File on Your Computer</u> Save your work for reuse, modification, or sharing with colleagues.</li>"
+                                "<li><u>gruepr Survey File on Your Computer</u> Save your work for "
+                                "reuse, modification, or sharing with colleagues.</li>"
                                 "</ul>"
                                 "</span></html>");
     helpIcon->setToolTipText(helpText);
@@ -2426,20 +2468,9 @@ void PreviewAndExportPage::initializePage()
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
     wiz->setButtonLayout(buttonLayout);
     wiz->button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
-/*    wizard()->button(QWizard::CancelButton)->disconnect();
-    connect(wizard()->button(QWizard::CancelButton), &QPushButton::clicked, this, [this] {if(surveyHasBeenExported) {wizard()->reject();}
-                                                                                          else {
-                                                                                            const bool okClose = grueprGlobal::warningMessage(this, "Are you sure?",
-                                                                                            tr("You have not yet exported or saved this survey.\n"
-                                                                                               "Do you want to close?"),
-                                                                                            tr("Close"), tr("Go back"));
-                                                                                            if(okClose) {
-                                                                                                wizard()->reject();
-                                                                                            }
-                                                                                          }});*/
     //Survey title
     const QString title = field("SurveyTitle").toString().trimmed();
-    preSectionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    preSectionSpacer[SurveyMakerWizard::introtitle]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
     section[SurveyMakerWizard::introtitle]->setTitle(title);
     survey->title = title;
 
@@ -2522,7 +2553,9 @@ void PreviewAndExportPage::initializePage()
             section[SurveyMakerWizard::demographics]->questionGroupLayout[3]->addWidget(option);
         }
         section[SurveyMakerWizard::demographics]->questionGroupBox[3]->show();
-        survey->questions << Question(questionText, (field("GenderAllowMulti").toBool()? Question::QuestionType::checkbox : Question::QuestionType::radiobutton), genderOptions);
+        survey->questions << Question(questionText, (field("GenderAllowMulti").toBool()?
+                                                         Question::QuestionType::checkbox :
+                                                         Question::QuestionType::radiobutton), genderOptions);
     }
     else {
         section[SurveyMakerWizard::demographics]->preQuestionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2543,11 +2576,11 @@ void PreviewAndExportPage::initializePage()
     }
 
     if(firstname || lastname || email || gender || urmIdentity) {
-        preSectionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::demographics]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::demographics]->show();
     }
     else {
-        preSectionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::demographics]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::demographics]->hide();
     }
 
@@ -2563,6 +2596,7 @@ void PreviewAndExportPage::initializePage()
             actualNumAttributeQuestions++;
             section[SurveyMakerWizard::attribute]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
             section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->show();
+            section[SurveyMakerWizard::attribute]->questionLineEdit[questionNum]->hide();   // only the free-response-number type below shows it
             auto responses = multiQuestionResponses[questionNum].toStringList();
             if(responses == QStringList({SurveyMakerAttributeQuestion::FREERESPONSENUMBER})) {
                 section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->setText(attributeQuestionTexts[questionNum]);
@@ -2611,23 +2645,25 @@ void PreviewAndExportPage::initializePage()
         else {
             section[SurveyMakerWizard::attribute]->preQuestionSpacer[questionNum]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
             section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->hide();
+            section[SurveyMakerWizard::attribute]->questionLineEdit[questionNum]->hide();
             section[SurveyMakerWizard::attribute]->questionComboBox[questionNum]->hide();
             section[SurveyMakerWizard::attribute]->questionGroupBox[questionNum]->hide();
         }
     }
-    for(int i = actualNumAttributeQuestions; i < MAX_ATTRIBUTES; i++) {
+    for(int i = attributeNumQuestions; i < MAX_ATTRIBUTES; i++) {          // slots in use, not the count of non-empty ones
         section[SurveyMakerWizard::attribute]->preQuestionSpacer[i]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::attribute]->questionLabel[i]->hide();
+        section[SurveyMakerWizard::attribute]->questionLineEdit[i]->hide();
         section[SurveyMakerWizard::attribute]->questionComboBox[i]->hide();
         section[SurveyMakerWizard::attribute]->questionGroupBox[i]->hide();
     }
 
     if(actualNumAttributeQuestions > 0) {
-        preSectionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::attribute]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::attribute]->show();
     }
     else {
-        preSectionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::attribute]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::attribute]->hide();
     }
 
@@ -2743,11 +2779,11 @@ void PreviewAndExportPage::initializePage()
     }
 
     if(timezone || schedule) {
-        preSectionSpacer[3]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::schedule]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::schedule]->show();
     }
     else {
-        preSectionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::schedule]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::schedule]->hide();
     }
 
@@ -2851,11 +2887,11 @@ void PreviewAndExportPage::initializePage()
     }
 
     if(courseSections || prefTeammate || prefNonTeammate) {
-        preSectionSpacer[4]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::courseinfo]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::courseinfo]->show();
     }
     else {
-        preSectionSpacer[4]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::courseinfo]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::courseinfo]->hide();
     }
 
@@ -2877,23 +2913,25 @@ void PreviewAndExportPage::initializePage()
         else {
             section[SurveyMakerWizard::freeresponse]->preQuestionSpacer[questionNum]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
             section[SurveyMakerWizard::freeresponse]->questionLabel[questionNum]->hide();
+            section[SurveyMakerWizard::freeresponse]->questionLineEdit[questionNum]->hide();
         }
         section[SurveyMakerWizard::freeresponse]->questionGroupBox[questionNum]->hide();
         section[SurveyMakerWizard::freeresponse]->questionComboBox[questionNum]->hide();
     }
-    for(int i = actualNumFreeResponseQuestions; i < MAX_NOTES; i++) {
+    for(int i = freeResponseNumQuestions; i < MAX_NOTES; i++) {            // slots in use, not the count of non-empty ones
         section[SurveyMakerWizard::freeresponse]->preQuestionSpacer[i]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::freeresponse]->questionLabel[i]->hide();
+        section[SurveyMakerWizard::freeresponse]->questionLineEdit[i]->hide();
         section[SurveyMakerWizard::freeresponse]->questionComboBox[i]->hide();
         section[SurveyMakerWizard::freeresponse]->questionGroupBox[i]->hide();
     }
 
     if(actualNumFreeResponseQuestions > 0) {
-        preSectionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::freeresponse]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::freeresponse]->show();
     }
     else {
-        preSectionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        preSectionSpacer[SurveyMakerWizard::freeresponse]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::freeresponse]->hide();
     }
 }
@@ -3081,7 +3119,8 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
         textFileContents += survey->title + "\n\n";
     }
 
-    textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the file \"") + dataFileName + "\":";
+    textFileContents += tr("Your survey (and/or other data sources) should collect the following information "
+                           "to paste into the file \"") + dataFileName + "\":";
     for(const auto &question : std::as_const(survey->questions)) {
         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
         if(question.type == Question::QuestionType::schedule) {
@@ -3101,7 +3140,9 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
             textFileContents += "\n     " + tr("options") + ": [" + question.options.join(" | ") + "]";
             textFileContents += "\n     " + tr("Students rank their top %1 choices.").arg(question.numRankedChoices);
             for(int i = 0; i < question.numRankedChoices; i++) {
-                const QString columnHeader = question.text + " [" + (i == 0? QString(RANKYOURFIRSTCHOICE) : ( QString(RANKYOURCHOICE) + " " + QString::number(i + 1))) + "]";
+                const QString columnHeader = question.text + " [" +
+                                             (i == 0? QString(RANKYOURFIRSTCHOICE) :
+                                                    (QString(RANKYOURCHOICE) + " " + QString::number(i + 1))) + "]";
                 headerRow << columnHeader;
             }
         }
@@ -3304,7 +3345,8 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
     successDialog->setTextFormat(Qt::RichText);
     successDialog->setText(tr("Success! Survey created.<br><br>"
-                              "If you'd like to preview or edit the survey, find it under the \"Quizzes\" navigation item in your course Canvas site. "
+                              "If you'd like to preview or edit the survey, find it under the "
+                              "\"Quizzes\" navigation item in your course Canvas site. "
                               "If you wish, you can modify:"
                               "<ul>"
                               "<li>the survey title</li>"
@@ -3312,7 +3354,8 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
                               "</ul>"
                               "Changing the order or the wording of the questions is not recommended.<br><br>"
                               "<strong>The survey is currently \"Unpublished\".</strong><br>"
-                              "When you are ready for students to fill out the survey, you must log in to your course Canvas site, \"Publish\" it, and ensure it "
+                              "When you are ready for students to fill out the survey, you must log in to your "
+                              "course Canvas site, \"Publish\" it, and ensure it "
                               "is in a Module or other location accessible to the students."));
     successDialog->setStandardButtons(QMessageBox::Ok);
     successDialog->exec();

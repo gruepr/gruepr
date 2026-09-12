@@ -366,10 +366,8 @@ inline static const int REDUCED_ICON_SIZE = 30;
 inline static const int MSGBOX_ICON_SIZE = 40;
 inline static const int STD_ICON_SIZE = 24;
 inline static const int UI_DISPLAY_DELAYTIME = 2000;
-// QProgressDialog::setValue() runs processEvents() whenever the dialog is modal, which costs far more
-// than the record being reported, so progress bars fed from a per-record loop are updated on this
-// interval rather than on every record
-inline static const int PROGRESS_UPDATE_INTERVAL_MS = 100;
+inline static const int GLYPHWARMUPDELAY = 50;  // long enough for the start dialog to paint before loading glyphs
+inline static const int PROGRESS_UPDATE_INTERVAL_MS = 50;   // periodic progress display update timer
 
 enum class GenderType {biol, adult, child, pronoun};
 //order of enum below MUST match order of options within the subsequent strings

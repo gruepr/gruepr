@@ -262,6 +262,9 @@ signals:
     void questionMultisChanged(const QList<bool> &newQuestionMultis);
 
 private:
+    void createQuestion(const int questionNum);     // questions are built on demand, in order, from addQuestion()
+    int firstQuestionItemIndex = 0;                 // where in questionLayout the first question's spacer goes
+
     QFrame *sampleQuestionsFrame = nullptr;
     QHBoxLayout *sampleQuestionsLayout = nullptr;
     QLabel *sampleQuestionsIcon = nullptr;
@@ -647,6 +650,9 @@ signals:
     void questionTextsChanged(const QList<QString> &newQuestionTexts);
 
 private:
+    void createQuestion(const int questionNum);     // questions are built on demand, in order, from addQuestion()
+    int firstQuestionItemIndex = 0;                 // where in questionLayout the first question's spacer goes
+
     QFrame *freeResponseInfoFrame = nullptr;
     QHBoxLayout *freeResponseInfoLayout = nullptr;
     LabelWithInstantTooltip *freeResponseInfoIcon = nullptr;

@@ -32,7 +32,8 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - sped up initial opening of the main team formation window
+//  - sped up initial opening of the surveymaker and main team formation windows
+//  - several small UI bugfixes
 //
 // TO DO:
 //
