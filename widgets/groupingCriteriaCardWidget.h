@@ -29,16 +29,14 @@
 #include <QHBoxLayout>
 #include <QParallelAnimationGroup>
 #include <QPushButton>
-#include <QSplitter>
+#include <QShowEvent>
 #include <QTimer>
 #include <QToolButton>
-#include <QtUiPlugin/customwidget.h>
 #include <QVBoxLayout>
 #include <QWidget>
 
-class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterface {
+class GroupingCriteriaCard : public QFrame {
     Q_OBJECT
-    Q_INTERFACES(QDesignerCustomWidgetInterface)
 
 public:
     explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions,
@@ -55,15 +53,14 @@ public:
 
     //QCheckBox *includePenaltyCheckBox = nullptr;
     void setContentAreaLayout(QLayout & contentLayout);
-    QString name() const override;
-    QString includeFile() const override;
-    QString group() const override;
-    QIcon icon() const override;
-    QString toolTip() const override;
-    QString whatsThis() const override;
-    bool isContainer() const override;
-    QWidget *createWidget(QWidget *parent) override;
+
+    // Re-measures the content area and resets the expand/collapse animation endpoints.
+    // Needed because setContentAreaLayout() runs once at construction; any card whose content
+    // changes height afterward (e.g. a criterion label that lists a variable number of rules)
+    // must call this or its content will be clipped.
+    void refreshContentHeight();
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void showEvent(QShowEvent *event) override;
     QLabel *priorityOrderLabel;
     QHBoxLayout* headerRowLayout;
     QPushButton *deleteGroupingCriteriaCardButton;
@@ -89,6 +86,8 @@ signals:
     void dragStarting();
     void dragEnteredCard(int targetIndex);
     void dragFinished();
+    // This card's height changed, so the column it sits in has to re-place its cards.
+    void cardHeightChanged();
 
 public slots:
     void toggle(bool collapsed);
@@ -104,10 +103,14 @@ private:
     QPushButton *lockButton = nullptr;
     QWidget *dragPlaceholder = nullptr;
     QParallelAnimationGroup *toggleAnimation = nullptr;
-    QSplitter *parentSplitter = nullptr;
-    void refreshParentLayout();
     QWidget *contentArea = nullptr;
     int animationDuration = 100;
+
+
+    // The contentArea width the current content height was measured at, and whether the card has been
+    // through a real layout pass yet (before that, contentArea is still at its default width).
+    int lastMeasuredWidth = -1;
+    bool hasRealWidth = false;
     QTimer dragTimer;
     QPoint lastPosOfCard;
 };

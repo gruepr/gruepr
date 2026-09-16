@@ -188,16 +188,24 @@ void IdentityRulesDialog::addRow(const QString &identityKey, const QString &oper
     operatorCombo->addItem(tr("does not equal"), "!=");
     operatorCombo->addItem(tr("is less than"), "<");
     operatorCombo->addItem(tr("is greater than"), ">");
-    const int opIndex = operatorCombo->findData(operation);
-    operatorCombo->setCurrentIndex(opIndex >= 0 ? opIndex : 0);
     rulesTable->setCellWidget(row, 1, operatorCombo);
 
     // Column 2: count spinbox
     auto *spinBox = new QSpinBox(this);
     spinBox->setMinimum(0);
-    spinBox->setValue(value);
     spinBox->setStyleSheet(SPINBOXSTYLE);
     rulesTable->setCellWidget(row, 2, spinBox);
+
+    // "is less than 0" would be triggered by every possible count, so that operator needs a minimum
+    // of 1. The user can switch a row's operator at any time, so this has to follow every change --
+    // QSpinBox clamps its current value up to the new minimum on its own.
+    connect(operatorCombo, &QComboBox::currentIndexChanged, this, [operatorCombo, spinBox]() {
+        spinBox->setMinimum(operatorCombo->currentData().toString() == "<" ? 1 : 0);
+    });
+    const int opIndex = operatorCombo->findData(operation);
+    operatorCombo->setCurrentIndex(opIndex >= 0 ? opIndex : 0);
+    spinBox->setMinimum(operatorCombo->currentData().toString() == "<" ? 1 : 0);
+    spinBox->setValue(value);
 
     // Column 3: remove button
     auto *removeButton = new QPushButton(this);

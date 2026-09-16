@@ -7,7 +7,7 @@
 gruepr_version = 13.2.1
 copyright_year = 2019-2026
 
-QT += core gui widgets concurrent network printsupport networkauth designer
+QT += core gui widgets concurrent network printsupport networkauth
 
 # Vendored third-party library for xlsx (Excel) read/write -- see third_party/QXlsx/LICENSE (MIT)
 include(third_party/QXlsx/QXlsx.pri)

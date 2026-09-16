@@ -33,6 +33,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - sped up initial opening of the surveymaker and main team formation windows
+//  - gender and URM criteria cards now display the rules as prose text
 //  - several small UI bugfixes
 //
 // TO DO:

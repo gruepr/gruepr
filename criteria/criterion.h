@@ -26,6 +26,12 @@ public:
 
     using IdentityRule = QMap<QString, QList<int>>;             // A map from a logic operation (e.g., "!=") to a set of values (e.g., 1, 2)
 
+    // Renders one identity rule -- an identity key (which may join several interchangeable identities with '|'),
+    // a logic operation, and a value -- as a plain English sentence. Shared by the gender and racial/ethnic
+    // identity criteria, for both their criteria cards and their instructor export text, so that the wording
+    // used in the two places cannot drift apart.
+    static QString identityRuleText(const QString &identityKey, const QString &operation, int value);
+
     Criterion(CriteriaType criteriaType, float weight = 0, bool penaltyStatus = false, GroupingCriteriaCard *parent = nullptr) :
         weight(weight), penaltyStatus(penaltyStatus), criteriaType(criteriaType), parentCard(parent) {};
     ~Criterion() override = default;

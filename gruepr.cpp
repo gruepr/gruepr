@@ -32,6 +32,7 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QSplitter>
+#include <QTimer>
 #include <QtConcurrentRun>
 
 gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProgressDialog *progressDialog) :
@@ -60,6 +61,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students, QProg
     ui->teamingOptionsScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->teamingOptionsScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->teamingOptionsScrollArea->viewport()->installEventFilter(this);
+    ui->teamingOptionsScrollAreaWidget->installEventFilter(this);
 
     auto *scrollLayout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollArea->widget()->layout());
     scrollLayout->setSpacing(5);
@@ -371,6 +373,11 @@ void gruepr::moveCriteriaCard(int draggedIndex, int targetIndex) {
 
 bool gruepr::eventFilter(QObject *watched, QEvent *event)
 {
+    if((watched == ui->teamingOptionsScrollAreaWidget) && (event->type() == QEvent::Resize)) {
+        // The cards are as wide as the column, so a width change has to re-place them.
+        layoutCriteriaCards();
+    }
+
     if(watched == bottomDropZone) {
         if(event->type() == QEvent::DragEnter) {
             auto *e = static_cast<QDragEnterEvent*>(event);
@@ -422,10 +429,13 @@ void gruepr::showDropIndicator(int targetIndex) {
             dropIndicator->show();
         }
     }
+
+    layoutCriteriaCards();   // the indicator was just inserted, so it has no geometry yet
 }
 
 void gruepr::showBottomDropZone() {
     bottomDropZone->show();
+    layoutCriteriaCards();   // the drop zone was hidden, so it took no room until now
 }
 
 void gruepr::hideDropIndicator() {
@@ -438,6 +448,7 @@ void gruepr::hideDropIndicator() {
     }
     dropIndicator->hide();
     bottomDropZone->hide();
+    layoutCriteriaCards();   // close the gaps they were occupying
 }
 
 void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType)
@@ -623,11 +634,8 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
 void gruepr::refreshCriteriaLayout()
 {
     auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
-    while (layout->count() > 1) {
-        auto *item = layout->takeAt(1);
-        if(item->spacerItem() != nullptr) {
-            delete item;
-        }
+    while (QLayoutItem *item = layout->takeAt(0)) {
+        delete item;
     }
     for(auto *const criteriaCard : std::as_const(criteriaCardsList)) {
         if(criteriaCard->criterion->precedence == Criterion::Precedence::fixed) {
@@ -638,12 +646,62 @@ void gruepr::refreshCriteriaLayout()
             criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE +
                                         DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
-        criteriaCard->setVisible(true);
         layout->addWidget(criteriaCard);
+        criteriaCard->setVisible(true);
     }
     layout->addWidget(bottomDropZone);
     layout->addWidget(addNewCriteriaCardButton);
-    layout->addStretch(1);
+
+    // The layout is kept only to own the widgets and hold their order -- placement is ours
+    layout->setEnabled(false);
+    layoutCriteriaCards();
+    QTimer::singleShot(0, this, &gruepr::layoutCriteriaCards);
+}
+
+void gruepr::layoutCriteriaCards()
+{
+    QWidget *column = ui->teamingOptionsScrollAreaWidget;
+    QLayout *items = column->layout();
+    if(items == nullptr) {
+        return;
+    }
+
+    static bool placing = false;
+    static bool anotherPassRequested = false;
+    if(placing) {
+        anotherPassRequested = true;
+        return;
+    }
+    placing = true;
+
+    const int maxPasses = 4;
+    for(int pass = 0; pass < maxPasses; pass++) {
+        anotherPassRequested = false;
+
+        const QMargins margins = items->contentsMargins();
+        const int x = margins.left();
+        const int width = column->width() - margins.left() - margins.right();
+        int y = margins.top();
+        for(int i = 0; i < items->count(); i++) {
+            QWidget *widget = items->itemAt(i)->widget();
+            if((widget == nullptr) || widget->isHidden()) {
+                continue;   // spacers and the hidden drop zone / drop indicator take no room
+            }
+            const int hint = (widget->sizeHint().height() > 0) ? widget->sizeHint().height() : widget->height();
+            const int height = qBound(widget->minimumHeight(), hint, widget->maximumHeight());
+            widget->setGeometry(x, y, width, height);
+            y += height + items->spacing();
+        }
+
+        column->setFixedHeight(std::max(y - items->spacing() + margins.bottom(), 0));
+
+        if(!anotherPassRequested) {
+            break;
+        }
+    }
+
+    anotherPassRequested = false;
+    placing = false;
 }
 
 ////////////////////

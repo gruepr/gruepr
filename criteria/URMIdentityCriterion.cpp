@@ -55,14 +55,21 @@ void URMIdentityCriterion::updateRuleCountLabel() const
         return;
     }
 
-    int count = 0;
+    QStringList ruleTexts;
     for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
         for (const auto [operation, values] : valMap.asKeyValueRange()) {
-            count += values.size();
+            for (const auto value : values) {
+                ruleTexts << identityRuleText(identityKey, operation, value);
+            }
         }
     }
-    ruleCountLabel->setText(count == 0 ? tr("No rules set")
-                                       : QString::number(count) + (count == 1 ? tr(" rule set") : tr(" rules set")));
+    ruleCountLabel->setText(ruleTexts.isEmpty() ? tr("No rules set") : ruleTexts.join('\n'));
+
+    // The rule list grows and shrinks as rules are added and removed, but the card measures its
+    // content height only once, at construction -- so it has to be told to measure again.
+    if (parentCard != nullptr) {
+        parentCard->refreshContentHeight();
+    }
 }
 
 void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
@@ -76,6 +83,7 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const /*teamingO
     urmContentLayout->addWidget(editRulesButton);
 
     ruleCountLabel = new QLabel(parentCard);
+    ruleCountLabel->setWordWrap(true);
     urmContentLayout->addWidget(ruleCountLabel);
 
     parentCard->setContentAreaLayout(*urmContentLayout);
@@ -301,9 +309,7 @@ QString URMIdentityCriterion::exportTeamingOptionText(const TeamingOptions */*te
     for (const auto [identityKey, valMap] : identityRules.asKeyValueRange()) {
         for (const auto [operation, values] : valMap.asKeyValueRange()) {
             for (const auto value : std::as_const(values)) {
-                const QString displayKey = QString(identityKey).replace('|', tr(" or "));
-                text += "\n" + tr("Racial/ethnic identity rule: ") + displayKey + " " +
-                        operation + " " + QString::number(value);
+                text += "\n" + tr("Racial/ethnic identity rule: ") + identityRuleText(identityKey, operation, value);
             }
         }
     }

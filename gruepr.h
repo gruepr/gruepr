@@ -79,6 +79,9 @@ public slots:
     void deleteCriteriaCard(int deletedIndex);
     void doAutoScroll(QPoint point);
     void refreshCriteriaLayout();
+    // Places the criteria cards in the scroll area. The column's QVBoxLayout is kept for ownership
+    // and ordering but disabled, because it would not re-place the cards when one changed height.
+    void layoutCriteriaCards();
     void saveState();
 
 protected:

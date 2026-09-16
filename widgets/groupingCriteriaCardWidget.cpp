@@ -38,6 +38,21 @@
 #include <QPainter>
 #include <QPropertyAnimation>
 
+namespace {
+// Invalidates a layout and every layout nested inside it, depth first. When a widget's contents
+// change, Qt invalidates only the layout installed directly on that widget's parent -- so a layout
+// nested inside it can go on serving cached values, including a stale hasHeightForWidth().
+void invalidateLayoutTree(QLayout *layout)
+{
+    for (int i = 0; i < layout->count(); ++i) {
+        if (QLayout *sub = layout->itemAt(i)->layout()) {
+            invalidateLayoutTree(sub);
+        }
+    }
+    layout->invalidate();
+}
+}
+
 int GroupingCriteriaCard::fixedCardOffset = 0;
 
 GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
@@ -151,6 +166,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     toggleLayout->addWidget(titleLabel);
     toggleButton->installEventFilter(this);
     titleLabel->installEventFilter(this);
+    contentArea->installEventFilter(this);
 
     //dragHandleButton settings
     dragHandleButton->setIcon(QIcon(":/icons_new/drag-handle.png"));
@@ -183,15 +199,21 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     contentArea->setMaximumHeight(0);
     contentArea->setMinimumHeight(0);
 
-    // let the entire widget grow and shrink with its content
+    // Only contentArea is animated. The card's own height follows from its sizeHint (see the Fixed
+    // vertical size policy below), so the column of cards re-packs itself through ordinary layout
+    // invalidation as the content grows or shrinks -- nothing has to reposition the cards by hand.
     toggleAnimation = new QParallelAnimationGroup(this);
-    toggleAnimation->addAnimation(new QPropertyAnimation(this, "minimumHeight"));
-    toggleAnimation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
-    toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
-    connect(toggleAnimation, &QAbstractAnimation::finished, this, [this]() {
-        QTimer::singleShot(animationDuration + 10, this, [this]() {
-            refreshParentLayout();
-        });
+    auto *contentAnimation = new QPropertyAnimation(contentArea, "maximumHeight");
+    toggleAnimation->addAnimation(contentAnimation);
+    // Keeping contentArea's minimum equal to its maximum is what makes the card's sizeHint exact:
+    // QWidgetItem::sizeHint() bounds to the maximum and then expands to the minimum, so with the two
+    // equal the card is always exactly as tall as its header plus its content -- at every frame, and
+    // whether or not the content is word-wrapped (whose height sizeHint() alone underestimates).
+    connect(contentAnimation, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
+        contentArea->setMinimumHeight(value.toInt());
+        // Our sizeHint just changed; nothing infers that from a child's resize, so say so.
+        updateGeometry();
+        emit cardHeightChanged();
     });
 
     priorityOrderLabel = new QLabel;
@@ -247,6 +269,12 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
 
     setLayout(mainVerticalLayout);
     setContentsMargins(2,2,2,2);
+    // Fixed vertically: the column gives this card exactly its sizeHint, which mainVerticalLayout
+    // computes as the header row plus contentArea's current height. Nothing else may set this card's
+    // minimumHeight or maximumHeight -- doing so is what used to leave the column laying out one set
+    // of heights while the cards had another.
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+
     connect(deleteGroupingCriteriaCardButton, &QPushButton::clicked, this, [this](){
         emit deleteCardRequested(priorityOrder);
     });
@@ -274,6 +302,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         connect(this, &GroupingCriteriaCard::criteriaCardMoved, grueprParent, &gruepr::doAutoScroll);
         connect(this, &GroupingCriteriaCard::deleteCardRequested, grueprParent, &gruepr::deleteCriteriaCard);
         connect(this, &GroupingCriteriaCard::includePenaltyStateChanged, grueprParent, &gruepr::refreshCriteriaLayout);
+        connect(this, &GroupingCriteriaCard::cardHeightChanged, grueprParent, &gruepr::layoutCriteriaCards);
     }
 }
 
@@ -312,25 +341,6 @@ void GroupingCriteriaCard::toggle(bool collapsed)
     toggleAnimation->start();
 }
 
-void GroupingCriteriaCard::refreshParentLayout()
-{
-    if (parentSplitter == nullptr) {
-        auto *w = parentWidget();
-        while (w != nullptr && qobject_cast<QSplitter*>(w) == nullptr) {
-            w = w->parentWidget();
-        }
-        parentSplitter = qobject_cast<QSplitter*>(w);
-    }
-    if (parentSplitter != nullptr) {
-        QList<int> sizes = parentSplitter->sizes();
-        static int direction = -1;
-        sizes[0] += direction;
-        sizes[1] -= direction;
-        direction = -direction;
-        parentSplitter->setSizes(sizes);
-    }
-}
-
 //Sets ContentLayout for the contentArea, this function always needs to be called otherwise, the expanded portion does not have a layout
 void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
 {
@@ -363,26 +373,48 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
 
     contentArea->setLayout(mainLayout);
 
-    const int contentHeight = mainLayout->sizeHint().height();
-    const int collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
+    refreshContentHeight();
+}
 
-    for (int i = 0; i < toggleAnimation->animationCount() - 1; ++i) {
-        auto *SectionAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(i));
-        SectionAnimation->setDuration(animationDuration);
-        SectionAnimation->setStartValue(collapsedHeight);
-        SectionAnimation->setEndValue(collapsedHeight + contentHeight);
+void GroupingCriteriaCard::refreshContentHeight()
+{
+    QLayout *layout = contentArea->layout();
+    if (layout == nullptr) {
+        return;
     }
 
-    auto *contentAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(toggleAnimation->animationCount() - 1));
+    // A criterion label's setText() invalidates only its parent widget's layout -- contentArea's
+    // mainLayout -- and not the nested criterion layout the label actually sits in. That nested layout
+    // then keeps serving a stale cache, reporting hasHeightForWidth() == false even though it now
+    // holds a word-wrapped label, which silently skips the wrapped measurement below. Invalidating the
+    // whole tree makes every cached sizeHint and hasHfw flag come from the current contents.
+    invalidateLayoutTree(layout);
+
+    // A word-wrapped label's sizeHint() is its natural multi-line height, which has nothing to do with
+    // the width it actually gets -- on a wide card that overestimates badly (a response label wants 51
+    // or 85px by sizeHint but needs 17 at the card's real width). heightForWidth(w) is by definition
+    // the height needed at width w, so use it outright once the card has been through a real layout
+    // pass. Before that pass contentArea is still at its default 100px width, where measuring wrapped
+    // text is meaningless, so fall back to sizeHint() until then.
+    int contentHeight = layout->sizeHint().height();
+    if (layout->hasHeightForWidth() && hasRealWidth) {
+        contentHeight = layout->heightForWidth(contentArea->width());
+    }
+    lastMeasuredWidth = contentArea->width();
+
+    auto *contentAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(0));
     contentAnimation->setDuration(animationDuration);
     contentAnimation->setStartValue(0);
     contentAnimation->setEndValue(contentHeight);
 
     if (toggleButton->isChecked()) {
+        contentArea->setMinimumHeight(contentHeight);
         contentArea->setMaximumHeight(contentHeight);
-        setMinimumHeight(collapsedHeight + contentHeight);
-        setMaximumHeight(collapsedHeight + contentHeight);
     }
+    // Same as during the animation: the card's height is its sizeHint, and the column has to be told
+    // to re-place everything when it changes.
+    updateGeometry();
+    emit cardHeightChanged();
 }
 
 // Drag and Drop Methods
@@ -417,9 +449,11 @@ void GroupingCriteriaCard::dragStarted() {
         dragPlaceholder->setFixedHeight(height());
         dragPlaceholder->setStyleSheet("background-color: rgba(0, 0, 0, 0.05); border: 2px dashed rgba(0, 0, 0, 0.15); border-radius: 4px;");
         parentLayout->insertWidget(layoutIndex, dragPlaceholder);
+        dragPlaceholder->show();   // a disabled layout won't show it for us
     }
 
     this->hide();  // hide card from layout during drag so the gap appears naturally
+    emit cardHeightChanged();   // the placeholder replaced this card, so re-place the column
     emit dragStarting();
     drag->exec(Qt::MoveAction);
 
@@ -430,7 +464,8 @@ void GroupingCriteriaCard::dragStarted() {
     }
 
     QApplication::restoreOverrideCursor();
-    this->show();  // restore visibility after drag ends (refreshCriteriaLayout will reposition)
+    this->show();  // restore visibility after drag ends
+    emit cardHeightChanged();   // the placeholder is gone and this card is back
     emit dragFinished();
 }
 
@@ -522,47 +557,27 @@ void GroupingCriteriaCard::stopDragTimer()
     dragTimer.stop();
 }
 
-// --------------------------------------------------------------------------------
-//                          QCustomWidget needed methods
-// --------------------------------------------------------------------------------
-
-QString GroupingCriteriaCard::name() const {
-    return title;
-}
-
-QString GroupingCriteriaCard::includeFile() const {
-    return "groupingCriteriaCardWidget.h";
-}
-
-QString GroupingCriteriaCard::group() const {
-    return tr("Containers");
-}
-
-QIcon GroupingCriteriaCard::icon() const {
-    return {};
-}
-
-QString GroupingCriteriaCard::toolTip() const {
-    return tr("Collapsible and expandable section");
-}
-
-QString GroupingCriteriaCard::whatsThis() const
+void GroupingCriteriaCard::showEvent(QShowEvent *event)
 {
-    return tr("A collapsible and expandable section widget");
-}
-
-bool GroupingCriteriaCard::isContainer() const
-{
-    return true;
-}
-
-QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
-{
-    return new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, nullptr, nullptr, parent);
+    QFrame::showEvent(event);
+    QTimer::singleShot(0, this, [this]() {
+        refreshContentHeight();
+    });
 }
 
 bool GroupingCriteriaCard::eventFilter(QObject *watched, QEvent *event)
 {
+    if (watched == contentArea && event->type() == QEvent::Resize) {
+        // Wrapped content's height depends on its width, so a width change makes the animation
+        // endpoints baked in by refreshContentHeight() stale. Deliberately keyed on width alone:
+        // refreshContentHeight() sets contentArea's own height, so reacting to height changes here
+        // would recurse.
+        hasRealWidth = true;
+        if (contentArea->width() != lastMeasuredWidth) {
+            refreshContentHeight();
+        }
+    }
+
     if (watched == toggleButton || watched == titleLabel) {
         if (event->type() == QEvent::Enter) {
             toggleButton->setStyleSheet(R"(
