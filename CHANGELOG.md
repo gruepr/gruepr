@@ -1,3 +1,9 @@
+## v13.2.1 — 2026-09-17
+
+- sped up initial display of the surveymaker and main team formation windows
+- gender and URM criteria cards now display the rules as prose text
+- several small UI bugfixes
+
 ## v13.2.0 — 2026-09-03
 
 - Added complex finalizing stage to improve the best genome after the genetic algorithm completes
