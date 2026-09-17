@@ -32,7 +32,7 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - sped up initial opening of the surveymaker and main team formation windows
+//  - sped up initial display of the surveymaker and main team formation windows
 //  - gender and URM criteria cards now display the rules as prose text
 //  - several small UI bugfixes
 //
@@ -47,8 +47,6 @@
 //
 //    INTERNAL:
 //  - move required / separated attributes into distinct criteria?
-//  - compile for webassembly, turn into a webapp
-//      - move from OpenMP to QThread or c++ threads?
 //  - move the teammates rules from studentrecord.groupTogether & .splitApart to living in the teammatescriterion
 //      - can then remove gruepr* from teammatescriterion.cpp
 //
