@@ -3,6 +3,8 @@
 #include <QElapsedTimer>
 #include <QGraphicsOpacityEffect>
 #include <QGridLayout>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMetaEnum>
 #include <QPropertyAnimation>
 #include <QTimer>
@@ -49,17 +51,47 @@ bool LMS::authenticated()
     return OAuthFlow->status() == QAbstractOAuth::Status::Granted;
 }
 
-QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data)
+QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data, const QByteArray &contentType)
 {
     lastErrorMessage.clear();
 
     QNetworkRequest request(url);
     request.setRawHeader("Authorization", "Bearer " + OAuthFlow->token().toUtf8());
+    if(!contentType.isEmpty()) {
+        request.setHeader(QNetworkRequest::ContentTypeHeader, contentType);
+    }
+    if(method == Method::post) {
+        request.setTransferTimeout(POST_TIMEOUT_TIME);
+    }
+
+    // a failure is retryable only if it's transient: HTTP 403/408/429/5xx, or a network-level failure with no HTTP status at all;
+    // (403 is included because Google/Canvas both also use it for transient rate-limiting, not only permanent permission errors)
+    // but a POST that timed out is NOT retried, since the server may have already committed a non-idempotent request
+    auto isRetryable = [method](QNetworkReply *reply) {
+        if(method == Method::del) {
+            return false;   // best-effort cleanup only (currently just deleteOrphanedForm); no user-visible
+                             // benefit to retrying, since a failed cleanup never changes what's shown to the user
+        }
+        const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if((httpStatus == 403) || (httpStatus == 408) || (httpStatus == 429) || ((httpStatus >= 500) && (httpStatus < 600))) {
+            return true;
+        }
+        if(httpStatus != 0) {
+            return false;
+        }
+        const bool isTimeout = (reply->error() == QNetworkReply::TimeoutError) || (reply->error() == QNetworkReply::OperationCanceledError);
+        if((method == Method::post) && isTimeout) {
+            return false;
+        }
+        return true;
+    };
 
     QElapsedTimer deadline;
     deadline.start();
 
-    auto *reply = (method == Method::get) ? manager->get(request) : manager->post(request, data);
+    auto *reply = (method == Method::get) ? manager->get(request) :
+                  (method == Method::post) ? manager->post(request, data) :
+                                              manager->deleteResource(request);
     QEventLoop loop;
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
@@ -73,7 +105,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
              << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();*/
 
     int attempt = 1;
-    while((reply->error() != QNetworkReply::NoError) && (attempt < NUM_RETRIES_BEFORE_ABORT)) {
+    while((reply->error() != QNetworkReply::NoError) && (attempt < NUM_RETRIES_BEFORE_ABORT) && isRetryable(reply)) {
         //qDebug() << reply->errorString();
         //qDebug() << "attempt " << attempt << " of " << url << " failed. Retrying.";
         if(deadline.elapsed() >= OVERALL_TIMEOUT) {
@@ -87,11 +119,14 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         reply->deleteLater();
         emit retrying(++attempt);
 
+        const int retryDelay = RETRY_DELAY_TIME << (attempt - 2);   // 500ms, 1s, 2s, 4s, ...
         QEventLoop delayLoop;
-        QTimer::singleShot(RETRY_DELAY_TIME, &delayLoop, &QEventLoop::quit);
+        QTimer::singleShot(retryDelay, &delayLoop, &QEventLoop::quit);
         delayLoop.exec();
 
-        reply = (method == Method::get) ? manager->get(request) : manager->post(request, data);
+        reply = (method == Method::get) ? manager->get(request) :
+                (method == Method::post) ? manager->post(request, data) :
+                                            manager->deleteResource(request);
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
         //connect(reply, &QNetworkReply::uploadProgress, this, [](qint64 bytesSent, qint64 bytesTotal){qDebug() << "upload " << bytesSent <<" / " << bytesTotal;});
@@ -112,13 +147,21 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         return {};
     }
 
-    if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
+    const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    const bool isSuccessStatus = (httpStatus >= 200) && (httpStatus < 300);
+    if((reply->error() != QNetworkReply::NoError) || ((reply->bytesAvailable() == 0) && !isSuccessStatus)) {
         lastErrorMessage = reply->errorString();
         lastErrorMessage.replace(" - ", "\n");
-        const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if(httpStatus != 0) {
             const QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
             lastErrorMessage += " (" + tr("HTTP status") + " " + QString::number(httpStatus) + (httpReason.isEmpty() ? "" : (" " + httpReason)) + ")";
+        }
+        const QByteArray errorBody = reply->readAll();
+        // best-effort extraction of a Google-style {"error":{"message":...}} body; harmless no-op for other
+        // LMS subclasses (e.g. Canvas) whose error JSON isn't shaped this way, since this class is their shared base
+        const QString jsonErrorMessage = QJsonDocument::fromJson(errorBody).object()["error"].toObject()["message"].toString();
+        if(!jsonErrorMessage.isEmpty()) {
+            lastErrorMessage += "\n" + jsonErrorMessage;
         }
         //qDebug() << "**** failed or empty reply";
         emit requestFailed(reply->error(), url);

@@ -10,7 +10,7 @@ class GoogleHandler : public LMS
     Q_OBJECT
 
     struct GoogleFormQuestion {QString ID = ""; QString text = ""; enum class Type{notSchedule, schedule} type = Type::notSchedule;};
-    struct GoogleForm {QString name = ""; QString ID = ""; QString createdTime = ""; QUrl responderURL = {};};
+    struct GoogleForm {QString name = ""; QString ID = ""; QString createdTime = ""; QUrl responderURL = {}; bool published = false;};
 
 public:
     GoogleHandler(QWidget *parent = nullptr);
@@ -31,6 +31,8 @@ public:
 private:
     void postToGoogleGetSingleResult(const QString &URL, const QByteArray &postData, const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                                                      const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals);
+    static QStringList dedupedNonBlankOptions(const QStringList &options);
+    void deleteOrphanedForm(const QString &formID);
 
     QList<GoogleForm> formsList;
     QString accountName;

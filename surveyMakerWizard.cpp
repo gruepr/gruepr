@@ -146,7 +146,9 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             }
 
             if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble()) {
-                const int numAttributeQuestions = loadObject["numAttributes"].toInt();
+                // clamp to MAX_ATTRIBUTES - 1, the actual usable limit (AttributePage's internal arrays are sized for MAX_ATTRIBUTES - 1 questions,
+                // matching where its own "create another question" button locks out further additions)
+                const int numAttributeQuestions = std::max(0, std::min(loadObject["numAttributes"].toInt(), MAX_ATTRIBUTES - 1));
                 setField("attributeNumQuestions", numAttributeQuestions);   // need to set the number before setting the texts, responses, or multis
                 QList<QString> attributeQuestionTexts;
                 QList<QList<QString>> multiChoiceQuestionResponses;
@@ -289,7 +291,11 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             loadFile.close();
 
             while(currentId() != SurveyMakerWizard::Page::previewexport) {
+                const int idBeforeNext = currentId();
                 next();
+                if(currentId() == idBeforeNext) {
+                    break;   // a page's validatePage() refused to advance (e.g. "Go back" was chosen); stop fast-forwarding
+                }
             }
         }
         else {
@@ -2945,7 +2951,15 @@ void PreviewAndExportPage::cleanupPage()
     wiz->setButtonLayout(buttonLayout);
     wiz->button(QWizard::NextButton)->setStyleSheet(NEXTBUTTONSTYLE);
     connect(wiz, &QWizard::customButtonClicked, this, [this](int customButton)
-            {if(customButton == QWizard::CustomButton2) {while(wizard()->currentId() != SurveyMakerWizard::Page::previewexport) {wizard()->next();}}});
+            {if(customButton == QWizard::CustomButton2) {
+                while(wizard()->currentId() != SurveyMakerWizard::Page::previewexport) {
+                    const int idBeforeNext = wizard()->currentId();
+                    wizard()->next();
+                    if(wizard()->currentId() == idBeforeNext) {
+                        break;   // a page's validatePage() refused to advance (e.g. "Go back" was chosen); stop fast-forwarding
+                    }
+                }
+            }});
 }
 
 //////////////////////////////////
@@ -3202,12 +3216,13 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
     auto *busyBox = google->actionDialog(this);
     const auto form = google->createSurvey(survey.data());
     const bool fail = form.name.isEmpty();
+    const QString lastErrorMessage = google->lastErrorMessage;
 
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = google->actionDialogIcon->size();
     google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     const QString resultText = fail ? (tr("Error. Survey not created.") +
-                                       (google->lastErrorMessage.isEmpty() ? "" : ("<br><br><code>" + google->lastErrorMessage + "</code>")))
+                                       (lastErrorMessage.isEmpty() ? "" : ("<br><br><code>" + lastErrorMessage + "</code>")))
                                     : tr("Survey created");
     google->actionDialogLabel->setText(resultText);
     QEventLoop loop;
@@ -3218,6 +3233,11 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
     google->deleteLater();
 
     if(fail) {
+        QString errormsg = tr("Error. Survey not created.");
+        if(!lastErrorMessage.isEmpty()) {
+            errormsg += "<br><br>" + tr("Error message:") + " <code>" + lastErrorMessage + "</code>";
+        }
+        grueprGlobal::errorMessage(this, tr("Error"), errormsg);
         return;
     }
 
@@ -3226,24 +3246,40 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
     successDialog->setTextFormat(Qt::RichText);
     successDialog->setTextInteractionFlags(Qt::TextBrowserInteraction);
     const QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
-    successDialog->setText(tr("Success! Survey created.<br><br>"
-                              "If you'd like to preview or edit the survey, find it in your")
-                           + " <a href='https://drive.google.com'>Google Drive</a> "
-                             "<img height=\""
-                           + textheight + "\" width=\"" + textheight
-                           + R"(" src=":/icons_new/external-link.png">. )"
-                           + tr("If you wish, you can modify:"
-                                "<ul>"
-                                "<li>the survey title</li>"
-                                "<li>the instructions shown at the top of the survey</li>"
-                                "<li>the \"description text\" shown with any of the questions</li>"
-                                "</ul>"
-                                "Changing the order of the questions or the wording of a question in any "
-                                "other way is not recommended.<br><br>"
-                                "Students should fill out the survey by going to the following "
-                                "URL:<br><strong>")
-                           + form.responderURL.toEncoded()
-                           + tr("</strong><br>You can copy this URL to your clipboard with the button below."));
+    if(form.published) {
+        successDialog->setText(tr("Success! Survey created.<br><br>"
+                                  "If you'd like to preview or edit the survey, find it in your")
+                               + " <a href='https://drive.google.com'>Google Drive</a> "
+                                 "<img height=\""
+                               + textheight + "\" width=\"" + textheight
+                               + R"(" src=":/icons_new/external-link.png">. )"
+                               + tr("If you wish, you can modify:"
+                                    "<ul>"
+                                    "<li>the survey title</li>"
+                                    "<li>the instructions shown at the top of the survey</li>"
+                                    "<li>the \"description text\" shown with any of the questions</li>"
+                                    "</ul>"
+                                    "Changing the order of the questions or the wording of a question in any "
+                                    "other way is not recommended.<br><br>"
+                                    "Students should fill out the survey by going to the following "
+                                    "URL:<br><strong>")
+                               + form.responderURL.toEncoded()
+                               + tr("</strong><br>You can copy this URL to your clipboard with the button below."));
+    }
+    else {
+        successDialog->setText(tr("The survey was created, but it could not be published, so students cannot respond to it yet.<br><br>"
+                                  "Please open it in your")
+                               + " <a href='https://drive.google.com'>Google Drive</a> "
+                                 "<img height=\""
+                               + textheight + "\" width=\"" + textheight
+                               + R"(" src=":/icons_new/external-link.png">)"
+                               + tr(", find this survey, and click <strong>Publish</strong> before sending the link below to your students.<br><br>"
+                                    "Once published, students can fill out the survey by going to the following "
+                                    "URL:<br><strong>")
+                               + form.responderURL.toEncoded()
+                               + tr("</strong><br>You can copy this URL to your clipboard with the button below.")
+                               + (lastErrorMessage.isEmpty() ? "" : ("<br><br>" + tr("Error message:") + " <code>" + lastErrorMessage + "</code>")));
+    }
     successDialog->setStandardButtons(QMessageBox::Ok);
     auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
     copyButton->setStyleSheet(copyButton->styleSheet() + QString(BIGTOOLTIPSTYLE).replace("background-color: white;", "background-color: green;"));
@@ -3284,7 +3320,7 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     if(canvasCourses.isEmpty()) {
         QString errormsg = tr("Canvas is responding with no courses available.");
         if(!canvas->lastErrorMessage.isEmpty()) {
-            errormsg += "<br><br>" + tr("Error message:") + "<code>" + canvas->lastErrorMessage + "</code>";
+            errormsg += "<br><br>" + tr("Error message:") + " <code>" + canvas->lastErrorMessage + "</code>";
         }
         grueprGlobal::errorMessage(this, tr("Error"), errormsg);
         canvas->deleteLater();

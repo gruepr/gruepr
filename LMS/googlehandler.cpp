@@ -237,6 +237,7 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         const QString questionAddendum = question.type == Question::QuestionType::freeresponsenumber? (QString("  (") + WRITEANUMBER) + ".)" : "";
         QJsonObject item;
         item["title"] = question.text.simplified() + questionAddendum;
+        bool skipThisQuestion = false;
         switch(question.type) {
         case Question::QuestionType::shorttext:
         case Question::QuestionType::longtext:
@@ -253,6 +254,11 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         case Question::QuestionType::dropdown:
         case Question::QuestionType::radiobutton:
         case Question::QuestionType::checkbox: {
+            const QStringList filteredOptions = dedupedNonBlankOptions(question.options);
+            if(filteredOptions.isEmpty()) {
+                skipThisQuestion = true;
+                break;
+            }
             QJsonObject questionItem;
             QJsonObject questionBody;
             questionBody["required"] = false;
@@ -261,12 +267,9 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
                                 (question.type == Question::QuestionType::radiobutton ? "RADIO" : "CHECKBOX"));
             kind["shuffle"] = false;
             QJsonArray responseOptions;
-            for(const auto &option : question.options) {
-                if((question.type == Question::QuestionType::dropdown) && (option.simplified().isEmpty())) { // google doesn't like blank options in a dropdown
-                    continue;
-                }
+            for(const auto &option : filteredOptions) {
                 QJsonObject responseOption;
-                responseOption["value"] = option.simplified();
+                responseOption["value"] = option;
                 responseOption["isOther"] = false;
                 responseOptions << responseOption;
             }
@@ -306,6 +309,11 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
             item["questionGroupItem"] = questionGroupItem;
             break;}
         case Question::QuestionType::rankedchoice: {
+            const QStringList filteredOptions = dedupedNonBlankOptions(question.options);
+            if(filteredOptions.isEmpty()) {
+                skipThisQuestion = true;
+                break;
+            }
             // Create k separate dropdown questions, one per rank
             for(int rank = 0; rank < question.numRankedChoices; rank++) {
                 if(rank > 0) {
@@ -332,9 +340,9 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
                 kind["type"] = "DROP_DOWN";
                 kind["shuffle"] = false;
                 QJsonArray responseOptions;
-                for(const auto &option : question.options) {
+                for(const auto &option : filteredOptions) {
                     QJsonObject responseOption;
-                    responseOption["value"] = option.simplified();
+                    responseOption["value"] = option;
                     responseOption["isOther"] = false;
                     responseOptions << responseOption;
                 }
@@ -344,6 +352,9 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
                 item["questionItem"] = questionItem;
             }
             break;}
+        }
+        if(skipThisQuestion) {
+            continue;
         }
         newQuestion["item"] = item;
         QJsonObject createItem;
@@ -371,25 +382,26 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
                                 {}, stringParams,
                                 {"writeControl/requiredRevisionId"}, stringInSubobjectParams);
     if(revisionIDinList.isEmpty()) {
+        deleteOrphanedForm(formID);
         return {};
     }
     revisionID = revisionIDinList.constFirst();
     if(revisionID.isEmpty()) {
+        deleteOrphanedForm(formID);
         return {};
     }
 
     //publish the form so that responders can access it (required for forms created by API after June 2026)
     url = "https://forms.googleapis.com/v1/forms/" + formID + ":setPublishSettings";
     QJsonObject publishBody;
+    QJsonObject publishState;
+    publishState["isPublished"] = true;
+    publishState["isAcceptingResponses"] = true;
     QJsonObject publishSettings;
-    publishSettings["isPublished"] = true;
-    publishSettings["isAcceptingResponses"] = true;
+    publishSettings["publishState"] = publishState;
     publishBody["publishSettings"] = publishSettings;
-    QList<QStringList*> noStringVals;
-    QList<QStringList*> noSubobjectVals;
-    postToGoogleGetSingleResult(url, QJsonDocument(publishBody).toJson(),
-                                {}, noStringVals,
-                                {}, noSubobjectVals);
+    const auto publishReplyBody = httpRequest(Method::post, url, QJsonDocument(publishBody).toJson(), "application/json");
+    const bool published = lastErrorMessage.isEmpty() && !publishReplyBody.isEmpty();
 
     // append this survey to the saved values
     QSettings settings;
@@ -405,7 +417,7 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
     settings.setValue("accountName", accountName);
     settings.endArray();
 
-    return {title, formID, currTime, QUrl(surveySubmissionURL)};
+    return {title, formID, currTime, QUrl(surveySubmissionURL), published};
 }
 
 // function below sends the Google Form to a 'finalize script' to set some options not available currently in Forms API
@@ -583,8 +595,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
                                                 const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
-    OAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
-    const auto replyBody = httpRequest(Method::post, URL, postData);
+    const auto replyBody = httpRequest(Method::post, URL, postData, "application/json");
 
     if(replyBody.isEmpty()) {
         return;
@@ -615,6 +626,24 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
             *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
         }
     }
+}
+
+QStringList GoogleHandler::dedupedNonBlankOptions(const QStringList &options) {
+    QStringList result;
+    for(const auto &option : options) {
+        const QString simplifiedOption = option.simplified();
+        if(!simplifiedOption.isEmpty()) {
+            result << simplifiedOption;
+        }
+    }
+    result.removeDuplicates();
+    return result;
+}
+
+void GoogleHandler::deleteOrphanedForm(const QString &formID) {
+    const QString originalErrorMessage = lastErrorMessage;
+    httpRequest(Method::del, "https://www.googleapis.com/drive/v3/files/" + formID);
+    lastErrorMessage = originalErrorMessage;   // a failed cleanup should not change the error shown to the user
 }
 
 QSet<QByteArray> GoogleHandler::getScopes() const {

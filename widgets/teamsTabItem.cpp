@@ -1223,7 +1223,7 @@ void TeamsTabItem::postTeamsToCanvas()
     if(canvasCourses.isEmpty()) {
         QString errormsg = tr("Canvas is responding with no courses available.");
         if(!canvas->lastErrorMessage.isEmpty()) {
-            errormsg += "<br><br>" + tr("Error message:") + "<code>" + canvas->lastErrorMessage + "</code>";
+            errormsg += "<br><br>" + tr("Error message:") + " <code>" + canvas->lastErrorMessage + "</code>";
         }
         grueprGlobal::errorMessage(this, tr("Error"), errormsg);
         canvas->deleteLater();

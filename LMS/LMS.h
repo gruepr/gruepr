@@ -52,8 +52,8 @@ protected:
     void initOAuth2();
     virtual bool authenticate();
     bool authenticated();
-    enum class Method{get, post};
-    QByteArray httpRequest(const Method method, const QUrl &url, const QByteArray &data = "");
+    enum class Method{get, post, del};
+    QByteArray httpRequest(const Method method, const QUrl &url, const QByteArray &data = "", const QByteArray &contentType = "");
 
     QOAuth2AuthorizationCodeFlow *OAuthFlow = nullptr;
     QNetworkAccessManager *manager = nullptr;
@@ -74,7 +74,8 @@ protected:
     inline static const QSize ICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
     inline static const int TIMEOUT_TIME = 5000;   //msec
-    inline static const int RETRY_DELAY_TIME = 100;  //msec, delay time before retrying a GET or POST following an error returned
+    inline static const int POST_TIMEOUT_TIME = 15000;   //msec, transfer timeout for POSTs (larger requests, e.g. Google Forms batchUpdate, need more than TIMEOUT_TIME)
+    inline static const int RETRY_DELAY_TIME = 500;  //msec, base delay before retrying a GET or POST following an error returned; doubles with each subsequent retry
     inline static const int OVERALL_TIMEOUT = 30000;   //msec, total time for all retries of a single httpRequest before giving up
     inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
     inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT) + "/"};

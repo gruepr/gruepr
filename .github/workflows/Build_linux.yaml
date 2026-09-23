@@ -12,7 +12,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.9.1'
+        version: '6.9.3'
         host: 'linux'
         target: 'desktop'
         arch: 'linux_gcc_64'
