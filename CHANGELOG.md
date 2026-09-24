@@ -1,3 +1,8 @@
+## v13.2.2 — 2026-09-24
+
+- several bugfixes to Google Forms API
+- updated Qt to v6.9.3
+
 ## v13.2.1 — 2026-09-17
 
 - sped up initial display of the surveymaker and main team formation windows
