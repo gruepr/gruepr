@@ -360,6 +360,12 @@ public:
     void cleanupPage() override;
 
     /**
+     * @brief validatePage Makes sure that the user is aware if the schedule question has no time slots or no days selected.
+     * @return True or false depending on what the user wants after double checking thanks to warning displayed by this method.
+     */
+    bool validatePage() override;
+
+    /**
      * @brief setDayNames Responsible for the weekdays the user wants on this page of their survey.
      * @param newDayNames A list of strings corresponding to weekday names.
      */

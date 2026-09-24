@@ -63,7 +63,7 @@ bool GoogleHandler::authenticate() {
         const auto json_doc = QJsonDocument::fromJson(reply);
         const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
         if(id_token.size() == 3) {
-            const auto id_token_JWTPayload = QJsonDocument::fromJson(QByteArray::fromBase64(id_token.at(1).toUtf8())).object();
+            const auto id_token_JWTPayload = QJsonDocument::fromJson(QByteArray::fromBase64(id_token.at(1).toUtf8(), QByteArray::Base64UrlEncoding)).object();
             accountName = id_token_JWTPayload["email"].toString();
         }
     });
@@ -237,7 +237,7 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
         const QString questionAddendum = question.type == Question::QuestionType::freeresponsenumber? (QString("  (") + WRITEANUMBER) + ".)" : "";
         QJsonObject item;
         item["title"] = question.text.simplified() + questionAddendum;
-        bool skipThisQuestion = false;
+        bool skipThisQuestion = question.text.simplified().isEmpty();
         switch(question.type) {
         case Question::QuestionType::shorttext:
         case Question::QuestionType::longtext:
@@ -279,6 +279,10 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
             item["questionItem"] = questionItem;
             break;}
         case Question::QuestionType::schedule: {
+            if(survey->schedTimeNames.isEmpty() || survey->schedDayNames.isEmpty()) {
+                skipThisQuestion = true;
+                break;
+            }
             item["description"] = "You may need to scroll to see all columns (" + survey->schedTimeNames.first() +
                                                                          " to " + survey->schedTimeNames.last() + ").";
             QJsonObject questionGroupItem;
@@ -314,6 +318,7 @@ GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey
                 skipThisQuestion = true;
                 break;
             }
+            skipThisQuestion = false;
             // Create k separate dropdown questions, one per rank
             for(int rank = 0; rank < question.numRankedChoices; rank++) {
                 if(rank > 0) {

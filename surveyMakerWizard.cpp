@@ -231,10 +231,10 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             }
             setField("scheduleDayNames", scheduleDayNames);
             if(loadObject.contains("scheduleStartHour") && loadObject["scheduleStartHour"].isDouble()) {
-                setField("scheduleFrom", loadObject["scheduleStartHour"].toInt());
+                setField("scheduleFrom", loadObject["scheduleStartHour"].toDouble());
             }
             if(loadObject.contains("scheduleEndHour") && loadObject["scheduleEndHour"].isDouble()) {
-                setField("scheduleTo", loadObject["scheduleEndHour"].toInt());
+                setField("scheduleTo", loadObject["scheduleEndHour"].toDouble());
             }
             if(loadObject.contains("scheduleResolution") && loadObject["scheduleResolution"].isDouble()) {
                 setField("scheduleResolution", loadObject["scheduleResolution"].toInt());
@@ -853,7 +853,7 @@ bool AttributePage::validatePage()
 {
     int attributeQuestionsWOQuestionText = 0, attributeQuestionsWOResponses = 0;
     for(int questionNum = 0; questionNum < numQuestions; questionNum++) {
-        if(attributeQuestions[questionNum]->getQuestion().isEmpty()) {
+        if(attributeQuestions[questionNum]->getQuestion().simplified().isEmpty()) {
             attributeQuestionsWOQuestionText++;
         }
         if(attributeQuestions[questionNum]->getResponses() == QStringList({""})) {
@@ -1473,6 +1473,41 @@ SchedulePage::SchedulePage(QWidget *parent)
 
 void SchedulePage::cleanupPage()
 {
+}
+
+bool SchedulePage::validatePage()
+{
+    if(!questions[schedule]->getValue()) {
+        return true;
+    }
+
+    if(getScheduleTo() < getScheduleFrom()) {
+        const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                                tr("The schedule question's \"to\" time is earlier than its \"from\" time,\n"
+                                                                   "so there would be no time slots to ask about.\n"),
+                                                                tr("Continue"), tr("Go back"));
+        if(!continueOrNah) {
+            return false;
+        }
+    }
+
+    bool anyDaySelected = false;
+    for(const auto &dayName : dayNames) {
+        if(!dayName.isEmpty()) {
+            anyDaySelected = true;
+            break;
+        }
+    }
+    if(!anyDaySelected) {
+        const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                                tr("You have not selected any days for the schedule question.\n"),
+                                                                tr("Continue"), tr("Go back"));
+        if(!continueOrNah) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void SchedulePage::setDayNames(const QStringList &newDayNames)
@@ -2236,7 +2271,7 @@ bool FreeResponsePage::validatePage()
 {
     int freeResponsePageWOQuestionText = 0;
     for(int questionNum = 0; questionNum < numQuestions; questionNum++) {
-        if(freeResponseQuestions[questionNum]->getQuestion().isEmpty()) {
+        if(freeResponseQuestions[questionNum]->getQuestion().simplified().isEmpty()) {
             freeResponsePageWOQuestionText++;
         }
     }
@@ -2598,7 +2633,7 @@ void PreviewAndExportPage::initializePage()
 
     int actualNumAttributeQuestions = 0;
     for(int questionNum = 0; questionNum < attributeNumQuestions; questionNum++) {
-        if(!attributeQuestionTexts[questionNum].isEmpty()) {
+        if(!attributeQuestionTexts[questionNum].simplified().isEmpty()) {
             actualNumAttributeQuestions++;
             section[SurveyMakerWizard::attribute]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
             section[SurveyMakerWizard::attribute]->questionLabel[questionNum]->show();
@@ -2679,7 +2714,7 @@ void PreviewAndExportPage::initializePage()
         const QStringList assignmentOptions = field("assignmentOptions").toStringList();
         const int numRankedChoices = field("numRankedChoices").toInt();
         const QString questionText = field("assignmentPreferenceQuestionText").toString();
-        const QString displayText = questionText.isEmpty() ? ASSIGNMENTPREFERENCEQUESTION : questionText;
+        const QString displayText = questionText.simplified().isEmpty() ? ASSIGNMENTPREFERENCEQUESTION : questionText;
 
         section[SurveyMakerWizard::assignmentpreference]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::assignmentpreference]->questionLabel[0]->setText(displayText);
@@ -2908,7 +2943,7 @@ void PreviewAndExportPage::initializePage()
 
     int actualNumFreeResponseQuestions = 0;
     for(int questionNum = 0; questionNum < freeResponseNumQuestions; questionNum++) {
-        if(!freeResponseQuestionTexts[questionNum].isEmpty()) {
+        if(!freeResponseQuestionTexts[questionNum].simplified().isEmpty()) {
             actualNumFreeResponseQuestions++;
             section[SurveyMakerWizard::freeresponse]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
             section[SurveyMakerWizard::freeresponse]->questionLabel[questionNum]->show();
@@ -3056,8 +3091,8 @@ void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
                 saveObject[dayString1] = !dayNames[day].isEmpty();
                 saveObject[dayString2] = dayNames[day];
             }
-            saveObject["scheduleStartHour"] = field("scheduleFrom").toInt();
-            saveObject["scheduleEndHour"] = field("scheduleTo").toInt();
+            saveObject["scheduleStartHour"] = field("scheduleFrom").toDouble();
+            saveObject["scheduleEndHour"] = field("scheduleTo").toDouble();
             saveObject["scheduleResolution"] = field("scheduleResolution").toInt();
             saveObject["scheduleTimeFormat"] = field("scheduleTimeFormat").toInt();
             saveObject["Section"] = field("Section").toBool();
