@@ -628,11 +628,10 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
         //find the timezone as attribute value so that -1 can show as unknown timezone
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
             if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
-                // Use the discrete sentinel (-1 = unknown) to gate display,
-                // but read the actual value from attributeVals_continuous
+                // Use the discrete sentinel (-1 = unknown) to gate display, then show the student's timezone offset
                 if(!attributeVals_discrete[attribute].isEmpty() &&
                     *attributeVals_discrete[attribute].constBegin() != -1) {
-                    const float tz = attributeVals_continuous[attribute].isEmpty() ? 0.0f : attributeVals_continuous[attribute].front();
+                    const float tz = timezone;
                     const int hour = int(tz);
                     const int minutes = 60 * (tz - int(tz));
                     toolTip += QString("GMT%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));

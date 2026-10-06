@@ -364,6 +364,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                     const int index = attributeCombobox.last()->findData(student.timezone);
                     attributeCombobox.last()->setCurrentIndex(index != -1? index : 0);
                 }
+                attributeCombobox.last()->setProperty("initialIndex", attributeCombobox.last()->currentIndex());  // "initialIndex" used as string later
                 layout->addWidget(attributeCombobox.last());
             }
             else if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
@@ -520,6 +521,14 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     int multiboxNum = 0, comboboxNum = 0, spinboxNum = 0;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const DataOptions::AttributeType type = dataOptions->attributeType[attribute];
+        // the timezone preselection can be a lossy match to the student's response, so leave it untouched unless the user changed it
+        if((type == DataOptions::AttributeType::timezone) && !student.attributeResponse[attribute].isEmpty()) {
+            auto *combo = attributeCombobox.at(comboboxNum);
+            if((combo != nullptr) && (combo->currentIndex() == combo->property("initialIndex").toInt())) {
+                comboboxNum++;
+                continue;
+            }
+        }
         student.attributeVals_discrete[attribute].clear();
         student.attributeVals_continuous[attribute].clear();
         student.attributeResponse[attribute].clear();
@@ -552,20 +561,38 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
             }
             multiboxNum++;
         }
-        else if(type != DataOptions::AttributeType::timezone) {
+        else if(type == DataOptions::AttributeType::timezone) {
+            auto *combo = attributeCombobox.at(comboboxNum);
+            if(combo != nullptr) {
+                if(combo->currentIndex() == 0) {    // "no response/unknown"
+                    student.attributeVals_discrete[attribute] << -1;
+                    student.timezone = 0;
+                }
+                else {
+                    student.attributeResponse[attribute] = combo->currentText();
+                    student.timezone = combo->currentData().toFloat();
+                    // value is just the known/unknown marker; use the response's position, or one past the end if no student originally chose this zone
+                    const QStringList &responses = dataOptions->attributeQuestionResponses[attribute];
+                    const int responseIndex = int(responses.indexOf(combo->currentText()));
+                    student.attributeVals_discrete[attribute] << (responseIndex != -1 ? responseIndex + 1 : int(responses.size()) + 1);
+                }
+            }
+            comboboxNum++;
+        }
+        else {
             // ordered, categorical
             auto *combo = attributeCombobox.at(comboboxNum);
             if(combo != nullptr) {
-            const QStringList itemData = combo->currentData().toStringList();
-            if(itemData.isEmpty() || itemData.at(0).toInt() != -1) {
-                student.attributeVals_discrete[attribute] << -1;
-            }
-            else {
-                student.attributeVals_discrete[attribute] << itemData.at(0).toInt();
-                student.attributeResponse[attribute] = itemData.at(1);
+                const QStringList itemData = combo->currentData().toStringList();
+                if(itemData.isEmpty() || itemData.at(0).toInt() == -1) {
+                    student.attributeVals_discrete[attribute] << -1;
+                }
+                else {
+                    student.attributeVals_discrete[attribute] << itemData.at(0).toInt();
+                    student.attributeResponse[attribute] = itemData.at(1);
+                }
             }
             comboboxNum++;
-            }
         }
     }
 

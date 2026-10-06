@@ -915,18 +915,6 @@ bool loadDataDialog::readData()
         currStudent.parseRecordFromStringList(surveyFile->fieldValues, *dataOptions); //copy survey file fieldValue onto studentRecord
         currStudent.ID = students.size();
 
-        // see if this record is a duplicate; assume it isn't and then check
-        currStudent.duplicateRecord = false;
-        for(auto &student : students) {
-            if((((currStudent.firstname + currStudent.lastname).compare(student.firstname + student.lastname, Qt::CaseInsensitive) == 0) &&
-                 !(currStudent.firstname + currStudent.lastname).isEmpty()) ||
-                ((currStudent.email.compare(student.email, Qt::CaseInsensitive) == 0) &&
-                 !currStudent.email.isEmpty())) {
-                currStudent.duplicateRecord = true;
-                student.duplicateRecord = true;
-            }
-        }
-
         // Figure out what type of gender data was given (if any) -- initialized value is GenderType::adult, and we're checking each student
         // because some values are ambiguous to GenderType (e.g. "nonbinary")
         if(dataOptions->genderIncluded) {
@@ -1036,6 +1024,34 @@ bool loadDataDialog::readData()
                                        QString::number(numNonSubmitters) + " " + (numNonSubmitters == 1? tr("student has") : tr("students have")) +
                                            tr(" not submitted a survey. Their ") + (numNonSubmitters == 1? tr("name has") : tr("names have")) +
                                            tr(" been added to the roster."));
+        }
+    }
+
+    // see if any records are duplicates; done after the roster merge because names and emails may have come from the roster
+    QHash<QString, QList<int>> nameToIndices;
+    QHash<QString, QList<int>> emailToIndices;
+    for(int index = 0; index < students.size(); index++) {
+        const auto &student = students.at(index);
+        const QString fullName = (student.firstname + "|" + student.lastname).toLower();
+        if(fullName != "|") {
+            nameToIndices[fullName] << index;
+        }
+        if(!student.email.isEmpty()) {
+            emailToIndices[student.email.toLower()] << index;
+        }
+    }
+    for(const auto &indices : std::as_const(nameToIndices)) {
+        if(indices.size() > 1) {
+            for(const int index : indices) {
+                students[index].duplicateRecord = true;
+            }
+        }
+    }
+    for(const auto &indices : std::as_const(emailToIndices)) {
+        if(indices.size() > 1) {
+            for(const int index : indices) {
+                students[index].duplicateRecord = true;
+            }
         }
     }
 
@@ -1190,6 +1206,9 @@ bool loadDataDialog::readData()
                          (attributeType == DataOptions::AttributeType::timezone)) {
                     discreteVals << int(responses.indexOf(currentStudentResponse)) + 1;
                     dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                    if(attributeType == DataOptions::AttributeType::timezone) {
+                        dataOptions->attributeVals_continuous[attribute].insert(student.timezone);
+                    }
                 }
                 else if(attributeType == DataOptions::AttributeType::multicategorical) {
                     const QStringList parts = currentStudentResponse.split(',', Qt::SkipEmptyParts);

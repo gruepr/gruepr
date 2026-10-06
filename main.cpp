@@ -32,6 +32,7 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - several bugfixes related to timezones, loading Canvas results, and editing student data
 //
 // TO DO:
 //

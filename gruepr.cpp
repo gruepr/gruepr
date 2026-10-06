@@ -925,6 +925,15 @@ void gruepr::editAStudent()
 
     // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone) {
+            dataOptions->attributeVals_continuous[attribute].clear();
+            for(const auto &student : std::as_const(students)) {
+                if(!student.deleted && !student.attributeVals_discrete[attribute].isEmpty() &&
+                    (student.attributeVals_discrete[attribute].constFirst() != -1)) {
+                    dataOptions->attributeVals_continuous[attribute].insert(student.timezone);
+                }
+            }
+        }
         if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
             dataOptions->attributeVals_continuous[attribute].clear();
             for(const auto &student : std::as_const(students)) {
@@ -995,6 +1004,15 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
 
     // update in dataOptions and then the attribute tab the count of each attribute response
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone) {
+            dataOptions->attributeVals_continuous[attribute].clear();
+            for(const auto &student : std::as_const(students)) {
+                if(!student.deleted && !student.attributeVals_discrete[attribute].isEmpty() &&
+                    (student.attributeVals_discrete[attribute].constFirst() != -1)) {
+                    dataOptions->attributeVals_continuous[attribute].insert(student.timezone);
+                }
+            }
+        }
         if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
             dataOptions->attributeVals_continuous[attribute].clear();
             for(const auto &student : std::as_const(students)) {
@@ -1050,6 +1068,15 @@ void gruepr::addAStudent()
 
             // update in dataOptions and then the attribute tab the count of each attribute response
             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+                if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone) {
+                    dataOptions->attributeVals_continuous[attribute].clear();
+                    for(const auto &student : std::as_const(students)) {
+                        if(!student.deleted && !student.attributeVals_discrete[attribute].isEmpty() &&
+                            (student.attributeVals_discrete[attribute].constFirst() != -1)) {
+                            dataOptions->attributeVals_continuous[attribute].insert(student.timezone);
+                        }
+                    }
+                }
                 if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::numerical) {
                     dataOptions->attributeVals_continuous[attribute].clear();
                     for(const auto &student : std::as_const(students)) {
@@ -1152,7 +1179,6 @@ void gruepr::compareStudentsToRoster()
                         newStudent.attributeVals_continuous.resize(dataOptions->numAttributes);
                         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
                             newStudent.attributeVals_discrete[attribute] << -1;
-                            newStudent.attributeVals_continuous[attribute] << 0;
                         }
                         newStudent.ambiguousSchedule = true;
                         newStudent.createTooltip(*dataOptions);
@@ -1304,8 +1330,8 @@ void gruepr::rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudent
         if(student.deleted) {
             continue;
         }
-        const QString fullName = (student.firstname + student.lastname).toLower();
-        if(!fullName.isEmpty()) {
+        const QString fullName = (student.firstname + "|" + student.lastname).toLower();
+        if(fullName != "|") {
             nameToIndices[fullName] << index;
         }
         if(!student.email.isEmpty()) {
@@ -2134,8 +2160,8 @@ void gruepr::refreshStudentDisplay(QProgressDialog *progressDialog, int progress
             if(student.deleted) {
                 continue;
             }
-            const QString fullName = (student.firstname + student.lastname).toLower();
-            if(!fullName.isEmpty()) {
+            const QString fullName = (student.firstname + "|" + student.lastname).toLower();
+            if(fullName != "|") {
                 nameGroups[fullName] << student.ID;
             }
             if(!student.email.isEmpty()) {

@@ -230,7 +230,13 @@ entry in **Prepare for Submission** for this release yet, create one (**+ Versio
 can take a few minutes after upload to finish processing before it's selectable.
 22. Paste your release notes into **What's New in This Version** — reuse the same
 `// DONE:`-derived text from the GitHub draft (Part C) rather than rewriting it.
-23. Click **Save**, then **Add for Review** / **Submit for Review**. Apple's review
+23. Paste the following for the **Promotional Text**:
+
+    ```
+    Free, open-source, privacy-first team formation for educators — balance skills, schedules, diversity, and preferences in minutes
+    ```
+
+24. Click **Save**, then **Add for Review** / **Submit for Review**. Apple's review
 typically takes 1-2 days. Watch for a Resolution Center message if it's rejected —
 the one that came up so far has been the automated entitlement scanner flagging
 `com.apple.security.network.server` (used for the OAuth loopback redirect handler in
