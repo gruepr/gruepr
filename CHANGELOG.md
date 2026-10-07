@@ -1,3 +1,7 @@
+## v13.2.3 — 2026-10-07
+
+- several bugfixes related to timezones, loading Canvas results, and editing student data
+
 ## v13.2.2 — 2026-09-24
 
 - several bugfixes to Google Forms API
