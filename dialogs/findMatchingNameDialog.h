@@ -24,7 +24,7 @@ public:
     bool useRosterEmail = false;
     QString currSurveyName;
     QString currSurveyEmail;
-    long long currSurveyID = 0;
+    long long currSurveyID = -1;
 
 private:
     StyledComboBox *namesList = nullptr;

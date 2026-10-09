@@ -4,6 +4,7 @@
 #include "LMS.h"
 #include "studentRecord.h"
 #include "survey.h"
+#include <QElapsedTimer>
 
 
 class CanvasHandler : public LMS
@@ -35,6 +36,8 @@ public:
 
     static QPixmap icon();
 
+    bool downloadCanceled = false;      // set by the user to stop waiting for downloadQuizResult()
+
     inline static const QString SCHEDULEQUESTIONINTRO1{QObject::tr("The following ")};
     inline static const QString SCHEDULEQUESTIONINTRO2{QObject::tr(" questions ask about your schedule on ")};
     inline static const QString SCHEDULEQUESTIONINTRO3{QObject::tr("You may leave a question blank as appropriate.")};
@@ -43,7 +46,7 @@ private:
     void authenticateWithManualToken(const QString &token);
     QStringList askUserForManualURLandToken(const QString &currentAccountName = "", const QString &currentURL = "", const QString &currentToken = "");
 
-    QUrl getQuizResultsURL(const int courseID, const int quizID);
+    QUrl getQuizResultsURL(const int courseID, const int quizID, const QElapsedTimer &waitTimer);
 
     void getPaginatedCanvasResults(const QString &initialURL, const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                               const QStringList &intParams, QList<QList<int>*> &intVals,
@@ -70,6 +73,7 @@ private:
     std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const override;
 
     inline static const int NUM_PAGES_TO_LOAD = 20;
+    inline static const int MAX_REPORT_WAIT_TIME = 240000;   //msec
     inline static const char SCOPES[]{"url:GET|/api/v1/courses "                                             // get list of user's courses
                                       "url:GET|/api/v1/courses/:course_id/users "                            // get roster of students in a course
                                       "url:POST|/api/v1/courses/:course_id/quizzes "                         // create a quiz (i.e., survey)

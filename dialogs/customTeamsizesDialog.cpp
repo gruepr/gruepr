@@ -22,7 +22,7 @@ customTeamsizesDialog::customTeamsizesDialog(long long numStudents, int idealTea
     numTeamsLayout->addWidget(numTeamsLabel);
     numTeamsBox = new QSpinBox(this);
     numTeamsBox->setStyleSheet(SPINBOXSTYLE);
-    numTeamsBox->setRange(1, numStudents);
+    numTeamsBox->setRange(std::min(2ll, numStudents), numStudents);
     numTeamsBox->setValue((numStudents%idealTeamsize == 0)? ((numStudents/idealTeamsize)-1) : (numStudents/idealTeamsize));
     numTeamsBox->installEventFilter(new MouseWheelBlocker(numTeamsBox));
     numTeamsBox->setFocusPolicy(Qt::StrongFocus);
@@ -62,7 +62,7 @@ customTeamsizesDialog::customTeamsizesDialog(long long numStudents, int idealTea
     remainingStudents->setStyleSheet(LABEL10PTSTYLE);
     theGrid->addWidget(remainingStudents, 4, 0, 1, -1, Qt::AlignCenter);
 
-    refreshDisplay();
+    teamsizeChanged(0);     // load the initial box values into teamsizes (this also refreshes the display)
     adjustSize();
 }
 

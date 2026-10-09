@@ -119,24 +119,19 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
     savedSettings.endArray();
 
     connect(ui->dropFileFrame, &DropFileFrame::itemDropped, this, [this](const QString &filePathString) {
-        source = DataOptions::DataSource::fromDragDropFile;
-        loadData(filePathString);
+        loadData(DataOptions::DataSource::fromDragDropFile, filePathString);
     });
     connect(ui->uploadButton, &QPushButton::clicked, this, [this]() {
-        source = DataOptions::DataSource::fromUploadFile;
-        loadData("");
+        loadData(DataOptions::DataSource::fromUploadFile, "");
     });
     connect(ui->loadDataFromGoogleFormButton, &QPushButton::clicked, this, [this]() {
-        source = DataOptions::DataSource::fromGoogle;
-        loadData("");
+        loadData(DataOptions::DataSource::fromGoogle, "");
     });
     connect(ui->loadDataFromCanvasSurveyButton, &QPushButton::clicked, this, [this]() {
-        source = DataOptions::DataSource::fromCanvas;
-        loadData("");
+        loadData(DataOptions::DataSource::fromCanvas, "");
     });
     connect(ui->loadPrevWorkButton, &QPushButton::clicked, this, [this]() {
-        source = DataOptions::DataSource::fromPrevWork;
-        loadData("");
+        loadData(DataOptions::DataSource::fromPrevWork, "");
     });
     connect(ui->confirmButton, &QPushButton::clicked, this, &loadDataDialog::accept);
     connect(ui->reviewCategoriesButton, &QPushButton::clicked, this, &loadDataDialog::acceptWithManualCategories);
@@ -183,11 +178,13 @@ bool loadDataDialog::getFromDropFile(QString filePathString)
     return true;
 }
 
-void loadDataDialog::loadData(QString filePathString)
+void loadDataDialog::loadData(DataOptions::DataSource newSource, QString filePathString)
 {
+    // close any previously opened file, deleting it only if it was a temporary download from Google or Canvas
     if(surveyFile != nullptr) {
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        closeSurveyFile();
     }
+    source = newSource;
     dataOptions.reset();
 
     bool fileLoaded = false;
@@ -250,18 +247,29 @@ DataFile* loadDataDialog::getSurveyFile()
     return surveyFile.get();
 }
 
+// close the survey file (deleting it if it was a temporary download from Google or Canvas); nothing is loaded anymore, so reset the data source and confirm buttons
+void loadDataDialog::closeSurveyFile()
+{
+    surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+    ui->confirmButton->setEnabled(false);
+    ui->reviewCategoriesButton->setEnabled(false);
+    ui->dataSourceFrame->setEnabled(false);
+    ui->dataSourceLabel->setEnabled(false);
+    ui->dataSourceLabel->setText(tr("No survey loaded"));
+}
+
 bool loadDataDialog::readQuestionsFromHeader()
 {
     if(!surveyFile->readHeader()) {
         // header row could not be read as valid data
         grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        closeSurveyFile();
         return false;
     }
 
     if(surveyFile->headerValues.size() < 2) {
         grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        closeSurveyFile();
         return false;
     }
 
@@ -539,6 +547,10 @@ bool loadDataDialog::getFromCanvas()
 
     //download the survey and, if successful, the roster
     busyBox = canvas->actionDialog(this);
+    canvas->actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
+    canvas->actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    connect(canvas->actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, canvas, [canvas]{canvas->downloadCanceled = true;});
+    busyBox->adjustSize();
     bool fileNotFound = false;
     QString requesturl;
     connect(canvas, &CanvasHandler::requestFailed, busyBox, [&fileNotFound, &requesturl](QNetworkReply::NetworkError error, const QUrl &url){
@@ -546,6 +558,7 @@ bool loadDataDialog::getFromCanvas()
         requesturl = url.toString();
     });
     const QString filepath = canvas->downloadQuizResult(courseID, quizID, canvasSurveyName);
+    canvas->actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
     const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
     if(!fail) {
         //get the roster for later comparison
@@ -558,6 +571,9 @@ bool loadDataDialog::getFromCanvas()
     QString resultText;
     if(!fail) {
         resultText = tr("Survey downloaded");
+    }
+    else if(canvas->downloadCanceled) {
+        resultText = tr("Download canceled.");
     }
     else if(fileNotFound) {
         resultText = tr("Download failed.") + "<br>" + tr("The survey was not found in your Canvas course.");
@@ -796,7 +812,7 @@ bool loadDataDialog::readData()
     if(!surveyFile->readDataRow()) {
         grueprGlobal::errorMessage(this, tr("Insufficient number of students."),
                                    tr("There are no survey responses in this file."));
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        closeSurveyFile();
         return false;
     }
 
@@ -895,7 +911,7 @@ bool loadDataDialog::readData()
     StudentRecord currStudent;
     do {
         if(loadingProgressDialog->wasCanceled()) {
-            surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+            closeSurveyFile();
             return false;
         }
 
@@ -946,7 +962,7 @@ bool loadDataDialog::readData()
     if(numStudents < MIN_STUDENTS) {
         grueprGlobal::errorMessage(this, tr("Insufficient number of students."),
                                    tr("There are only ") + QString::number(numStudents) + tr(" survey responses.\n") + QString::number(MIN_STUDENTS) + tr(" is the minimum."));
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        closeSurveyFile();
         return false;
     }
 
@@ -1069,7 +1085,7 @@ bool loadDataDialog::readData()
     dataOptions->attributeType.resize(dataOptions->numAttributes);
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         if(loadingProgressDialog->wasCanceled()) {
-            surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+            closeSurveyFile();
             return false;
         }
 
@@ -1286,7 +1302,7 @@ bool loadDataDialog::readData()
     }
     loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + dataOptions->numAttributes);
 
-    surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+    closeSurveyFile();
 
     loadingProgressDialog->setValue(50);
     loadingProgressDialog->setMaximum(100);

@@ -19,6 +19,9 @@ findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &stude
     // create list of names (map is <Key = Levenshtein distance, Value = name & index in student array>)
     QMultiMap<int, QString> possibleStudents;
     for(int knownStudent = 0; knownStudent < students.size(); knownStudent++) {
+        if(students[knownStudent].deleted) {
+            continue;
+        }
         int rank = levenshtein::distance(searchName, students[knownStudent].firstname + " " + students[knownStudent].lastname);
         if(!searchEmail.isEmpty() && searchEmail.compare(students[knownStudent].email, Qt::CaseInsensitive) == 0) {
             rank = 0;
@@ -65,7 +68,7 @@ findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &stude
         i++;
     }
     currSurveyName = namesList->currentText();
-    if(!students.isEmpty()) {
+    if(namesList->count() > 0) {
         currSurveyEmail = students[namesList->currentData().toInt()].email;
         currSurveyID = students[namesList->currentData().toInt()].ID;
     }
@@ -83,8 +86,8 @@ findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &stude
         theGrid->setRowMinimumHeight(row++, DIALOG_SPACER_ROWHEIGHT);
         theGrid->addWidget(buttonBox, row, 0, 1, -1);
 
-        connect(namesList, &QComboBox::currentTextChanged, this,
-                    [this, students](const QString &currText){currSurveyName = currText;
+        connect(namesList, &QComboBox::currentIndexChanged, this,
+                    [this, students](){currSurveyName = namesList->currentText();
                                                               if(!students.isEmpty()) {
                                                                   currSurveyEmail = students[namesList->currentData().toInt()].email;
                                                                   currSurveyID = students[namesList->currentData().toInt()].ID;
@@ -183,8 +186,8 @@ findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &stude
         theGrid->addWidget(line3, row++, 0, 1, -1);
         theGrid->addWidget(ignoreButton, row, 0, 1, 1);
 
-        connect(namesList, &QComboBox::currentTextChanged, this, [this, searchEmail, students](const QString &currText)
-                                                                 {currSurveyName = currText;
+        connect(namesList, &QComboBox::currentIndexChanged, this, [this, searchEmail, students]()
+                                                                 {currSurveyName = namesList->currentText();
                                                                   currSurveyEmail = students[namesList->currentData().toInt()].email;
                                                                   currSurveyID = students[namesList->currentData().toInt()].ID;
                                                                   useSurveyNameCheckbox->setText(tr("Use survey name") + ":  " + currSurveyName);

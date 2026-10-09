@@ -203,10 +203,11 @@ QList<CanvasHandler::CanvasCourse> CanvasHandler::getCourses() {
                               {"id", "total_students"}, idsAndStudentCounts,
                               {}, stringInSubobjectParams,
                               {}, intInSubArrayParams);
-    courseNames.removeAll("");
-
     canvasCourses.clear();
     for(int i = 0; i < courseNames.size(); i++) {
+        if(courseNames.at(i).isEmpty()) {
+            continue;   // e.g., date-restricted courses come back without a name; skip them
+        }
         canvasCourses.append({courseNames.at(i), ids.at(i), studentCounts.at(i), QDateTime::fromString(courseCreatedDates.at(i), Qt::ISODate)});
     }
     std::sort(canvasCourses.begin(), canvasCourses.end(), [](const CanvasCourse &courseA, const CanvasCourse &courseB){return (courseA.creationDate > courseB.creationDate);});
@@ -509,7 +510,18 @@ QList<CanvasHandler::CanvasQuiz> CanvasHandler::getQuizList(int courseID) {
 }
 
 QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QString &quizName) {
-    const QUrl URL = getQuizResultsURL(courseID, quizID);
+    // all of the waiting below, including in getQuizResultsURL(), shares one time limit and can be canceled by the user
+    QElapsedTimer waitTimer;
+    waitTimer.start();
+    auto stopWaiting = [this, &waitTimer]() {
+        if(downloadCanceled || (waitTimer.elapsed() > MAX_REPORT_WAIT_TIME)) {
+            lastErrorMessage = (downloadCanceled? tr("Download canceled.") : tr("Canvas did not finish preparing the survey results in time."));
+            return true;
+        }
+        return false;
+    };
+
+    const QUrl URL = getQuizResultsURL(courseID, quizID, waitTimer);
     if(URL.isEmpty()) {
         return {};
     }
@@ -526,6 +538,9 @@ QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QStrin
     QList<QList<int>*> intInSubArrayParams = {&y};
     // check every two seconds--a file object (including a download URL) is added to the json results when it is ready
     do {
+        if(stopWaiting()) {
+            return {};
+        }
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
         filename.clear();
@@ -536,9 +551,13 @@ QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QStrin
                                   {"file/filename"}, stringInSubobjectParams,
                                   {}, intInSubArrayParams);
     } while(filename.isEmpty() || filename.first().isEmpty());
-    const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_') + ".csv");
+    static const QRegularExpression unallowedChars(R"([#&&{}\\/\<>*?$!'":@+`|=])");
+    const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_').replace(unallowedChars, "_") + ".csv");
     // sometimes still a delay, so attempt to download every two seconds
     while(!downloadFile(URL, filepath.absoluteFilePath())) {
+        if(stopWaiting()) {
+            return {};
+        }
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
     }
@@ -610,7 +629,7 @@ bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStr
 
 ////////////////////////////////////////////
 
-QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID) {
+QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID, const QElapsedTimer &waitTimer) {
     const QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports";
     QUrlQuery query;
     query.addQueryItem("quiz_report[report_type]", "student_analysis");
@@ -624,6 +643,10 @@ QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID) {
     QEventLoop loop;
     // check every RELOAD_DELAY_TIME (i.e., 2 seconds)--a file object (including a download URL) is added to the json results when it is
     do {
+        if(downloadCanceled || (waitTimer.elapsed() > MAX_REPORT_WAIT_TIME)) {
+            lastErrorMessage = (downloadCanceled? tr("Download canceled.") : tr("Canvas did not finish preparing the survey results in time."));
+            return {};
+        }
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
         quizReportID.clear();
@@ -756,10 +779,10 @@ bool CanvasHandler::downloadFile(const QUrl &URL, const QString &filepath) {
     }
     //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
     QFile file(filepath);
-    file.open(QIODevice::WriteOnly);
-    QDataStream out(&file);
-    out << replyBody;
-    return true;
+    if(!file.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+    return (file.write(replyBody) == replyBody.size());
 }
 
 // For testing: sets token manually

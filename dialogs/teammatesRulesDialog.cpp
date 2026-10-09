@@ -485,7 +485,7 @@ QList<long long> TeammatesRulesDialog::resolveNamesToIDs(const QStringList &name
         else {
             // No exact match, so list possible matches sorted by Levenshtein distance
             auto *choiceWindow = new findMatchingNameDialog(students, searchStudent, this, hintName);
-            if(choiceWindow->exec() == QDialog::Accepted) {
+            if((choiceWindow->exec() == QDialog::Accepted) && (choiceWindow->currSurveyID != -1)) {
                 IDs << choiceWindow->currSurveyID;
             }
             delete choiceWindow;

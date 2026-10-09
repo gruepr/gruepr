@@ -561,7 +561,8 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
     GroupingCriteriaCard *cardToDelete = criteriaCardsList[deletedIndex];
     const Criterion::CriteriaType criteriaType = cardToDelete->criterion->criteriaType;
 
-    // Remove the card from the list and delete it
+    // Remove the card and its criterion from the list and delete it
+    teamingOptions->criteria.removeOne(cardToDelete->criterion);
     criteriaCardsList.removeAt(deletedIndex);
 
     switch(criteriaType) {
@@ -973,7 +974,7 @@ void gruepr::removeAStudent(const QString &name)
         long long ID = -1;
         // don't have index, need to search and locate based on name
         for(const auto &student : std::as_const(students)) {
-            if(name.compare((student.firstname + " " + student.lastname), Qt::CaseInsensitive) == 0) {
+            if(!student.deleted && (name.compare((student.firstname + " " + student.lastname), Qt::CaseInsensitive) == 0)) {
                 ID = student.ID;
                 break;
             }
@@ -1127,27 +1128,29 @@ void gruepr::compareStudentsToRoster()
         QStringList namesNotFound;
         namesNotFound.reserve(students.size());
         for(const auto &student : std::as_const(students)) {
-            namesNotFound << student.firstname + " " + student.lastname;
+            if(!student.deleted) {
+                namesNotFound << student.firstname + " " + student.lastname;
+            }
         }
 
-        // create a place to save info for names with mismatched emails
-        QList<StudentRecord*> studentsWithDiffEmail;
+        // create a place to save info for names with mismatched emails: the student's ID and their email on the roster
+        QList<std::pair<long long, QString>> studentsWithDiffEmail;
         studentsWithDiffEmail.reserve(students.size());
 
-        for(auto &name : names) {
+        for(int rosterIndex = 0; rosterIndex < names.size(); rosterIndex++) {
+            const QString &name = names.at(rosterIndex);
             // first try to find student in the existing students data
             // start at first student in database and look until we find a matching firstname + " " +last name
             StudentRecord *student = nullptr;
             for(auto &thisStudent : students) {
-                if(name.compare(thisStudent.firstname + " " + thisStudent.lastname, Qt::CaseInsensitive) == 0) {
+                if(!thisStudent.deleted && (name.compare(thisStudent.firstname + " " + thisStudent.lastname, Qt::CaseInsensitive) == 0)) {
                     student = &thisStudent;
                     break;
                 }
             }
 
             // get the email corresponding to this name on the roster
-            const auto index = names.indexOf(name);
-            const QString rosterEmail = ((index >= 0 && index < emails.size())? emails.at(index) : "");
+            const QString rosterEmail = ((rosterIndex < emails.size())? emails.at(rosterIndex) : "");
 
             if(student != nullptr) {
                 // Exact match for name was found in existing students
@@ -1155,7 +1158,7 @@ void gruepr::compareStudentsToRoster()
                 if(!emails.isEmpty()) {
                     if(student->email.compare(rosterEmail, Qt::CaseInsensitive) != 0) {
                         // Email in survey doesn't match roster
-                        studentsWithDiffEmail << student;
+                        studentsWithDiffEmail.append({student->ID, rosterEmail});
                     }
                 }
             }
@@ -1190,12 +1193,7 @@ void gruepr::compareStudentsToRoster()
                     else {  // selected an inexact match
                         const QString surveyName = choiceWindow->currSurveyName;
                         namesNotFound.removeAll(surveyName);
-                        for(auto &thisStudent : students) {
-                            if(surveyName != (thisStudent.firstname + " " + thisStudent.lastname)) {
-                                student = &thisStudent;
-                                break;
-                            }
-                        }
+                        student = findStudentFromID(choiceWindow->currSurveyID);
                         if(student != nullptr) {
                             if(choiceWindow->useRosterEmail) {
                                 dataHasChanged = true;
@@ -1220,7 +1218,12 @@ void gruepr::compareStudentsToRoster()
 
         if(!emails.isEmpty()) {
             // Now handle the times where the roster and survey have different email addresses
-            for(auto &student : studentsWithDiffEmail) {
+            for(const auto &[studentID, rosterEmail] : std::as_const(studentsWithDiffEmail)) {
+                StudentRecord *student = findStudentFromID(studentID);
+                if(student == nullptr) {
+                    i++;
+                    continue;
+                }
                 const QString surveyName = student->firstname + " " + student->lastname;
                 const QString surveyEmail = student->email;
                 if(keepAsking) {
@@ -1230,7 +1233,7 @@ void gruepr::compareStudentsToRoster()
                                                                  tr("has a different email address in the survey.") + "<br><br>" +
                                                                  tr("Select one of the following email addresses:") + "<br>" +
                                                                  tr("Survey: ") + "<b>" + surveyEmail + "</b><br>" +
-                                                                 tr("Roster: ") + "<b>" +  emails.at(names.indexOf(surveyName))  + "</b><br>",
+                                                                 tr("Roster: ") + "<b>" +  rosterEmail  + "</b><br>",
                                                              QMessageBox::Ok | QMessageBox::Cancel, this);
                     whichEmailWindow->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE,
                                                                                                Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -1249,7 +1252,7 @@ void gruepr::compareStudentsToRoster()
                     if(whichEmailWindow->exec() == QDialog::Rejected) {
                         dataHasChanged = true;
                         makeTheChange = true;
-                        student->email = emails.at(names.indexOf(surveyName));
+                        student->email = rosterEmail;
                         student->createTooltip(*dataOptions);
                     }
                     else {
@@ -1258,7 +1261,7 @@ void gruepr::compareStudentsToRoster()
                     delete whichEmailWindow;
                 }
                 else if(makeTheChange) {
-                    student->email = emails.at(names.indexOf(surveyName));
+                    student->email = rosterEmail;
                     student->createTooltip(*dataOptions);
                 }
                 i++;
@@ -1432,6 +1435,7 @@ void gruepr::changeIdealTeamSize()
     long long numStudentsBeingTeamed = numActiveStudents;
     int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
     int cumNumSmallerATeams=0, cumNumSmallerBTeams = 0, cumNumLargerATeams=0, cumNumLargerBTeams = 0;
+    int numLargeSections = 0, numSmallSectionTeams = 0;
     for(int section = 0; section < numSectionsToCalculate; section++) {
         teamSizeBox->clear();
 
@@ -1444,6 +1448,14 @@ void gruepr::changeIdealTeamSize()
                     numStudentsBeingTeamed++;
                 }
             }
+            // sections too small to divide are each placed on a single team, so leave them out of the team size options (they're noted with an asterisk)
+            if(numStudentsBeingTeamed < MIN_STUDENTS) {
+                if(numStudentsBeingTeamed > 0) {
+                    numSmallSectionTeams++;
+                }
+                continue;
+            }
+            numLargeSections++;
         }
         else if(multipleSectionsInProgress) {
             const QString sectionName = sectionSelectionBox->currentText();
@@ -1541,23 +1553,40 @@ void gruepr::changeIdealTeamSize()
     }
 
     if(calculatingSeparateSections) {
-        // load new team sizes in selection box by adding together the sizes from each section
-        const QString smallerTeamOption = writeTeamSizeOption(cumNumSmallerATeams, smallerTeamsSizeA, cumNumSmallerBTeams, smallerTeamsSizeB);
-        const QString largerTeamOption = writeTeamSizeOption(cumNumLargerBTeams, largerTeamsSizeB, cumNumLargerATeams, largerTeamsSizeA);
+        // load new team sizes in selection box by adding together the sizes from each section, with an asterisk if any section is too small to divide
+        const QString smallSectionMarker = ((numSmallSectionTeams > 0)? "*" : "");
+        if(numLargeSections > 0) {
+            const QString smallerTeamOption = writeTeamSizeOption(cumNumSmallerATeams, smallerTeamsSizeA, cumNumSmallerBTeams, smallerTeamsSizeB) + smallSectionMarker;
+            const QString largerTeamOption = writeTeamSizeOption(cumNumLargerBTeams, largerTeamsSizeB, cumNumLargerATeams, largerTeamsSizeA) + smallSectionMarker;
 
-        teamSizeBox->addItem(smallerTeamOption);
-        if(smallerTeamOption != largerTeamOption) {
-            teamSizeBox->addItem(largerTeamOption);
+            teamSizeBox->addItem(smallerTeamOption);
+            if(smallerTeamOption != largerTeamOption) {
+                teamSizeBox->addItem(largerTeamOption);
+            }
+        }
+        else {
+            teamSizeBox->addItem(QString::number(numSmallSectionTeams) + ((numSmallSectionTeams > 1)? tr(" teams") : tr(" team")) + smallSectionMarker);
+        }
+        if(numSmallSectionTeams == 0) {
+            teamSizeBox->setToolTip("");
+        }
+        else if(numLargeSections == 0) {
+            teamSizeBox->setToolTip(tr("* Each section with fewer than ") + QString::number(MIN_STUDENTS) + tr(" students is placed on a single team."));
+        }
+        else {
+            teamSizeBox->setToolTip(tr("* Plus ") + QString::number(numSmallSectionTeams) + tr(" more team(s): each section with fewer than ") +
+                                    QString::number(MIN_STUDENTS) + tr(" students is placed on a single team."));
         }
     }
     else {
+        teamSizeBox->setToolTip("");
         // allow custom team sizes (too complicated to allow this if teaming all sections separately
         teamSizeBox->insertSeparator(teamSizeBox->count());
         teamSizeBox->addItem(tr("Custom team sizes"));
     }
 
-    // if we have fewer than MIN_STUDENTS students somehow, disable the form teams button
-    letsDoItButton->setEnabled(numStudentsBeingTeamed >= MIN_STUDENTS);
+    // if we have fewer than MIN_STUDENTS students somehow (or, if teaming sections separately, no section has that many), disable the form teams button
+    letsDoItButton->setEnabled(calculatingSeparateSections? (numLargeSections > 0) : (numStudentsBeingTeamed >= MIN_STUDENTS));
     //qDebug() << teamSizeBox->currentText();
     teamSizeBox->setUpdatesEnabled(true);
 }
@@ -1669,7 +1698,41 @@ void gruepr::startOptimization()
     multipleSectionsInProgress = teamingMultipleSections;
     const int numSectionsToTeam = (teamingMultipleSections? int(dataOptions->sectionNames.size()) : 1);
     const bool smallerTeamSizesInSelector = (teamSizeBox->currentIndex() == 0);
-    for(int section = 0; section < numSectionsToTeam; section++) {
+
+    // when teaming sections separately, any section too small to divide is placed on a single team right away; also find the
+    // last section large enough to optimize, so we know which optimization run is the final one
+    int lastSectionToOptimize = 0;
+    if(teamingMultipleSections) {
+        lastSectionToOptimize = -1;
+        for(int section = 0; section < numSectionsToTeam; section++) {
+            const QString &thisSectionName = dataOptions->sectionNames.at(section);
+            QList<int> indexesInSection;
+            for(int index = 0; index < students.size(); index++) {
+                if(!students[index].deleted && (students[index].section == thisSectionName)) {
+                    indexesInSection << index;
+                }
+            }
+            if(indexesInSection.size() >= MIN_STUDENTS) {
+                lastSectionToOptimize = section;
+            }
+            else if(!indexesInSection.isEmpty()) {
+                teams.clear();
+                teams.dataOptions = *dataOptions;
+                teams.emplaceBack(&teams.dataOptions, int(indexesInSection.size()));
+                bestTeamSet << indexesInSection;
+                finalTeams << teams;
+            }
+        }
+
+        if(lastSectionToOptimize == -1) {
+            // shouldn't happen, since the form teams button is disabled unless some section is large enough to divide
+            multipleSectionsInProgress = false;
+            grueprGlobal::errorMessage(this, tr("Cannot create teams."), tr("No section has at least ") + QString::number(MIN_STUDENTS) + tr(" students."));
+            return;
+        }
+    }
+
+    for(int section = 0; section <= lastSectionToOptimize; section++) {
         if(teamingMultipleSections) {
             // team each section one at a time by changing the section
             sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0=allTogether, 1=allSeparately, 2=separator line, 3=section 1)
@@ -1677,6 +1740,7 @@ void gruepr::startOptimization()
 
         // Get the indexes of non-deleted students from desired section(s) and change numStudents accordingly
         int numStudentsInSection = 0;
+        studentIndexes.clear();
         studentIndexes.reserve(students.size());
         for(int index = 0; index < students.size(); index++) {
             if(!students[index].deleted &&
@@ -1688,8 +1752,8 @@ void gruepr::startOptimization()
             }
         }
         numActiveStudents = numStudentsInSection;
-        if(numActiveStudents < 4) {
-            continue;
+        if(numActiveStudents < MIN_STUDENTS) {
+            continue;   // too-small sections were already placed on a single team above
         }
 
         // Prepare the criteria for this section's optimization run (mostly cache pre-determined
@@ -1744,7 +1808,7 @@ void gruepr::startOptimization()
         continueIndefinitely = false;
         future = QtConcurrent::run(&gruepr::optimizeTeams, this, studentIndexes);       // spin optimization off into a separate thread
         futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
-        multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
+        multipleSectionsInProgress = (section < lastSectionToOptimize);
 
         // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
@@ -1848,7 +1912,7 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    calcTeamScores(students, numActiveStudents, teams, teamingOptions);
+    calcTeamScores(students, bestTeamSet.size(), teams, teamingOptions);
     for(auto &team : teams) {
         team.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
     }

@@ -138,6 +138,12 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
 void GA::mate(const int *const mom, const int *const dad, const int teamStartPositions[],
               const int numTeams, int child[], const long long genomeSize)
 {
+    // with only one team there are no team boundaries to cut between, so the child is just a copy of mom
+    if(numTeams < 2) {
+        std::copy(mom, mom + genomeSize, child);
+        return;
+    }
+
     //randomly choose two team boundaries in the genome from which to cut an allele
     std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
     unsigned int startTeam = randTeam(threadRNG);

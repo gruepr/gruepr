@@ -34,9 +34,10 @@ public slots:
 private:
     Ui::loadDataDialog *ui;
     StartDialog *parent;
-    void loadData(QString filePathString);
+    void loadData(DataOptions::DataSource newSource, QString filePathString);
     void finalizeAccept(bool showCategorizingDialog);
     std::unique_ptr<DataFile> surveyFile;
+    void closeSurveyFile();
     bool getFromFile();
     bool getFromGoogle();
     bool getFromCanvas();
