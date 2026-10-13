@@ -90,7 +90,7 @@ void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
     parentCard->setContentAreaLayout(*contentLayout);
 }
 
-void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*/, const int /*studentIndexes*/[], int /*numStudents*/, const DataOptions *dataOptions)
+void AttributeCriterion::prepareForOptimization(const StudentRecord *students, const int studentIndexes[], int numStudents, const DataOptions *dataOptions)
 {
     const auto type = dataOptions->attributeType[attributeIndex];
     const bool isNumerical = (type == DataOptions::AttributeType::numerical);
@@ -111,12 +111,20 @@ void AttributeCriterion::prepareForOptimization(const StudentRecord */*students*
             - *dataOptions->attributeVals_discrete[attributeIndex].cbegin();
     }
 
+    // target for "average": the mean of the values given by the (non-deleted) students actually being teamed, unknowns excluded
     cachedOverallMean = 0.0f;
     if (isNumerical) {
-        const auto &allVals = dataOptions->attributeVals_continuous[attributeIndex];
-        if (!allVals.empty()) {
-            cachedOverallMean = std::accumulate(allVals.cbegin(), allVals.cend(), 0.0f)
-                                / static_cast<float>(allVals.size());
+        float sum = 0.0f;
+        int count = 0;
+        for (int i = 0; i < numStudents; i++) {
+            const auto &student = students[studentIndexes[i]];
+            if (!student.deleted && !student.attributeVals_continuous[attributeIndex].isEmpty()) {
+                sum += student.attributeVals_continuous[attributeIndex].constFirst();
+                count++;
+            }
+        }
+        if (count > 0) {
+            cachedOverallMean = sum / static_cast<float>(count);
         }
     }
 }
@@ -270,23 +278,23 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                                 sumOfGaps += g;
                             }
                             if(sumOfGaps <= 0.0f) {
-                                // all values identical
+                                // all values identical, so no spread at all
                                 criteriaScores[team] = 0.0f;
-                                continue;
                             }
-
-                            float sumAbsDiffs = 0.0f;
-                            const int numGaps = static_cast<int>(gaps.size());
-                            for(int i = 0; i < numGaps; i++) {
-                                for(int j = i + 1; j < numGaps; j++) {
-                                    sumAbsDiffs += std::abs(gaps[i] - gaps[j]);
+                            else {
+                                float sumAbsDiffs = 0.0f;
+                                const int numGaps = static_cast<int>(gaps.size());
+                                for(int i = 0; i < numGaps; i++) {
+                                    for(int j = i + 1; j < numGaps; j++) {
+                                        sumAbsDiffs += std::abs(gaps[i] - gaps[j]);
+                                    }
                                 }
+                                sumAbsDiffs *= 2.0f;  // account for both (i,j) and (j,i)
+
+                                const float gini = sumAbsDiffs / (2.0f * numGaps * sumOfGaps);
+
+                                criteriaScores[team] = spread * (1.0f - gini);
                             }
-                            sumAbsDiffs *= 2.0f;  // account for both (i,j) and (j,i)
-
-                            const float gini = sumAbsDiffs / (2.0f * numGaps * sumOfGaps);
-
-                            criteriaScores[team] = spread * (1.0f - gini);
                         }
 
                         if(diversity == Criterion::AttributeDiversity::similar) {

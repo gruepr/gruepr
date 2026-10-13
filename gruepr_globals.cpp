@@ -134,11 +134,9 @@ bool grueprGlobal::loadRoster(QWidget *parent, const QString &startingDirectory,
     const int firstLastNameField = int(rosterFile->fieldMeanings.indexOf("Full Name (First Last)"));
     const int lastFirstNameField = int(rosterFile->fieldMeanings.indexOf("Full Name (Last, First)"));
 
-    // Process each row until there's an empty one. Load names (and emails, if requested)
-    names.clear();
-    if(emails != nullptr) {
-        emails->clear();
-    }
+    // Process each row until there's an empty one. Load names (and emails, if requested) into new lists, so that
+    // the caller's existing lists are left untouched if this roster turns out to be unusable
+    QStringList newNames, newEmails;
     if(rosterFile->hasHeaderRow) {
         rosterFile->readDataRow();
     }
@@ -188,14 +186,18 @@ bool grueprGlobal::loadRoster(QWidget *parent, const QString &startingDirectory,
         }
 
         if(!name.isEmpty() && name != " ") {
-            names << name;
+            newNames << name;
             if(emails != nullptr && emailField >= 0 && emailField < rosterFile->fieldValues.size()) {
-                *emails << rosterFile->fieldValues.at(emailField).trimmed();
+                newEmails << rosterFile->fieldValues.at(emailField).trimmed();
             }
         }
     }
     while(rosterFile->readDataRow());
 
+    names = newNames;
+    if(emails != nullptr) {
+        *emails = newEmails;
+    }
     return true;
 }
 

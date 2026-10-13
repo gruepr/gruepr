@@ -36,7 +36,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     sectionName = sectionname;
     teamSets = currTeamSets;
     students = incomingStudents;
-    requestsInSurvey = !dataOptions.prefTeammatesField.empty(); /// CHECK! WAS IS prefnonteammates FOR NEGATIVEREQUESTS???
+    requestsInSurvey = !((teammateType == TypeOfTeammates::splitApart)? dataOptions.prefNonTeammatesField : dataOptions.prefTeammatesField).empty();
     std::sort(students.begin(), students.end(), [](const StudentRecord &i, const StudentRecord &j)
                                                 {return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
 
@@ -70,6 +70,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->numRequestsGrantedSpinBox->setVisible(isGroupTogether);
     if (isGroupTogether) {
         ui->numRequestsGrantedSpinBox->setStyleSheet(SPINBOXSTYLE);
+        numberGroupTogethersGiven = initialNumberGiven;   // the spinbox is set before its signal is connected below, so record the starting value here
         ui->numRequestsGrantedSpinBox->setValue(initialNumberGiven == REQUESTED_TEAMMATES_ALL? 0 : initialNumberGiven);
         connect(ui->numRequestsGrantedSpinBox, &QSpinBox::valueChanged, this, [this](int v) {
             if(v == 0) {
@@ -474,7 +475,8 @@ QList<long long> TeammatesRulesDialog::resolveNamesToIDs(const QStringList &name
     for(const auto &searchStudent : names) {   // searchStudent is the name we're looking for
         int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
         while((knownStudent < numStudents) &&
-               (searchStudent.compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0)) {
+               (students[knownStudent].deleted ||
+                (searchStudent.compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0))) {
             knownStudent++;
         }
 
@@ -639,7 +641,7 @@ bool TeammatesRulesDialog::loadStudentPrefs()
 {
     // Need to convert names to IDs and then add all to the preferences
     for(int basestudent = 0; basestudent < numStudents; basestudent++) {
-        if((sectionName == "") || (sectionName == students[basestudent].section)) {
+        if(!students[basestudent].deleted && ((sectionName == "") || (sectionName == students[basestudent].section))) {
             QStringList prefs;
             if(teammateType == TypeOfTeammates::splitApart) {
                 prefs = students[basestudent].prefNonTeammates.split('\n');
@@ -649,9 +651,11 @@ bool TeammatesRulesDialog::loadStudentPrefs()
             }
             prefs.removeAll("");
             const QString baseStudentName = students[basestudent].firstname + " " + students[basestudent].lastname;
-            prefs.prepend(baseStudentName);
 
-            pairAllStudents(resolveNamesToIDs(prefs, baseStudentName), true);
+            // pair the requested names with this student by ID, since resolving this student's own name could find a same-named student instead
+            QList<long long> IDs = resolveNamesToIDs(prefs, baseStudentName);
+            IDs.prepend(students[basestudent].ID);
+            pairAllStudents(IDs, true);
         }
     }
 

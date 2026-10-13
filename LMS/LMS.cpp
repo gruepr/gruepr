@@ -139,7 +139,8 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
                  << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();*/
     }
 
-    if(deadline.elapsed() >= OVERALL_TIMEOUT) {
+    // only a request that ultimately failed counts as timed out; a successful reply is kept no matter how long the retries took
+    if((reply->error() != QNetworkReply::NoError) && (deadline.elapsed() >= OVERALL_TIMEOUT)) {
         lastErrorMessage = tr("The connection has timed out.");
         reply->abort();
         reply->deleteLater();

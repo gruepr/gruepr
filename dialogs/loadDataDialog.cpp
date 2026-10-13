@@ -185,6 +185,7 @@ void loadDataDialog::loadData(DataOptions::DataSource newSource, QString filePat
         closeSurveyFile();
     }
     source = newSource;
+    roster.clear();
     dataOptions.reset();
 
     bool fileLoaded = false;
