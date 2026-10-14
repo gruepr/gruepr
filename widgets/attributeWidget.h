@@ -20,7 +20,7 @@ public:
 explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOptions, TeamingOptions *const incomingTeamingOptions,
                              AttributeCriterion *incomingCriterion, DataOptions::AttributeType attributeType, QWidget *parent = nullptr);
 
-    void setValues(bool updateResponsesToo = true);
+    void setValues(bool updateResponsesToo = true, const std::map<QString, int> &responseCounts = {});   // empty responseCounts = whole-class counts
 
     QPushButton *setRequiredValuesButton = nullptr;
     QPushButton *setIncompatibleValuesButton = nullptr;

@@ -222,7 +222,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     mainLayout->addLayout(attributeSettingsLayout, 3);
 }
 
-void AttributeWidget::setValues(bool updateResponsesToo)
+void AttributeWidget::setValues(bool updateResponsesToo, const std::map<QString, int> &responseCounts)
 {
     if(attribute >= dataOptions->numAttributes) {
         diverseCard->setEnabled(false);
@@ -236,7 +236,7 @@ void AttributeWidget::setValues(bool updateResponsesToo)
     }
 
     if(updateResponsesToo) {
-        updateResponses();
+        updateResponses(responseCounts);
     }
 
     if(attributeType != DataOptions::AttributeType::numerical && dataOptions->attributeVals_discrete[attribute].size() == 1) {
@@ -271,6 +271,7 @@ void AttributeWidget::updateResponses(const std::map<QString, int> &responseCoun
     // clear the responses displayed
     for(auto &responseRow : responseRows) {
         responsesLayout->removeWidget(responseRow);
+        responseRow->hide();          // a widget removed from a layout stays visible until it's actually deleted, so hide it now
         responseRow->deleteLater();
     }
     responseRows.clear();

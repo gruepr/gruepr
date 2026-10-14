@@ -33,11 +33,13 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - several small bugfixes when loading a roster and comparing it to the student list
-//  - several small bugfixes related to parsing student data: gender and survey timestamp
+//  - several small bugfixes related to parsing student data: gender, ethnic identity, and survey timestamp
 //  - several small bugfixes related to custom team sizes
 //  - several small bugfixes related to sections with very small number of students
 //  - several small bugfixes related to Canvas downloads
 //  - several small bugfixes in the group together / split apart dialog
+//  - several small bugfixes in the display of team compatibility scores and project assignments
+//  - several small bugfixes in the display of how many students selected each attribute response
 //  - several code simplifications
 //
 // TO DO:

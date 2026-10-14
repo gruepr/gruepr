@@ -710,43 +710,64 @@ void gruepr::layoutCriteriaCards()
 // The calculated scores are updated into the .scores members of the _teams array sent to the function
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
-void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
-                            TeamSet &_teams, const TeamingOptions *const _teamingOptions)
+void gruepr::calcTeamScores(const QList<StudentRecord> &_students, TeamSet &_teams, const TeamingOptions *const _teamingOptions)
 {
-    const int _numTeams = _teams.size();
-    const auto &_dataOptions = _teams.dataOptions;
-    QList<float> teamScores(_numTeams);
-    QList<QList<float>> criteriaScores(_teamingOptions->criteria.size(), QList<float>(_numTeams));
-    QList<float> penaltyPoints(_numTeams);
-    QList<int> teamSizes(_numTeams);
-    QList<int> genome(_numStudents);
-    int ID = 0;
-    for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
-        teamSizes[teamnum] = _teams[teamnum].size;
-        for(const auto studentID : std::as_const(_teams[teamnum].studentIDs)) {
-            genome[ID] = grueprGlobal::findStudentIndex(_students, studentID);
-            ID++;
+    // Score the teams in the same groups in which they were optimized: each section's teams on their own when teaming
+    // sections separately (every team is then within a single section), and otherwise all of the teams together
+    QList<QList<int>> teamGroups;   // each group is a list of team numbers
+    if(_teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+        QHash<QString, int> groupOfSection;
+        for(int teamnum = 0; teamnum < _teams.size(); teamnum++) {
+            QString section;
+            if(!_teams[teamnum].studentIDs.isEmpty()) {
+                const int index = grueprGlobal::findStudentIndex(_students, _teams[teamnum].studentIDs.constFirst());
+                if(index < _students.size()) {
+                    section = _students[index].section;
+                }
+            }
+            if(!groupOfSection.contains(section)) {
+                groupOfSection[section] = int(teamGroups.size());
+                teamGroups.append(QList<int>());
+            }
+            teamGroups[groupOfSection[section]] << teamnum;
         }
     }
-
-    getGenomeScore(_students.constData(), genome.data(), _numTeams, teamSizes.data(),
-                   _teamingOptions, &_dataOptions, teamScores.data(), criteriaScores, penaltyPoints);
-
-    for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
-        _teams[teamnum].score = teamScores[teamnum];
+    else {
+        QList<int> allTeams;
+        allTeams.reserve(_teams.size());
+        for(int teamnum = 0; teamnum < _teams.size(); teamnum++) {
+            allTeams << teamnum;
+        }
+        teamGroups << allTeams;
     }
 
-/*  for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
-        for(int team = 0; team <_numTeams; team++) {
-            const float actualScore = criteriaScores[criterion][team]/_teamingOptions->weights[criterion];
-            qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
-            qDebug() << "team:" << team;
-            qDebug() << "criterion:" << criterion;
-            qDebug() << "penalty:" << -penaltyPoints[criterion];
-            qDebug() << "actual score:" << actualScore;
-            qDebug() << "score:" << criteriaScores[criterion][team];
+    for(const auto &group : std::as_const(teamGroups)) {
+        const int numTeamsInGroup = int(group.size());
+        QList<int> teamSizes(numTeamsInGroup);
+        QList<int> genome;
+        for(int i = 0; i < numTeamsInGroup; i++) {
+            const auto &team = _teams[group[i]];
+            teamSizes[i] = team.size;
+            for(const auto studentID : std::as_const(team.studentIDs)) {
+                genome << grueprGlobal::findStudentIndex(_students, studentID);
+            }
         }
-    } */
+
+        // the criteria cache data about the students being teamed, so prepare them for exactly this group's students
+        for(auto *criterion : std::as_const(_teamingOptions->criteria)) {
+            criterion->prepareForOptimization(_students.constData(), genome.constData(), int(genome.size()), &_teams.dataOptions);
+        }
+
+        QList<float> teamScores(numTeamsInGroup);
+        QList<QList<float>> criteriaScores(_teamingOptions->criteria.size(), QList<float>(numTeamsInGroup));
+        QList<float> penaltyPoints(numTeamsInGroup);
+        getGenomeScore(_students.constData(), genome.data(), numTeamsInGroup, teamSizes.data(),
+                       _teamingOptions, &_teams.dataOptions, teamScores.data(), criteriaScores, penaltyPoints);
+
+        for(int i = 0; i < numTeamsInGroup; i++) {
+            _teams[group[i]].score = teamScores[i];
+        }
+    }
 }
 
 QStringList gruepr::getTeamTabNames() const {
@@ -810,48 +831,54 @@ void gruepr::changeSection(int index)
     ui->studentTable->clearSortIndicator();
 
     // update the response counts in the attribute tabs
-    if(!attributeWidgets.isEmpty()) { //check if user has added any attributes
-        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-            const QString currentAttributeQuestionText = dataOptions->attributeQuestionText.at(attribute);
-                //do attribute widgets correspond to the attribute number?
-            const auto &attributeType = dataOptions->attributeType[attribute];
-
-            // record a tally for each response, starting with a 0 count for each response found in all of the survey data
-            std::map<QString, int> currentResponseCounts;
-            for(const auto &responseCount : std::as_const(dataOptions->attributeQuestionResponseCounts[attribute])) {
-                currentResponseCounts[responseCount.first] = 0;
-            }
-            for(const auto &student : std::as_const(students)) {
-                if(!student.deleted &&
-                   ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
-                    (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
-                    ((teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) && !multipleSectionsInProgress) ||
-                    (student.section == teamingOptions->sectionName))) {
-                    const QString &currentStudentResponse = student.attributeResponse[attribute];
-
-                    if(!student.attributeResponse[attribute].isEmpty()) {
-                        if((attributeType == DataOptions::AttributeType::multicategorical) ||
-                            (attributeType == DataOptions::AttributeType::multiordered)) {
-                            //multivalued - tally each value
-                            const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                            for(const auto &responseFromStudent : setOfResponsesFromStudent) {
-                                currentResponseCounts[responseFromStudent.trimmed()]++;
-                            }
-                        }
-                        else {
-                            currentResponseCounts[currentStudentResponse]++;
-                        }
-                    }
-                }
-            }
-
-            // put this new tally in the responses textbox of the attribute tab
-            attributeWidgets[attribute]->setValues();
-        }
-    }
+    refreshAttributeResponseCounts();
 
     idealTeamSizeBox->setMaximum(std::max(2ll, numActiveStudents / 2));
     changeIdealTeamSize();    // load new team sizes in selection box, if necessary
+}
+
+
+//////////////////
+// Show in each attribute card how many of the students currently shown (i.e., in the selected section, or in all
+// sections) gave each response; every response found anywhere in the data is listed, even if no one here gave it
+//////////////////
+void gruepr::refreshAttributeResponseCounts()
+{
+    for(int attribute = 0; (attribute < dataOptions->numAttributes) && (attribute < attributeWidgets.size()); attribute++) {
+        const auto &attributeType = dataOptions->attributeType[attribute];
+
+        // record a tally for each response, starting with a 0 count for each response found in all of the survey data
+        std::map<QString, int> currentResponseCounts;
+        for(const auto &responseCount : std::as_const(dataOptions->attributeQuestionResponseCounts[attribute])) {
+            currentResponseCounts[responseCount.first] = 0;
+        }
+        for(const auto &student : std::as_const(students)) {
+            if(!student.deleted &&
+               ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+                (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
+                ((teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) && !multipleSectionsInProgress) ||
+                (student.section == teamingOptions->sectionName))) {
+                const QString &currentStudentResponse = student.attributeResponse[attribute];
+
+                if(!student.attributeResponse[attribute].isEmpty()) {
+                    if((attributeType == DataOptions::AttributeType::multicategorical) ||
+                        (attributeType == DataOptions::AttributeType::multiordered)) {
+                        //multivalued - tally each value
+                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                        for(const auto &responseFromStudent : setOfResponsesFromStudent) {
+                            currentResponseCounts[responseFromStudent.trimmed()]++;
+                        }
+                    }
+                    else {
+                        currentResponseCounts[currentStudentResponse]++;
+                    }
+                }
+            }
+        }
+
+        // put this new tally in the responses textbox of the attribute tab
+        attributeWidgets[attribute]->setValues(true, currentResponseCounts);
+    }
 }
 
 
@@ -969,8 +996,8 @@ void gruepr::editAStudent()
                 }
             }
         }
-        attributeWidgets[attribute]->setValues();
     }
+    refreshAttributeResponseCounts();
 
     delete win;
     saveState();
@@ -1049,8 +1076,8 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
                 }
             }
         }
-        attributeWidgets[attribute]->setValues();
     }
+    refreshAttributeResponseCounts();
 
     if(delayVisualUpdate) {
         return;
@@ -1112,8 +1139,8 @@ void gruepr::addAStudent()
                         }
                     }
                 }
-                attributeWidgets[attribute]->setValues();
             }
+            refreshAttributeResponseCounts();
             rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
         }
         delete win;
@@ -1366,15 +1393,16 @@ void gruepr::rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudent
             }
         }
     }
-    // Rebuild tooltips once per student
-    for(auto &student : students) {
-        student.createTooltip(*dataOptions);
-    }
-
     // Re-build the racial/ethnic identity info
     if(dataOptions->URMIdentityIncluded) {
         dataOptions->URMIdentityResponses.clear();
-        for(const auto &student : std::as_const(students)) {
+        for(auto &student : students) {
+            if(student.deleted) {
+                continue;
+            }
+            if(student.URMIdentityResponse.isEmpty()) {
+                student.URMIdentityResponse = "--";     // a blank response (e.g., an added student) is stored as "--", same as a student who left the question blank
+            }
             if(!dataOptions->URMIdentityResponses.contains(student.URMIdentityResponse, Qt::CaseInsensitive)) {
                 dataOptions->URMIdentityResponses << student.URMIdentityResponse;
             }
@@ -1388,6 +1416,25 @@ void gruepr::rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudent
             dataOptions->URMIdentityResponses.removeAll("--");
             dataOptions->URMIdentityResponses << "--";
         }
+    }
+
+    // Add any newly present genders to the list of genders in the data (never removing any, since gender rules may refer to them)
+    if(dataOptions->genderIncluded) {
+        for(const auto &student : std::as_const(students)) {
+            if(student.deleted) {
+                continue;
+            }
+            for(const auto gender : std::as_const(student.gender)) {
+                if(!dataOptions->genderValues.contains(gender)) {
+                    dataOptions->genderValues << gender;
+                }
+            }
+        }
+    }
+
+    // Rebuild tooltips once per student (after the identity info above, since it may have just set a student's blank identity to "--")
+    for(auto &student : students) {
+        student.createTooltip(*dataOptions);
     }
 
     // Re-build the section options in the selection box, then bring the selection, teamingOptions,
@@ -1966,7 +2013,7 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    calcTeamScores(students, bestTeamSet.size(), teams, teamingOptions);
+    calcTeamScores(students, teams, teamingOptions);
     for(auto &team : teams) {
         team.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
     }
@@ -2144,6 +2191,8 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
         currentAttributeCriterion->attributeWidget->setValues();
         currentAttributeCard->setVisible(false);
     }
+    // show each attribute card's response counts for the selected section (the cards above were filled with whole-class counts)
+    refreshAttributeResponseCounts();
 
     //Warn about duplicates
     const bool anyDuplicates = std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student) {

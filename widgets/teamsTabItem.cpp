@@ -645,7 +645,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
                   studentBTeam.studentIDs[studentBTeam.studentIDs.indexOf(studentB->ID)]);      //(of course, studentATeam == studentBTeam)
 
         // Re-score the teams and refresh all the info
-        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
+        gruepr::calcTeamScores(students, teams, teamingOptions);
         teams[studentATeamNum].refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
         teams[studentATeamNum].createTooltip(students);
 
@@ -694,7 +694,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         //refresh the info for both teams
         if((studentATeamItem != nullptr) && (studentATeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) &&
             (studentBTeamItem != nullptr) && (studentBTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
-            gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
+            gruepr::calcTeamScores(students, teams, teamingOptions);
             studentATeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
             studentATeam.createTooltip(students);
             studentBTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
@@ -829,7 +829,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     //refresh the info, tooltip, treeitem for both teams
     if((oldTeamItem != nullptr) && (oldTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) &&
         (newTeamItem != nullptr) && (newTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
-        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
+        gruepr::calcTeamScores(students, teams, teamingOptions);
         oldTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
         oldTeam.createTooltip(students);
         newTeam.refreshTeamInfo(students, ScheduleCriterion::getNumBlocksForOneMeeting(teamingOptions));
@@ -1284,7 +1284,7 @@ void TeamsTabItem::postTeamsToCanvas()
     const QSize iconSize = canvas->actionDialogIcon->pixmap().size();
     QPixmap icon;
     QEventLoop loop;
-    if(canvas->createTeams(coursesComboBox->currentData().toInt(), tabName, teamNames, teamRosters)) {
+    if(canvas->createTeams(coursesComboBox->currentData().toLongLong(), tabName, teamNames, teamRosters)) {
         canvas->actionDialogLabel->setText(tr("Success!"));
         icon.load(":/icons_new/ok.png");
         canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));

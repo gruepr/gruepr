@@ -55,8 +55,7 @@ public:
     gruepr(gruepr&&) = delete;
     gruepr& operator= (gruepr&&) = delete;
 
-    static void calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
-                               TeamSet &_teams, const TeamingOptions *const _teamingOptions);
+    static void calcTeamScores(const QList<StudentRecord> &_students, TeamSet &_teams, const TeamingOptions *const _teamingOptions);
 
     QList<StudentRecord> students;
     DataOptions *dataOptions = nullptr;
@@ -119,6 +118,7 @@ private:
     long long numActiveStudents = MAX_STUDENTS;
     inline StudentRecord* findStudentFromID(const long long ID);
     void rebuildSectionNames();
+    void refreshAttributeResponseCounts();
     void refreshStudentDisplay(QProgressDialog *progressDialog = nullptr, int progressStart = 0, int progressEnd = 0);
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column

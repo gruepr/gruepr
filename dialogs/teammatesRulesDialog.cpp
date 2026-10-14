@@ -461,6 +461,7 @@ void TeammatesRulesDialog::clearValues(bool verify)
     }
     ui->clearButton->setEnabled(false);
     refreshDisplay(0, 0);
+    initializeTableHeaders();
 }
 
 //////////////////
@@ -634,6 +635,7 @@ bool TeammatesRulesDialog::loadTeammatesFile()
     }
 
     refreshDisplay(0, 0);
+    initializeTableHeaders();
     return true;
 }
 
@@ -660,6 +662,7 @@ bool TeammatesRulesDialog::loadStudentPrefs()
     }
 
     refreshDisplay(0, 0);
+    initializeTableHeaders();
     return true;
 }
 
@@ -765,6 +768,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile()
     }
 
     refreshDisplay(0, 0);
+    initializeTableHeaders();
     return true;
 }
 
@@ -842,5 +846,6 @@ bool TeammatesRulesDialog::loadExistingTeamset()
     }
 
     refreshDisplay(0, 0);
+    initializeTableHeaders();
     return true;
 }

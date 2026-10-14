@@ -1,5 +1,6 @@
 #include "excelFile.h"
 #include "xlsxdocument.h"
+#include "xlsxworksheet.h"
 #include <algorithm>
 
 ExcelFile::ExcelFile() = default;
@@ -21,6 +22,10 @@ bool ExcelFile::openExistingFile(const QString &filepath)
     if(!document->load() || !document->selectSheet(0)) {
         document.reset();
         return false;
+    }
+    // always read cells' values, even if the file was saved with Excel's "Show Formulas" view turned on
+    if(document->currentWorksheet() != nullptr) {
+        document->currentWorksheet()->setFormulasVisible(false);
     }
 
     const QXlsx::CellRange range = document->dimension();

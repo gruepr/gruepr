@@ -6,7 +6,7 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions,
                        const QJsonObject &jsonTeamRecord, const QList<StudentRecord> &students) :
     teamSetDataOptions(teamSetDataOptions)
 {
-    LMSID = jsonTeamRecord["LMSID"].toInt();
+    LMSID = jsonTeamRecord["LMSID"].toInteger();
     score = jsonTeamRecord["score"].toDouble();
     size = jsonTeamRecord["size"].toInt();
     numSections = jsonTeamRecord["numSections"].toInt();

@@ -190,25 +190,25 @@ bool CanvasHandler::authenticate() {
 QList<CanvasHandler::CanvasCourse> CanvasHandler::getCourses() {
     QStringList courseNames;
     QStringList courseCreatedDates;
-    QList<int> ids, studentCounts;
+    QList<long long> ids, studentCounts;
     QStringList x;
-    QList<int> y;
+    QList<long long> y;
     QList<QStringList*> courseNamesAndCreatedDatesInList = {&courseNames, &courseCreatedDates};
-    QList<QList<int>*> idsAndStudentCounts = {&ids, &studentCounts};
+    QList<QList<long long>*> idsAndStudentCounts = {&ids, &studentCounts};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    QList<QList<int>*> intInSubArrayParams = {&y};
+    QList<QList<long long>*> integerInSubArrayParams = {&y};
 
     getPaginatedCanvasResults("/api/v1/courses?include[]=total_students",
                               {"name", "created_at"}, courseNamesAndCreatedDatesInList,
                               {"id", "total_students"}, idsAndStudentCounts,
                               {}, stringInSubobjectParams,
-                              {}, intInSubArrayParams);
+                              {}, integerInSubArrayParams);
     canvasCourses.clear();
     for(int i = 0; i < courseNames.size(); i++) {
         if(courseNames.at(i).isEmpty()) {
             continue;   // e.g., date-restricted courses come back without a name; skip them
         }
-        canvasCourses.append({courseNames.at(i), ids.at(i), studentCounts.at(i), QDateTime::fromString(courseCreatedDates.at(i), Qt::ISODate)});
+        canvasCourses.append({courseNames.at(i), ids.at(i), int(studentCounts.at(i)), QDateTime::fromString(courseCreatedDates.at(i), Qt::ISODate)});
     }
     std::sort(canvasCourses.begin(), canvasCourses.end(), [](const CanvasCourse &courseA, const CanvasCourse &courseB){return (courseA.creationDate > courseB.creationDate);});
 
@@ -216,7 +216,7 @@ QList<CanvasHandler::CanvasCourse> CanvasHandler::getCourses() {
 }
 
 // Retrieves the number of students in the given course
-int CanvasHandler::getStudentCount(int courseID) {
+int CanvasHandler::getStudentCount(long long courseID) {
     for(const auto &course : std::as_const(canvasCourses)) {
         if(course.ID == courseID) {
             return course.numStudents;
@@ -226,22 +226,22 @@ int CanvasHandler::getStudentCount(int courseID) {
 }
 
 // Retrieves the StudentRoster in the given course
-QList<StudentRecord> CanvasHandler::getStudentRoster(int courseID) {
+QList<StudentRecord> CanvasHandler::getStudentRoster(long long courseID) {
     // First get the name, email address, and canvasID# of all students in the class
     QStringList studentNames;
     QStringList studentEmails;
-    QList<int> ids;
+    QList<long long> ids;
     QStringList x;
-    QList<int> y;
+    QList<long long> y;
     QList<QStringList*> studentNamesandEmailsInList = {&studentNames, &studentEmails};
-    QList<QList<int>*> idsInList = {&ids};
+    QList<QList<long long>*> idsInList = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    QList<QList<int>*> intInSubArrayParams = {&y};
+    QList<QList<long long>*> integerInSubArrayParams = {&y};
     getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/users?enrollment_type[]=student",
                               {"sortable_name", "email"}, studentNamesandEmailsInList,
                               {"id"}, idsInList,
                               {}, stringInSubobjectParams,
-                              {}, intInSubArrayParams);
+                              {}, integerInSubArrayParams);
     QStringList firstNames, lastNames;
     for(const auto &studentName : studentNames) {
         const auto names = studentName.split(',');
@@ -252,25 +252,25 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(int courseID) {
     // Next get the name and CanvasID# of every section in the class
     QStringList sectionNames;
     QList<QStringList*> sectionNamesInList = {&sectionNames};
-    QList<int> sectionIDs;
-    QList<QList<int>*> sectionIdsInList = {&sectionIDs};
+    QList<long long> sectionIDs;
+    QList<QList<long long>*> sectionIdsInList = {&sectionIDs};
     getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/sections",
                               {"name"}, sectionNamesInList,
                               {"id"}, sectionIdsInList,
                               {}, stringInSubobjectParams,
-                              {}, intInSubArrayParams);
+                              {}, integerInSubArrayParams);
 
     // Now match up each student in the class to their section by downloading
     // the roster for each section and using student CanvasID# to form match
     QStringList studentSections(ids.size());
-    QList<int> idsInThisSection;
-    QList<QList<int>*> idsInThisSectionInList = {&idsInThisSection};
+    QList<long long> idsInThisSection;
+    QList<QList<long long>*> idsInThisSectionInList = {&idsInThisSection};
     for(int i = 0; i < sectionIDs.size(); i++) {
         idsInThisSection.clear();
         getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/sections/"
                                   + QString::number(sectionIDs.at(i)) + "?include[]=students",
                                   {}, stringInSubobjectParams,
-                                  {}, intInSubArrayParams,
+                                  {}, integerInSubArrayParams,
                                   {}, stringInSubobjectParams,
                                   {"students/id"}, idsInThisSectionInList);
         for(int idNum = 0; idNum < ids.size(); idNum++) {
@@ -296,7 +296,7 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(int courseID) {
     return roster;
 }
 
-bool CanvasHandler::createSurvey(int courseID, const Survey *const survey) {
+bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey) {
     //create the survey (a quiz type in Canvas)
     bool allGood = true;
     QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes";
@@ -307,28 +307,28 @@ bool CanvasHandler::createSurvey(int courseID, const Survey *const survey) {
     query.addQueryItem("quiz[scoring_policy]", "keep_latest");
     QByteArray postData = query.toString(QUrl::FullyEncoded).toUtf8();
     QStringList quizURL, mobileQuizURL;
-    QList<int> quizID;
+    QList<long long> quizID;
     QStringList x;
     QList<QStringList*> stringParams = {&quizURL, &mobileQuizURL};
-    QList<QList<int>*> intParams = {&quizID};
+    QList<QList<long long>*> integerParams = {&quizID};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    postToCanvasGetSingleResult(url, postData, {"html_url", "mobile_url"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
+    postToCanvasGetSingleResult(url, postData, {"html_url", "mobile_url"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
     if(quizID.isEmpty()) {
         return false;
     }
-    const int surveyID = quizID.constFirst();
+    const long long surveyID = quizID.constFirst();
 
     //add each question
     int questionNum = 0;
     QStringList newQuestionText;
-    QList<int> questionID;
+    QList<long long> questionID;
     for(const auto &question : survey->questions) {
         //create one question
         url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(surveyID) + "/questions";
         newQuestionText.clear();
         questionID.clear();
         stringParams = {&newQuestionText};
-        intParams = {&questionID};
+        integerParams = {&questionID};
         query.clear();
         query.addQueryItem("question[question_name]", "Question " + QString::number(questionNum+1));
         query.addQueryItem("question[position]", QString::number(questionNum+1));
@@ -373,7 +373,7 @@ bool CanvasHandler::createSurvey(int courseID, const Survey *const survey) {
                     // Post the previous rank's question, then start a new one
                     postData = query.toString(QUrl::FullyEncoded).toUtf8();
                     postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams,
-                                                {"id"}, intParams, {}, stringInSubobjectParams);
+                                                {"id"}, integerParams, {}, stringInSubobjectParams);
                     allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
                     questionNum++;
                     newQuestionText.clear();
@@ -419,7 +419,7 @@ bool CanvasHandler::createSurvey(int courseID, const Survey *const survey) {
                 // post the question and then add a question for each day (final day will get posted outside of switch/case)
                 for(const auto &dayName : survey->schedDayNames) {
                     postData = query.toString(QUrl::FullyEncoded).toUtf8();
-                    postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
+                    postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
                     allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
                     questionNum++;
                     newQuestionText.clear();
@@ -479,7 +479,7 @@ bool CanvasHandler::createSurvey(int courseID, const Survey *const survey) {
 */
         }
         postData = query.toString(QUrl::FullyEncoded).toUtf8();
-        postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
+        postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
         allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
         questionNum++;
     }
@@ -487,20 +487,20 @@ bool CanvasHandler::createSurvey(int courseID, const Survey *const survey) {
     return allGood;
 }
 
-QList<CanvasHandler::CanvasQuiz> CanvasHandler::getQuizList(int courseID) {
+QList<CanvasHandler::CanvasQuiz> CanvasHandler::getQuizList(long long courseID) {
     QStringList titles;
-    QList<int> ids;
+    QList<long long> ids;
     QStringList x;
-    QList<int> y;
+    QList<long long> y;
     QList<QStringList*> titlesInList = {&titles};
-    QList<QList<int>*> idsInList = {&ids};
+    QList<QList<long long>*> idsInList = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    QList<QList<int>*> intInSubArrayParams = {&y};
+    QList<QList<long long>*> integerInSubArrayParams = {&y};
     getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes",
                               {"title"}, titlesInList,
                               {"id"}, idsInList,
                               {}, stringInSubobjectParams,
-                              {}, intInSubArrayParams);
+                              {}, integerInSubArrayParams);
 
     QList<CanvasQuiz> quizzes;
     for(int i = 0; i < titles.size(); i++) {
@@ -509,7 +509,7 @@ QList<CanvasHandler::CanvasQuiz> CanvasHandler::getQuizList(int courseID) {
     return quizzes;
 }
 
-QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QString &quizName) {
+QString CanvasHandler::downloadQuizResult(long long courseID, long long quizID, const QString &quizName) {
     // all of the waiting below, including in getQuizResultsURL(), shares one time limit and can be canceled by the user
     QElapsedTimer waitTimer;
     waitTimer.start();
@@ -529,13 +529,13 @@ QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QStrin
     // wait until the results file is ready
     QEventLoop loop;
     QStringList x;
-    QList<int> ids;
+    QList<long long> ids;
     QStringList filename;
-    QList<int> y;
+    QList<long long> y;
     QList<QStringList*> stringParams = {&x};
-    QList<QList<int>*> intParams = {&ids};
+    QList<QList<long long>*> integerParams = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&filename};
-    QList<QList<int>*> intInSubArrayParams = {&y};
+    QList<QList<long long>*> integerInSubArrayParams = {&y};
     // check every two seconds--a file object (including a download URL) is added to the json results when it is ready
     do {
         if(stopWaiting()) {
@@ -547,9 +547,9 @@ QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QStrin
         ids.clear();
         getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports",
                                   {}, stringParams,
-                                  {"id"}, intParams,
+                                  {"id"}, integerParams,
                                   {"file/filename"}, stringInSubobjectParams,
-                                  {}, intInSubArrayParams);
+                                  {}, integerInSubArrayParams);
     } while(filename.isEmpty() || filename.first().isEmpty());
     static const QRegularExpression unallowedChars(R"([#&&{}\\/\<>*?$!'":@+`|=])");
     const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_').replace(unallowedChars, "_") + ".csv");
@@ -566,7 +566,7 @@ QString CanvasHandler::downloadQuizResult(int courseID, int quizID, const QStrin
 }
 
 // Creates a teamset
-bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams) {
+bool CanvasHandler::createTeams(long long courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams) {
     bool allGood = true;
 
     //create the teamset
@@ -575,12 +575,12 @@ bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStr
     query.addQueryItem("name", setName);
     QByteArray postData = query.toString(QUrl::FullyEncoded).toUtf8();
     QStringList groupCategoryName;
-    QList<int> groupCategoryID;
+    QList<long long> groupCategoryID;
     QStringList x;
     QList<QStringList*> stringParams = {&groupCategoryName};
-    QList<QList<int>*> intParams = {&groupCategoryID};
+    QList<QList<long long>*> integerParams = {&groupCategoryID};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
+    postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
 
     if(groupCategoryID.empty()) {
         allGood = false;
@@ -589,7 +589,7 @@ bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStr
 
     //create the teams
     QStringList groupName;
-    QList<int> groupID;
+    QList<long long> groupID;
     QStringList workflowState;
     for(int i = 0; i < teamNames.size(); i++) {
         //create one team
@@ -600,8 +600,8 @@ bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStr
         groupName.clear();
         groupID.clear();
         stringParams = {&groupName};
-        intParams = {&groupID};
-        postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
+        integerParams = {&groupID};
+        postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
 
         if(groupID.empty()) {
             allGood = false;
@@ -614,11 +614,11 @@ bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStr
             query.clear();
             query.addQueryItem("user_id", QString::number(student.LMSID));
             postData = query.toString(QUrl::FullyEncoded).toUtf8();
-            QList<int> membershipID, newUserID;
+            QList<long long> membershipID, newUserID;
             workflowState.clear();
             stringParams = {&workflowState};
-            intParams = {&membershipID, &newUserID};
-            postToCanvasGetSingleResult(url, postData, {"workflow_state"}, stringParams, {"id", "user_id"}, intParams, {}, stringInSubobjectParams);
+            integerParams = {&membershipID, &newUserID};
+            postToCanvasGetSingleResult(url, postData, {"workflow_state"}, stringParams, {"id", "user_id"}, integerParams, {}, stringInSubobjectParams);
             allGood = allGood && !workflowState.empty() && !newUserID.empty() &&
                       (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == student.LMSID);
         }
@@ -629,16 +629,16 @@ bool CanvasHandler::createTeams(int courseID, const QString &setName, const QStr
 
 ////////////////////////////////////////////
 
-QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID, const QElapsedTimer &waitTimer) {
+QUrl CanvasHandler::getQuizResultsURL(const long long courseID, const long long quizID, const QElapsedTimer &waitTimer) {
     const QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports";
     QUrlQuery query;
     query.addQueryItem("quiz_report[report_type]", "student_analysis");
     const QByteArray postData = query.toString(QUrl::FullyEncoded).toUtf8();
     QStringList x;
-    QList<int> quizReportID;
+    QList<long long> quizReportID;
     QStringList quizReportFileURL;
     QList<QStringList*> stringParams = {&x};
-    QList<QList<int>*> intParams = {&quizReportID};
+    QList<QList<long long>*> integerParams = {&quizReportID};
     QList<QStringList*> stringInSubobjectParams = {&quizReportFileURL};
     QEventLoop loop;
     // check every RELOAD_DELAY_TIME (i.e., 2 seconds)--a file object (including a download URL) is added to the json results when it is
@@ -653,7 +653,7 @@ QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID, cons
         quizReportFileURL.clear();
         postToCanvasGetSingleResult(url, postData,
                                     {}, {stringParams},
-                                    {"id"}, intParams,
+                                    {"id"}, integerParams,
                                     {"file/url"}, stringInSubobjectParams);
     } while(quizReportFileURL.isEmpty() || quizReportFileURL.first().isEmpty());
 
@@ -661,12 +661,13 @@ QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID, cons
 }
 
 void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const QStringList &stringParams, QList<QStringList*> &stringVals,
-                                                                         const QStringList &intParams, QList<QList<int>*> &intVals,
+                                                                         const QStringList &integerParams, QList<QList<long long>*> &integerVals,
                                                                          const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals,
-                                                                         const QStringList &intInSubArrayParams, QList<QList<int>*> &intInSubArrayVals) {
+                                                                         const QStringList &integerInSubArrayParams, QList<QList<long long>*> &integerInSubArrayVals) {
     QEventLoop loop;
-    QNetworkReply *reply = nullptr;
-    QString url = baseURL+initialURL, replyHeader;
+    // ask for large pages (Canvas defaults to only 10 items per page); the "next" links Canvas returns keep this setting
+    QString url = baseURL + initialURL + (initialURL.contains('?')? "&" : "?") + "per_page=100";
+    QString replyHeader;
     QByteArray replyBody;
     QJsonDocument json_doc;
     QJsonArray json_array;
@@ -675,7 +676,7 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
     do {
         QNetworkRequest request(url);
         request.setRawHeader("Authorization", "Bearer " + OAuthFlow->token().toUtf8());
-        reply = manager->get(request);
+        auto *reply = manager->get(request);
 
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
@@ -687,6 +688,7 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
 
         replyHeader = reply->rawHeader("Link");
         replyBody = reply->readAll();
+        reply->deleteLater();   // done with this page's reply; each page gets its own
         //qDebug() << replyBody;
         json_doc = QJsonDocument::fromJson(replyBody);
         if(json_doc.isArray()) {
@@ -705,20 +707,20 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
             for(int i = 0; i < stringParams.size(); i++) {
                 *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
             }
-            for(int i = 0; i < intParams.size(); i++) {
-                *(intVals[i]) << json_obj[intParams.at(i)].toInt();
+            for(int i = 0; i < integerParams.size(); i++) {
+                *(integerVals[i]) << json_obj[integerParams.at(i)].toInteger();
             }
             for(int i = 0; i < stringInSubobjectParams.size(); i++) {
                 const QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
                 const QJsonObject object = json_obj[subobjectAndParamName.at(0)].toObject();
                 *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
             }
-            for(int i = 0; i < intInSubArrayParams.size(); i++) {
-                const QStringList subarrayAndParamName = intInSubArrayParams.at(i).split('/');   // "subarray_name/int_paramater_name"
+            for(int i = 0; i < integerInSubArrayParams.size(); i++) {
+                const QStringList subarrayAndParamName = integerInSubArrayParams.at(i).split('/');   // "subarray_name/int_paramater_name"
                 const QJsonArray array = json_obj[subarrayAndParamName.at(0)].toArray();
                 for(const auto &item : array) {
                     QJsonObject subobj = item.toObject();
-                    *(intInSubArrayVals[i]) << subobj[subarrayAndParamName.at(1)].toInt();
+                    *(integerInSubArrayVals[i]) << subobj[subarrayAndParamName.at(1)].toInteger();
                 }
             }
         }
@@ -727,13 +729,11 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
         url = nextURLMatch.captured(1);
     }
     while(!url.isNull() && ++numPages < NUM_PAGES_TO_LOAD);
-
-    reply->deleteLater();
 }
 
 void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteArray &postData,
                                                 const QStringList &stringParams, QList<QStringList*> &stringVals,
-                                                const QStringList &intParams, QList<QList<int>*> &intVals,
+                                                const QStringList &integerParams, QList<QList<long long>*> &integerVals,
                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals) {
     const auto replyBody = httpRequest(Method::post, baseURL + URL, postData);
 
@@ -760,8 +760,8 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
         for(int i = 0; i < stringParams.size(); i++) {
             *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
         }
-        for(int i = 0; i < intParams.size(); i++) {
-            *(intVals[i]) << json_obj[intParams.at(i)].toInt();
+        for(int i = 0; i < integerParams.size(); i++) {
+            *(integerVals[i]) << json_obj[integerParams.at(i)].toInteger();
         }
         for(int i = 0; i < stringInSubobjectParams.size(); i++) {
             const QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"

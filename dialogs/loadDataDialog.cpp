@@ -463,7 +463,7 @@ bool loadDataDialog::getFromCanvas()
         canvas->deleteLater();
         return false;
     }
-    const int courseID = coursesAndQuizzesComboBox->currentData().toInt();
+    const long long courseID = coursesAndQuizzesComboBox->currentData().toLongLong();
     canvasCoursesAndQuizzesDialog->hide();
 
     //ask which survey (canvas Quiz) to download
@@ -482,7 +482,7 @@ bool loadDataDialog::getFromCanvas()
         canvas->deleteLater();
         return false;
     }
-    const int quizID = coursesAndQuizzesComboBox->currentData().toInt();
+    const long long quizID = coursesAndQuizzesComboBox->currentData().toLongLong();
     const QString canvasSurveyName = coursesAndQuizzesComboBox->currentText();
     canvasCoursesAndQuizzesDialog->deleteLater();
 
@@ -1194,7 +1194,10 @@ bool loadDataDialog::readData()
     }
     loadingProgressDialog->setValue(2 + numStudents + dataOptions->numAttributes);
     // gather all unique racial/ethnic identity and section question responses and sort
-    for(const auto &student : std::as_const(students)) {
+    for(auto &student : students) {
+        if(dataOptions->URMIdentityIncluded && student.URMIdentityResponse.isEmpty()) {
+            student.URMIdentityResponse = "--";     // a blank response (e.g., a non-submitter added from the roster) is stored as "--", same as a student who left the question blank
+        }
         if(!dataOptions->URMIdentityResponses.contains(student.URMIdentityResponse, Qt::CaseInsensitive)) {
             dataOptions->URMIdentityResponses << student.URMIdentityResponse;
         }

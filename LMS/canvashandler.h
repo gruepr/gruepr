@@ -13,8 +13,8 @@ class CanvasHandler : public LMS
 
 public:
 
-    struct CanvasQuiz {QString name; int ID = 0;};
-    struct CanvasCourse {QString name; int ID = 0; int numStudents = 0; QDateTime creationDate = QDateTime::currentDateTime();};
+    struct CanvasQuiz {QString name; long long ID = 0;};
+    struct CanvasCourse {QString name; long long ID = 0; int numStudents = 0; QDateTime creationDate = QDateTime::currentDateTime();};
 
     CanvasHandler(QWidget *parent = nullptr);
     ~CanvasHandler() override;
@@ -27,12 +27,12 @@ public:
     void setBaseURL(const QString &baseAPIURL);
 
     QList<CanvasCourse> getCourses();
-    int getStudentCount(int courseID);
-    QList<StudentRecord> getStudentRoster(int courseID);
-    bool createSurvey(int courseID, const Survey *const survey);
-    QList<CanvasQuiz> getQuizList(int courseID);
-    QString downloadQuizResult(int courseID, int quizID, const QString &quizName); //returns the filepath of the downloaded file (empty string if error)
-    bool createTeams(int courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams);
+    int getStudentCount(long long courseID);
+    QList<StudentRecord> getStudentRoster(long long courseID);
+    bool createSurvey(long long courseID, const Survey *const survey);
+    QList<CanvasQuiz> getQuizList(long long courseID);
+    QString downloadQuizResult(long long courseID, long long quizID, const QString &quizName); //returns the filepath of the downloaded file (empty string if error)
+    bool createTeams(long long courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams);
 
     static QPixmap icon();
 
@@ -46,14 +46,14 @@ private:
     void authenticateWithManualToken(const QString &token);
     QStringList askUserForManualURLandToken(const QString &currentAccountName = "", const QString &currentURL = "", const QString &currentToken = "");
 
-    QUrl getQuizResultsURL(const int courseID, const int quizID, const QElapsedTimer &waitTimer);
+    QUrl getQuizResultsURL(const long long courseID, const long long quizID, const QElapsedTimer &waitTimer);
 
     void getPaginatedCanvasResults(const QString &initialURL, const QStringList &stringParams, QList<QStringList*> &stringVals,
-                                                              const QStringList &intParams, QList<QList<int>*> &intVals,
+                                                              const QStringList &integerParams, QList<QList<long long>*> &integerVals,
                                                               const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals,
-                                                              const QStringList &intInSubArrayParams, QList<QList<int>*> &intInSubArrayVals);
+                                                              const QStringList &integerInSubArrayParams, QList<QList<long long>*> &integerInSubArrayVals);
     void postToCanvasGetSingleResult(const QString &URL, const QByteArray &postData, const QStringList &stringParams, QList<QStringList*> &stringVals,
-                                                                                     const QStringList &intParams, QList<QList<int>*> &intVals,
+                                                                                     const QStringList &integerParams, QList<QList<long long>*> &integerVals,
                                                                                      const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals);
     bool downloadFile(const QUrl &URL, const QString &filepath);
 

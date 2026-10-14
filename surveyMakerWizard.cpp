@@ -3387,7 +3387,7 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
         canvas->deleteLater();
         return;
     }
-    const int courseID = coursesComboBox->currentData().toInt();
+    const long long courseID = coursesComboBox->currentData().toLongLong();
     canvasCoursesDialog->deleteLater();
 
     //upload the survey as a quiz

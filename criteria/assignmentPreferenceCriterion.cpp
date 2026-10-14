@@ -338,7 +338,7 @@ void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord>
     displayScore.clear();
     displayStudentAssignment.clear();
 
-    if(numOptions == 0 || numRankedChoices == 0 || teams.isEmpty()) {
+    if(teams.isEmpty()) {
         return;
     }
 
@@ -371,6 +371,22 @@ void AssignmentPreferenceCriterion::prepareForDisplay(const QList<StudentRecord>
 
 void AssignmentPreferenceCriterion::solveAndCacheDisplayForTeams(const QList<StudentRecord> &students, const QList<TeamRecord> &teams)
 {
+    // discover the options from exactly these teams' students (e.g., one section's), since the cached option list may
+    // be from a different set of students, such as the last section optimized or a copy of the criterion made for a teams tab
+    QList<int> studentIndexes;
+    for(const auto &team : teams) {
+        for(const auto studentID : team.studentIDs) {
+            const int index = grueprGlobal::findStudentIndex(students, studentID);
+            if(index < students.size()) {
+                studentIndexes << index;
+            }
+        }
+    }
+    prepareForOptimization(students.constData(), studentIndexes.constData(), int(studentIndexes.size()), nullptr);
+    if(numOptions == 0 || numRankedChoices == 0) {
+        return;
+    }
+
     const int numTeams = teams.size();
     // If there are fewer options than teams, repeat each option's column ceil(numTeams/numOptions) times so
     // every team can still be assigned a real option. Column j always maps back to real option (j % numOptions).
