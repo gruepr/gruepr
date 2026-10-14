@@ -274,68 +274,8 @@ bool loadDataDialog::readQuestionsFromHeader()
         return false;
     }
 
-    // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
-    static const QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
-                                                             "(.*(like to have on your team).*)|(.*(want to work with).*)|"
-                                                             ".*((which)|(what)).*(section).*|(.*(check).+(times).*)",
-                                                             QRegularExpression::CaseInsensitiveOption);
-    const int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
-    if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
-        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
-        //and if notesFieldsProbBeginAt == headervalues size, also assume no notes because list ends with one of these questions
-        for(int field = notesFieldsProbBeginAt; field < surveyFile->fieldMeanings.size(); field++) {
-            surveyFile->fieldMeanings[field] = "Notes";
-        }
-    }
-
-    // Ask user what the columns mean
-    const QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
-                                                        {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
-                                                        {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
-                                                        {"Email Address", "(e).*(mail)", 1},
-                                                        {"Gender", "((gender)|(pronouns))", 1},
-                                                        {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
-                                                        {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
-                                                        {"Section", "(which|what).*section", 1},
-                                                        {"Timezone","(time zone)", 1},
-                                                        {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
-                                                        {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
-                                                        {"Assignment Preference", QString("\\[(") + RANKYOURFIRSTCHOICE + "|" + RANKYOURCHOICE + " \\d+)\\]", MAX_ASSIGNMENT_OPTIONS},
-                                                        {"Multiple Choice or Numerical", ".*", MAX_ATTRIBUTES},
-                                                        {"Notes", "", MAX_NOTES}};
-    // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
-    for(int i = 0; i < surveyFile->numFields; i++) {
-        const QString &headerVal = surveyFile->headerValues.at(i);
-
-        bool ignore = false;
-        for(const auto &matchpattern : std::as_const(surveyFile->fieldsToBeIgnored)) {
-            if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
-                surveyFile->fieldMeanings[i] = "**IGNORE**";
-                ignore = true;
-            }
-            // if this is coming from Canvas, see if it's the LMSID field and, if so, set the field
-            if((source == DataOptions::DataSource::fromCanvas) && (headerVal.compare("id", Qt::CaseInsensitive) == 0)) {
-                surveyFile->fieldMeanings[i] = "**LMSID**";
-                ignore = true;
-            }
-        }
-
-        if(!ignore && surveyFile->fieldMeanings.at(i).isEmpty()) {
-            int matchPattern = 0;
-            QString match;
-            do {
-                match = surveyFieldOptions.at(matchPattern).regExSearchString;
-                matchPattern++;
-            } while((matchPattern < surveyFieldOptions.size()) && !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)));
-
-            if(matchPattern != surveyFieldOptions.size()) {
-                surveyFile->fieldMeanings[i] = surveyFieldOptions.at(matchPattern - 1).nameShownToUser;
-            }
-            else {
-                surveyFile->fieldMeanings[i] = UNUSEDTEXT;
-            }
-        }
-    }
+    // Guess what the columns mean
+    surveyFile->autoDetectSurveyFieldMeanings(source == DataOptions::DataSource::fromCanvas);
 
     return true;
 }

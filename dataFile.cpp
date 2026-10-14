@@ -127,9 +127,45 @@ bool DataFile::readDataRow(ReadLocation readLocation)
 
 
 //////////////////
-// Open dialog box to let user choose which columns correspond to which fields
+// The patterns used to auto-detect what each column of survey data holds, in order of precedence
 //////////////////
-QDialog* DataFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
+const QList<possFieldMeaning> &DataFile::surveyFieldOptions()
+{
+    static const QList<possFieldMeaning> options = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
+                                                    {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
+                                                    {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
+                                                    {"Email Address", "(e).*(mail)", 1},
+                                                    {"Gender", "((gender)|(pronouns))", 1},
+                                                    {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                                    {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
+                                                    {"Section", SECTIONQUESTIONPATTERN, 1},
+                                                    {"Timezone","(time zone)", 1},
+                                                    {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
+                                                    {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
+                                                    {"Assignment Preference", QString("\\[(") + RANKYOURFIRSTCHOICE + "|" + RANKYOURCHOICE + " \\d+)\\]", MAX_ASSIGNMENT_OPTIONS},
+                                                    {"Multiple Choice or Numerical", ".*", MAX_ATTRIBUTES},
+                                                    {"Notes", "", MAX_NOTES}};
+    return options;
+}
+
+
+//////////////////
+// The pattern for the kinds of survey questions (preferred teammates / non-teammates, section, or schedule) after which any remaining columns are probably notes
+//////////////////
+const QRegularExpression &DataFile::lastKnownMeaningfulField()
+{
+    static const QRegularExpression pattern(QString("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
+                                                    "(.*(like to have on your team).*)|(.*(want to work with).*)|"
+                                                    ".*(") + SECTIONQUESTIONPATTERN + ").*|(.*(check).+(times).*)",
+                                            QRegularExpression::CaseInsensitiveOption);
+    return pattern;
+}
+
+
+//////////////////
+// Auto-fill any still-empty fieldMeanings from the column headers
+//////////////////
+void DataFile::autoDetectFieldMeanings(const QList<possFieldMeaning> &possibleFieldMeanings, bool fromCanvas)
 {
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < numFields; i++) {
@@ -139,6 +175,11 @@ QDialog* DataFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &poss
         for(const auto &matchpattern : std::as_const(fieldsToBeIgnored)) {
             if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
                 fieldMeanings[i] = "**IGNORE**";
+                ignore = true;
+            }
+            // if this is coming from Canvas, see if it's the LMSID field and, if so, set the field
+            if(fromCanvas && (headerVal.compare("id", Qt::CaseInsensitive) == 0)) {
+                fieldMeanings[i] = "**LMSID**";
                 ignore = true;
             }
         }
@@ -160,6 +201,34 @@ QDialog* DataFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &poss
             }
         }
     }
+}
+
+
+//////////////////
+// Auto-fill any still-empty fieldMeanings of survey data from the column headers
+//////////////////
+void DataFile::autoDetectSurveyFieldMeanings(bool fromCanvas)
+{
+    // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
+    const int notesFieldsProbBeginAt = 1 + int(headerValues.lastIndexOf(lastKnownMeaningfulField()));
+    if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != headerValues.size())) {
+        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
+        //and if notesFieldsProbBeginAt == headervalues size, also assume no notes because list ends with one of these questions
+        for(int field = notesFieldsProbBeginAt; field < fieldMeanings.size(); field++) {
+            fieldMeanings[field] = "Notes";
+        }
+    }
+
+    autoDetectFieldMeanings(surveyFieldOptions(), fromCanvas);
+}
+
+
+//////////////////
+// Open dialog box to let user choose which columns correspond to which fields
+//////////////////
+QDialog* DataFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
+{
+    autoDetectFieldMeanings(possibleFieldMeanings);
 
     window = new listTableDialog(QObject::tr("Select column definitions"), false, false, parent);
     window->setMinimumSize(DIALOGWIDTH, DIALOGHEIGHT);

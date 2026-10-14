@@ -271,7 +271,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                 setField("numPrefTeammates", loadObject["numPrefTeammates"].toInt());
             }
             if(loadObject.contains("StudentNames") && loadObject["StudentNames"].isString()) {
-                setField("StudentNames", loadObject["StudentNames"].toString().split(','));
+                setField("StudentNames", loadObject["StudentNames"].toString().split(',', Qt::SkipEmptyParts));
             }
 
             if(loadObject.contains("numFreeResponseQuestions") && loadObject["numFreeResponseQuestions"].isDouble()) {

@@ -26,6 +26,7 @@ public:
 private:
     void updateRecord(StudentRecord &student, const DataOptions *const dataOptions);
     void adjustSchedule(const StudentRecord &student, const DataOptions *const dataOptions);
+    static QString timestampFormat();
     QList<QLineEdit*> datatext;
     QList<QPlainTextEdit*> datamultiline;
     QList<QWidget*> databox;                        // either a QGroupBox or QComboBox

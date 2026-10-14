@@ -180,68 +180,9 @@ bool CategorizingDialog::initializeComboBoxes()
         return false;
     }
 
-    // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
-    static const QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
-                                                             "(.*(like to have on your team).*)|(.*(want to work with).*)|"
-                                                             ".*((which)|(what)).*(section).*|(.*(check).+(times).*)",
-                                                             QRegularExpression::CaseInsensitiveOption);
-    const int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
-    if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
-        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
-        //and if notesFieldsProbBeginAt == headervalues size, also assume no notes because list ends with one of these questions
-        for(int field = notesFieldsProbBeginAt; field < surveyFile->fieldMeanings.size(); field++) {
-            surveyFile->fieldMeanings[field] = "Notes";
-        }
-    }
-
-    // Ask user what the columns mean
-    QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
-                                                  {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
-                                                  {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
-                                                  {"Email Address", "(e).*(mail)", 1},
-                                                  {"Gender", "((gender)|(pronouns))", 1},
-                                                  {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
-                                                  {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
-                                                  {"Section", "(which|what).*section", 1},
-                                                  {"Timezone","(time zone)", 1},
-                                                  {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
-                                                  {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
-                                                  {"Assignment Preference", QString("\\[(") + RANKYOURFIRSTCHOICE + "|" + RANKYOURCHOICE + " \\d+)\\]", MAX_ASSIGNMENT_OPTIONS},
-                                                  {"Multiple Choice or Numerical", ".*", MAX_ATTRIBUTES},
-                                                  {"Notes", "", MAX_NOTES}};
-    // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
-    for(int i = 0; i < surveyFile->numFields; i++) {
-        const QString &headerVal = surveyFile->headerValues.at(i);
-
-        bool ignore = false;
-        for(const auto &matchpattern : std::as_const(surveyFile->fieldsToBeIgnored)) {
-            if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
-                surveyFile->fieldMeanings[i] = "**IGNORE**";
-                ignore = true;
-            }
-            // if this is coming from Canvas, see if it's the LMSID field and, if so, set the field
-            if((source == DataOptions::DataSource::fromCanvas) && (headerVal.compare("id", Qt::CaseInsensitive) == 0)) {
-                surveyFile->fieldMeanings[i] = "**LMSID**";
-                ignore = true;
-            }
-        }
-
-        if(!ignore && surveyFile->fieldMeanings.at(i).isEmpty()) {
-            int matchPattern = 0;
-            QString match;
-            do {
-                match = surveyFieldOptions.at(matchPattern).regExSearchString;
-                matchPattern++;
-            } while((matchPattern < surveyFieldOptions.size()) && !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)));
-
-            if(matchPattern != surveyFieldOptions.size()) {
-                surveyFile->fieldMeanings[i] = surveyFieldOptions.at(matchPattern - 1).nameShownToUser;
-            }
-            else {
-                surveyFile->fieldMeanings[i] = UNUSEDTEXT;
-            }
-        }
-    }
+    // Guess what the columns mean
+    surveyFile->autoDetectSurveyFieldMeanings(source == DataOptions::DataSource::fromCanvas);
+    const auto &surveyFieldOptions = DataFile::surveyFieldOptions();
 
     // a label and combobox for each column
     for(int column = 0; column < surveyFile->numFields; column++) {
@@ -249,7 +190,7 @@ bool CategorizingDialog::initializeComboBoxes()
         for(const auto &meaning : std::as_const(surveyFieldOptions)) {
             selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
         }
-        selector->insertItem(0, UNUSEDTEXT);
+        selector->insertItem(0, DataFile::UNUSEDTEXT);
         auto *model = qobject_cast<QStandardItemModel *>(selector->model());
         model->item(0)->setForeground(Qt::darkRed);
         selector->insertSeparator(1);
@@ -342,8 +283,8 @@ void CategorizingDialog::validateFieldSelectorBoxes(int callingRow)
             QStandardItem *item = model->item(box->findText(fieldval));
             if((fullyUsedValues[fieldval] > 1) && (box->currentText() == fieldval)) {
                 // number exceeds max. allowed somehow, so set to unused
-                box->setCurrentText(UNUSEDTEXT);
-                surveyFile->fieldMeanings[*row] = UNUSEDTEXT;
+                box->setCurrentText(DataFile::UNUSEDTEXT);
+                surveyFile->fieldMeanings[*row] = DataFile::UNUSEDTEXT;
                 fullyUsedValues[fieldval]--;
                 if(numAllowed == 1) {
                     item->setToolTip(tr("The \"") + fieldval + tr("\" field has already been assigned."
@@ -366,7 +307,7 @@ void CategorizingDialog::validateFieldSelectorBoxes(int callingRow)
                                                                                                       "\nSelecting this will de-select it elsewhere."));
                 }
             }
-            else if(fieldval != UNUSEDTEXT) {
+            else if(fieldval != DataFile::UNUSEDTEXT) {
                 // below capacity or at capacity including this one
                 item->setForeground(Qt::black);
                 item->setToolTip("");
@@ -375,7 +316,7 @@ void CategorizingDialog::validateFieldSelectorBoxes(int callingRow)
 
         // clearing formatting of all unchosen items except "Unused"
         for(int itemNum = 0; itemNum < box->count(); itemNum++) {
-            if((takenValues.count(box->itemText(itemNum)) == 0) && (box->itemText(itemNum) != UNUSEDTEXT)) {
+            if((takenValues.count(box->itemText(itemNum)) == 0) && (box->itemText(itemNum) != DataFile::UNUSEDTEXT)) {
                 model->item(itemNum)->setForeground(Qt::black);
                 model->item(itemNum)->setToolTip("");
             }

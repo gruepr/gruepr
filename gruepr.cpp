@@ -648,7 +648,7 @@ void gruepr::refreshCriteriaLayout()
                                         DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
         layout->addWidget(criteriaCard);
-        criteriaCard->setVisible(true);
+        criteriaCard->setVisible((criteriaCard != sectionCriteriaCard) || (dataOptions->sectionNames.size() > 1));   // no section card unless there are multiple sections
     }
     layout->addWidget(bottomDropZone);
     layout->addWidget(addNewCriteriaCardButton);
@@ -867,9 +867,19 @@ void gruepr::editSectionNames()
         for(int i = 0; i < dataOptions->sectionNames.size(); i++) {
             mapOfOldToNewSectionNames[dataOptions->sectionNames.at(i)] = window->sectionNames.at(i);
         }
-        //replace section names for each student
+        //replace section names for each student (leaving any section not in the map as-is, rather than blanking it)
         for(auto &student : students) {
-            student.section = mapOfOldToNewSectionNames[student.section];
+            const auto newName = mapOfOldToNewSectionNames.find(student.section);
+            if(newName != mapOfOldToNewSectionNames.end()) {
+                student.section = newName->second;
+            }
+        }
+        //if a single section is selected, keep it selected under its new name
+        if(teamingOptions->sectionType == TeamingOptions::SectionType::oneSection) {
+            const auto newName = mapOfOldToNewSectionNames.find(teamingOptions->sectionName);
+            if(newName != mapOfOldToNewSectionNames.end()) {
+                teamingOptions->sectionName = newName->second;
+            }
         }
         //replace section names in section selection box and dataOptions
         rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudentTable();
@@ -1380,43 +1390,87 @@ void gruepr::rebuildDuplicatesTeamsizeURMIdentityAndSectionDataAndRefreshStudent
         }
     }
 
-    // Re-build the section options in the selection box
+    // Re-build the section options in the selection box, then bring the selection, teamingOptions,
+    // student table, and team sizes in line with it
     if(dataOptions->sectionIncluded) {
+        rebuildSectionNames();
         sectionSelectionBox->blockSignals(true);
         sectionSelectionBox->clear();
-        dataOptions->sectionNames.clear();
-        for(const auto &student : std::as_const(students)) {
-            if(!student.deleted && !dataOptions->sectionNames.contains(student.section, Qt::CaseInsensitive)) {
-                dataOptions->sectionNames << student.section;
-            }
-        }
         if(dataOptions->sectionNames.size() > 1) {
-            QCollator sortAlphanumerically;
-            sortAlphanumerically.setNumericMode(true);
-            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-            std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
             sectionSelectionBox->addItem(tr("Students in all sections together"));
             sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
             sectionSelectionBox->insertSeparator(2);
             sectionSelectionBox->addItems(dataOptions->sectionNames);
+            // keep the current choice if it still exists; otherwise go back to all sections together
+            int index = 0;
+            if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+                index = 1;
+            }
+            else if(teamingOptions->sectionType == TeamingOptions::SectionType::oneSection) {
+                // find the selected section ignoring capitalization, searching only the section names (not the separator or the
+                // "all sections" entries), since the section names may have just been unified
+                for(int i = 3; i < sectionSelectionBox->count(); i++) {
+                    if(sectionSelectionBox->itemText(i).compare(teamingOptions->sectionName, Qt::CaseInsensitive) == 0) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            sectionSelectionBox->setCurrentIndex(index);
         }
         else {
-            sectionSelectionBox->addItem(tr("Only one section in the data."));
+            // show the one section's name, as loadUI() does (but not a blank name, which changeSection() treats as a blank-section selection)
+            const bool haveNamedSection = !dataOptions->sectionNames.isEmpty() && !dataOptions->sectionNames.constFirst().isEmpty();
+            sectionSelectionBox->addItem(haveNamedSection? dataOptions->sectionNames.constFirst() : tr("No section data."));
         }
         sectionSelectionBox->blockSignals(false);
+        sectionCriteriaCard->setVisible(dataOptions->sectionNames.size() > 1);
+        layoutCriteriaCards();
 
-        if(sectionSelectionBox->findText(teamingOptions->sectionName) != -1) {
-            sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
+        changeSection(sectionSelectionBox->currentIndex());   // also refreshes the student table and team sizes
+        if(dataOptions->sectionNames.size() <= 1) {
+            teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
         }
     }
+    else {
+        // Refresh student table data
+        refreshStudentDisplay();
+        ui->studentTable->clearSortIndicator();
 
-    // Refresh student table data
-    refreshStudentDisplay();
-    ui->studentTable->clearSortIndicator();
+        // Load new team sizes in selection box
+        idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
+        changeIdealTeamSize();
+    }
+}
 
-    // Load new team sizes in selection box
-    idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
-    changeIdealTeamSize();
+
+//////////////////
+// Rebuild the sorted list of section names from the non-deleted students. Section names that differ only in
+// capitalization are treated as one section, and every student in it is given that section's (first-found) spelling.
+//////////////////
+void gruepr::rebuildSectionNames()
+{
+    dataOptions->sectionNames.clear();
+    for(auto &student : students) {
+        if(student.deleted) {
+            continue;
+        }
+        bool found = false;
+        for(const auto &sectionName : std::as_const(dataOptions->sectionNames)) {
+            if(sectionName.compare(student.section, Qt::CaseInsensitive) == 0) {
+                student.section = sectionName;
+                found = true;
+                break;
+            }
+        }
+        if(!found) {
+            dataOptions->sectionNames << student.section;
+        }
+    }
+    QCollator sortAlphanumerically;
+    sortAlphanumerically.setNumericMode(true);
+    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+    std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
 }
 
 
@@ -2033,6 +2087,7 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
     //qDebug() << "Calling change ideal team size in loadUI:";
 
     if(dataOptions->sectionIncluded) {
+        rebuildSectionNames();     // also unifies the capitalization of section names, e.g., from the source data or an older save file
         sectionSelectionBox->blockSignals(true);
         if(dataOptions->sectionNames.size() > 1) {
             sectionSelectionBox->addItem(tr("Students in all sections together"));
@@ -2043,7 +2098,19 @@ void gruepr::loadUI(QProgressDialog *progressDialog)
                 sectionSelectionBox->setCurrentIndex(1);
             }
             else if(teamingOptions->sectionType == TeamingOptions::SectionType::oneSection) {
-                sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
+                // find the saved section ignoring capitalization, searching only the section names (not the separator or the
+                // "all sections" entries), since rebuildSectionNames() may have unified their capitalization; otherwise go back to all sections together
+                int index = 0;
+                for(int i = 3; i < sectionSelectionBox->count(); i++) {
+                    if(sectionSelectionBox->itemText(i).compare(teamingOptions->sectionName, Qt::CaseInsensitive) == 0) {
+                        index = i;
+                        break;
+                    }
+                }
+                if(index == 0) {
+                    teamingOptions->sectionType = TeamingOptions::SectionType::allTogether;
+                }
+                sectionSelectionBox->setCurrentIndex(index);
             }
             else {
                 sectionSelectionBox->setCurrentIndex(0);

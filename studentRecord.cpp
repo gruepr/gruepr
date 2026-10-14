@@ -304,15 +304,20 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         genderOptions << QString(PRONOUNS).split('/');
                 fieldnum = dataOptions.genderField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QStringList field = fields.at(fieldnum).simplified().split(',');
+            // split the response into its parts, trimming each one (e.g., "woman, nonbinary" from a spreadsheet)
+            QStringList field = fields.at(fieldnum).split(',');
+            for(auto &part : field) {
+                part = part.simplified();
+            }
             for(const auto &options : std::as_const(genderOptions)) {
-                if(field.contains(options.at(static_cast<int>(Gender::woman)), Qt::CaseInsensitive)) {
+                // a gender can appear in more than one of the option lists, so only add it once
+                if(field.contains(options.at(static_cast<int>(Gender::woman)), Qt::CaseInsensitive) && !gender.contains(Gender::woman)) {
                     gender << Gender::woman;
                 }
-                if(field.contains(options.at(static_cast<int>(Gender::nonbinary)), Qt::CaseInsensitive)) {
+                if(field.contains(options.at(static_cast<int>(Gender::nonbinary)), Qt::CaseInsensitive) && !gender.contains(Gender::nonbinary)) {
                     gender << Gender::nonbinary;
                 }
-                if(field.contains(options.at(static_cast<int>(Gender::man)), Qt::CaseInsensitive)) {
+                if(field.contains(options.at(static_cast<int>(Gender::man)), Qt::CaseInsensitive) && !gender.contains(Gender::man)) {
                     gender << Gender::man;
                 }
             }

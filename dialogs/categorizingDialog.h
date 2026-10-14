@@ -27,7 +27,6 @@ private:
     inline static const QString HEADERTEXT = QObject::tr("Question text");
     inline static const QString CATEGORYTEXT = QObject::tr("Category");
     inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
-    inline static const QString UNUSEDTEXT = QObject::tr("Unused");
 
     inline static const int MAX_COLUMN_WIDTH = 250;
     inline static const int MAX_HEADER_LINES = 4;

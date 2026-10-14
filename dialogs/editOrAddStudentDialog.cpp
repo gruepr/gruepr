@@ -4,6 +4,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QScrollArea>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,12 +43,12 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
         datatext.last()->setPlaceholderText(tr("Enter text"));
-        datatext.last()->setText(student.surveyTimestamp.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)));
+        datatext.last()->setText(student.surveyTimestamp.toString(timestampFormat()));
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datatext.last(), 0);
         //Flag invalid timestamps
         connect(datatext.last(), &QLineEdit::textChanged, this, [thisLineEdit = datatext.last()]()
-                        {if(QDateTime::fromString(thisLineEdit->text(), QLocale::system().dateTimeFormat(QLocale::ShortFormat)).isValid())
+                        {if(QDateTime::fromString(thisLineEdit->text(), timestampFormat()).isValid())
                             {thisLineEdit->setStyleSheet(LINEEDITSTYLE);}
                          else
                             {thisLineEdit->setStyleSheet(QString(LINEEDITSTYLE).replace("color: " DEEPWATERHEX ";", "color: red;"));}});
@@ -483,7 +484,11 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
 {
     int textfield = 0, boxfield = 0, multilinefield = 0;
     if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
-        student.surveyTimestamp = QDateTime::fromString(datatext[textfield++]->text(), QLocale::system().dateTimeFormat(QLocale::ShortFormat));
+        const QString timestampText = datatext[textfield++]->text();
+        // only re-read the timestamp if it was edited, since the displayed text has no seconds
+        if(timestampText != student.surveyTimestamp.toString(timestampFormat())) {
+            student.surveyTimestamp = QDateTime::fromString(timestampText, timestampFormat());
+        }
     }
     if(dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT) {
         student.firstname = datatext[textfield++]->text();
@@ -628,6 +633,14 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     if(!dataOptions->notesFields.empty()) {
         student.notes = datamultiline[multilinefield++]->toPlainText();
     }
+}
+
+
+// the system's short date/time format, but always with a 4-digit year so that it reads back unambiguously
+QString editOrAddStudentDialog::timestampFormat()
+{
+    static const QRegularExpression years("y+");
+    return QLocale::system().dateTimeFormat(QLocale::ShortFormat).replace(years, "yyyy");
 }
 
 

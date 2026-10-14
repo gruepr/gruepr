@@ -118,6 +118,7 @@ private:
         // reading survey data
     long long numActiveStudents = MAX_STUDENTS;
     inline StudentRecord* findStudentFromID(const long long ID);
+    void rebuildSectionNames();
     void refreshStudentDisplay(QProgressDialog *progressDialog = nullptr, int progressStart = 0, int progressEnd = 0);
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column

@@ -6,6 +6,7 @@
 #include <optional>
 #include <QDialog>
 #include <QFileInfo>
+#include <QRegularExpression>
 #include <QString>
 
 /**
@@ -64,6 +65,17 @@ public:
 
     QDialog* chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
 
+    // Auto-fill any still-empty fieldMeanings: columns matching fieldsToBeIgnored become "**IGNORE**", Canvas's "id"
+    // column becomes "**LMSID**" (if fromCanvas), and every other column gets the first matching meaning in
+    // possibleFieldMeanings (or UNUSEDTEXT if nothing matches)
+    void autoDetectFieldMeanings(const QList<possFieldMeaning> &possibleFieldMeanings, bool fromCanvas = false);
+    // Same, for survey data: first assumes any columns after the last recognizable question are "Notes", then
+    // auto-detects the rest using surveyFieldOptions()
+    void autoDetectSurveyFieldMeanings(bool fromCanvas);
+    static const QList<possFieldMeaning> &surveyFieldOptions();
+
+    inline static const QString UNUSEDTEXT = QObject::tr("Unused");
+
     QStringList headerValues;
     bool hasHeaderRow = true;
     int numFields = 0;
@@ -86,10 +98,11 @@ protected:
 
 private:
     void validateFieldSelectorBoxes(int callingRow = -1);
+    static const QRegularExpression &lastKnownMeaningfulField();
+    inline static const char SECTIONQUESTIONPATTERN[] = R"(\b(which|what)\b.*\bsections?\b)";   // whole words only, so e.g. "intersection" doesn't count
     inline static const QString HEADERTEXT = QObject::tr("Column Headers");
     inline static const QString CATEGORYTEXT = QObject::tr("Category");
     inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
-    inline static const QString UNUSEDTEXT = QObject::tr("Unused");
     inline static const int DIALOGWIDTH = 500;
     inline static const int DIALOGHEIGHT = 300;
 };
