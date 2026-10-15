@@ -32,37 +32,6 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - over 50 bugfixes:
-//      - loading data
-//          - Excel cells containing formulas now load as their values
-//          - multi-select gender answers separated by ", " now keep every gender
-//          - switching to a Canvas or Google survey no longer deletes a survey file already loaded from your computer
-//          - Canvas downloads no longer hang (now cancellable, 4-minute limit), are no longer capped at 200 items, and handle quiz names with special characters
-//          - a previous Canvas download's roster is no longer added to a later survey
-//      - comparing to a roster
-//          - choosing a close match no longer changes a different student's name or email
-//          - no longer crashes when roster and survey names differ only in capitalization
-//          - students already removed are no longer matched or prompted about
-//      - team sizes and sections
-//          - custom team sizes no longer resets to all zero, and a single team no longer hangs the optimizer
-//          - a section with fewer than 4 students is now placed on one team instead of mixing into another section or losing all results
-//          - section names that differ only in capitalization are now one section, and the section selector stays in sync after renaming or merging sections
-//      - teammate rules
-//          - the "number of requests granted" setting no longer resets to "all"
-//          - Split Apart now offers students' "want to avoid" preferences
-//          - students with the same name each keep their own requests
-//          - the dialog box refreshes after loading or clearing data
-//      - scores and assignments
-//          - team compatibility scores now account for gender, identity, and teammate rules after drag-and-drop and in every section
-//          - project assignments for each section now use that section's own preferences
-//          - teams with all students giving identical numerical answers now scored correctly, and "average" now targets the true class average
-//      - editing students and the student table
-//          - editing a student no longer changes their survey timestamp
-//          - a blank racial/ethnic identity no longer creates a separate category, and new genders appear in gender rules
-//          - attribute response counts now reflect the selected section
-//      - survey maker
-//          - a survey saved without a roster no longer breaks its preferred-teammate question when reopened
-//          - a failed roster upload no longer erases the roster already loaded
 //
 // TO DO:
 //
