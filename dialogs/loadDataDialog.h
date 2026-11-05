@@ -42,6 +42,7 @@ private:
     bool getFromGoogle();
     bool getFromCanvas();
     bool getFromPrevWork();
+    void removePrevWorks(const QStringList &fileNames);
     bool getFromDropFile(QString filePathString);
     bool readData();
     bool readQuestionsFromHeader();

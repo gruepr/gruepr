@@ -30,6 +30,7 @@
 #include <QMimeData>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSaveFile>
 #include <QSettings>
 #include <QSplitter>
 #include <QTimer>
@@ -2067,6 +2068,12 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
         return;
     }
 
+    if(!grueprGlobal::warningMessage(this, "gruepr", tr("Are you sure you want to close the team set \"") +
+                                     ui->dataDisplayTabWidget->tabText(closingTabIndex) + tr("\"?\nThis cannot be undone."),
+                                     tr("Close"), tr("Cancel"))) {
+        return;
+    }
+
     auto *tab = ui->dataDisplayTabWidget->widget(closingTabIndex);
     ui->dataDisplayTabWidget->removeTab(closingTabIndex);
     tab->deleteLater();
@@ -2225,7 +2232,7 @@ void gruepr::saveState()
 {
     QSettings savedSettings;
 
-    QFile saveFile(dataOptions->saveStateFileName, this);
+    QSaveFile saveFile(dataOptions->saveStateFileName, this);
     if(saveFile.open(QIODeviceBase::WriteOnly | QIODeviceBase::Text)) {
         QJsonObject content;
         content["teamingoptions"] = teamingOptions->toJson();
@@ -2256,7 +2263,9 @@ void gruepr::saveState()
         content["criteriaCards"] = criteriacardsjsons;
         const QJsonDocument doc(content);
         saveFile.write(doc.toJson(QJsonDocument::Compact));
-        saveFile.close();
+        if(!saveFile.commit()) {
+            return;
+        }
 
         //find which savestate this is in the settings
         const int numIndexes = savedSettings.beginReadArray("prevWorks");

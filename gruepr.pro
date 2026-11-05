@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 13.2.4
+gruepr_version = 13.3
 copyright_year = 2019-2026
 
 QT += core gui widgets concurrent network printsupport networkauth
@@ -98,6 +98,14 @@ linux {
     QMAKE_LFLAGS += -fopenmp
 }
 
+# OS credential stores used by LMS/secureStore.cpp to save login tokens
+win32: LIBS += -ladvapi32
+macx: LIBS += -framework Security -framework CoreFoundation
+linux {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += libsecret-1
+}
+
 # Run TSan:
 # macx: QMAKE_CXXFLAGS += -fsanitize=thread -fno-omit-frame-pointer
 # macx: QMAKE_LFLAGS += -fsanitize=thread
@@ -143,6 +151,7 @@ SOURCES += \
         LMS/LMS.cpp \
         LMS/canvashandler.cpp \
         LMS/googlehandler.cpp \
+        LMS/secureStore.cpp \
         widgets/attributeWidget.cpp \
         widgets/checkableComboBox.cpp \
         widgets/comboBoxWithElidedContents.cpp \
@@ -205,6 +214,7 @@ HEADERS += \
         LMS/LMS.h \
         LMS/canvashandler.h \
         LMS/googlehandler.h \
+        LMS/secureStore.h \
         widgets/attributeWidget.h \
         widgets/checkableComboBox.h \
         widgets/comboBoxWithElidedContents.h \

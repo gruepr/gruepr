@@ -52,6 +52,7 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
     ui->prevWorkDescriptionLabel->setStyleSheet(LABEL10PTSTYLE);
     ui->prevWorkComboBox->setStyleSheet(COMBOBOXSTYLE);
     ui->loadPrevWorkButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    ui->deletePrevWorkButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
     // Data source bar
     ui->dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
@@ -90,33 +91,39 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
     ui->googleSourceButton->setEnabled(numGoogleSurveys > 0);
     savedSettings.endArray();
     const int numPrevWorks = savedSettings.beginReadArray("prevWorks");
-    ui->prevWorkComboBox->setVisible(numPrevWorks > 0);
-    ui->prevWorkSourceButton->setEnabled(numPrevWorks > 0);
-    if(numPrevWorks > 0) {
-        QList<std::tuple<QDateTime, QString, QString, QString>> prevWorkInfos;   //lastModifiedDate, displayName, lastModifiedDateString, fileName
-        prevWorkInfos.reserve(numPrevWorks);
-        for (int prevWork = 0; prevWork < numPrevWorks; prevWork++) {
-            savedSettings.setArrayIndex(prevWork);
-            const QString displayName = savedSettings.value("prevWorkName", "").toString();
-            const QDateTime lastModifiedDate = QDateTime::fromString(savedSettings.value("prevWorkDate", "").toString(),
-                                                                     QLocale::system().dateTimeFormat(QLocale::LongFormat));
-            const QString lastModifiedDateString = lastModifiedDate.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat));
-            const QString fileName = savedSettings.value("prevWorkFile", "").toString();
-            if(!displayName.isEmpty() && !lastModifiedDateString.isEmpty() && !fileName.isEmpty()) {
-                prevWorkInfos.emplaceBack(lastModifiedDate, displayName, lastModifiedDateString, fileName);
-            }
+    QList<std::tuple<QDateTime, QString, QString, QString>> prevWorkInfos;   //lastModifiedDate, displayName, lastModifiedDateString, fileName
+    QStringList missingPrevWorkFiles;   // saved sessions whose file no longer exists, to be removed from the list
+    prevWorkInfos.reserve(numPrevWorks);
+    for (int prevWork = 0; prevWork < numPrevWorks; prevWork++) {
+        savedSettings.setArrayIndex(prevWork);
+        const QString displayName = savedSettings.value("prevWorkName", "").toString();
+        const QDateTime lastModifiedDate = QDateTime::fromString(savedSettings.value("prevWorkDate", "").toString(),
+                                                                 QLocale::system().dateTimeFormat(QLocale::LongFormat));
+        const QString lastModifiedDateString = lastModifiedDate.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat));
+        const QString fileName = savedSettings.value("prevWorkFile", "").toString();
+        if(!fileName.isEmpty() && !QFileInfo::exists(fileName)) {
+            missingPrevWorkFiles << fileName;
+            continue;
         }
-        std::sort(prevWorkInfos.begin(), prevWorkInfos.end(),
-                  [](const std::tuple<QDateTime, QString, QString, QString> &a,
-                     const std::tuple<QDateTime, QString, QString, QString> &b) {
-                      return std::get<0>(a) > std::get<0>(b);   // sort by last modified date descending
-                  });
-        for(const auto &prevWork : prevWorkInfos) {
-            ui->prevWorkComboBox->addItem(std::get<1>(prevWork) + " [Last opened: " + std::get<2>(prevWork) + "]",
-                                          std::get<3>(prevWork));
+        if(!displayName.isEmpty() && !lastModifiedDateString.isEmpty() && !fileName.isEmpty()) {
+            prevWorkInfos.emplaceBack(lastModifiedDate, displayName, lastModifiedDateString, fileName);
         }
     }
     savedSettings.endArray();
+    if(!missingPrevWorkFiles.isEmpty()) {
+        removePrevWorks(missingPrevWorkFiles);
+    }
+    std::sort(prevWorkInfos.begin(), prevWorkInfos.end(),
+              [](const std::tuple<QDateTime, QString, QString, QString> &a,
+                 const std::tuple<QDateTime, QString, QString, QString> &b) {
+                  return std::get<0>(a) > std::get<0>(b);   // sort by last modified date descending
+              });
+    for(const auto &prevWork : prevWorkInfos) {
+        ui->prevWorkComboBox->addItem(std::get<1>(prevWork) + " [Last opened: " + std::get<2>(prevWork) + "]",
+                                      std::get<3>(prevWork));
+    }
+    ui->prevWorkComboBox->setVisible(!prevWorkInfos.isEmpty());
+    ui->prevWorkSourceButton->setEnabled(!prevWorkInfos.isEmpty());
 
     connect(ui->dropFileFrame, &DropFileFrame::itemDropped, this, [this](const QString &filePathString) {
         loadData(DataOptions::DataSource::fromDragDropFile, filePathString);
@@ -133,6 +140,28 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
     connect(ui->loadPrevWorkButton, &QPushButton::clicked, this, [this]() {
         loadData(DataOptions::DataSource::fromPrevWork, "");
     });
+    connect(ui->deletePrevWorkButton, &QPushButton::clicked, this, [this]() {
+        const QString fileName = ui->prevWorkComboBox->currentData().toString();
+        if(fileName.isEmpty()) {
+            return;
+        }
+        if(!grueprGlobal::warningMessage(this, "gruepr", tr("Are you sure you want to delete the saved session \"") +
+                                         ui->prevWorkComboBox->currentText() + tr("\"?\nThis cannot be undone."),
+                                         tr("Delete"), tr("Cancel"))) {
+            return;
+        }
+        if(!QFile::remove(fileName)) {
+            grueprGlobal::errorMessage(this, tr("Error"), tr("The saved session file could not be deleted. It may be in use; please try again."));
+            return;
+        }
+        removePrevWorks({fileName});
+        ui->prevWorkComboBox->removeItem(ui->prevWorkComboBox->currentIndex());
+        if(ui->prevWorkComboBox->count() == 0) {
+            ui->prevWorkComboBox->hide();
+            ui->loadPrevWorkButton->setEnabled(false);
+            ui->deletePrevWorkButton->setEnabled(false);
+        }
+    });
     connect(ui->confirmButton, &QPushButton::clicked, this, &loadDataDialog::accept);
     connect(ui->reviewCategoriesButton, &QPushButton::clicked, this, &loadDataDialog::acceptWithManualCategories);
     connect(ui->cancelButton, &QPushButton::clicked, this, &QDialog::reject);
@@ -142,6 +171,33 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent)
 loadDataDialog::~loadDataDialog()
 {
     delete ui;
+}
+
+// Rewrites the saved list of previous sessions, leaving out the given files
+void loadDataDialog::removePrevWorks(const QStringList &fileNames)
+{
+    QSettings savedSettings;
+    QList<std::tuple<QString, QString, QString>> keptPrevWorks;     // name, fileName, date
+    const int numPrevWorks = savedSettings.beginReadArray("prevWorks");
+    for(int prevWork = 0; prevWork < numPrevWorks; prevWork++) {
+        savedSettings.setArrayIndex(prevWork);
+        const QString fileName = savedSettings.value("prevWorkFile", "").toString();
+        if(!fileNames.contains(fileName, Qt::CaseInsensitive)) {
+            keptPrevWorks.emplaceBack(savedSettings.value("prevWorkName", "").toString(), fileName,
+                                      savedSettings.value("prevWorkDate", "").toString());
+        }
+    }
+    savedSettings.endArray();
+
+    savedSettings.remove("prevWorks");
+    savedSettings.beginWriteArray("prevWorks", int(keptPrevWorks.size()));
+    for(int prevWork = 0; prevWork < keptPrevWorks.size(); prevWork++) {
+        savedSettings.setArrayIndex(prevWork);
+        savedSettings.setValue("prevWorkName", std::get<0>(keptPrevWorks.at(prevWork)));
+        savedSettings.setValue("prevWorkFile", std::get<1>(keptPrevWorks.at(prevWork)));
+        savedSettings.setValue("prevWorkDate", std::get<2>(keptPrevWorks.at(prevWork)));
+    }
+    savedSettings.endArray();
 }
 
 bool loadDataDialog::getFromDropFile(QString filePathString)

@@ -1,4 +1,5 @@
 #include "canvashandler.h"
+#include "secureStore.h"
 #include <QDesktopServices>
 #include <QDir>
 #include <QJsonArray>
@@ -16,15 +17,26 @@
 CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {
     initOAuth2();
 
-    const QSettings settings;
+    QSettings settings;
     const QByteArray key = "gruepr";
 
-    QByteArray encToken = settings.value("CanvasRefreshToken", "").toByteArray();
-    if(!encToken.isEmpty()) {
-        for (int i = 0; i < encToken.size(); ++i) {
-            encToken[i] ^= key[i%key.size()];
+    QByteArray refreshToken;
+    if(settings.contains("CanvasRefreshToken")) {
+        // older versions of gruepr saved the token XOR'ed in QSettings; move it to the secure store
+        refreshToken = settings.value("CanvasRefreshToken", "").toByteArray();
+        for (int i = 0; i < refreshToken.size(); ++i) {
+            refreshToken[i] ^= key[i%key.size()];
         }
-        OAuthFlow->setRefreshToken(encToken);
+        if(!refreshToken.isEmpty()) {
+            SecureStore::write("CanvasRefreshToken", refreshToken);
+        }
+        settings.remove("CanvasRefreshToken");
+    }
+    else {
+        refreshToken = SecureStore::read("CanvasRefreshToken");
+    }
+    if(!refreshToken.isEmpty()) {
+        OAuthFlow->setRefreshToken(refreshToken);
     }
 
     setBaseURL(baseAPIURL);
@@ -32,13 +44,7 @@ CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {
 
 CanvasHandler::~CanvasHandler() {
     if(!OAuthFlow->refreshToken().isEmpty()) {
-        QSettings settings;
-        const QByteArray key = "gruepr";
-        QByteArray encToken = OAuthFlow->refreshToken().toUtf8();
-        for (int i = 0; i < encToken.size(); ++i) {
-            encToken[i] ^= key[i%key.size()];
-        }
-        settings.setValue("CanvasRefreshToken", encToken);
+        SecureStore::write("CanvasRefreshToken", OAuthFlow->refreshToken().toUtf8());
     }
 }
 
@@ -47,7 +53,7 @@ bool CanvasHandler::authenticate() {
     //***************************************************
     //IN BETA--GETS USER'S API TOKEN MANUALLY
     QSettings savedSettings;
-    const QByteArray key = "gruepr";    // used to prevent saving the URL and token as plaintext
+    const QByteArray key = "gruepr";    // used to prevent saving the URL as plaintext (and to read tokens saved by older versions)
     QString savedCanvasNickname = savedSettings.value("canvasNickname", "").toString();
     QString savedCanvasURL = savedSettings.value("canvasURL", "").toString();
     QString savedCanvasToken = savedSettings.value("canvasToken", "").toString();
@@ -63,6 +69,16 @@ bool CanvasHandler::authenticate() {
             encToken[i] ^= key[i%key.size()];
         }
         savedCanvasToken = encToken;
+    }
+    if(savedSettings.contains("canvasToken")) {
+        // older versions of gruepr saved the token in QSettings; move it to the secure store
+        if(!savedCanvasToken.isEmpty()) {
+            SecureStore::write("canvasToken", savedCanvasToken.toUtf8());
+        }
+        savedSettings.remove("canvasToken");
+    }
+    else {
+        savedCanvasToken = QString::fromUtf8(SecureStore::read("canvasToken"));
     }
 
     const QStringList newAccountnameURLAndToken = askUserForManualURLandToken(savedCanvasNickname, savedCanvasURL, savedCanvasToken);
@@ -81,13 +97,9 @@ bool CanvasHandler::authenticate() {
     for (int i = 0; i < encURL.size(); ++i) {
         encURL[i] ^= key[i%key.size()];
     }
-    QByteArray encToken = savedCanvasToken.toUtf8();
-    for (int i = 0; i < encToken.size(); ++i) {
-        encToken[i] ^= key[i%key.size()];
-    }
     savedSettings.setValue("canvasNickname", savedCanvasNickname);
     savedSettings.setValue("canvasURL", encURL);
-    savedSettings.setValue("canvasToken", encToken);
+    SecureStore::write("canvasToken", savedCanvasToken.toUtf8());
 
     setBaseURL(savedCanvasURL);
     authenticateWithManualToken(savedCanvasToken);

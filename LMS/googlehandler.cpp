@@ -1,4 +1,5 @@
 #include "googlehandler.h"
+#include "secureStore.h"
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
@@ -16,15 +17,26 @@
 GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
     initOAuth2();
 
-    const QSettings settings;
+    QSettings settings;
     const QByteArray key = "gruepr";
 
-    QByteArray encToken = settings.value("GoogleRefreshToken", "").toByteArray();
-    if(!encToken.isEmpty()) {
-        for (int i = 0; i < encToken.size(); ++i) {
-            encToken[i] ^= key[i%key.size()];
+    QByteArray refreshToken;
+    if(settings.contains("GoogleRefreshToken")) {
+        // older versions of gruepr saved the token XOR'ed in QSettings; move it to the secure store
+        refreshToken = settings.value("GoogleRefreshToken", "").toByteArray();
+        for (int i = 0; i < refreshToken.size(); ++i) {
+            refreshToken[i] ^= key[i%key.size()];
         }
-        OAuthFlow->setRefreshToken(encToken);
+        if(!refreshToken.isEmpty()) {
+            SecureStore::write("GoogleRefreshToken", refreshToken);
+        }
+        settings.remove("GoogleRefreshToken");
+    }
+    else {
+        refreshToken = SecureStore::read("GoogleRefreshToken");
+    }
+    if(!refreshToken.isEmpty()) {
+        OAuthFlow->setRefreshToken(refreshToken);
     }
 
     QByteArray encName = settings.value("GoogleAccountName", "").toByteArray();
@@ -39,11 +51,7 @@ GoogleHandler::~GoogleHandler() {
     const QByteArray key = "gruepr";
 
     if(!OAuthFlow->refreshToken().isEmpty()) {
-        QByteArray encToken = OAuthFlow->refreshToken().toUtf8();
-        for (int i = 0; i < encToken.size(); ++i) {
-            encToken[i] ^= key[i%key.size()];
-        }
-        settings.setValue("GoogleRefreshToken", encToken);
+        SecureStore::write("GoogleRefreshToken", OAuthFlow->refreshToken().toUtf8());
     }
 
     if(!accountName.isEmpty()) {

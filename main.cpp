@@ -32,6 +32,10 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - added a confirmation dialog when closing a teamset tab
+//  - switched the session save file from QFile to QSaveFile for crash-proof saves
+//  - switched saved authorization tokens to encrypted storage
+//  - added a way to delete saved sessions
 //
 // TO DO:
 //

@@ -233,7 +233,7 @@ can take a few minutes after upload to finish processing before it's selectable.
 23. Paste the following for the **Promotional Text**:
 
     ```
-    Free, open-source, privacy-first team formation for educators — balance skills, schedules, diversity, and preferences in minutes
+    Free, open-source, privacy-first team formation for educators: balance skills, schedules, diversity, and preferences in minutes
     ```
 
 24. Click **Save**, then **Add for Review** / **Submit for Review**. Apple's review
