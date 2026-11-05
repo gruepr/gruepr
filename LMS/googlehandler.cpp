@@ -1,6 +1,5 @@
 #include "googlehandler.h"
 #include "secureStore.h"
-#include <QDebug>   // TEMP token-debug
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
@@ -22,15 +21,6 @@ GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
     const QByteArray key = "gruepr";
 
     QByteArray refreshToken;
-    // TEMP token-debug
-    QStringList tokenKeys;
-    for(const auto &k : settings.allKeys()) {
-        if(k.contains("token", Qt::CaseInsensitive)) {
-            tokenKeys << k;
-        }
-    }
-    qDebug() << "[token-debug] Google ctor: file" << settings.fileName() << "| legacy key present:" << settings.contains("GoogleRefreshToken")
-             << "| token-like keys:" << tokenKeys;
     if(settings.contains("GoogleRefreshToken")) {
         // older versions of gruepr saved the token XOR'ed in QSettings; move it to the secure store
         refreshToken = settings.value("GoogleRefreshToken", "").toByteArray();
@@ -38,13 +28,9 @@ GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
             refreshToken[i] ^= key[i%key.size()];
         }
         if(!refreshToken.isEmpty()) {
-            const bool written = SecureStore::write("GoogleRefreshToken", refreshToken);  // TEMP token-debug
-            qDebug() << "[token-debug] Google migration: token length" << refreshToken.size() << "| keychain write ok:" << written;
+            SecureStore::write("GoogleRefreshToken", refreshToken);
         }
         settings.remove("GoogleRefreshToken");
-        settings.sync();    // TEMP token-debug
-        qDebug() << "[token-debug] Google migration: legacy key present after remove:" << settings.contains("GoogleRefreshToken")
-                 << "| settings status:" << settings.status();
     }
     else {
         refreshToken = SecureStore::read("GoogleRefreshToken");
@@ -67,7 +53,6 @@ GoogleHandler::~GoogleHandler() {
     if(!OAuthFlow->refreshToken().isEmpty()) {
         SecureStore::write("GoogleRefreshToken", OAuthFlow->refreshToken().toUtf8());
     }
-    qDebug() << "[token-debug] Google dtor: legacy key present:" << settings.contains("GoogleRefreshToken");  // TEMP token-debug
 
     if(!accountName.isEmpty()) {
         QByteArray encName = accountName.toUtf8();
