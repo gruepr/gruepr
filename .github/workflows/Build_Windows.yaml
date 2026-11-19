@@ -20,7 +20,10 @@ jobs:
     - uses: actions/checkout@v6
     
     - name: Install jom
-      run: choco install jom
+      run: |
+        Invoke-WebRequest https://download.qt.io/official_releases/jom/jom_1_1_7.zip -OutFile "$env:RUNNER_TEMP\jom.zip" -MaximumRetryCount 3 -RetryIntervalSec 15
+        Expand-Archive "$env:RUNNER_TEMP\jom.zip" -DestinationPath "$env:RUNNER_TEMP\jom"
+        Add-Content $env:GITHUB_PATH "$env:RUNNER_TEMP\jom"
 
     - name: Install NSIS
       run: choco install nsis
