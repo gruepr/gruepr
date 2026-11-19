@@ -29,9 +29,9 @@ DEFINES += GRUEPRDOWNLOADSUBPAGE='\\"Download\\"'   # Need to add hash between h
 DEFINES += BUGREPORTPAGE='\\"https://github.com/gruepr/gruepr/issues\\"'
 DEFINES += GRUEPRHELPEMAIL='\\"info@gruepr.com\\"'
 
-# Mac App Store build: off by default, opt in with CONFIG+=macappstore
-macappstore {
-    DEFINES += MAC_APP_STORE_BUILD
+# App store build (Mac App Store or Microsoft Store): off by default, opt in with CONFIG+=appstore
+appstore {
+    DEFINES += APP_STORE_BUILD
 }
 
 # Secrets - CI or local, whichever exists
@@ -59,6 +59,11 @@ QMAKE_TARGET_PRODUCT = gruepr
 win32: RC_ICONS = icons_new\icons.ico
 macx: ICON = icons_new\gruepr.icns
 
+# declare Per-Monitor V2 DPI awareness (and Windows 10/11 support) in gruepr.exe's manifest; the MSVC linker
+# merges windows/gruepr.manifest into the manifest it embeds. Qt already runs this way, but asks for it in code
+# at startup, which the Microsoft Store's certification kit can't see
+win32-msvc: QMAKE_LFLAGS += /MANIFESTINPUT:$$shell_quote($$shell_path($$PWD/windows/gruepr.manifest))
+
 # set mac info.plist and bundle
 macx {
     plist.input = macOS/MyAppInfo.plist.in
@@ -67,6 +72,23 @@ macx {
     QMAKE_INFO_PLIST = $$OUT_PWD/MyAppInfo.plist
 }
 macx: QMAKE_TARGET_BUNDLE_PREFIX = com.gruepr
+
+# set the Microsoft Store (MSIX) package manifest for an app store build, filled in from gruepr_version like
+# the mac info.plist; windows/msix/make_msix.ps1 packs it. An MSIX version has 4 parts and the Store needs the
+# last one to be 0 (it's reserved for the Store's own use), so 13.3 -> 13.3.0.0 and 13.0.2 -> 13.0.2.0
+win32:appstore {
+    MSIX_VERSION_PARTS = $$split(gruepr_version, .)
+    count(MSIX_VERSION_PARTS, 1): MSIX_VERSION = $${gruepr_version}.0.0.0
+    count(MSIX_VERSION_PARTS, 2): MSIX_VERSION = $${gruepr_version}.0.0
+    count(MSIX_VERSION_PARTS, 3): MSIX_VERSION = $${gruepr_version}.0
+    count(MSIX_VERSION_PARTS, 4) {
+        MSIX_VERSION = $$gruepr_version
+        warning("gruepr_version $$gruepr_version has 4 parts; the Microsoft Store rejects an MSIX package whose version doesn't end in .0")
+    }
+    msixmanifest.input = windows/msix/AppxManifest.xml.in
+    msixmanifest.output = $$OUT_PWD/AppxManifest.xml
+    QMAKE_SUBSTITUTES += msixmanifest
+}
 
 DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060500
 
@@ -271,4 +293,5 @@ DISTFILES += \
         .signpath/policies/gruepr/release-signing.yml \
         .signpath/policies/gruepr/test-signing.yml \
         macOS/DMG_background.png \
-        macOS/MyAppInfo.plist
+        macOS/MyAppInfo.plist \
+        windows/gruepr.manifest

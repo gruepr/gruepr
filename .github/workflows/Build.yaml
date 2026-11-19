@@ -128,6 +128,76 @@ jobs:
           path: signed-installer\install_gruepr.exe
           compression-level: 0
 
+# ==================== WINDOWS (Microsoft Store) ====================
+
+  build-windows-store:
+    runs-on: windows-2022  # Pinned like build-windows: bundled VC runtime paths assume VS 2022
+    steps:
+
+    # --- Get all the tools ---
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.9.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2022_64'
+        modules: 'qtnetworkauth'
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: actions/checkout@v6
+
+    - name: Install jom
+      run: choco install jom
+
+    - name: Create secrets defines
+      run: |
+        @"
+        DEFINES += GITHUB_SECRETS
+        DEFINES += SECRET_GOOGLE_CLIENT_ID=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_ID }}\\\"
+        DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
+        "@ | Out-File -FilePath ci_secrets.pri -Encoding utf8
+
+    # --- Compile the exe (CONFIG+=appstore: no GitHub update check, and qmake writes AppxManifest.xml) ---
+
+    - name: QMake
+      run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info" "CONFIG+=appstore"
+
+    - name: QMake All
+      run: jom qmake_all
+
+    - name: Compile
+      run: jom
+
+    - name: Clean
+      run: jom clean
+
+    # --- Deploy and package (not signed here: the Store signs the package after upload) ---
+
+    - name: Deploy
+      run: |
+           windeployqt release\gruepr.exe
+           $crtDir = "$env:VCToolsRedistDir\x64\Microsoft.VC143.CRT"
+           $ompDir = "$env:VCToolsRedistDir\x64\Microsoft.VC143.OpenMP"
+           Copy-Item "$crtDir\msvcp140.dll" release\
+           Copy-Item "$crtDir\msvcp140_1.dll" release\
+           Copy-Item "$crtDir\msvcp140_2.dll" release\
+           Copy-Item "$crtDir\vcruntime140.dll" release\
+           Copy-Item "$crtDir\vcruntime140_1.dll" release\
+           Copy-Item "$crtDir\concrt140.dll" release\ -ErrorAction SilentlyContinue
+           Copy-Item "$ompDir\vcomp140.dll" release\
+           Remove-Item release\vc_redist.x64.exe -ErrorAction SilentlyContinue
+
+    - name: Make Store package (MSIX)
+      run: .\windows\msix\make_msix.ps1 -Stage release -Manifest AppxManifest.xml -Out gruepr.msix
+
+    - name: Upload MSIX
+      uses: actions/upload-artifact@v6
+      with:
+        name: gruepr-windows-store-msix
+        path: gruepr.msix
+        compression-level: 0
+
 # ==================== MacOS ====================
 
   build-macos:
@@ -311,7 +381,7 @@ jobs:
       # --- Build universal binary ---
       - name: Build universal binary
         run: |
-          qmake gruepr.pro CONFIG+=release CONFIG+=macappstore "OMP_PREFIX=$PWD/libomp-universal"
+          qmake gruepr.pro CONFIG+=release CONFIG+=appstore "OMP_PREFIX=$PWD/libomp-universal"
           make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS="arm64 x86_64" EXPORT_DEFAULT_ARCHS="arm64 x86_64"
           lipo -info gruepr.app/Contents/MacOS/gruepr
 

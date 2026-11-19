@@ -49,7 +49,7 @@ jobs:
       # --- Build universal binary ---
       - name: Build universal binary
         run: |
-          qmake gruepr.pro CONFIG+=release CONFIG+=macappstore "OMP_PREFIX=$PWD/libomp-universal"
+          qmake gruepr.pro CONFIG+=release CONFIG+=appstore "OMP_PREFIX=$PWD/libomp-universal"
           make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS="arm64 x86_64" EXPORT_DEFAULT_ARCHS="arm64 x86_64"
           lipo -info gruepr.app/Contents/MacOS/gruepr
 

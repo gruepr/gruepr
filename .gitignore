@@ -3,6 +3,10 @@
 gruepr.pro.user
 gruepr.pro.user*
 build/*
+/Makefile*
+/.qmake.stash
+/AppxManifest.xml
+*.msix
 bench/*
 test_surveys/*
 prev_versions/*
@@ -14,6 +18,8 @@ windows/*
 !windows/gruepr_InstallScript.nsi
 !windows/install.bmp
 !windows/uninstall.bmp
+!windows/gruepr.manifest
+!windows/msix/
 ci_secrets.pri
 local_secrets.pri
 LMS/canvasScopes.txt

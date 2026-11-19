@@ -8,7 +8,8 @@
 3. Review the draft release under **Releases** (tag, 3 assets, notes).
 4. Actions → **Release** → Run workflow.
 5. Ctrl+F5 gruepr.com once `deploy.yaml` and the Pages run are both green.
-6. Microsoft Store: Partner Center → new submission → update Package URL → Submit.
+6. Microsoft Store: download `gruepr.msix` from the Build run's artifacts → Partner
+Center → new submission → upload it under Packages → Submit.
 7. Mac App Store: App Store Connect → new version (if needed) → select the uploaded
 build → paste release notes into What's New → Submit for Review.
 
@@ -21,8 +22,9 @@ A-F, then Ongoing maintenance).
 
 The release runs as **two workflows**:
 
-* **Build** (`Build.yaml`, you run it) — builds the three downloadable executables,
-uploads the macOS build to App Store Connect, and creates a **draft** release whose
+* **Build** (`Build.yaml`, you run it) — builds the three downloadable executables and
+the Microsoft Store package, uploads the Mac App Store build to App Store Connect, and
+creates a **draft** release whose
 notes are generated from your `// DONE:` items. Nothing is committed.
 * **Release** (`Release.yaml`, you run it after reviewing the draft) — running it is
 your approval. It publishes the reviewed draft, writes the notes into
@@ -33,8 +35,9 @@ A few facts the process relies on:
 
 * **The version and copyright year have a single source of truth:** lines 7-8 of
 `gruepr.pro` (`gruepr_version = 13.1`). It flows into `GRUEPR_VERSION_NUMBER`, the
-`VERSION` embedded in `gruepr.exe`, and the app's macOS bundle version — the NSIS
-installer and Mac App Store upload both read it back out automatically. A two-part
+`VERSION` embedded in `gruepr.exe`, the app's macOS bundle version, and the Microsoft
+Store package version — the NSIS installer, the Microsoft Store package, and the Mac
+App Store upload all read it back out automatically. A two-part
 value is fine — the automation normalizes it to a three-part tag (`v13.1.0`).
 * **Release notes come from your `// DONE:` notes in `main.cpp`** — you don't
 hand-write `CHANGELOG.md`. Build turns DONE into the draft body; Release writes the
@@ -42,7 +45,8 @@ published notes into `CHANGELOG.md` and clears DONE. The same text also gets reu
 by hand for the Mac App Store's "What's New" field (Part F).
 * **The Release workflow is the point of no return.** It publishes the GitHub release
 (which becomes `releases/latest`, driving the in-app upgrade check in
-`startDialog.cpp` and the `releases/latest/download/...` buttons on gruepr.com) and
+`startDialog.cpp` and the `releases/latest/download/...` buttons on gruepr.com; the two
+app store copies are built with `CONFIG+=appstore`, which leaves that check out) and
 is the only thing that commits anything. Nothing is published or committed until you
 run it.
 
@@ -88,21 +92,24 @@ You do **not** edit `CHANGELOG.md` by hand — the Release workflow does that.
 
 5. In the `gruepr` repo: **Actions** tab → the combined **Build** workflow
 (`Build.yaml`) → **Run workflow** (on `master`). This is the only workflow used for
-releasing — one run builds Windows, macOS (DMG), macOS (App Store), and Linux. The
-per-platform `Build_Windows.yaml`, `Build_macOS.yaml`, `Build_macOS_AppStore.yaml`,
-and `Build_linux.yaml` workflows are for testing individual platforms and play no
-part in releasing.
-6. **Wait for the build — and approve the code signing twice.** Five jobs run:
-`build-windows`, `build-macos`, `build-macos-appstore`, `build-linux`, and
-`draft-release`. **The `build-windows` job pauses twice for signing:** it submits
+releasing — one run builds Windows (installer), Windows (Microsoft Store), macOS
+(DMG), macOS (App Store), and Linux. The per-platform `Build_Windows.yaml`,
+`Build_Windows_Store.yaml`, `Build_macOS.yaml`, `Build_macOS_AppStore.yaml`, and
+`Build_linux.yaml` workflows are for testing individual platforms and play no part in
+releasing.
+6. **Wait for the build — and approve the code signing twice.** Six jobs run:
+`build-windows`, `build-windows-store`, `build-macos`, `build-macos-appstore`,
+`build-linux`, and `draft-release`. **The `build-windows` job pauses twice for signing:** it submits
 `gruepr.exe`, then the Windows installer, to SignPath under the `release-signing`
 policy, and waits for you each time. **Log into the SignPath web console and approve
-both requests** as they appear — the build will not finish otherwise. macOS DMG
+both requests** as they appear — the build will not finish otherwise. The Microsoft
+Store package isn't signed in CI (the Store signs it after upload), and macOS DMG
 signing/notarization and the Mac App Store build/sign/upload are all automatic —
 nothing to approve there.
 7. `draft-release` only waits on `build-windows`, `build-macos`, and `build-linux` — a
-`build-macos-appstore` failure doesn't block the GitHub release. If it fails, you can
-just re-run that one job once you've diagnosed it; it doesn't need a full rebuild.
+`build-windows-store` or `build-macos-appstore` failure doesn't block the GitHub
+release. If one fails, you can just re-run that one job once you've diagnosed it; it
+doesn't need a full rebuild.
 
 ---
 
@@ -175,44 +182,38 @@ changelog headings get normalized to three parts.
 
 ## Part E — Microsoft Store (Partner Center)
 
-Manual, every release. gruepr is on the Store as an **EXE app** that points at a
-**versioned installer URL**, and that URL changes each version — Partner Center
-requires a fixed, versioned URL and rejects a `latest`-style redirect. The app already
-exists in Partner Center, so each release is an **update submission**, and in practice
-**the only field that changes is the Package URL** — the rest carry over from the last
-submission.
+Manual, every release. gruepr is on the Store as an **MSIX app** (Store ID
+`9PDPSSG73VQJ`). The `build-windows-store` job in Part B already built the package:
+the same code as the installer, compiled with `CONFIG+=appstore` (so this copy doesn't
+check GitHub for new versions — the Store updates it), packed by
+`windows/msix/make_msix.ps1`. It isn't signed in CI; the Store signs it after upload.
+Each release is an **update submission** in which only the package changes — the rest
+carries over from the last submission.
 
-17. Sign in to Partner Center → **Apps and games** → **gruepr** (Store ID
-`xpdc98f0ts7gcs`). Start a new submission (the **Update** / "Create submission"
-button on the app overview), open the **Packages** section, and open the existing
-package to edit it.
-18. Set the package details. The values gruepr uses:
-
-   |Field|Value|Change each release?|
-   |-|-|-|
-   |**Package URL**|`https://www.gruepr.com/downloads/vX.Y/install_gruepr.exe`|**Yes** — point at the new version's folder|
-   |**Architecture**|x64|No|
-   |**Installer parameters**|`/S` (NSIS's silent-install switch — capital S)|No|
-   |**Languages**|English (`en`)|No|
-   |**App type**|EXE|No|
-   |**Installer handling** (return codes)|Optional — leave as set|No|
-
-   The installer at that URL is already hosted for you: Part D's deploy publishes it to
-`public/downloads/vX.Y/`. Use the **exact** folder name the deploy created (it's your
-`gruepr.pro` version string, e.g. `v13.0.2`) — the simplest way to be sure is to open
-`https://www.gruepr.com/downloads/vX.Y/install_gruepr.exe` in a browser and confirm it
-downloads, then paste that URL.
-
-19. Save the package, then **Submit** for certification. It takes a few business days;
+17. **Download the package.** Open the Build run's summary page → **Artifacts** →
+`gruepr-windows-store-msix`. It downloads as a zip; unzip it to get `gruepr.msix`.
+18. Sign in to Partner Center → **Apps and games** → **gruepr** (Store ID
+`9PDPSSG73VQJ`). Start a new submission (the **Update** / "Create submission" button on
+the app overview) and open the **Packages** section.
+19. Drag `gruepr.msix` onto the upload area and wait for Partner Center to validate it.
+20. Save the packages, then **Submit** for certification. It takes a few business days;
 once it passes, the Store pushes the update to Store users automatically. (The GitHub
 release and the gruepr.com direct-download buttons are already live from the earlier
 parts — this governs only the Microsoft Store copy.)
 
-Two things not to trip on: the binary at a submitted URL must **never change** after
-submission, which is automatically satisfied because every release gets a fresh `vX.Y/`
-folder — so never overwrite an old version's installer. And `/S` is what lets the Store
-install silently (a UAC prompt is still allowed); if a future installer change ever
-breaks silent install, certification will fail there.
+Things not to trip on:
+
+* **The package version must be higher than the one already in the Store.** It comes
+from `gruepr_version` in `gruepr.pro`, padded to four parts with a final `.0`
+(`13.2` → `13.2.0.0`, `13.0.2` → `13.0.2.0`), so a new release always is. The Store
+rejects a version whose fourth part isn't 0, so keep `gruepr_version` to three parts
+or fewer (qmake warns otherwise).
+* **The package's identity has to match Partner Center.** `windows/msix/AppxManifest.xml.in`
+holds the Identity Name, Publisher, and PublisherDisplayName from the app's **Product
+identity** page, and its display name (`gruepr`) must be one of the app's reserved
+names. If Partner Center rejects the upload over a name or identity, check those first.
+* **If `build-windows-store` failed,** re-run just that job (Part B, step 7), then
+download its artifact.
 
 ---
 
@@ -224,19 +225,19 @@ record, the API key) is already done; the `build-macos-appstore` job in Part B a
 built, signed, and uploaded the new build to App Store Connect for you. What's left is
 purely content and approval:
 
-20. Sign in to **App Store Connect** → **My Apps** → **gruepr**. If there's no version
+21. Sign in to **App Store Connect** → **My Apps** → **gruepr**. If there's no version
 entry in **Prepare for Submission** for this release yet, create one (**+ Version**).
-21. Open that version and select the build Part B just uploaded, under **Build** — it
+22. Open that version and select the build Part B just uploaded, under **Build** — it
 can take a few minutes after upload to finish processing before it's selectable.
-22. Paste your release notes into **What's New in This Version** — reuse the same
+23. Paste your release notes into **What's New in This Version** — reuse the same
 `// DONE:`-derived text from the GitHub draft (Part C) rather than rewriting it.
-23. Paste the following for the **Promotional Text**:
+24. Paste the following for the **Promotional Text**:
 
     ```
     Free, open-source, privacy-first team formation for educators: balance skills, schedules, diversity, and preferences in minutes
     ```
 
-24. Click **Save**, then **Add for Review** / **Submit for Review**. Apple's review
+25. Click **Save**, then **Add for Review** / **Submit for Review**. Apple's review
 typically takes 1-2 days. Watch for a Resolution Center message if it's rejected —
 the one that came up so far has been the automated entitlement scanner flagging
 `com.apple.security.network.server` (used for the OAuth loopback redirect handler in
@@ -258,7 +259,8 @@ Mac App Store's "What's New" field (Part F).
 — the automation normalizes a two-part value to three. The gruepr.com installer folder
 under `public/downloads/` and the version text on the site use the string exactly as
 you typed it in `gruepr.pro` (so `13.0.2` → folder `v13.0.2`, but `13.2` → folder
-`v13.2`). The Microsoft Store Package URL points at that same folder.
+`v13.2`). The Microsoft Store package uses four parts ending in `.0` (`13.2` →
+`13.2.0.0`).
 
 **Release asset names (must stay stable so `releases/latest/download/<name>` keeps
 working):**
@@ -269,15 +271,17 @@ working):**
 |macOS|`gruepr-macos-universal`|`Install gruepr.dmg`|`gruepr.dmg`|
 |Linux|`gruepr-linux-appimage`|`gruepr-linux-x86_64.AppImage`|`gruepr.AppImage`|
 
-**Two Windows copies, on purpose:** the GitHub release asset
+**Two copies of the Windows installer:** the GitHub release asset
 (`releases/latest/download/install_gruepr.exe`) serves direct downloads and the
-in-app check; the gruepr.com `/downloads/vX.Y/install_gruepr.exe` copy exists only
-because the Microsoft Store needs a stable, fetchable URL.
+in-app check. The gruepr.com `/downloads/vX.Y/install_gruepr.exe` copy was there
+because the old EXE-based Microsoft Store listing needed a stable, fetchable URL; the
+MSIX listing doesn't use it, but the `gruepr-webapp` deploy still publishes it.
 
-**The Mac App Store build produces no downloadable asset** — `build-macos-appstore`
+**The app store builds produce no downloadable asset** — `build-macos-appstore`
 uploads straight to Apple (artifact `gruepr-macos-appstore-pkg` is kept only as a
-diagnostic copy) and isn't part of `draft-release`'s inputs, so it can fail or be
-re-run independently of the other three platforms.
+diagnostic copy), and `build-windows-store`'s artifact `gruepr-windows-store-msix` is
+what you upload by hand in Part E. Neither is part of `draft-release`'s inputs, so
+either can fail or be re-run independently of the other three platforms.
 
 ---
 

@@ -1,0 +1,56 @@
+<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<!--
+  Microsoft Store (MSIX) package manifest. In an app store build (qmake with CONFIG+=appstore),
+  qmake fills in the version from gruepr_version in gruepr.pro and writes AppxManifest.xml into
+  the build folder; windows/msix/make_msix.ps1 packs it with the deployed release folder. The
+  Store signs the package after upload.
+
+  Every double quote and apostrophe in this file has a backslash before it, because qmake (in
+  QMAKE_SUBSTITUTES) removes unescaped ones.
+
+  Identity Name and Publisher, and PublisherDisplayName, must match the Product identity page
+  in Partner Center exactly, and DisplayName must be one of the product\'s reserved names.
+
+  Write virtualization is left on (the default): the Store copy keeps its own settings and
+  new AppData files, which Windows removes when the Store copy is uninstalled. So the only
+  capability needed is runFullTrust.
+-->
+<Package
+  xmlns=\"http://schemas.microsoft.com/appx/manifest/foundation/windows10\"
+  xmlns:uap=\"http://schemas.microsoft.com/appx/manifest/uap/windows10\"
+  xmlns:rescap=\"http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities\"
+  IgnorableNamespaces=\"uap rescap\">
+
+  <Identity Name=\"13710gruepr.grueprnew\"
+            Publisher=\"CN=06F1A065-BAE3-4E3B-878B-6C4471EB60C4\"
+            Version=\"$$MSIX_VERSION\"
+            ProcessorArchitecture=\"x64\" />
+
+  <Properties>
+    <DisplayName>gruepr</DisplayName>
+    <PublisherDisplayName>gruepr</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name=\"Windows.Desktop\" MinVersion=\"10.0.17763.0\" MaxVersionTested=\"10.0.26100.0\" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language=\"en-us\" />
+  </Resources>
+
+  <Applications>
+    <Application Id=\"gruepr\" Executable=\"gruepr.exe\" EntryPoint=\"Windows.FullTrustApplication\">
+      <uap:VisualElements DisplayName=\"gruepr\"
+                          Description=\"Splits a class of students into optimized teams\"
+                          BackgroundColor=\"transparent\"
+                          Square150x150Logo=\"Assets\Square150x150Logo.png\"
+                          Square44x44Logo=\"Assets\Square44x44Logo.png\" />
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name=\"runFullTrust\" />
+  </Capabilities>
+</Package>
