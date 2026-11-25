@@ -1,7 +1,9 @@
 #include "canvashandler.h"
 #include "secureStore.h"
+#include <algorithm>
 #include <QDesktopServices>
 #include <QDir>
+#include <QHttpMultiPart>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -238,7 +240,12 @@ int CanvasHandler::getStudentCount(long long courseID) {
 }
 
 // Retrieves the StudentRoster in the given course
-QList<StudentRecord> CanvasHandler::getStudentRoster(long long courseID) {
+QList<StudentRecord> CanvasHandler::getStudentRoster(long long courseID, const std::function<void(int stepsDone, int numSteps)> &progress) {
+    // Each request is a step: the students, the sections, then each section's students (so the number of steps is known once the sections are)
+    if(progress) {
+        progress(0, 0);
+    }
+
     // First get the name, email address, and canvasID# of all students in the class
     QStringList studentNames;
     QStringList studentEmails;
@@ -272,6 +279,11 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(long long courseID) {
                               {}, stringInSubobjectParams,
                               {}, integerInSubArrayParams);
 
+    const int numSteps = 2 + int(sectionIDs.size());
+    if(progress) {
+        progress(2, numSteps);
+    }
+
     // Now match up each student in the class to their section by downloading
     // the roster for each section and using student CanvasID# to form match
     QStringList studentSections(ids.size());
@@ -289,6 +301,9 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(long long courseID) {
             if(idsInThisSection.contains(ids.at(idNum))) {
                 studentSections[idNum] = sectionNames.at(i);
             }
+        }
+        if(progress) {
+            progress(3 + i, numSteps);
         }
     }
 
@@ -308,7 +323,34 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(long long courseID) {
     return roster;
 }
 
-bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey) {
+bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey,
+                                 const std::function<void(int questionNum, int stepsDone, int numSteps)> &progress) {
+    // each request is a step: one for the survey, then one for each question, except that a ranked choice question is posted as a
+    // question for each rank, and a schedule question as a question for each day (plus an introduction, if there's more than one day)
+    int numSteps = 1;
+    for(const auto &question : survey->questions) {
+        if(question.type == Question::QuestionType::rankedchoice) {
+            numSteps += std::max(1, question.numRankedChoices);
+        }
+        else if(question.type == Question::QuestionType::schedule) {
+            numSteps += ((survey->schedDayNames.size() > 1)? int(survey->schedDayNames.size()) + 1 : 1);
+        }
+        else {
+            numSteps++;
+        }
+    }
+    int stepsDone = 0;
+    int surveyQuestionNum = -1;
+    auto stepDone = [&progress, &stepsDone, &surveyQuestionNum, numSteps]() {
+        stepsDone++;
+        if(progress) {
+            progress(surveyQuestionNum, stepsDone, numSteps);
+        }
+    };
+    if(progress) {
+        progress(surveyQuestionNum, stepsDone, numSteps);
+    }
+
     //create the survey (a quiz type in Canvas)
     bool allGood = true;
     QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes";
@@ -325,6 +367,7 @@ bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey)
     QList<QList<long long>*> integerParams = {&quizID};
     QList<QStringList*> stringInSubobjectParams = {&x};
     postToCanvasGetSingleResult(url, postData, {"html_url", "mobile_url"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
+    stepDone();
     if(quizID.isEmpty()) {
         return false;
     }
@@ -335,6 +378,11 @@ bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey)
     QStringList newQuestionText;
     QList<long long> questionID;
     for(const auto &question : survey->questions) {
+        surveyQuestionNum++;
+        if(progress) {
+            progress(surveyQuestionNum, stepsDone, numSteps);
+        }
+
         //create one question
         url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(surveyID) + "/questions";
         newQuestionText.clear();
@@ -386,6 +434,7 @@ bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey)
                     postData = query.toString(QUrl::FullyEncoded).toUtf8();
                     postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams,
                                                 {"id"}, integerParams, {}, stringInSubobjectParams);
+                    stepDone();
                     allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
                     questionNum++;
                     newQuestionText.clear();
@@ -432,6 +481,7 @@ bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey)
                 for(const auto &dayName : survey->schedDayNames) {
                     postData = query.toString(QUrl::FullyEncoded).toUtf8();
                     postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
+                    stepDone();
                     allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
                     questionNum++;
                     newQuestionText.clear();
@@ -492,6 +542,7 @@ bool CanvasHandler::createSurvey(long long courseID, const Survey *const survey)
         }
         postData = query.toString(QUrl::FullyEncoded).toUtf8();
         postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
+        stepDone();
         allGood = allGood && !newQuestionText.isEmpty() && !newQuestionText.constFirst().isEmpty();
         questionNum++;
     }
@@ -521,7 +572,8 @@ QList<CanvasHandler::CanvasQuiz> CanvasHandler::getQuizList(long long courseID) 
     return quizzes;
 }
 
-QString CanvasHandler::downloadQuizResult(long long courseID, long long quizID, const QString &quizName) {
+QString CanvasHandler::downloadQuizResult(long long courseID, long long quizID, const QString &quizName,
+                                          const std::function<void(ReportStage stage, int percentDone, int secondsWaited)> &progress) {
     // all of the waiting below, including in getQuizResultsURL(), shares one time limit and can be canceled by the user
     QElapsedTimer waitTimer;
     waitTimer.start();
@@ -533,9 +585,32 @@ QString CanvasHandler::downloadQuizResult(long long courseID, long long quizID, 
         return false;
     };
 
-    const QUrl URL = getQuizResultsURL(courseID, quizID, waitTimer);
+    // tells the caller how long it's been and, while Canvas prepares the results, how much of them Canvas says it has prepared
+    // (Canvas is asked only while it is still preparing them)
+    QString progressURL;
+    int percentDone = -1;
+    auto showProgress = [this, &progress, &progressURL, &percentDone, &waitTimer](const ReportStage stage, const bool askCanvas) {
+        if(!progress) {
+            return;
+        }
+        if(askCanvas) {
+            percentDone = reportPercentDone(progressURL);
+        }
+        progress(stage, (stage == ReportStage::preparing)? percentDone : -1, int(waitTimer.elapsed() / 1000));
+    };
+    showProgress(ReportStage::preparing, false);
+
+    const QUrl URL = getQuizResultsURL(courseID, quizID, waitTimer, [&progressURL, &showProgress](const QString &newProgressURL){
+        if(!newProgressURL.isEmpty()) {
+            progressURL = newProgressURL;
+        }
+        showProgress(ReportStage::preparing, true);
+    });
     if(URL.isEmpty()) {
         return {};
+    }
+    if(percentDone >= 0) {
+        percentDone = 100;      // the report is made (its file is just being readied for downloading)
     }
 
     // wait until the results file is ready
@@ -553,6 +628,7 @@ QString CanvasHandler::downloadQuizResult(long long courseID, long long quizID, 
         if(stopWaiting()) {
             return {};
         }
+        showProgress(ReportStage::preparing, false);
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
         filename.clear();
@@ -566,10 +642,12 @@ QString CanvasHandler::downloadQuizResult(long long courseID, long long quizID, 
     static const QRegularExpression unallowedChars(R"([#&&{}\\/\<>*?$!'":@+`|=])");
     const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_').replace(unallowedChars, "_") + ".csv");
     // sometimes still a delay, so attempt to download every two seconds
+    showProgress(ReportStage::downloading, false);
     while(!downloadFile(URL, filepath.absoluteFilePath())) {
         if(stopWaiting()) {
             return {};
         }
+        showProgress(ReportStage::downloading, false);
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
     }
@@ -578,8 +656,26 @@ QString CanvasHandler::downloadQuizResult(long long courseID, long long quizID, 
 }
 
 // Creates a teamset
-bool CanvasHandler::createTeams(long long courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams) {
+bool CanvasHandler::createTeams(long long courseID, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams,
+                                const std::function<void(int teamNum, int stepsDone, int numSteps)> &progress) {
     bool allGood = true;
+
+    // each request is a step: one for the teamset, then one for each team and one for each student on it
+    int numSteps = 1 + int(teamNames.size());
+    for(int i = 0; i < teamNames.size(); i++) {
+        numSteps += int(teams.at(i).size());
+    }
+    int stepsDone = 0;
+    int teamNum = 0;
+    auto stepDone = [&progress, &stepsDone, &teamNum, numSteps]() {
+        stepsDone++;
+        if(progress) {
+            progress(teamNum, stepsDone, numSteps);
+        }
+    };
+    if(progress) {
+        progress(0, 0, numSteps);
+    }
 
     //create the teamset
     QString url = "/api/v1/courses/" + QString::number(courseID) + "/group_categories";
@@ -593,6 +689,7 @@ bool CanvasHandler::createTeams(long long courseID, const QString &setName, cons
     QList<QList<long long>*> integerParams = {&groupCategoryID};
     QList<QStringList*> stringInSubobjectParams = {&x};
     postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
+    stepDone();
 
     if(groupCategoryID.empty()) {
         allGood = false;
@@ -604,6 +701,11 @@ bool CanvasHandler::createTeams(long long courseID, const QString &setName, cons
     QList<long long> groupID;
     QStringList workflowState;
     for(int i = 0; i < teamNames.size(); i++) {
+        teamNum = i;
+        if(progress) {
+            progress(teamNum, stepsDone, numSteps);
+        }
+
         //create one team
         url = "/api/v1/group_categories/" + QString::number(groupCategoryID[0]) + "/groups";
         query.clear();
@@ -614,9 +716,11 @@ bool CanvasHandler::createTeams(long long courseID, const QString &setName, cons
         stringParams = {&groupName};
         integerParams = {&groupID};
         postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, integerParams, {}, stringInSubobjectParams);
+        stepDone();
 
         if(groupID.empty()) {
             allGood = false;
+            stepsDone += int(teams.at(i).size());      // (this team's students won't be added)
             continue;
         }
 
@@ -631,6 +735,7 @@ bool CanvasHandler::createTeams(long long courseID, const QString &setName, cons
             stringParams = {&workflowState};
             integerParams = {&membershipID, &newUserID};
             postToCanvasGetSingleResult(url, postData, {"workflow_state"}, stringParams, {"id", "user_id"}, integerParams, {}, stringInSubobjectParams);
+            stepDone();
             allGood = allGood && !workflowState.empty() && !newUserID.empty() &&
                       (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == student.LMSID);
         }
@@ -639,37 +744,750 @@ bool CanvasHandler::createTeams(long long courseID, const QString &setName, cons
     return allGood;
 }
 
+// Creates a peer review's quizzes, one per team
+bool CanvasHandler::createPeerReviewQuizzes(const long long courseID, PeerReview *const peerReview,
+                                            const std::function<void(int teamNum, int stepsDone, int numSteps)> &progress) {
+    const QString coursePath = "/api/v1/courses/" + QString::number(courseID);
+    peerReview->canvasQuizzes.clear();
+    peerReview->canvasQuizzes.resize(peerReview->teams.size());
+    peerReview->canvasAnswerLabels.clear();
+    peerReview->formItems.clear();
+    peerReview->canvasAssignmentGroupID = -1;
+    bool groupMadeHere = false;
+
+    // undoes a partly-made peer review (keeping the error message that explains why); the assignment group is deleted only if it was just made
+    auto deleteCreated = [this, &coursePath, peerReview, &groupMadeHere]() {
+        const QString errorMessage = lastErrorMessage;
+        for(auto &canvasQuiz : peerReview->canvasQuizzes) {
+            if(canvasQuiz.quizID != -1) {
+                httpRequest(Method::del, baseURL + coursePath + "/quizzes/" + QString::number(canvasQuiz.quizID));
+            }
+            canvasQuiz = {};
+        }
+        if(groupMadeHere && (peerReview->canvasAssignmentGroupID != -1)) {
+            httpRequest(Method::del, baseURL + coursePath + "/assignment_groups/" + QString::number(peerReview->canvasAssignmentGroupID));
+        }
+        peerReview->canvasAssignmentGroupID = -1;
+        peerReview->formItems.clear();
+        peerReview->canvasAnswerLabels.clear();
+        lastErrorMessage = errorMessage;
+        return false;
+    };
+
+    // the course's peer review assignment group, which holds every peer review's team quizzes so they are together in the gradebook
+    bool groupsOK = false;
+    const QJsonArray groups = getAllPages(coursePath + "/assignment_groups", &groupsOK);
+    if(!groupsOK) {
+        return false;
+    }
+    for(const auto &group : groups) {
+        if(group.toObject()["name"].toString().simplified().compare(PEERREVIEWASSIGNMENTGROUP, Qt::CaseInsensitive) == 0) {
+            peerReview->canvasAssignmentGroupID = group.toObject()["id"].toInteger(-1);
+            break;
+        }
+    }
+    if(peerReview->canvasAssignmentGroupID == -1) {
+        const QJsonObject group = jsonRequest(Method::post, coursePath + "/assignment_groups", QJsonObject{{"name", PEERREVIEWASSIGNMENTGROUP}}).toObject();
+        peerReview->canvasAssignmentGroupID = group["id"].toInteger(-1);
+        if(peerReview->canvasAssignmentGroupID == -1) {
+            return false;
+        }
+        groupMadeHere = true;
+    }
+
+    // plain text (with blank lines between paragraphs) as html paragraphs
+    auto paragraphs = [](const QString &text) {
+        QString html;
+        for(const auto &paragraph : text.split(QRegularExpression(R"(\n\s*\n)"), Qt::SkipEmptyParts)) {
+            html += "<p>" + paragraph.trimmed().toHtmlEscaped().replace("\n", "<br>") + "</p>";
+        }
+        return html;
+    };
+
+    // how a question is asked in a team's quiz
+    enum class Layout {dropdownForEach, numberForEach, questionForEach, single};
+    auto layoutOf = [](const PeerReviewQuestion &question) {
+        const bool hasOptions = !question.formLabels().isEmpty();
+        if(!question.isAboutTeammates()) {
+            return Layout::single;                  // about yourself, or asked once
+        }
+        if(hasOptions && !question.multi) {
+            return Layout::dropdownForEach;         // one question with a dropdown for each team member
+        }
+        if(!hasOptions && ((question.kind == PeerReviewQuestion::Kind::numberEntry) || (question.kind == PeerReviewQuestion::Kind::contribution))) {
+            return Layout::numberForEach;           // one question with a box for a number for each team member
+        }
+        return Layout::questionForEach;             // a separate question for each team member (checkboxes, or an essay)
+    };
+
+    // the progress, counted in requests to Canvas: for each team with a quiz, one per question (one per member for a question asked
+    // separately about each), plus five more (create the quiz, get its assignment, show it to the team, publish it, and set its grading)
+    int numSteps = 0;
+    int stepsDone = 0;
+    for(const auto &team : peerReview->teams) {
+        if(std::none_of(team.members.cbegin(), team.members.cend(), [](const PeerReviewStudent &member){return member.LMSID > 0;})) {
+            continue;
+        }
+        numSteps += 5;
+        for(const auto &question : peerReview->questions) {
+            numSteps += (layoutOf(question) == Layout::questionForEach)? int(team.members.size()) : 1;
+        }
+    }
+    auto stepDone = [&progress, &stepsDone, numSteps](const int teamNum) {
+        stepsDone++;
+        if(progress) {
+            progress(teamNum, stepsDone, numSteps);
+        }
+    };
+
+    for(int teamNum = 0; teamNum < peerReview->teams.size(); teamNum++) {
+        const auto &team = peerReview->teams.at(teamNum);
+        QStringList memberNames;        // with a number added to teammates who have the same name, as in the Google Form
+        QList<long long> memberIDs;
+        QJsonArray canvasStudentIDs;
+        for(int memberNum = 0; memberNum < team.members.size(); memberNum++) {
+            // (square brackets would be taken as a dropdown's place in a question, so they become parentheses)
+            memberNames << peerReview->memberLabel(teamNum, memberNum).replace('[', '(').replace(']', ')').toHtmlEscaped();
+            memberIDs << team.members.at(memberNum).ID;
+            if(team.members.at(memberNum).LMSID > 0) {
+                canvasStudentIDs << team.members.at(memberNum).LMSID;
+            }
+        }
+        if(canvasStudentIDs.isEmpty()) {
+            continue;   // none of this team is in the course
+        }
+        if(progress) {
+            progress(teamNum, stepsDone, numSteps);
+        }
+        auto &canvasQuiz = peerReview->canvasQuizzes[teamNum];
+
+        //create the quiz
+        QJsonObject quiz;
+        quiz["title"] = peerReview->title + " - " + team.name;
+        quiz["description"] = paragraphs(peerReview->instructions) + "<p><strong>" + tr("Your team:") + "</strong> " + memberNames.join(", ") + "</p>";
+        quiz["quiz_type"] = "graded_survey";
+        quiz["points_possible"] = 1;
+        quiz["allowed_attempts"] = -1;          // students can change their answers until the quiz is locked; the latest is kept
+        quiz["scoring_policy"] = "keep_latest";
+        quiz["only_visible_to_overrides"] = true;
+        quiz["published"] = false;
+        quiz["assignment_group_id"] = peerReview->canvasAssignmentGroupID;
+        const QJsonObject createdQuiz = jsonRequest(Method::post, coursePath + "/quizzes", QJsonObject{{"quiz", quiz}}).toObject();
+        canvasQuiz.quizID = createdQuiz["id"].toInteger(-1);
+        canvasQuiz.url = createdQuiz["html_url"].toString();
+        if(canvasQuiz.quizID == -1) {
+            return deleteCreated();
+        }
+        stepDone(teamNum);
+        const QString quizPath = coursePath + "/quizzes/" + QString::number(canvasQuiz.quizID);
+
+        //add each question; each is worth 0 points, since the quiz's point is for completing it
+        int position = 1;
+        // adds one question, keeping what each of its options is, and returns the ID Canvas gave it (-1 if it couldn't be added)
+        auto addQuestion = [this, &quizPath, &position, peerReview, &stepDone, teamNum](QJsonObject question, const QString &questionName) {
+            question["question_name"] = questionName;
+            question["position"] = position++;
+            question["points_possible"] = 0;
+            const QJsonObject created = jsonRequest(Method::post, quizPath + "/questions", QJsonObject{{"question", question}}).toObject();
+            const long long questionID = created["id"].toInteger(-1);
+            if(questionID != -1) {
+                // (Canvas's option IDs are unique only within a question, so each is kept with its question's ID)
+                for(const auto &answer : created["answers"].toArray()) {
+                    const QJsonObject answerObject = answer.toObject();
+                    peerReview->canvasAnswerLabels.insert(QString::number(questionID) + ":" + QString::number(answerObject["id"].toInteger()),
+                                                          answerObject["text"].toString());
+                }
+                stepDone(teamNum);
+            }
+            return questionID;
+        };
+        // the options of a question, for each of the named blanks (or for the whole question if there are no blanks)
+        auto answersFor = [](const QStringList &options, const QStringList &blankIDs) {
+            QJsonArray answers;
+            for(const auto &blankID : (blankIDs.isEmpty()? QStringList{""} : blankIDs)) {
+                for(const auto &option : options) {
+                    QJsonObject answer{{"answer_text", option}, {"answer_weight", 100}};
+                    if(!blankID.isEmpty()) {
+                        answer["blank_id"] = blankID;
+                    }
+                    answers << answer;
+                }
+            }
+            return answers;
+        };
+        // a row for each team member, each with a blank (a dropdown or a box) in it
+        QStringList blankIDs;
+        QString rows;
+        for(int memberNum = 0; memberNum < memberNames.size(); memberNum++) {
+            blankIDs << "m" + QString::number(memberNum + 1);
+            rows += "<p>" + memberNames.at(memberNum) + ": [" + blankIDs.last() + "]</p>";
+        }
+
+        for(int questionNum = 0; questionNum < peerReview->questions.size(); questionNum++) {
+            const auto &peerReviewQuestion = peerReview->questions.at(questionNum);
+            const Layout layout = layoutOf(peerReviewQuestion);
+            const QStringList labels = peerReviewQuestion.formLabels();
+            const QString questionName = tr("Question") + " " + QString::number(questionNum + 1);
+            // (a question asked separately about each team member has no line with the student's own name, but a question about them)
+            QString notes = peerReviewQuestion.formDescription();
+            if(layout == Layout::questionForEach) {
+                notes.replace(PEERREVIEWSKIPYOURSELF, PEERREVIEWSKIPYOURSELFQUESTION);
+            }
+            const QString questionText = "<p><strong>" + peerReviewQuestion.text.simplified().toHtmlEscaped() + "</strong></p>" +
+                                         "<p><em>" + notes.toHtmlEscaped().replace("\n", "<br>") + "</em></p>";
+
+            if((layout == Layout::dropdownForEach) || (layout == Layout::numberForEach)) {
+                const bool dropdowns = (layout == Layout::dropdownForEach);
+                const long long questionID = addQuestion(QJsonObject{{"question_type", dropdowns? "multiple_dropdowns_question" : "fill_in_multiple_blanks_question"},
+                                                                     {"question_text", questionText + rows},
+                                                                     {"answers", answersFor(dropdowns? labels : QStringList{"0"}, blankIDs)}}, questionName);
+                if(questionID == -1) {
+                    return deleteCreated();
+                }
+                for(int memberNum = 0; memberNum < memberNames.size(); memberNum++) {
+                    peerReview->formItems.append({QString::number(questionID) + "/" + blankIDs.at(memberNum), questionNum, teamNum, memberIDs.at(memberNum)});
+                }
+            }
+            else if(layout == Layout::questionForEach) {
+                for(int memberNum = 0; memberNum < memberNames.size(); memberNum++) {
+                    QJsonObject question{{"question_text", "<p><strong>" + memberNames.at(memberNum) + "</strong></p>" + questionText}};
+                    if(!labels.isEmpty()) {
+                        question["question_type"] = "multiple_answers_question";
+                        question["answers"] = answersFor(labels, {});
+                    }
+                    else {
+                        question["question_type"] = "essay_question";
+                    }
+                    const long long questionID = addQuestion(question, questionName + " (" + QString::number(memberNum + 1) + ")");
+                    if(questionID == -1) {
+                        return deleteCreated();
+                    }
+                    peerReview->formItems.append({QString::number(questionID), questionNum, teamNum, memberIDs.at(memberNum)});
+                }
+            }
+            else {
+                QJsonObject question{{"question_text", questionText}};
+                if(!labels.isEmpty()) {
+                    question["question_type"] = peerReviewQuestion.multi? "multiple_answers_question" : "multiple_choice_question";
+                    question["answers"] = answersFor(labels, {});
+                }
+                else if(peerReviewQuestion.kind == PeerReviewQuestion::Kind::numberEntry) {
+                    question["question_type"] = "numerical_question";
+                    question["answers"] = QJsonArray{QJsonObject{{"numerical_answer_type", "range_answer"}, {"answer_range_start", -1000000000},
+                                                                 {"answer_range_end", 1000000000}, {"answer_weight", 100}}};
+                }
+                else {
+                    question["question_type"] = "essay_question";
+                }
+                const long long questionID = addQuestion(question, questionName);
+                if(questionID == -1) {
+                    return deleteCreated();
+                }
+                const long long aboutID = (peerReviewQuestion.about == PeerReviewQuestion::About::self)? PeerReviewFormItem::ABOUTGIVER :
+                                                                                                       PeerReviewFormItem::ABOUTNOONE;
+                peerReview->formItems.append({QString::number(questionID), questionNum, teamNum, aboutID});
+            }
+        }
+
+        //show the quiz only to the team's students, then publish it (a quiz's questions reach students only once it's published)
+        canvasQuiz.assignmentID = jsonRequest(Method::get, quizPath).toObject()["assignment_id"].toInteger(-1);
+        if(canvasQuiz.assignmentID == -1) {
+            return deleteCreated();
+        }
+        stepDone(teamNum);
+        const QString assignmentPath = coursePath + "/assignments/" + QString::number(canvasQuiz.assignmentID);
+        const QJsonObject teamOverride = jsonRequest(Method::post, assignmentPath + "/overrides",
+                                                     QJsonObject{{"assignment_override", QJsonObject{{"student_ids", canvasStudentIDs}, {"title", team.name}}}}).toObject();
+        canvasQuiz.overrideID = teamOverride["id"].toInteger(-1);
+        if(canvasQuiz.overrideID == -1) {
+            return deleteCreated();
+        }
+        stepDone(teamNum);
+        if(jsonRequest(Method::put, quizPath, QJsonObject{{"quiz", QJsonObject{{"published", true}}}}).isNull()) {
+            return deleteCreated();
+        }
+        stepDone(teamNum);
+
+        //graded complete/incomplete (after publishing, since publishing a quiz updates its assignment), and maybe left out of the final grade
+        const QJsonObject grading{{"grading_type", "pass_fail"}, {"omit_from_final_grade", !peerReview->countTowardFinalGrade}};
+        if(jsonRequest(Method::put, assignmentPath, QJsonObject{{"assignment", grading}}).isNull()) {
+            return deleteCreated();
+        }
+        stepDone(teamNum);
+    }
+
+    peerReview->platform = PeerReview::Platform::canvasQuizzes;
+    peerReview->canvasCourseID = courseID;
+    peerReview->canvasCourseURL = baseURL + "/courses/" + QString::number(courseID);
+    peerReview->acceptingResponses = true;
+    return true;
+}
+
+// Downloads every submission to a peer review's team quizzes
+QJsonArray CanvasHandler::downloadPeerReviewSubmissions(const PeerReview &peerReview, bool *ok,
+                                                        const std::function<void(int quizzesDone, int numQuizzes)> &progress) {
+    *ok = true;
+    QJsonArray submissions;
+    const int numQuizzes = int(std::count_if(peerReview.canvasQuizzes.cbegin(), peerReview.canvasQuizzes.cend(),
+                                             [](const PeerReview::CanvasTeamQuiz &canvasQuiz){return canvasQuiz.assignmentID != -1;}));
+    int quizzesDone = 0;
+    for(const auto &canvasQuiz : peerReview.canvasQuizzes) {
+        if(canvasQuiz.assignmentID == -1) {
+            continue;
+        }
+        if(progress) {
+            progress(quizzesDone++, numQuizzes);
+        }
+        bool pageOK = false;
+        const QJsonArray quizSubmissions = getAllPages("/api/v1/courses/" + QString::number(peerReview.canvasCourseID) + "/assignments/" +
+                                                       QString::number(canvasQuiz.assignmentID) + "/submissions?include[]=submission_history&include[]=user",
+                                                       &pageOK);
+        if(!pageOK) {
+            *ok = false;
+            return {};
+        }
+        for(const auto &submission : quizSubmissions) {
+            if(submission.toObject()["workflow_state"].toString() != "unsubmitted") {
+                submissions << submission;
+            }
+        }
+    }
+    return submissions;
+}
+
+// Locks or unlocks a peer review's team quizzes, through each one's team-only override (whose dates are the ones that apply to the team)
+bool CanvasHandler::setPeerReviewQuizzesLocked(const PeerReview &peerReview, const bool locked,
+                                               const std::function<void(int quizzesDone, int numQuizzes, bool undoing)> &progress) {
+    auto setLock = [this, &peerReview](const PeerReview::CanvasTeamQuiz &canvasQuiz, const bool lock) {
+        const QJsonValue lockAt = lock? QJsonValue(QDateTime::currentDateTimeUtc().toString(Qt::ISODate)) : QJsonValue(QJsonValue::Null);
+        const QString url = "/api/v1/courses/" + QString::number(peerReview.canvasCourseID) + "/assignments/" +
+                            QString::number(canvasQuiz.assignmentID) + "/overrides/" + QString::number(canvasQuiz.overrideID);
+        return !jsonRequest(Method::put, url, QJsonObject{{"assignment_override", QJsonObject{{"lock_at", lockAt}}}}).isNull();
+    };
+    const int numQuizzes = int(std::count_if(peerReview.canvasQuizzes.cbegin(), peerReview.canvasQuizzes.cend(),
+                                             [](const PeerReview::CanvasTeamQuiz &canvasQuiz){return canvasQuiz.quizID != -1;}));
+
+    // all of the team quizzes are changed, or none of them: if one can't be, the ones already changed are changed back
+    QList<const PeerReview::CanvasTeamQuiz *> changed;
+    for(const auto &canvasQuiz : peerReview.canvasQuizzes) {
+        if(canvasQuiz.quizID == -1) {
+            continue;   // a team with no quiz
+        }
+        if(progress) {
+            progress(int(changed.size()), numQuizzes, false);
+        }
+        const bool canBeChanged = (canvasQuiz.assignmentID != -1) && (canvasQuiz.overrideID != -1);
+        if(!canBeChanged || !setLock(canvasQuiz, locked)) {
+            if(!canBeChanged) {
+                lastErrorMessage = tr("A team's quiz has no record of the setting that shows it only to the team, so it can't be locked or unlocked.");
+            }
+            const QString errorMessage = lastErrorMessage;
+            for(int changedNum = 0; changedNum < changed.size(); changedNum++) {
+                if(progress) {
+                    progress(changedNum, int(changed.size()), true);
+                }
+                setLock(*changed.at(changedNum), !locked);
+            }
+            lastErrorMessage = errorMessage;
+            return false;
+        }
+        changed << &canvasQuiz;
+    }
+    return true;
+}
+
+// Retrieves a course's group sets
+QList<CanvasHandler::CanvasGroupSet> CanvasHandler::getGroupSets(const long long courseID, bool *ok) {
+    QList<CanvasGroupSet> groupSets;
+    const QJsonArray items = getAllPages("/api/v1/courses/" + QString::number(courseID) + "/group_categories", ok);
+    for(const auto &item : items) {
+        const QJsonObject groupSet = item.toObject();
+        groupSets.append({groupSet["name"].toString(), groupSet["id"].toInteger()});
+    }
+    return groupSets;
+}
+
+// Retrieves the groups in a group set, then the members of each one
+QList<CanvasHandler::CanvasGroup> CanvasHandler::getGroups(const long long groupSetID, bool *ok,
+                                                           const std::function<void(int groupNum, int numGroups)> &progress) {
+    QList<CanvasGroup> groups;
+    QList<bool> isEmpty;
+    const QJsonArray items = getAllPages("/api/v1/group_categories/" + QString::number(groupSetID) + "/groups", ok);
+    if(!*ok) {
+        return {};
+    }
+    for(const auto &item : items) {
+        const QJsonObject group = item.toObject();
+        groups.append({group["name"].toString(), group["id"].toInteger(), {}});
+        isEmpty << (group["members_count"].toInt(-1) == 0);     // an empty group needs no request for its members
+    }
+
+    const int numGroups = int(groups.size());
+    for(int groupNum = 0; groupNum < numGroups; groupNum++) {
+        if(progress) {
+            progress(groupNum, numGroups);
+        }
+        if(isEmpty.at(groupNum)) {
+            continue;
+        }
+        const QJsonArray members = getAllPages("/api/v1/groups/" + QString::number(groups.at(groupNum).ID) + "/users", ok);
+        if(!*ok) {
+            return {};
+        }
+        for(const auto &member : members) {
+            groups[groupNum].memberIDs << member.toObject()["id"].toInteger();
+        }
+    }
+    return groups;
+}
+
+// Posts a comment on a student's submission (with a file attached, if given), and returns the new comment's ID
+long long CanvasHandler::postSubmissionComment(const long long courseID, const long long assignmentID, const long long userID, const QString &text,
+                                               const QString &fileName, const QByteArray &fileContent, const QString &fileContentType) {
+    // the new comment is found as the latest one by whoever is signed in, so first find out who that is
+    if(ownUserID == -1) {
+        ownUserID = jsonRequest(Method::get, "/api/v1/users/self").toObject()["id"].toInteger(-1);
+        if(ownUserID == -1) {
+            return -1;
+        }
+    }
+
+    const QString submissionPath = "/api/v1/courses/" + QString::number(courseID) + "/assignments/" + QString::number(assignmentID) +
+                                   "/submissions/" + QString::number(userID);
+    QJsonObject comment{{"text_comment", text}};
+    if(!fileContent.isEmpty()) {
+        const long long fileID = uploadSubmissionCommentFile(submissionPath, fileName, fileContent, fileContentType);
+        if(fileID == -1) {
+            return -1;
+        }
+        comment["file_ids"] = QJsonArray{fileID};
+    }
+    QJsonValue submission = jsonRequest(Method::put, submissionPath, QJsonObject{{"comment", comment}});
+    if(submission.isNull()) {
+        return -1;
+    }
+    if(!submission.toObject()["submission_comments"].isArray()) {
+        // (Canvas's reply has included the submission's comments, but in case it doesn't, they're asked for)
+        submission = jsonRequest(Method::get, submissionPath + "?include[]=submission_comments");
+    }
+    long long commentID = -1;
+    for(const auto &value : submission.toObject()["submission_comments"].toArray()) {
+        const QJsonObject submissionComment = value.toObject();
+        if(submissionComment["author_id"].toInteger(-2) == ownUserID) {
+            commentID = std::max(commentID, submissionComment["id"].toInteger(-1));
+        }
+    }
+    // (the comment was posted either way, so if Canvas didn't show it, that isn't a failure, but its ID isn't known)
+    return std::max(commentID, 0LL);
+}
+
+// Sends a student a private message, as a new conversation in the course
+long long CanvasHandler::sendMessage(const long long courseID, const long long userID, const QString &subject, const QString &body) {
+    // group_conversation false keeps it private; force_new starts a conversation of its own, rather than adding to an earlier one with the student
+    const QJsonValue reply = jsonRequest(Method::post, "/api/v1/conversations",
+                                         QJsonObject{{"recipients", QJsonArray{QString::number(userID)}}, {"subject", subject}, {"body", body},
+                                                     {"group_conversation", false}, {"force_new", true},
+                                                     {"context_code", "course_" + QString::number(courseID)}});
+    if(reply.isNull()) {
+        return -1;
+    }
+    const long long conversationID = reply.toArray().at(0).toObject()["id"].toInteger(-1);
+    if(conversationID == -1) {
+        lastErrorMessage = tr("Canvas didn't show the new message.");
+    }
+    return conversationID;
+}
+
+// Retrieves the Canvas IDs of the students who have submitted a quiz
+QList<long long> CanvasHandler::getQuizSubmitterIDs(const long long courseID, const long long quizID, bool *ok) {
+    QList<long long> submitterIDs;
+    const QJsonArray quizSubmissions = getAllPages("/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) +
+                                                   "/submissions", ok, "quiz_submissions");
+    for(const auto &value : quizSubmissions) {
+        const QJsonObject quizSubmission = value.toObject();
+        // a submission shows its latest attempt, which is "untaken" while a student who already submitted is partway through another
+        // attempt; a later attempt number, or a score kept from an earlier attempt, shows they did submit
+        const QString state = quizSubmission["workflow_state"].toString();
+        const bool submittedBefore = (quizSubmission["attempt"].toInt(0) > 1) || !quizSubmission["kept_score"].isNull();
+        if((state == "complete") || (state == "pending_review") || ((state == "untaken") && submittedBefore)) {
+            submitterIDs << quizSubmission["user_id"].toInteger(-1);
+        }
+    }
+    return submitterIDs;
+}
+
+// Retrieves who a quiz is assigned to, from its dates and the overrides that show it to particular students, sections, or groups
+// (a section's or group's students are asked for by ID, so a student in more than one section is found in each of them)
+CanvasHandler::QuizAssignees CanvasHandler::getQuizAssignees(const long long courseID, const long long quizID, bool *ok) {
+    QuizAssignees assignees;
+    const QJsonValue reply = jsonRequest(Method::get, "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) +
+                                                      "/date_details");
+    const QJsonObject details = reply.toObject();
+    *ok = !reply.isNull() && (details.contains("visible_to_everyone") || details.contains("only_visible_to_overrides"));
+    if(!*ok) {
+        return assignees;
+    }
+    assignees.everyone = details.contains("visible_to_everyone")? details["visible_to_everyone"].toBool(true) :
+                                                                  !details["only_visible_to_overrides"].toBool(false);
+    if(assignees.everyone) {
+        return assignees;
+    }
+    bool saysWho = false;
+    for(const auto &value : details["overrides"].toArray()) {
+        const QJsonObject assignmentOverride = value.toObject();
+        if(assignmentOverride.contains("student_ids")) {
+            saysWho = true;
+            for(const auto &studentID : assignmentOverride["student_ids"].toArray()) {
+                assignees.studentIDs.insert(studentID.toInteger(-1));
+            }
+        }
+        QJsonArray members;
+        bool membersOK = true;
+        if(assignmentOverride.contains("course_section_id") && !assignmentOverride["course_section_id"].isNull()) {
+            // (the same request getStudentRoster makes for a section's students; "students" is null if the section has none)
+            const QJsonValue section = jsonRequest(Method::get, "/api/v1/courses/" + QString::number(courseID) + "/sections/" +
+                                                                QString::number(assignmentOverride["course_section_id"].toInteger()) + "?include[]=students");
+            membersOK = !section.isNull();
+            members = section.toObject()["students"].toArray();
+        }
+        else if(assignmentOverride.contains("group_id") && !assignmentOverride["group_id"].isNull()) {
+            members = getAllPages("/api/v1/groups/" + QString::number(assignmentOverride["group_id"].toInteger()) + "/users", &membersOK);
+        }
+        else {
+            continue;
+        }
+        if(!membersOK) {
+            *ok = false;
+            return assignees;
+        }
+        saysWho = true;
+        for(const auto &member : std::as_const(members)) {
+            assignees.studentIDs.insert(member.toObject()["id"].toInteger(-1));
+        }
+    }
+    // only for some students, but Canvas didn't say which ones
+    if(!saysWho) {
+        *ok = false;
+    }
+    return assignees;
+}
+
+// Deletes a comment from a student's submission
+bool CanvasHandler::deleteSubmissionComment(const long long courseID, const long long assignmentID, const long long userID, const long long commentID) {
+    return !jsonRequest(Method::del, "/api/v1/courses/" + QString::number(courseID) + "/assignments/" + QString::number(assignmentID) +
+                                     "/submissions/" + QString::number(userID) + "/comments/" + QString::number(commentID)).isNull();
+}
+
+// Uploads a file to attach to a comment on a submission, in Canvas's three steps, and returns the new file's ID
+long long CanvasHandler::uploadSubmissionCommentFile(const QString &submissionPath, const QString &fileName, const QByteArray &content,
+                                                     const QString &contentType) {
+    // 1. tell Canvas about the file; it answers with where to send it
+    const QJsonObject slot = jsonRequest(Method::post, submissionPath + "/comments/files",
+                                         QJsonObject{{"name", fileName}, {"size", qint64(content.size())}, {"content_type", contentType}}).toObject();
+    const QString uploadURL = slot["upload_url"].toString();
+    if(uploadURL.isEmpty()) {
+        if(lastErrorMessage.isEmpty()) {
+            lastErrorMessage = tr("Canvas didn't say where to upload the file.");
+        }
+        return -1;
+    }
+
+    // 2. send the file, after the fields Canvas gave, to that address, which is usually a separate file server, so the access token isn't sent
+    auto *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    const QJsonObject uploadParams = slot["upload_params"].toObject();
+    for(auto param = uploadParams.constBegin(); param != uploadParams.constEnd(); ++param) {
+        QHttpPart part;
+        part.setHeader(QNetworkRequest::ContentDispositionHeader, "form-data; name=\"" + param.key() + "\"");
+        part.setBody(param.value().toVariant().toString().toUtf8());
+        multiPart->append(part);
+    }
+    // the file's name is given plainly in ASCII (accents dropped, any other letters made "_"), since a header can't hold other characters,
+    // and also in full, percent-encoded (Canvas has the full name from step 1 anyway)
+    QString asciiFileName;
+    for(const QChar character : fileName.normalized(QString::NormalizationForm_D)) {
+        if(character.category() == QChar::Mark_NonSpacing) {
+            continue;
+        }
+        asciiFileName += ((character.unicode() < 128) && (character != '"') && (character != '\\'))? character : QChar('_');
+    }
+    QHttpPart filePart;
+    filePart.setHeader(QNetworkRequest::ContentTypeHeader, contentType);
+    filePart.setRawHeader("Content-Disposition", "form-data; name=\"file\"; filename=\"" + asciiFileName.toLatin1() + "\"; filename*=UTF-8''" +
+                                                 QUrl::toPercentEncoding(fileName));
+    filePart.setBody(content);
+    multiPart->append(filePart);
+    QNetworkRequest request{QUrl(uploadURL)};
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);     // (any redirect is followed below)
+    request.setTransferTimeout(POST_TIMEOUT_TIME);
+    auto *reply = manager->post(request, multiPart);
+    multiPart->setParent(reply);
+    QEventLoop loop;
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    const QByteArray locationHeader = reply->rawHeader("Location");
+    const QUrl location = locationHeader.isEmpty()? QUrl() : QUrl(uploadURL).resolved(QUrl(QString::fromUtf8(locationHeader)));
+    const QJsonObject uploaded = QJsonDocument::fromJson(reply->readAll()).object();
+    const QString errorString = reply->errorString();
+    reply->deleteLater();
+    if((httpStatus < 200) || (httpStatus >= 400)) {
+        lastErrorMessage = tr("The file could not be uploaded:") + " " + errorString +
+                           ((httpStatus != 0)? (" (" + tr("HTTP status") + " " + QString::number(httpStatus) + ")") : "");
+        return -1;
+    }
+
+    // 3. the file server answers with the new file, or else with where Canvas confirms it (which is asked only of this Canvas site,
+    //    since that request carries the access token)
+    auto idOf = [](const QJsonValue &id) {
+        return id.isString()? id.toString().toLongLong() : id.toInteger(-1);
+    };
+    long long fileID = idOf(uploaded["id"]);
+    if(fileID <= 0) {
+        const QUrl confirmURL = uploaded.contains("location")? QUrl(uploadURL).resolved(QUrl(uploaded["location"].toString())) : location;
+        if(confirmURL.isValid() && !confirmURL.host().isEmpty() && (confirmURL.host().compare(QUrl(baseURL).host(), Qt::CaseInsensitive) == 0)) {
+            const QString confirmPath = confirmURL.path() + (confirmURL.hasQuery()? ("?" + confirmURL.query(QUrl::FullyEncoded)) : "");
+            fileID = idOf(jsonRequest(Method::get, confirmPath).toObject()["id"]);
+        }
+    }
+    if(fileID <= 0) {
+        if(lastErrorMessage.isEmpty()) {
+            lastErrorMessage = tr("Canvas didn't confirm the uploaded file.");
+        }
+        return -1;
+    }
+    return fileID;
+}
+
 ////////////////////////////////////////////
 
-QUrl CanvasHandler::getQuizResultsURL(const long long courseID, const long long quizID, const QElapsedTimer &waitTimer) {
+QJsonValue CanvasHandler::jsonRequest(const Method method, const QString &URL, const QJsonObject &body) {
+    const QByteArray data = ((method == Method::get) || (method == Method::del))? QByteArray() : QJsonDocument(body).toJson(QJsonDocument::Compact);
+    // a 403 is retried only if Canvas says it's rate-limiting; otherwise it's a refusal (e.g., a student who has left the course), which won't change
+    const QByteArray replyBody = httpRequest(method, QUrl(baseURL + URL), data, data.isEmpty()? QByteArray() : QByteArray("application/json"), false);
+    if(replyBody.isEmpty() && !lastErrorMessage.isEmpty()) {
+        return QJsonValue(QJsonValue::Null);
+    }
+    const QJsonDocument replyJson = QJsonDocument::fromJson(replyBody);
+    if(replyJson.isObject()) {
+        return replyJson.object();
+    }
+    if(replyJson.isArray()) {
+        return replyJson.array();
+    }
+    return QJsonObject();       // a successful reply with no content
+}
+
+QJsonArray CanvasHandler::getAllPages(const QString &initialURL, bool *ok, const QString &arrayKey) {
+    *ok = false;
+    QJsonArray items;
+    QEventLoop loop;
+    // ask for large pages (Canvas defaults to only 10 items per page); the "next" links Canvas returns keep this setting
+    QString url = baseURL + initialURL + (initialURL.contains('?')? "&" : "?") + "per_page=100";
+    int numPages = 0;
+    do {
+        QNetworkRequest request(url);
+        request.setRawHeader("Authorization", "Bearer " + OAuthFlow->token().toUtf8());
+        request.setTransferTimeout(POST_TIMEOUT_TIME);      // (a page of submissions with their history can be large)
+
+        // each page is retried, after a growing delay, if the failure is likely temporary (rate-limiting, a server error, or a network error),
+        // as LMS::httpRequest does
+        int httpStatus = 0;
+        QByteArray replyHeader, replyBody;
+        QString errorString;
+        for(int attempt = 1; attempt <= NUM_RETRIES_BEFORE_ABORT; attempt++) {
+            auto *reply = manager->get(request);
+            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+            httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            replyHeader = reply->rawHeader("Link");
+            replyBody = reply->readAll();
+            errorString = reply->errorString();
+            reply->deleteLater();
+            const bool temporary = (httpStatus == 0) || (httpStatus == 429) || ((httpStatus >= 500) && (httpStatus < 600)) ||
+                                   ((httpStatus == 403) && replyBody.toLower().contains("rate limit"));
+            if(((httpStatus >= 200) && (httpStatus < 300)) || !temporary || (attempt == NUM_RETRIES_BEFORE_ABORT)) {
+                break;
+            }
+            emit retrying(attempt + 1);
+            QEventLoop delayLoop;
+            QTimer::singleShot(RETRY_DELAY_TIME << (attempt - 1), &delayLoop, &QEventLoop::quit);     // 500ms, 1s, 2s, 4s
+            delayLoop.exec();
+        }
+        const QJsonDocument replyJson = QJsonDocument::fromJson(replyBody);
+        const bool hasList = arrayKey.isEmpty()? replyJson.isArray() : (replyJson.isObject() && replyJson.object()[arrayKey].isArray());
+        if((httpStatus < 200) || (httpStatus >= 300) || !hasList) {
+            lastErrorMessage = errorString + ((httpStatus != 0)? (" (" + tr("HTTP status") + " " + QString::number(httpStatus) + ")") : "");
+            return {};
+        }
+        const QJsonArray pageItems = arrayKey.isEmpty()? replyJson.array() : replyJson.object()[arrayKey].toArray();
+        for(const auto &item : pageItems) {
+            items << item;
+        }
+        static const QRegularExpression nextURL(R"(<([^>]*)>;\s*rel="next")");
+        url = nextURL.match(QString::fromUtf8(replyHeader)).captured(1);
+    }
+    while(!url.isEmpty() && ++numPages < NUM_PAGES_TO_LOAD);
+    *ok = true;
+    return items;
+}
+
+////////////////////////////////////////////
+
+QUrl CanvasHandler::getQuizResultsURL(const long long courseID, const long long quizID, const QElapsedTimer &waitTimer,
+                                      const std::function<void(const QString &progressURL)> &waiting) {
     const QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports";
     QUrlQuery query;
     query.addQueryItem("quiz_report[report_type]", "student_analysis");
     const QByteArray postData = query.toString(QUrl::FullyEncoded).toUtf8();
-    QStringList x;
+    QStringList quizReportProgressURL;
     QList<long long> quizReportID;
     QStringList quizReportFileURL;
-    QList<QStringList*> stringParams = {&x};
+    QList<QStringList*> stringParams = {&quizReportProgressURL};
     QList<QList<long long>*> integerParams = {&quizReportID};
     QList<QStringList*> stringInSubobjectParams = {&quizReportFileURL};
     QEventLoop loop;
     // check every RELOAD_DELAY_TIME (i.e., 2 seconds)--a file object (including a download URL) is added to the json results when it is
     do {
+        if(waiting) {
+            waiting(quizReportProgressURL.isEmpty()? QString() : quizReportProgressURL.constFirst());
+        }
+        // (checked after waiting(), which may take a moment to ask Canvas how far along the report is)
         if(downloadCanceled || (waitTimer.elapsed() > MAX_REPORT_WAIT_TIME)) {
             lastErrorMessage = (downloadCanceled? tr("Download canceled.") : tr("Canvas did not finish preparing the survey results in time."));
             return {};
         }
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
+        quizReportProgressURL.clear();
         quizReportID.clear();
         quizReportFileURL.clear();
         postToCanvasGetSingleResult(url, postData,
-                                    {}, {stringParams},
+                                    {"progress_url"}, stringParams,
                                     {"id"}, integerParams,
                                     {"file/url"}, stringInSubobjectParams);
     } while(quizReportFileURL.isEmpty() || quizReportFileURL.first().isEmpty());
 
     return {quizReportFileURL.first()};
+}
+
+int CanvasHandler::reportPercentDone(const QString &progressURL) {
+    // the progress record is asked for only from this Canvas site, since the request carries the access token
+    const QString path = QUrl(progressURL).path();
+    if(!path.startsWith("/api/v1/progress/") || downloadCanceled) {
+        return -1;
+    }
+    // a single try, with no retrying and no error reported, since not knowing the progress only means the bar can't show it
+    QNetworkRequest request(QUrl(baseURL + path));
+    request.setRawHeader("Authorization", "Bearer " + OAuthFlow->token().toUtf8());
+    request.setTransferTimeout(TIMEOUT_TIME);
+    auto *reply = manager->get(request);
+    QEventLoop loop;
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    const QJsonObject progressRecord = QJsonDocument::fromJson(reply->readAll()).object();
+    reply->deleteLater();
+    const QJsonValue completion = progressRecord["completion"];
+    return completion.isDouble()? std::clamp(int(completion.toDouble()), 0, 100) : -1;
 }
 
 void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const QStringList &stringParams, QList<QStringList*> &stringVals,
@@ -803,7 +1621,7 @@ void CanvasHandler::authenticateWithManualToken(const QString &token) {
 }
 
 QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentAccountName, const QString &currentURL, const QString &currentToken) {
-    auto *getCanvasInfoDialog = new QDialog;
+    auto *getCanvasInfoDialog = new QDialog(parent);    // (with a parent, it opens on top of the window that asked to sign in)
     getCanvasInfoDialog->setWindowTitle(tr("Connect to Canvas"));
     getCanvasInfoDialog->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     getCanvasInfoDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);

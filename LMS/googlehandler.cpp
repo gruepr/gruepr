@@ -12,6 +12,8 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QUrlQuery>
+#include <QUuid>
 #include <QVBoxLayout>
 
 GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
@@ -508,6 +510,15 @@ QStringList GoogleHandler::getSurveyList() {
     return formNames;
 }
 
+QString GoogleHandler::getSurveyResponderURL(const QString &surveyName) const {
+    for(const auto &form : std::as_const(formsList)) {
+        if(form.name == surveyName) {
+            return form.responderURL.toString();
+        }
+    }
+    return {};
+}
+
 QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //get the ID
     QString ID;
@@ -601,6 +612,417 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     return filepath.absoluteFilePath();
 }
 
+GoogleHandler::GoogleForm GoogleHandler::createPeerReviewForm(PeerReview *const peerReview) {
+    //create a Google Form--only the title and document_title can be set in this step
+    QString url = "https://forms.googleapis.com/v1/forms";
+    const QString title = peerReview->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : peerReview->title.simplified();
+    QJsonObject info;
+    info["title"] = title;
+    info["document_title"] = title;
+    QJsonObject form;
+    form["info"] = info;
+    QStringList formIDInList, submissionURL, revisionIDinList;
+    QStringList y;
+    QList<QStringList*> stringParams = {&formIDInList, &submissionURL, &revisionIDinList};
+    QList<QStringList*> stringInSubobjectParams = {&y};
+    postToGoogleGetSingleResult(url, QJsonDocument(form).toJson(),
+                                {"formId", "responderUri", "revisionId"}, stringParams,
+                                {}, stringInSubobjectParams);
+    if(formIDInList.isEmpty() || submissionURL.isEmpty() || revisionIDinList.isEmpty()) {
+        return {};
+    }
+    const QString formID = formIDInList.constFirst();
+    const QString surveySubmissionURL = submissionURL.constFirst();
+    const QString revisionID = revisionIDinList.constFirst();
+    if(formID.isEmpty()) {
+        return {};
+    }
+
+    //plan every item of the form: the name question, then for each team a page with its questions and a final "submit" question
+    //(the form's pages can't be set to submit when they end, so the "submit" question is needed to keep a student from going on to the next team's page)
+    struct ItemPlan {enum class Type{name, page, question, other} type = Type::other; int teamNum = -1; int questionNum = -1; QList<long long> aboutIDs;};
+    QList<ItemPlan> itemPlans;
+    QJsonArray requests;
+    auto addItem = [&itemPlans, &requests](const QJsonObject &item, const ItemPlan &itemPlan) {
+        QJsonObject location;
+        location["index"] = int(requests.size());
+        QJsonObject newItem;
+        newItem["item"] = item;
+        newItem["location"] = location;
+        QJsonObject createItem;
+        createItem["createItem"] = newItem;
+        requests << createItem;
+        itemPlans << itemPlan;
+    };
+    // builds the body of a question
+    auto questionBody = [](const bool required, const QString &kindName, const QJsonObject &kind) {
+        QJsonObject body;
+        body["required"] = required;
+        body[kindName] = kind;
+        QJsonObject questionItem;
+        questionItem["question"] = body;
+        return questionItem;
+    };
+    auto choiceKind = [](const QString &type, const QStringList &options) {
+        QJsonObject kind;
+        kind["type"] = type;
+        kind["shuffle"] = false;
+        kind["options"] = optionsArray(options);
+        return kind;
+    };
+    auto textKind = [](const bool paragraph) {
+        QJsonObject kind;
+        kind["paragraph"] = paragraph;
+        return kind;
+    };
+
+    //the name question; its answers are sent to their team's page once the pages exist
+    const QList<QPair<QString, long long>> nameOptions = peerReview->nameOptions();
+    QStringList names;
+    for(const auto &nameOption : nameOptions) {
+        names << nameOption.first;
+    }
+    QJsonObject nameItem;
+    nameItem["title"] = PEERREVIEWNAMEQUESTION;
+    nameItem["questionItem"] = questionBody(true, "choiceQuestion", choiceKind("DROP_DOWN", names));
+    addItem(nameItem, {ItemPlan::Type::name});
+
+    for(int teamNum = 0; teamNum < peerReview->teams.size(); teamNum++) {
+        const auto &team = peerReview->teams.at(teamNum);
+        QStringList memberNames;        // with a number added to teammates who have the same name, so each row and question is distinct
+        QList<long long> memberIDs;
+        for(int memberNum = 0; memberNum < team.members.size(); memberNum++) {
+            memberNames << peerReview->memberLabel(teamNum, memberNum);
+            memberIDs << team.members.at(memberNum).ID;
+        }
+
+        QJsonObject pageItem;
+        pageItem["title"] = team.name;
+        pageItem["description"] = tr("Your team:") + " " + memberNames.join(", ");
+        pageItem["pageBreakItem"] = QJsonObject();
+        addItem(pageItem, {ItemPlan::Type::page, teamNum});
+
+        for(int questionNum = 0; questionNum < peerReview->questions.size(); questionNum++) {
+            const auto &question = peerReview->questions.at(questionNum);
+            const QStringList labels = question.formLabels();
+            const bool required = question.isRequiredInForm();
+            QJsonObject item;
+            item["title"] = question.text.simplified();
+            item["description"] = question.formDescription();
+
+            if(question.isAboutTeammates() && question.usesGrid()) {
+                //a grid with a row for each team member
+                QJsonArray rows;
+                for(const auto &memberName : std::as_const(memberNames)) {
+                    QJsonObject row;
+                    row["title"] = memberName;
+                    QJsonObject rowBody;
+                    rowBody["required"] = required;
+                    rowBody["rowQuestion"] = row;
+                    rows << rowBody;
+                }
+                QJsonObject grid;
+                grid["shuffleQuestions"] = false;
+                grid["columns"] = choiceKind(question.multi? "CHECKBOX" : "RADIO", labels);
+                QJsonObject questionGroupItem;
+                questionGroupItem["questions"] = rows;
+                questionGroupItem["grid"] = grid;
+                item["questionGroupItem"] = questionGroupItem;
+                addItem(item, {ItemPlan::Type::question, teamNum, questionNum, memberIDs});
+            }
+            else if(question.isAboutTeammates()) {
+                //the question with its notes, then a separate question for each team member
+                item["textItem"] = QJsonObject();
+                addItem(item, {ItemPlan::Type::other, teamNum});
+                for(int memberNum = 0; memberNum < memberNames.size(); memberNum++) {
+                    QJsonObject memberItem;
+                    memberItem["title"] = memberNames.at(memberNum);
+                    if(!labels.isEmpty()) {
+                        memberItem["questionItem"] = questionBody(required, "choiceQuestion", choiceKind(question.multi? "CHECKBOX" : "DROP_DOWN", labels));
+                    }
+                    else {
+                        memberItem["questionItem"] = questionBody(required, "textQuestion", textKind(question.kind == PeerReviewQuestion::Kind::written));
+                    }
+                    addItem(memberItem, {ItemPlan::Type::question, teamNum, questionNum, {memberIDs.at(memberNum)}});
+                }
+            }
+            else {
+                //a single question, about yourself or asked once
+                if(question.kind == PeerReviewQuestion::Kind::numberScale) {
+                    QJsonObject scale;
+                    scale["low"] = question.scaleLow;
+                    scale["high"] = question.scaleHigh;
+                    if(!question.lowLabel.isEmpty()) {
+                        scale["lowLabel"] = question.lowLabel;
+                    }
+                    if(!question.highLabel.isEmpty()) {
+                        scale["highLabel"] = question.highLabel;
+                    }
+                    item["questionItem"] = questionBody(required, "scaleQuestion", scale);
+                }
+                else if(!labels.isEmpty()) {
+                    const QString type = question.multi? "CHECKBOX" : ((labels.size() <= 6)? "RADIO" : "DROP_DOWN");
+                    item["questionItem"] = questionBody(required, "choiceQuestion", choiceKind(type, labels));
+                }
+                else {
+                    item["questionItem"] = questionBody(required, "textQuestion", textKind(question.kind == PeerReviewQuestion::Kind::written));
+                }
+                const long long aboutID = (question.about == PeerReviewQuestion::About::self)? PeerReviewFormItem::ABOUTGIVER :
+                                                                                               PeerReviewFormItem::ABOUTNOONE;
+                addItem(item, {ItemPlan::Type::question, teamNum, questionNum, {aboutID}});
+            }
+        }
+
+        //the "submit" question that ends the team's page
+        QJsonObject submitOption;
+        submitOption["value"] = PEERREVIEWSUBMITOPTION;
+        submitOption["goToAction"] = "SUBMIT_FORM";
+        QJsonObject submitKind;
+        submitKind["type"] = "RADIO";
+        submitKind["options"] = QJsonArray{submitOption};
+        QJsonObject submitItem;
+        submitItem["title"] = PEERREVIEWSUBMITQUESTION;
+        submitItem["questionItem"] = questionBody(true, "choiceQuestion", submitKind);
+        addItem(submitItem, {ItemPlan::Type::other, teamNum});
+    }
+
+    //create the items, a batch at a time, keeping the IDs given to each item and its question(s)
+    QList<QPair<QString, QStringList>> createdIDs;      // itemId, questionIds
+    for(int first = 0; first < requests.size(); first += PEERREVIEWBATCHSIZE) {
+        QJsonArray batch;
+        for(int request = first; request < std::min(int(requests.size()), first + PEERREVIEWBATCHSIZE); request++) {
+            batch << requests.at(request);
+        }
+        const QJsonObject reply = postBatchUpdate(formID, batch, (first == 0)? revisionID : "");
+        const QJsonArray replies = reply["replies"].toArray();
+        if(replies.size() != batch.size()) {
+            deleteOrphanedForm(formID);
+            return {};
+        }
+        for(const auto &createReply : replies) {
+            const QJsonObject createItem = createReply.toObject()["createItem"].toObject();
+            QStringList questionIDs;
+            const QJsonArray questionIDsArray = createItem["questionId"].toArray();
+            for(const auto &questionID : questionIDsArray) {
+                questionIDs << questionID.toString();
+            }
+            createdIDs.append({createItem["itemId"].toString(), questionIDs});
+        }
+    }
+
+    //now that the team pages exist, send each name to its team's page
+    QHash<int, QString> pageIDOfTeam;
+    QString nameItemID, nameQuestionID;
+    for(int itemNum = 0; itemNum < itemPlans.size(); itemNum++) {
+        if(itemPlans.at(itemNum).type == ItemPlan::Type::page) {
+            pageIDOfTeam.insert(itemPlans.at(itemNum).teamNum, createdIDs.at(itemNum).first);
+        }
+        else if(itemPlans.at(itemNum).type == ItemPlan::Type::name) {
+            nameItemID = createdIDs.at(itemNum).first;
+            nameQuestionID = createdIDs.at(itemNum).second.value(0);
+        }
+    }
+    QJsonArray nameOptionsWithPages;
+    for(const auto &nameOption : nameOptions) {
+        QJsonObject option;
+        option["value"] = nameOption.first;
+        option["goToSectionId"] = pageIDOfTeam.value(peerReview->teamOf(nameOption.second));
+        nameOptionsWithPages << option;
+    }
+    // jumping to a page is documented for radio buttons, and probably works for a dropdown; if the dropdown is refused, use radio buttons
+    bool namesSentToPages = false;
+    for(const QString &type : {QString("DROP_DOWN"), QString("RADIO")}) {
+        QJsonObject nameKind;
+        nameKind["type"] = type;
+        nameKind["options"] = nameOptionsWithPages;
+        QJsonObject nameBody;
+        nameBody["questionId"] = nameQuestionID;
+        nameBody["required"] = true;
+        nameBody["choiceQuestion"] = nameKind;
+        QJsonObject nameQuestionItem;
+        nameQuestionItem["question"] = nameBody;
+        QJsonObject updatedNameItem;
+        updatedNameItem["itemId"] = nameItemID;
+        updatedNameItem["title"] = PEERREVIEWNAMEQUESTION;
+        updatedNameItem["questionItem"] = nameQuestionItem;
+        QJsonObject location;
+        location["index"] = 0;
+        QJsonObject updateItemRequest;
+        updateItemRequest["item"] = updatedNameItem;
+        updateItemRequest["location"] = location;
+        updateItemRequest["updateMask"] = "questionItem.question.choiceQuestion";
+        QJsonObject updateItem;
+        updateItem["updateItem"] = updateItemRequest;
+        const QJsonObject reply = postBatchUpdate(formID, {updateItem});
+        if(reply.contains("replies") || reply.contains("writeControl")) {
+            namesSentToPages = true;
+            break;
+        }
+    }
+    if(!namesSentToPages) {
+        deleteOrphanedForm(formID);
+        return {};
+    }
+
+    //update the description
+    info.remove("document_title");
+    info["description"] = peerReview->instructions.isEmpty()? QString(PEERREVIEWINSTRUCTIONS) : peerReview->instructions;
+    QJsonObject updateFormInfoRequest;
+    updateFormInfoRequest["info"] = info;
+    updateFormInfoRequest["updateMask"] = "description";
+    QJsonObject updateFormInfo;
+    updateFormInfo["updateFormInfo"] = updateFormInfoRequest;
+    const QJsonObject infoReply = postBatchUpdate(formID, {updateFormInfo});
+    if(!infoReply.contains("replies") && !infoReply.contains("writeControl")) {
+        deleteOrphanedForm(formID);
+        return {};
+    }
+
+    //if wanted, require signing in so the respondent's email is collected; this is sent by itself so that, if it is refused,
+    //the form is kept (without requiring sign-in) and the instructor is told why
+    QString warning;
+    if(peerReview->requireSignIn) {
+        QJsonObject settings;
+        settings["emailCollectionType"] = "VERIFIED";
+        QJsonObject updateSettingsRequest;
+        updateSettingsRequest["settings"] = settings;
+        updateSettingsRequest["updateMask"] = "emailCollectionType";
+        QJsonObject updateSettings;
+        updateSettings["updateSettings"] = updateSettingsRequest;
+        const QJsonObject settingsReply = postBatchUpdate(formID, {updateSettings});
+        if(!settingsReply.contains("replies") && !settingsReply.contains("writeControl")) {
+            peerReview->requireSignIn = false;
+            warning = tr("Google did not allow this form to require signing in, so students will respond without signing in.") +
+                      (lastErrorMessage.isEmpty()? "" : ("<br><code>" + lastErrorMessage.toHtmlEscaped() + "</code>"));
+        }
+    }
+
+    //publish the form so that responders can access it (required for forms created by API after June 2026)
+    url = "https://forms.googleapis.com/v1/forms/" + formID + ":setPublishSettings";
+    QJsonObject publishBody;
+    QJsonObject publishState;
+    publishState["isPublished"] = true;
+    publishState["isAcceptingResponses"] = true;
+    QJsonObject publishSettings;
+    publishSettings["publishState"] = publishState;
+    publishBody["publishSettings"] = publishSettings;
+    const auto publishReplyBody = httpRequest(Method::post, url, QJsonDocument(publishBody).toJson(), "application/json");
+    const bool published = lastErrorMessage.isEmpty() && !publishReplyBody.isEmpty();
+
+    //record in the peer review which form question asks which question about whom
+    peerReview->formItems.clear();
+    for(int itemNum = 0; itemNum < itemPlans.size(); itemNum++) {
+        const auto &itemPlan = itemPlans.at(itemNum);
+        if(itemPlan.type != ItemPlan::Type::question) {
+            continue;
+        }
+        const QStringList &questionIDs = createdIDs.at(itemNum).second;
+        for(int i = 0; i < std::min(questionIDs.size(), itemPlan.aboutIDs.size()); i++) {
+            peerReview->formItems.append({questionIDs.at(i), itemPlan.questionNum, itemPlan.teamNum, itemPlan.aboutIDs.at(i)});
+        }
+    }
+    peerReview->formID = formID;
+    peerReview->responderURL = surveySubmissionURL;
+    peerReview->accountName = accountName;
+    peerReview->formPublished = published;
+    peerReview->acceptingResponses = published;
+    peerReview->nameQuestionID = nameQuestionID;
+
+    return {title, formID, QDateTime::currentDateTime().toString(Qt::ISODate), QUrl(surveySubmissionURL), published, warning};
+}
+
+QJsonArray GoogleHandler::downloadPeerReviewResponses(const QString &formID, bool *ok) {
+    *ok = false;
+
+    //download the responses a page at a time
+    QJsonArray allResponses;
+    QString pageToken;
+    do {
+        QString url = "https://forms.googleapis.com/v1/forms/" + formID + "/responses?pageSize=5000";
+        if(!pageToken.isEmpty()) {
+            url += "&pageToken=" + QString::fromLatin1(QUrl::toPercentEncoding(pageToken));
+        }
+        const auto replyBody = httpRequest(Method::get, url);
+        if(!lastErrorMessage.isEmpty()) {
+            return {};
+        }
+        const QJsonDocument json_doc = QJsonDocument::fromJson(replyBody);
+        const QJsonArray responses = json_doc["responses"].toArray();
+        for(const auto &response : responses) {
+            allResponses << response;
+        }
+        pageToken = json_doc["nextPageToken"].toString();
+    } while(!pageToken.isEmpty());
+
+    *ok = true;
+    return allResponses;
+}
+
+bool GoogleHandler::setPeerReviewAcceptingResponses(const QString &formID, const bool accepting) {
+    const QString url = "https://forms.googleapis.com/v1/forms/" + formID + ":setPublishSettings";
+    QJsonObject publishBody;
+    QJsonObject publishState;
+    publishState["isPublished"] = true;
+    publishState["isAcceptingResponses"] = accepting;
+    QJsonObject publishSettings;
+    publishSettings["publishState"] = publishState;
+    publishBody["publishSettings"] = publishSettings;
+    const auto replyBody = httpRequest(Method::post, url, QJsonDocument(publishBody).toJson(), "application/json");
+    return lastErrorMessage.isEmpty() && !replyBody.isEmpty();
+}
+
+QString GoogleHandler::createDriveFolder(const QString &folderName) {
+    QJsonObject folder;
+    folder["name"] = folderName;
+    folder["mimeType"] = "application/vnd.google-apps.folder";
+    const auto replyBody = httpRequest(Method::post, QUrl("https://www.googleapis.com/drive/v3/files"),
+                                       QJsonDocument(folder).toJson(), "application/json");
+    return QJsonDocument::fromJson(replyBody)["id"].toString();
+}
+
+bool GoogleHandler::shareFeedbackDoc(const QString &folderID, const QString &docName, const QString &html, const QString &email,
+                                     const QString &message, QString &docURL) {
+    docURL.clear();
+
+    //upload the report as html, which Google Drive converts into a Google Doc
+    const QByteArray boundary = "gruepr_" + QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
+    QJsonObject metadata;
+    metadata["name"] = docName;
+    metadata["mimeType"] = "application/vnd.google-apps.document";
+    if(!folderID.isEmpty()) {
+        metadata["parents"] = QJsonArray{folderID};
+    }
+    QByteArray body = "--" + boundary + "\r\n"
+                      "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+                      QJsonDocument(metadata).toJson(QJsonDocument::Compact) + "\r\n"
+                      "--" + boundary + "\r\n"
+                      "Content-Type: text/html; charset=UTF-8\r\n\r\n" +
+                      html.toUtf8() + "\r\n"
+                      "--" + boundary + "--";
+    const auto uploadReplyBody = httpRequest(Method::post, QUrl("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"),
+                                             body, "multipart/related; boundary=" + boundary);
+    const QString docID = QJsonDocument::fromJson(uploadReplyBody)["id"].toString();
+    if(docID.isEmpty()) {
+        return false;
+    }
+    docURL = "https://docs.google.com/document/d/" + docID + "/edit";
+
+    //share it with the student as a viewer; Google emails them the link
+    // (the message is percent-encoded by hand, since QUrlQuery leaves a '+' as is, which Google would read as a space)
+    QUrl url("https://www.googleapis.com/drive/v3/files/" + docID + "/permissions");
+    QString query = "sendNotificationEmail=true";
+    if(!message.isEmpty()) {
+        query += "&emailMessage=" + QString::fromLatin1(QUrl::toPercentEncoding(message));
+    }
+    url.setQuery(query);
+    QJsonObject permission;
+    permission["role"] = "reader";
+    permission["type"] = "user";
+    permission["emailAddress"] = email;
+    const auto permissionReplyBody = httpRequest(Method::post, url, QJsonDocument(permission).toJson(), "application/json", false);
+    return lastErrorMessage.isEmpty() && !permissionReplyBody.isEmpty();
+}
+
 
 ////////////////////////////////////////////
 
@@ -657,6 +1079,31 @@ void GoogleHandler::deleteOrphanedForm(const QString &formID) {
     const QString originalErrorMessage = lastErrorMessage;
     httpRequest(Method::del, "https://www.googleapis.com/drive/v3/files/" + formID);
     lastErrorMessage = originalErrorMessage;   // a failed cleanup should not change the error shown to the user
+}
+
+QJsonArray GoogleHandler::optionsArray(const QStringList &options) {
+    QJsonArray responseOptions;
+    for(const auto &option : dedupedNonBlankOptions(options)) {
+        QJsonObject responseOption;
+        responseOption["value"] = option;
+        responseOption["isOther"] = false;
+        responseOptions << responseOption;
+    }
+    return responseOptions;
+}
+
+QJsonObject GoogleHandler::postBatchUpdate(const QString &formID, const QJsonArray &requests, const QString &targetRevisionID) {
+    QJsonObject requestBody;
+    requestBody["includeFormInResponse"] = false;
+    if(!targetRevisionID.isEmpty()) {
+        QJsonObject writeControl;
+        writeControl["targetRevisionId"] = targetRevisionID;
+        requestBody["writeControl"] = writeControl;
+    }
+    requestBody["requests"] = requests;
+    const auto replyBody = httpRequest(Method::post, "https://forms.googleapis.com/v1/forms/" + formID + ":batchUpdate",
+                                       QJsonDocument(requestBody).toJson(), "application/json");
+    return QJsonDocument::fromJson(replyBody).object();
 }
 
 QSet<QByteArray> GoogleHandler::getScopes() const {

@@ -1217,7 +1217,7 @@ void TeamsTabItem::postTeamsToCanvas()
     }
 
     //ask the user in which course we're creating the teams
-    auto *busyBox = canvas->actionDialog();
+    auto *busyBox = canvas->actionDialog(this);     // (with a parent, it opens on top of this window)
     QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
     if(canvasCourses.isEmpty()) {
@@ -1280,11 +1280,18 @@ void TeamsTabItem::postTeamsToCanvas()
         teamRosters << teamRoster;
     }
 
-    busyBox = canvas->actionDialog();
+    // create the teams, showing which team is being made and a bar with the progress (each request to Canvas is a step)
+    busyBox = canvas->actionDialog(this);
     const QSize iconSize = canvas->actionDialogIcon->pixmap().size();
     QPixmap icon;
     QEventLoop loop;
-    if(canvas->createTeams(coursesComboBox->currentData().toLongLong(), tabName, teamNames, teamRosters)) {
+    const bool success = canvas->createTeams(coursesComboBox->currentData().toLongLong(), tabName, teamNames, teamRosters,
+                                             [canvas, numTeams](int teamNum, int stepsDone, int numSteps){
+        canvas->showActionProgress(tr("Creating team") + " " + QString::number(teamNum + 1) + " " + tr("of") + " " + QString::number(numTeams) + "...",
+                                   stepsDone, numSteps);
+    });
+    canvas->hideActionProgress();
+    if(success) {
         canvas->actionDialogLabel->setText(tr("Success!"));
         icon.load(":/icons_new/ok.png");
         canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));

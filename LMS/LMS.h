@@ -8,6 +8,7 @@
 #include <QNetworkReply>
 #include <QOAuth2AuthorizationCodeFlow>
 #include <QOAuthHttpServerReplyHandler>
+#include <QProgressBar>
 
 
 class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
@@ -36,7 +37,23 @@ public:
     QDialog* actionDialog(QWidget *parent = nullptr);
     QLabel *actionDialogIcon = nullptr;
     QLabel *actionDialogLabel = nullptr;
+    QProgressBar *actionDialogProgressBar = nullptr;     // hidden unless showActionProgress() is used
     QDialogButtonBox *actionDialogButtons = nullptr;
+
+    /**
+     * @brief showActionProgress Shows how far along the action is in the "Please wait" dialog, as a line of text and a progress bar.
+     * The text only ever widens the dialog, so no text is cut off and the dialog doesn't change size with every new text.
+     * @param text What is being done.
+     * @param done How many steps are done.
+     * @param total How many steps there are in all (0 if that isn't known, for a bar that keeps moving to show that something is happening).
+     */
+    void showActionProgress(const QString &text, const int done, const int total);
+
+    /**
+     * @brief hideActionProgress Hides the progress bar, e.g., to show the action's result in the dialog.
+     */
+    void hideActionProgress();
+
     void actionComplete(QDialog *busyDialog);
     void startBusyAnimation();
     void stopBusyAnimation();
@@ -52,8 +69,10 @@ protected:
     void initOAuth2();
     virtual bool authenticate();
     bool authenticated();
-    enum class Method{get, post, del};
-    QByteArray httpRequest(const Method method, const QUrl &url, const QByteArray &data = "", const QByteArray &contentType = "");
+    enum class Method{get, post, put, del};
+    // retryForbidden: whether a 403 reply is retried as if it were temporary rate-limiting (false retries it only if the reply says it was rate-limiting)
+    QByteArray httpRequest(const Method method, const QUrl &url, const QByteArray &data = "", const QByteArray &contentType = "",
+                           const bool retryForbidden = true);
 
     QOAuth2AuthorizationCodeFlow *OAuthFlow = nullptr;
     QNetworkAccessManager *manager = nullptr;

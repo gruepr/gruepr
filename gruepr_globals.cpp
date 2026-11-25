@@ -202,6 +202,110 @@ bool grueprGlobal::loadRoster(QWidget *parent, const QString &startingDirectory,
 }
 
 //////////////////
+// Prompt for and open a spreadsheet of teams (.csv/.txt/.xlsx), let the user map its columns, and extract
+// each student's team, name, and email address (e.g., to load teams for a peer review)
+//////////////////
+bool grueprGlobal::loadTeamsFromSpreadsheet(QWidget *parent, const QString &startingDirectory, QList<QStringList> &students, QString &fileName) {
+    const QString chosenFileName = QFileDialog::getOpenFileName(parent, QObject::tr("Open Teams File"), startingDirectory,
+                                                                QObject::tr("Teams File") + " (*.csv *.txt *.xlsx);;All Files (*)");
+    if(chosenFileName.isEmpty()) {
+        return false;
+    }
+
+    const std::unique_ptr<DataFile> teamsFile = DataFile::createForFile(chosenFileName);
+    if(!teamsFile->openExistingFile(chosenFileName)) {
+        return false;
+    }
+
+    // Read the header row
+    if(!teamsFile->readHeader()) {
+        // header row could not be read as valid data
+        grueprGlobal::errorMessage(parent, QObject::tr("File error."), QObject::tr("This file is empty or there is an error in its format."));
+        return false;
+    }
+
+    // Ask user what the columns mean
+    // Preloading the selector boxes with "unused" except first time "team", "first name", "last name", "email", and "name" are found
+    // (a team spreadsheet saved by gruepr has Section, Team, Assignment, First Name, Last Name, and Email columns, so it is recognized as is)
+    const QList<possFieldMeaning> teamsFieldOptions = {{"Team", "^(team|group)", 1},
+                                                       {"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+                                                       {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
+                                                       {"Email Address", "(e).*(mail)", 1},
+                                                       {"Full Name (First Last)", "(name)", 1},
+                                                       {"Full Name (Last, First)", "(name)", 1}};
+    if(teamsFile->chooseFieldMeaningsDialog(teamsFieldOptions, parent)->exec() == QDialog::Rejected) {
+        return false;
+    }
+
+    // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
+    const int teamField = int(teamsFile->fieldMeanings.indexOf("Team"));
+    const int emailField = int(teamsFile->fieldMeanings.indexOf("Email Address"));
+    const int firstNameField = int(teamsFile->fieldMeanings.indexOf("First Name"));
+    const int lastNameField = int(teamsFile->fieldMeanings.indexOf("Last Name"));
+    const int firstLastNameField = int(teamsFile->fieldMeanings.indexOf("Full Name (First Last)"));
+    const int lastFirstNameField = int(teamsFile->fieldMeanings.indexOf("Full Name (Last, First)"));
+    if(teamField == -1) {
+        grueprGlobal::errorMessage(parent, QObject::tr("File error."), QObject::tr("Please choose which column holds each student's team."));
+        return false;
+    }
+    if((firstNameField == -1) && (lastNameField == -1) && (firstLastNameField == -1) && (lastFirstNameField == -1)) {
+        grueprGlobal::errorMessage(parent, QObject::tr("File error."), QObject::tr("This file does not contain student names."));
+        return false;
+    }
+
+    // returns the value in the given column of the current row, or an empty string if that column isn't chosen or the row is short
+    auto valueInField = [&teamsFile](const int field) {
+        return ((field >= 0) && (field < teamsFile->fieldValues.size()))? teamsFile->fieldValues.at(field).trimmed() : QString();
+    };
+
+    // Process each row until there's an empty one, loading into a new list so that the caller's list is left untouched
+    // if this file turns out to be unusable. Rows without a team (e.g., the blank line between teams in a gruepr team file) are skipped
+    QList<QStringList> newStudents;
+    if(teamsFile->hasHeaderRow) {
+        teamsFile->readDataRow();
+    }
+    else {
+        teamsFile->readDataRow(DataFile::ReadLocation::beginningOfFile);
+    }
+    do {
+        const QString team = valueInField(teamField);
+        QString firstName, lastName;
+        if((firstNameField >= 0) || (lastNameField >= 0)) {
+            firstName = valueInField(firstNameField);
+            lastName = valueInField(lastNameField);
+        }
+        else if(firstLastNameField >= 0) {
+            // split a "First Last" name at the last space
+            const QString name = valueInField(firstLastNameField).simplified();
+            const int lastSpace = int(name.lastIndexOf(' '));
+            firstName = (lastSpace == -1)? name : name.left(lastSpace);
+            lastName = (lastSpace == -1)? "" : name.mid(lastSpace + 1);
+        }
+        else {
+            // split a "Last, First" name at the comma
+            const QString name = valueInField(lastFirstNameField).simplified();
+            const int comma = int(name.indexOf(','));
+            lastName = (comma == -1)? name : name.left(comma).trimmed();
+            firstName = (comma == -1)? "" : name.mid(comma + 1).trimmed();
+        }
+
+        if(!team.isEmpty() && !(firstName + lastName).isEmpty()) {
+            newStudents.append({team, firstName, lastName, valueInField(emailField)});
+        }
+    }
+    while(teamsFile->readDataRow());
+
+    if(newStudents.isEmpty()) {
+        grueprGlobal::errorMessage(parent, QObject::tr("File error."), QObject::tr("No students with a team were found in this file."));
+        return false;
+    }
+
+    students = newStudents;
+    fileName = chosenFileName;
+    return true;
+}
+
+//////////////////
 // Write rows of values to a text (tab-delimited), csv, or xlsx file
 //////////////////
 bool grueprGlobal::writeTabularFile(const QList<QStringList> &rows, TabularFileFormat format, const QString &fileName)
@@ -222,6 +326,7 @@ bool grueprGlobal::writeTabularFile(const QList<QStringList> &rows, TabularFileF
         return false;
     }
     QTextStream out(&saveFile);
+    out.setGenerateByteOrderMark(true);     // marks the file as UTF-8, so that Excel shows accented letters correctly (the mark is skipped when gruepr reads the file)
     const QChar delimiter = (format == TabularFileFormat::csv) ? QChar(',') : QChar('\t');
     for(const auto &rowValues : rows) {
         QStringList outRow;

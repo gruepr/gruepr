@@ -83,7 +83,7 @@ private slots:
     void questionChange();
     void multiChange(const bool newMulti);
 
-private:
+protected:      // protected (rather than private) so that the peer review questions can build on this question
     int numOfResponseOptions;
     QLabel *label = nullptr;
     QPushButton *deleteButton = nullptr;
@@ -93,7 +93,7 @@ private:
     ComboBoxWithElidedContents *responsesComboBox = nullptr;
     QCheckBox *multiAllowed = nullptr;
     QVBoxLayout *previewLayout = nullptr;
-    void updatePreviewWidget();
+    virtual void updatePreviewWidget();
 };
 
 
@@ -124,13 +124,13 @@ private slots:
     void deleteRequest();
     void questionChange();
 
-private:
+protected:      // protected (rather than private) so that the peer review questions can build on this question
     QLabel *label = nullptr;
     QPushButton *deleteButton = nullptr;
     QPlainTextEdit *questionPlainTextEdit = nullptr;
     void resizeQuestionPlainTextEdit();
     QVBoxLayout *previewLayout = nullptr;
-    void updatePreviewWidget();
+    virtual void updatePreviewWidget();
 };
 
 

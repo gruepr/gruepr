@@ -554,13 +554,28 @@ bool loadDataDialog::getFromCanvas()
         fileNotFound = (error == QNetworkReply::NetworkError::ContentNotFoundError);
         requesturl = url.toString();
     });
-    const QString filepath = canvas->downloadQuizResult(courseID, quizID, canvasSurveyName);
+    // shows how long it's been, and a bar with how much of the results Canvas says it has prepared (or, if it doesn't say, or says none yet,
+    // a bar that keeps moving, so it doesn't look stuck)
+    const QString filepath = canvas->downloadQuizResult(courseID, quizID, canvasSurveyName,
+                                                        [canvas](CanvasHandler::ReportStage stage, int percentDone, int secondsWaited){
+        const QString timeWaited = " (" + QString::number(secondsWaited / 60) + ":" + QString::number(secondsWaited % 60).rightJustified(2, '0') + ")";
+        if(stage == CanvasHandler::ReportStage::preparing) {
+            const bool percentKnown = (percentDone > 0);
+            canvas->showActionProgress(tr("Canvas is preparing the survey results...") + timeWaited, percentKnown? percentDone : 0, percentKnown? 100 : 0);
+        }
+        else {
+            canvas->showActionProgress(tr("Downloading the survey results...") + timeWaited, 0, 0);
+        }
+    });
     canvas->actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
     const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
     if(!fail) {
         //get the roster for later comparison
-        roster = canvas->getStudentRoster(courseID);
+        roster = canvas->getStudentRoster(courseID, [canvas](int stepsDone, int numSteps){
+            canvas->showActionProgress(tr("Loading the course roster..."), stepsDone, numSteps);
+        });
     }
+    canvas->hideActionProgress();
 
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = canvas->actionDialogIcon->size();

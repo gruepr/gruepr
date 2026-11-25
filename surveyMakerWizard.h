@@ -88,6 +88,17 @@ class SurveyMakerPage : public QWizardPage
 public:
     SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent = nullptr);
 
+    /**
+     * @brief SurveyMakerPage A page with the look of the survey maker's pages, for use in another wizard (e.g., the peer review wizard).
+     * @param pageNames The names of all of the wizard's pages, shown in order across the top of the page.
+     * @param pageNum Which of the pageNames is this page.
+     * @param topLabelText The text shown in the banner above the questions.
+     * @param numSwitchQuestions The number of on/off questions (and their previews) to build.
+     * @param showPreview Whether a preview area is shown to the right of the questions.
+     */
+    SurveyMakerPage(const QStringList &pageNames, const int pageNum, const QString &topLabelText, const int numSwitchQuestions,
+                    const bool showPreview, QWidget *parent = nullptr);
+
 protected:
     QVBoxLayout *questionLayout = nullptr;
     QList<SurveyMakerQuestionWithSwitch *> questions;

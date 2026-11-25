@@ -9,6 +9,7 @@
         <file>icons_new/icons.ico</file>
         <file>icons_new/formTeams.png</file>
         <file>icons_new/makeASurvey.png</file>
+        <file>icons_new/getPeerReview.png</file>
         <file>icons_new/gruepr.icns</file>
         <file>icons_new/surveyMakerWizardTitleBackground.png</file>
         <file>icons_new/surveyMakerWizardTopLabelBackground.png</file>
@@ -55,6 +56,7 @@
         <file>icons_new/upDownButton_white.png</file>
         <file>icons_new/question.png</file>
         <file>icons_new/lock.png</file>
+        <file>icons_new/mail.png</file>
         <file>icons_new/drag-handle.png</file>
         <file>icons_new/diverse.png</file>
         <file>icons_new/similar.png</file>

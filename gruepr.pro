@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 13.3
+gruepr_version = 14.0
 copyright_year = 2019-2026
 
 QT += core gui widgets concurrent network printsupport networkauth
@@ -160,12 +160,17 @@ SOURCES += \
         dialogs/dayNamesDialog.cpp \
         dialogs/editOrAddStudentDialog.cpp \
         dialogs/editSectionNamesDialog.cpp \
+        dialogs/feedbackReleaseDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
         dialogs/identityRulesDialog.cpp \
         dialogs/listTableDialog.cpp \
         dialogs/loadDataDialog.cpp \
+        dialogs/peerReviewResultsDialog.cpp \
+        dialogs/peerReviewSampleQuestionsDialog.cpp \
+        dialogs/peerReviewStartDialog.cpp \
         dialogs/progressDialog.cpp \
         dialogs/registerDialog.cpp \
+        dialogs/reminderDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
         dialogs/startDialog.cpp \
         dialogs/teammatesRulesDialog.cpp \
@@ -182,6 +187,7 @@ SOURCES += \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
+        widgets/peerReviewQuestion.cpp \
         widgets/scoreLineGraph.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
@@ -198,6 +204,8 @@ SOURCES += \
         gruepr_globals.cpp \
         Levenshtein.cpp \
         main.cpp \
+        peerReview.cpp \
+        peerReviewWizard.cpp \
         studentRecord.cpp \
         surveyMakerWizard.cpp \
         teamingOptions.cpp \
@@ -223,12 +231,17 @@ HEADERS += \
         dialogs/dayNamesDialog.h \
         dialogs/editOrAddStudentDialog.h \
         dialogs/editSectionNamesDialog.h \
+        dialogs/feedbackReleaseDialog.h \
         dialogs/findMatchingNameDialog.h \
         dialogs/identityRulesDialog.h \
         dialogs/listTableDialog.h \
         dialogs/loadDataDialog.h \
+        dialogs/peerReviewResultsDialog.h \
+        dialogs/peerReviewSampleQuestionsDialog.h \
+        dialogs/peerReviewStartDialog.h \
         dialogs/progressDialog.h \
         dialogs/registerDialog.h \
+        dialogs/reminderDialog.h \
         dialogs/sampleQuestionsDialog.h \
         dialogs/startDialog.h \
         dialogs/teammatesRulesDialog.h \
@@ -245,6 +258,7 @@ HEADERS += \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
+        widgets/peerReviewQuestion.h \
         widgets/scoreLineGraph.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
@@ -262,6 +276,8 @@ HEADERS += \
         gruepr.h \
         gruepr_globals.h \
         Levenshtein.h \
+        peerReview.h \
+        peerReviewWizard.h \
         studentRecord.h \
         survey.h \
         surveyMakerWizard.h \

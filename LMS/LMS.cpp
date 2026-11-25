@@ -1,8 +1,11 @@
 #include "LMS.h"
+#include <algorithm>
+#include <QCoreApplication>
 #include <QDesktopServices>
 #include <QElapsedTimer>
 #include <QGraphicsOpacityEffect>
 #include <QGridLayout>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMetaEnum>
@@ -51,7 +54,7 @@ bool LMS::authenticated()
     return OAuthFlow->status() == QAbstractOAuth::Status::Granted;
 }
 
-QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data, const QByteArray &contentType)
+QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data, const QByteArray &contentType, const bool retryForbidden)
 {
     lastErrorMessage.clear();
 
@@ -60,19 +63,39 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
     if(!contentType.isEmpty()) {
         request.setHeader(QNetworkRequest::ContentTypeHeader, contentType);
     }
-    if(method == Method::post) {
+    if((method == Method::post) || (method == Method::put)) {
         request.setTransferTimeout(POST_TIMEOUT_TIME);
     }
+    auto sendRequest = [this, method, &request, &data]() {
+        switch(method) {
+        case Method::get:
+            return manager->get(request);
+        case Method::post:
+            return manager->post(request, data);
+        case Method::put:
+            return manager->put(request, data);
+        case Method::del:
+            break;
+        }
+        return manager->deleteResource(request);
+    };
 
     // a failure is retryable only if it's transient: HTTP 403/408/429/5xx, or a network-level failure with no HTTP status at all;
     // (403 is included because Google/Canvas both also use it for transient rate-limiting, not only permanent permission errors)
-    // but a POST that timed out is NOT retried, since the server may have already committed a non-idempotent request
-    auto isRetryable = [method](QNetworkReply *reply) {
+    // but a POST or PUT that timed out is NOT retried, since the server may have already committed a non-idempotent request
+    // (e.g., a PUT that adds a comment to a submission adds another comment each time it's sent)
+    auto isRetryable = [method, retryForbidden](QNetworkReply *reply) {
         if(method == Method::del) {
             return false;   // best-effort cleanup only (currently just deleteOrphanedForm); no user-visible
                              // benefit to retrying, since a failed cleanup never changes what's shown to the user
         }
         const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if((httpStatus == 403) && !retryForbidden) {
+            // a refusal (e.g., sharing a file outside the school's domain) won't change on retrying, but rate-limiting will
+            // (Google's reply says "rateLimitExceeded" or "userRateLimitExceeded"; Canvas's says "Rate Limit Exceeded")
+            const QByteArray replyText = reply->peek(reply->bytesAvailable()).toLower();
+            return replyText.contains("ratelimit") || replyText.contains("rate limit");
+        }
         if((httpStatus == 403) || (httpStatus == 408) || (httpStatus == 429) || ((httpStatus >= 500) && (httpStatus < 600))) {
             return true;
         }
@@ -80,7 +103,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
             return false;
         }
         const bool isTimeout = (reply->error() == QNetworkReply::TimeoutError) || (reply->error() == QNetworkReply::OperationCanceledError);
-        if((method == Method::post) && isTimeout) {
+        if(((method == Method::post) || (method == Method::put)) && isTimeout) {
             return false;
         }
         return true;
@@ -89,9 +112,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
     QElapsedTimer deadline;
     deadline.start();
 
-    auto *reply = (method == Method::get) ? manager->get(request) :
-                  (method == Method::post) ? manager->post(request, data) :
-                                              manager->deleteResource(request);
+    auto *reply = sendRequest();
     QEventLoop loop;
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
@@ -124,9 +145,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         QTimer::singleShot(retryDelay, &delayLoop, &QEventLoop::quit);
         delayLoop.exec();
 
-        reply = (method == Method::get) ? manager->get(request) :
-                (method == Method::post) ? manager->post(request, data) :
-                                            manager->deleteResource(request);
+        reply = sendRequest();
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
         //connect(reply, &QNetworkReply::uploadProgress, this, [](qint64 bytesSent, qint64 bytesTotal){qDebug() << "upload " << bytesSent <<" / " << bytesTotal;});
@@ -160,7 +179,14 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         const QByteArray errorBody = reply->readAll();
         // best-effort extraction of a Google-style {"error":{"message":...}} body; harmless no-op for other
         // LMS subclasses (e.g. Canvas) whose error JSON isn't shaped this way, since this class is their shared base
-        const QString jsonErrorMessage = QJsonDocument::fromJson(errorBody).object()["error"].toObject()["message"].toString();
+        const QJsonObject errorObject = QJsonDocument::fromJson(errorBody).object();
+        QString jsonErrorMessage = errorObject["error"].toObject()["message"].toString();
+        if(jsonErrorMessage.isEmpty() && errorObject.contains("errors")) {
+            // Canvas-style {"errors": [{"message": ...}]} or {"errors": {"field": [{"message": ...}]}}
+            const QJsonValue errors = errorObject["errors"];
+            jsonErrorMessage = errors.isArray()? errors.toArray().at(0).toObject()["message"].toString() :
+                                                 QString::fromUtf8(QJsonDocument(errors.toObject()).toJson(QJsonDocument::Compact));
+        }
         if(!jsonErrorMessage.isEmpty()) {
             lastErrorMessage += "\n" + jsonErrorMessage;
         }
@@ -186,6 +212,10 @@ QDialog* LMS::actionDialog(QWidget *parent)
     actionDialogLabel->setTextFormat(Qt::RichText);
     actionDialogLabel->setWordWrap(false);
     actionDialogLabel->setText(getActionDialogLabel());
+    actionDialogProgressBar = new QProgressBar(dialog);
+    actionDialogProgressBar->setStyleSheet(PROGRESSBARSTYLE);
+    actionDialogProgressBar->setTextVisible(false);
+    actionDialogProgressBar->hide();
     actionDialogButtons = new QDialogButtonBox(dialog);
     actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);
     actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
@@ -195,7 +225,8 @@ QDialog* LMS::actionDialog(QWidget *parent)
     dialog->setLayout(theGrid);
     theGrid->addWidget(actionDialogIcon, 0, 0, Qt::AlignLeft | Qt::AlignTop);
     theGrid->addWidget(actionDialogLabel, 0, 1, Qt::AlignLeft | Qt::AlignVCenter);
-    theGrid->addWidget(actionDialogButtons, 1, 0, 1, -1);
+    theGrid->addWidget(actionDialogProgressBar, 1, 0, 1, -1);
+    theGrid->addWidget(actionDialogButtons, 2, 0, 1, -1);
     theGrid->setColumnStretch(1, 1);
     dialog->setModal(true);
     dialog->show();
@@ -205,6 +236,31 @@ QDialog* LMS::actionDialog(QWidget *parent)
     startBusyAnimation();
 
     return dialog;
+}
+
+void LMS::showActionProgress(const QString &text, const int done, const int total)
+{
+    if((actionDialogLabel == nullptr) || (actionDialogProgressBar == nullptr)) {
+        return;
+    }
+    actionDialogLabel->setText(text);
+    // the label only ever widens, so no text is cut off and the dialog doesn't change size with every new text
+    actionDialogLabel->setMinimumWidth(std::max(actionDialogLabel->minimumWidth(), actionDialogLabel->sizeHint().width()));
+    actionDialogProgressBar->setRange(0, std::max(0, total));      // (a range of 0 to 0 makes a bar that keeps moving)
+    actionDialogProgressBar->setValue(std::clamp(done, 0, std::max(0, total)));
+    actionDialogProgressBar->show();
+    actionDialogLabel->window()->adjustSize();
+    QCoreApplication::processEvents();
+}
+
+void LMS::hideActionProgress()
+{
+    if((actionDialogLabel == nullptr) || (actionDialogProgressBar == nullptr)) {
+        return;
+    }
+    actionDialogProgressBar->hide();
+    actionDialogLabel->setMinimumWidth(0);
+    actionDialogLabel->window()->adjustSize();
 }
 
 void LMS::actionComplete(QDialog *busyDialog)

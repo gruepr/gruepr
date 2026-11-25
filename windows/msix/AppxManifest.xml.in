@@ -27,7 +27,7 @@
             ProcessorArchitecture=\"x64\" />
 
   <Properties>
-    <DisplayName>gruepr(new)</DisplayName>
+    <DisplayName>gruepr</DisplayName>
     <PublisherDisplayName>gruepr</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>

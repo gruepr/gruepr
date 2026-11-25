@@ -32,10 +32,23 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - added peer review, a third button on the start screen, to ask the members of each team for feedback about each other
+//      - teams come from a saved gruepr session, a spreadsheet, or a Canvas group set
+//      - peer feedback can be solicited via Google Form or a Canvas quiz (a separate quiz for each team)
+//      - questions can be rating scales, number scales, contribution to the work, unscored choices, numbers, or written answers
+//      - start from a default set of questions, a contribution-based set, a saved question set, or an earlier peer review
+//      - each question can be set as a self assessment, peer assessment, self and peer assessment, or standalone question
+//      - each question's responses can be private to the instructor, shared with teammates anonymously, or shared with teammates with name attached
+//      - results show who has responded, each student's ratings and how much teammates agree, the answers to each question, contribution, and flags
+//      - each student's feedback report can be previewed and edited, then delivered as PDFs, a mail merge file, Google Docs, or posted as a Canvas comment
 //  - added a confirmation dialog when closing a teamset tab
 //  - switched the session save file from QFile to QSaveFile for crash-proof saves
 //  - switched saved authorization tokens to encrypted storage
-//  - added a way to delete saved sessions
+//  - added a way to delete saved team forming sessions
+//  - moved Windows Store to be msix based, for auto-maintained updates
+//  - fixed accented letters showing incorrectly in csv files
+//  - added progress bars to the slower Canvas actions: downloading survey results, creating a survey or teams in Canvas, and the peer review quizzes
+//  - added feature to remind students who haven't submitted a survey or a peer review: copy their email addresses, send Canvas messages, or make mail merge file with personalized messages
 //
 // TO DO:
 //
@@ -44,7 +57,6 @@
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Qualtrics, moodle, SurveyMonkey, possibly by outputting an xml survey (check QTI) and inputting csv
 //  - add integration with Microsoft Forms (Azure/Entra, whenever their API is published)
-//  - add a peer review system
 //
 //    INTERNAL:
 //  - move required / separated attributes into distinct criteria?
@@ -54,7 +66,7 @@
 //    NETWORK IMPLEMENTATION:
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
 //      - Form options: don't collect email, don't limit one response per user, don't show link to respond again
-//      - Question options: req'd question, answer validity checks (for email & numerical input questions)
+//      - Question options: answer validity checks (for email & numerical input questions)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"

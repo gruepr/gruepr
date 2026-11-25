@@ -41,6 +41,17 @@ Description of gruepr:
      separated-values (.csv) file, a tab-delimited-values (.txt) file, or an Excel (.xlsx) file with each
      question as a separate column and each student as a separate row.
 
+     Once teams are working together, gruepr can also run a peer review, in which the members of each team
+     give feedback about each other. The teams come from a saved gruepr session or from a spreadsheet. The
+     questions can be rating scales, number scales, contribution to the team's work (compared to an equal
+     share, using the method of TEAMMATES), unscored choices, numbers, or written answers, and each question
+     can be kept for the instructor or shared with students. Gruepr creates a Google Form in which each
+     student chooses their name and answers about their own team. The results show who has responded, each
+     student's ratings from their teammates and how much those teammates agree, and flags such as low or
+     high contributors. Before any feedback reaches students, the instructor previews each student's report
+     and can edit or leave out comments; the reports can then be saved as PDFs or a mail merge file, or
+     shared with each student as a Google Doc.
+
      Integration with various learning management systems is currently in development. Canvas integrations
      currently use a user-generated API token. Gruepr can create the survey as an ungraded quiz in the
      Canvas course, can directly import the survey results, and can upload the created teams as groups in

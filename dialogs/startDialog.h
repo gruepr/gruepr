@@ -37,9 +37,19 @@ private:
     void openSurveyMaker();
 
     /**
+     * @brief openSurveyReminders Asks which survey made by the form builder, and opens the window to remind the students who haven't responded to it.
+     */
+    void openSurveyReminders();
+
+    /**
      * @brief openGruepr Opens the survey importing page (other option on the introductory Gruepr window).
      */
     void openGruepr();
+
+    /**
+     * @brief openPeerReview Opens the list of peer reviews, from which a new peer review can be created or a saved one's results loaded.
+     */
+    void openPeerReview();
 
     /**
      * @brief The GrueprVersion enum are the different versions for Gruepr software.
@@ -56,18 +66,24 @@ private:
     QProgressDialog *loadingBar = nullptr;
     QList<QAction *> helpActions;
 
-    inline static const int BASEWINDOWWIDTH = 800;
-    inline static const int BASEWINDOWHEIGHT = 456;
+    inline static const int BASEWINDOWWIDTH = 1000;     // same proportions as the background image (2400 x 1368)
+    inline static const int BASEWINDOWHEIGHT = 570;
     inline static const int LEFTRIGHTSPACERWIDTH = 74;
-    inline static const int MIDDLESPACERWIDTH = 42;
-    inline static const int TOPSPACERHEIGHT = 30;
-    inline static const int MIDDLESPACERHEIGHT = 36;
-    inline static const int BOTTOMSPACERHEIGHT = 46;
-    inline static const QSize TOOLBUTTONSIZE = QSize(300, 256);
+    inline static const int MIDDLESPACERWIDTH = 36;
+    inline static const int TOPSPACERHEIGHT = 60;
+    inline static const int MIDDLESPACERHEIGHT = 60;
+    inline static const int BOTTOMSPACERHEIGHT = 80;
+    inline static const QSize TOOLBUTTONSIZE = QSize(260, 256);
+    inline static const int TOOLBUTTONBORDER = 3;           // (the border-width in STARTDIALODBUTTONSTYLE)
 #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     inline static const QSize INFOBUTTONSIZE = QSize(25, 25);
 #endif
     inline static const int ICONHEIGHT = 117;
+    inline static const int MENUBADGESIZE = 36;             // the round badge in the corner of the form builder button, which opens survey reminders
+    inline static const int MENUBADGEMARGIN = 9;            // from the button's edges (less, down to MENUBADGEMINMARGIN, if the label would run under it)
+    inline static const int MENUBADGEMINMARGIN = TOOLBUTTONBORDER + 2;
+    inline static const int MENUBADGEICONSIZE = 24;         // the envelope on the badge
+    inline static const int MENUBADGECALLOUTGAP = 4;        // between the badge and the "send a reminder" words to its left
     inline static const int BIGFONTSIZE = 24;
     inline static const int LITTLEFONTSIZE = 12;
 };

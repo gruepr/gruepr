@@ -66,6 +66,15 @@ inline static const char WHITEDIALOGSTYLE[] = "QDialog{background-color: white;}
 inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 3px; border-radius: 8px; border-color:" DEEPWATERHEX ";"
                                                                   "color: " DEEPWATERHEX "; background-color: " BUBBLYHEX ";} "
                                                     "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " FOAMHEX ";}";
+// a round badge in the corner of a start button, for a second thing the button's area can do (e.g., reminders for a survey);
+// its border-radius is half of StartDialog::MENUBADGESIZE (36 px), so it's a circle
+inline static const char STARTDIALOGBADGESTYLE[] = "QToolButton {border-style: solid; border-width: 2px; border-radius: 18px; border-color: " DEEPWATERHEX "; "
+                                                                "color: " DEEPWATERHEX "; background-color: white; padding: 0px;}"
+                                                   "QToolButton:hover {border-color: " OPENWATERHEX "; color: " OPENWATERHEX "; background-color: " FOAMHEX ";}";
+// clickable words beside that badge, pointing to it (e.g., "send a reminder →")
+inline static const char STARTDIALOGCALLOUTSTYLE[] = "QPushButton {border: none; background-color: transparent; color: " DEEPWATERHEX "; "
+                                                                  "font: italic 11pt 'DM Sans'; padding: 0px;}"
+                                                     "QPushButton:hover {color: " OPENWATERHEX "; text-decoration: underline;}";
 
 inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
                                                            "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
@@ -519,6 +528,44 @@ inline static const char RESPONSE_OPTIONS[] {"1. Yes / 2. No;"
                                "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10;"
                                "Custom options..."};
 
+//additional response options offered (ahead of the ones above) in the peer review questions -- same character restrictions as above
+//numbered like the ones above; in a rating scale question the first option is the best, and in a choice question the numbers aren't shown
+inline static const char PEERREVIEW_RESPONSE_OPTIONS[] {"1. Always / 2. Usually / 3. Sometimes / 4. Rarely / 5. Never;"
+                                          "1. Far above expectations / 2. Above expectations / 3. Met expectations / 4. Below expectations / 5. Far below expectations;"
+                                          "1. Leader / 2. Organizer / 3. Researcher / 4. Builder / 5. Writer / 6. Presenter / 7. Supporter;"
+                                          "1. Too much / 2. About right / 3. Too little"};
+
+//text used in the peer review Google Form and in the feedback reports sent to students
+inline static const char PEERREVIEWINSTRUCTIONS[] {"Instructions:\n\n"
+                                                   "Choose your name, and then answer the questions about each member of your team.\n\n"
+                                                   "Your instructor will see all of your answers. The note under each question says "
+                                                   "what, if anything, your teammates will see, and whether your name is shown.\n\n"
+                                                   "Please be honest, specific, and kind."};
+inline static const char PEERREVIEWCANVASINSTRUCTIONS[] {"Instructions:\n\n"        // for the Canvas quizzes, in which students don't choose their name
+                                                         "Answer the questions about each member of your team.\n\n"
+                                                         "Your instructor will see all of your answers. The note under each question says "
+                                                         "what, if anything, your teammates will see, and whether your name is shown.\n\n"
+                                                         "Please be honest, specific, and kind."};
+inline static const char PEERREVIEWNAMEQUESTION[] = "What is your name?";
+inline static const char PEERREVIEWSUBMITQUESTION[] = "Ready to submit?";
+inline static const char PEERREVIEWSUBMITOPTION[] = "I have reviewed my responses and am ready to submit my feedback.";
+inline static const char PEERREVIEWSKIPYOURSELF[] = "Skip the line with your own name.";
+inline static const char PEERREVIEWSKIPYOURSELFQUESTION[] = "Skip the question about yourself.";    // in a Canvas quiz, where each teammate gets their own question
+inline static const char PEERREVIEWNOTEINSTRUCTOR[] = "Only your instructor will see your answers.";
+inline static const char PEERREVIEWNOTEPERSON[] = "Each teammate will see the answers about them, without your name.";
+inline static const char PEERREVIEWNOTEPERSONAVERAGE[] = "Each teammate will see only the average of the ratings about them, without names.";
+inline static const char PEERREVIEWNOTEPERSONNAMED[] = "Each teammate will see the answers about them, with your name.";
+inline static const char PEERREVIEWNOTETEAMNAMED[] = "Your teammates will see your answer, with your name.";
+inline static const char PEERREVIEWNOTETEAMANONYMOUS[] = "Your teammates will see the answers, without names.";
+inline static const char PEERREVIEWNOTETEAMWITHNAMES[] = "Your teammates will see the answers, with names.";
+inline static const char PEERREVIEWPOINTSNOTE[] = "Enter a number for each person: 100 means an equal share of the work, 0 means no work, and 200 means twice an equal share.";
+inline static const char PEERREVIEWGRIDNOTE[] = "Compare each person's share of the work to an equal share: -100% means no work, and +100% means twice an equal share.";
+inline static const char PEERREVIEWNOTSURE[] = "Not sure";
+inline static const char PEERREVIEWREPORTINTRO[] {"Here is the feedback your teammates gave you in our peer review. Unless a question says otherwise, "
+                                                  "ratings are shown only as averages, and comments are shown without names and in random order.\n\n"
+                                                  "Please take a day to think about this feedback before you reply to it or discuss it with "
+                                                  "your team. If anything here concerns you, please talk with me."};
+
 // Options for the team names; must have corresponding entry in each of the next three sets
 enum class TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};
 // Numeric: increase without end;
@@ -776,6 +823,18 @@ namespace grueprGlobal {
      * the file couldn't be opened, or it didn't contain identifiable name data.
      */
     bool loadRoster(QWidget *parent, const QString &startingDirectory, QStringList &names, QStringList *emails = nullptr);
+
+    /**
+     * @brief loadTeamsFromSpreadsheet Prompts the user to choose and open a spreadsheet of teams (.csv/.txt/.xlsx), lets them
+     * map its columns to team, name, and email fields, and extracts one row per student.
+     * @param parent The parent window for the file-open and column-mapping dialogs.
+     * @param startingDirectory Directory the file-open dialog should start in.
+     * @param students Receives one {team name, first name, last name, email} entry per student, in the order found in the file.
+     * @param fileName Receives the name of the file that was opened.
+     * @return True if team and name data were extracted; false if the user cancelled, the file couldn't be opened,
+     * or it didn't contain both a team column and student names.
+     */
+    bool loadTeamsFromSpreadsheet(QWidget *parent, const QString &startingDirectory, QList<QStringList> &students, QString &fileName);
 
     enum class TabularFileFormat {text, csv, xlsx};
 

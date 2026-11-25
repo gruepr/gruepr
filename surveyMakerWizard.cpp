@@ -323,27 +323,31 @@ void SurveyMakerWizard::reject() {
 
 
 SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
+    : SurveyMakerPage(SurveyMakerWizard::pageNames, page,
+                      (page != SurveyMakerWizard::Page::previewexport)? (SurveyMakerWizard::pageNames[page] + " " + tr("Questions")) : "Survey Preview",
+                      ((page != SurveyMakerWizard::Page::attribute) && (page != SurveyMakerWizard::Page::freeresponse))?
+                          SurveyMakerWizard::numOfQuestionsInPage[page] : 0,     // attribute and free response pages build their own questions
+                      (page != SurveyMakerWizard::Page::previewexport), parent)
+{
+}
+
+SurveyMakerPage::SurveyMakerPage(const QStringList &pageNames, const int pageNum, const QString &topLabelText, const int numSwitchQuestions,
+                                 const bool showPreview, QWidget *parent)
     : QWizardPage(parent),
-    numQuestions(SurveyMakerWizard::numOfQuestionsInPage[page])
+    numQuestions(numSwitchQuestions)
 {
     QString title = "<span style=\"color: " DEEPWATERHEX "\">";
-    for(int i = 0; i < SurveyMakerWizard::pageNames.count(); i++) {
+    for(int i = 0; i < pageNames.count(); i++) {
         if(i > 0) {
             title += " &emsp;/&emsp; ";
         }
-        title += SurveyMakerWizard::pageNames[i];
-        if(i == page) {
+        title += pageNames[i];
+        if(i == pageNum) {
             title += "</span><span style=\"color: " OPENWATERHEX "\">";
         }
     }
     title += "</span>";
-    QString label = "  ";
-    if(page != SurveyMakerWizard::Page::previewexport) {
-        label += SurveyMakerWizard::pageNames[page] + " " + tr("Questions");
-    }
-    else {
-        label += "Survey Preview";
-    }
+    const QString label = "  " + topLabelText;
 
     layout = new QGridLayout(this);
     layout->setSpacing(0);
@@ -373,7 +377,7 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
     questionArea->setWidgetResizable(true);
     questionWidget->setLayout(questionLayout);
 
-    if(page != SurveyMakerWizard::Page::previewexport) {
+    if(showPreview) {
         layout->addWidget(questionArea, 2, 0, -1, 1);
 
         previewWidget = new QWidget;
@@ -392,28 +396,26 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
         layout->setColumnStretch(0,1);
         layout->setColumnStretch(1,1);
 
-        if(page != SurveyMakerWizard::Page::attribute && page != SurveyMakerWizard::Page::freeresponse) {
-            for(int i = 0; i < numQuestions; i++) {
-                questions << new SurveyMakerQuestionWithSwitch;
-                questionPreviews << new QWidget;
-                questionPreviewLayouts << new QVBoxLayout;
-                questionPreviewTopLabels << new QLabel;
-                questionPreviewBottomLabels << new QLabel;
+        for(int i = 0; i < numQuestions; i++) {
+            questions << new SurveyMakerQuestionWithSwitch;
+            questionPreviews << new QWidget;
+            questionPreviewLayouts << new QVBoxLayout;
+            questionPreviewTopLabels << new QLabel;
+            questionPreviewBottomLabels << new QLabel;
 
-                questionLayout->addSpacing(10);
-                questionLayout->addWidget(questions.last());
+            questionLayout->addSpacing(10);
+            questionLayout->addWidget(questions.last());
 
-                questionPreviews.last()->setLayout(questionPreviewLayouts.last());
-                questionPreviewLayouts.last()->setSpacing(0);
-                previewLayout->addWidget(questionPreviews.last());
-                questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
-                questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
-                questionPreviewTopLabels.last()->setStyleSheet(LABEL10PTSTYLE);
-                questionPreviewTopLabels.last()->setWordWrap(true);
-                questionPreviewBottomLabels.last()->setStyleSheet(LABEL10PTSTYLE);
-                questionPreviewBottomLabels.last()->setWordWrap(true);
-                connect(questions.last(), &SurveyMakerQuestionWithSwitch::valueChanged, questionPreviews.last(), &QWidget::setVisible);
-            }
+            questionPreviews.last()->setLayout(questionPreviewLayouts.last());
+            questionPreviewLayouts.last()->setSpacing(0);
+            previewLayout->addWidget(questionPreviews.last());
+            questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
+            questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
+            questionPreviewTopLabels.last()->setStyleSheet(LABEL10PTSTYLE);
+            questionPreviewTopLabels.last()->setWordWrap(true);
+            questionPreviewBottomLabels.last()->setStyleSheet(LABEL10PTSTYLE);
+            questionPreviewBottomLabels.last()->setWordWrap(true);
+            connect(questions.last(), &SurveyMakerQuestionWithSwitch::valueChanged, questionPreviews.last(), &QWidget::setVisible);
         }
         questionLayout->addStretch(1);
         previewLayout->addStretch(1);
@@ -3390,9 +3392,15 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     const long long courseID = coursesComboBox->currentData().toLongLong();
     canvasCoursesDialog->deleteLater();
 
-    //upload the survey as a quiz
+    //upload the survey as a quiz, showing which question is being made and a bar with the progress (each request to Canvas is a step)
     busyBox = canvas->actionDialog(this);
-    const bool success = canvas->createSurvey(courseID, survey.data());
+    const int numQuestions = int(survey->questions.size());
+    const bool success = canvas->createSurvey(courseID, survey.data(), [canvas, numQuestions](int questionNum, int stepsDone, int numSteps){
+        canvas->showActionProgress((questionNum < 0)? tr("Creating the survey...") :
+                                       (tr("Creating question") + " " + QString::number(questionNum + 1) + " " + tr("of") + " " + QString::number(numQuestions) + "..."),
+                                   stepsDone, numSteps);
+    });
+    canvas->hideActionProgress();
 
     const QPixmap resultIcon(success? ":/icons_new/ok.png" : ":/icons_new/error.png");
     const QSize iconSize = canvas->actionDialogIcon->size();

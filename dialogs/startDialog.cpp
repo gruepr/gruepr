@@ -1,9 +1,15 @@
 #include "startDialog.h"
 #include "dialogs/loadDataDialog.h"
+#include "dialogs/peerReviewResultsDialog.h"
+#include "dialogs/peerReviewStartDialog.h"
 #include "dialogs/registerDialog.h"
+#include "dialogs/reminderDialog.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
+#include "peerReviewWizard.h"
 #include "surveyMakerWizard.h"
+#include <algorithm>
+#include <cmath>
 #include <memory>
 #include <QApplication>
 #include <QCryptographicHash>
@@ -15,13 +21,14 @@
 #include <QMenuBar>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QPushButton>
 #include <QSettings>
 #include <QStringList>
 #include <QTimer>
 #include <QToolButton>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to choose whether to create a survey or use survey results to form teams;
+// A dialog to choose whether to create a survey, use survey results to form teams, or get peer review from teams;
 // also offers the ability to register an unregistered copy of the program and to download a new version
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +42,12 @@ StartDialog::StartDialog(QWidget *parent)
     const QFont mainBoxFont("DM Sans", BIGFONTSIZE);
     const QFont labelFont("DM Sans", LITTLEFONTSIZE);
     setFont(mainBoxFont);
+
+    // each button's explanation sits a line higher than centered in the space below its picture, so it's closer to the picture's title
+    // with more space beneath it (the text is centered in that space, so padding its bottom by two lines raises it by one)
+    const QFontMetrics labelMetrics(labelFont);
+    const int labelLift = 2 * labelMetrics.lineSpacing();
+    const QString startButtonStyle = QString(STARTDIALODBUTTONSTYLE) + "QToolButton {padding-bottom: " + QString::number(labelLift) + "px;}";
 
     QPixmap backgroundPic(":/icons_new/startup_new.png");
     setFixedSize(BASEWINDOWWIDTH, BASEWINDOWHEIGHT);
@@ -64,9 +77,55 @@ StartDialog::StartDialog(QWidget *parent)
     const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     survMakeButton->setIconSize(ICONSIZE);
     survMakeButton->setFont(labelFont);
-    survMakeButton->setText(tr("Need to collect student data?\nUse our form builder."));
-    survMakeButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
+    survMakeButton->setText(tr("Need student data?\nUse our form builder."));
+    survMakeButton->setStyleSheet(startButtonStyle);
     connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
+    // the button opens the form builder, and a small round badge in its bottom right corner (and the words beside it that point to it)
+    // opens the reminders for a survey
+    auto *surveyReminderButton = new QToolButton(survMakeButton);
+    surveyReminderButton->setIcon(QIcon(":/icons_new/mail.png"));
+    surveyReminderButton->setIconSize(QSize(MENUBADGEICONSIZE, MENUBADGEICONSIZE));
+    surveyReminderButton->setStyleSheet(STARTDIALOGBADGESTYLE);
+    surveyReminderButton->setFixedSize(MENUBADGESIZE, MENUBADGESIZE);
+    // the badge is moved further into the corner if the label (e.g., translated, or in other font sizes) would otherwise run under it;
+    // the label is laid out centered below the icon (above the bottom padding), and its lines are measured here to find where they end
+    const QStringList labelLines = survMakeButton->text().split('\n');
+    const double lineHeight = labelMetrics.lineSpacing();
+    const double textTop = TOOLBUTTONBORDER + ICONHEIGHT + 4, textBottom = TOOLBUTTONSIZE.height() - TOOLBUTTONBORDER - labelLift;
+    const double labelTop = (textTop + textBottom - double(labelLines.size()) * lineHeight) / 2;
+    auto badgeOverlapsLabel = [&](const int margin) {
+        const double radius = MENUBADGESIZE / 2.0 + 2;      // (with a little space around the badge)
+        const double centerX = TOOLBUTTONSIZE.width() - margin - MENUBADGESIZE / 2.0;
+        const double centerY = TOOLBUTTONSIZE.height() - margin - MENUBADGESIZE / 2.0;
+        for(int lineNum = 0; lineNum < labelLines.size(); lineNum++) {
+            const double lineWidth = labelMetrics.horizontalAdvance(labelLines.at(lineNum));
+            const double left = (TOOLBUTTONSIZE.width() - lineWidth) / 2, right = (TOOLBUTTONSIZE.width() + lineWidth) / 2;
+            const double top = labelTop + lineNum * lineHeight, bottom = top + lineHeight;
+            const double nearestX = std::clamp(centerX, left, right), nearestY = std::clamp(centerY, top, bottom);
+            if(std::hypot(nearestX - centerX, nearestY - centerY) < radius) {
+                return true;
+            }
+        }
+        return false;
+    };
+    int badgeMargin = MENUBADGEMARGIN;
+    while((badgeMargin > MENUBADGEMINMARGIN) && badgeOverlapsLabel(badgeMargin)) {
+        badgeMargin--;
+    }
+    surveyReminderButton->move(TOOLBUTTONSIZE.width() - MENUBADGESIZE - badgeMargin, TOOLBUTTONSIZE.height() - MENUBADGESIZE - badgeMargin);
+    surveyReminderButton->setCursor(Qt::PointingHandCursor);
+    surveyReminderButton->setToolTip(tr("Remind students about a survey..."));
+    connect(surveyReminderButton, &QToolButton::clicked, this, &StartDialog::openSurveyReminders);
+    auto *surveyReminderCallout = new QPushButton(tr("send a reminder") + " " + QChar(RIGHTARROW), survMakeButton);
+    surveyReminderCallout->setStyleSheet(STARTDIALOGCALLOUTSTYLE);
+    surveyReminderCallout->setFlat(true);
+    surveyReminderCallout->ensurePolished();        // (so its size is that of its styled font)
+    surveyReminderCallout->adjustSize();
+    surveyReminderCallout->move(std::max(TOOLBUTTONBORDER + 2, surveyReminderButton->x() - MENUBADGECALLOUTGAP - surveyReminderCallout->width()),
+                                surveyReminderButton->y() + (MENUBADGESIZE - surveyReminderCallout->height()) / 2);
+    surveyReminderCallout->setCursor(Qt::PointingHandCursor);
+    surveyReminderCallout->setToolTip(tr("Remind students about a survey..."));
+    connect(surveyReminderCallout, &QPushButton::clicked, this, &StartDialog::openSurveyReminders);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
 
     theGrid->setColumnMinimumWidth(col++, MIDDLESPACERWIDTH);
@@ -77,10 +136,23 @@ StartDialog::StartDialog(QWidget *parent)
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
     grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(labelFont);
-    grueprButton->setText(tr("Already have your student data?\nStart forming your groups."));
-    grueprButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
+    grueprButton->setText(tr("Have student data?\nStart forming your groups."));
+    grueprButton->setStyleSheet(startButtonStyle);
     connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
-    theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
+    theGrid->addWidget(grueprButton, row, col++, 1, 1, Qt::AlignCenter);
+
+    theGrid->setColumnMinimumWidth(col++, MIDDLESPACERWIDTH);
+
+    auto *peerReviewButton = new QToolButton(this);
+    peerReviewButton->setFixedSize(TOOLBUTTONSIZE);
+    peerReviewButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    peerReviewButton->setIcon(QIcon(":/icons_new/getPeerReview.png"));
+    peerReviewButton->setIconSize(ICONSIZE);
+    peerReviewButton->setFont(labelFont);
+    peerReviewButton->setText(tr("Teams up and running?\nAsk teammates for feedback."));
+    peerReviewButton->setStyleSheet(startButtonStyle);
+    connect(peerReviewButton, &QToolButton::clicked, this, &StartDialog::openPeerReview);
+    theGrid->addWidget(peerReviewButton, row++, col++, 1, 1, Qt::AlignRight);
 
     theGrid->setColumnMinimumWidth(col, LEFTRIGHTSPACERWIDTH);
 
@@ -111,8 +183,8 @@ StartDialog::StartDialog(QWidget *parent)
     // show the version number now; upgrade info will appear asynchronously
     upgradeLabel->setText(tr("Version") + ": " + GRUEPR_VERSION_NUMBER);
     upgradeLabel->setAlignment(Qt::AlignRight);
-    theGrid->addWidget(registerLabel, row, 1, 1, 1, Qt::AlignLeft);
-    theGrid->addWidget(upgradeLabel, row, 3, 1, 1, Qt::AlignRight);
+    theGrid->addWidget(registerLabel, row, 1, 1, 3, Qt::AlignLeft);
+    theGrid->addWidget(upgradeLabel, row, 5, 1, 1, Qt::AlignRight);
 
     // Add help/about items to the application menu on mac or a dropdown toolbutton in corner of dialog on windows
     helpActions << new QAction("gruepr homepage", this);
@@ -134,7 +206,7 @@ StartDialog::StartDialog(QWidget *parent)
     helpButton->setPopupMode(QToolButton::InstantPopup);
     helpButton->setIcon(QIcon(":/icons_new/infoButton.png"));
     helpButton->setIconSize(INFOBUTTONSIZE);
-    theGrid->addWidget(helpButton, row, 4, 1, 1, Qt::AlignRight);
+    theGrid->addWidget(helpButton, row, 6, 1, 1, Qt::AlignRight);
     auto *helpMenu = new QMenu(this);
     for(const auto &helpAction : std::as_const(helpActions)) {
         helpAction->setFont(labelFont);
@@ -199,6 +271,48 @@ void StartDialog::openGruepr() {
     }
     else {
         emit closeDataDialogProgressBar();
+    }
+    this->show();
+}
+
+
+void StartDialog::openSurveyReminders() {
+    ReminderDialog::remindAboutSurvey(this);
+}
+
+
+void StartDialog::openPeerReview() {
+    this->hide();
+    // keep showing the list of peer reviews until it's closed, each time doing whatever was chosen from it
+    while(true) {
+        const auto peerReviewStartDialog = std::make_unique<PeerReviewStartDialog>();
+        if(peerReviewStartDialog->exec() == QDialog::Rejected) {
+            break;
+        }
+        const auto action = peerReviewStartDialog->action;
+        const QString fileName = peerReviewStartDialog->chosenFileName;
+
+        PeerReview savedPeerReview;
+        if((action != PeerReviewStartDialog::Action::newPeerReview) && !PeerReview::load(fileName, savedPeerReview)) {
+            grueprGlobal::errorMessage(this, tr("File Error"), tr("This peer review cannot be read."));
+            continue;
+        }
+
+        if(action == PeerReviewStartDialog::Action::loadResults) {
+            const auto resultsDialog = std::make_unique<PeerReviewResultsDialog>(savedPeerReview);
+            resultsDialog->exec();
+            continue;
+        }
+
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+        const auto peerReviewWizard = std::make_unique<PeerReviewWizard>((action == PeerReviewStartDialog::Action::newRound)? &savedPeerReview : nullptr);
+        peerReviewWizard->show();
+        QApplication::processEvents();          // force the first page to paint
+        peerReviewWizard->loadTeams();          // then read the teams, which can take a moment for a large saved session
+        QApplication::restoreOverrideCursor();
+        QEventLoop loop;
+        connect(peerReviewWizard.get(), &QWizard::finished, &loop, &QEventLoop::quit);
+        loop.exec();
     }
     this->show();
 }
